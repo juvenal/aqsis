@@ -300,8 +300,8 @@ void CqMicroPolyGrid::Shade()
 
     for ( i = gsmin1; i >= 0; i-- )
     {
-    if ( USES( lUses, EnvVars_du ) )
-    {
+	    if ( USES( lUses, EnvVars_du ) )
+		{
             TqFloat v1, v2;
             TqInt GridX = i % ( uRes + 1 );
 
@@ -318,8 +318,8 @@ void CqMicroPolyGrid::Shade()
                 pVar(EnvVars_du) ->SetFloat( v1 - v2, i );
             }
         }
-    if ( USES( lUses, EnvVars_dv ) )
-    {
+		if ( USES( lUses, EnvVars_dv ) )
+		{
             TqFloat v1, v2;
             TqInt GridY = ( i / ( uRes + 1 ) );
 
@@ -347,7 +347,12 @@ void CqMicroPolyGrid::Shade()
 				pI->SetVector( pP[ i ], i );
 				break;
 		}
+    }
 
+	/// \note: This second pass over the grid is necessary, as the "P" primitive variable isn't fully populated
+	/// until the previous loop is complete, making it impossible to calculate derivatives.
+    for ( i = gsmin1; i >= 0; i-- )
+    {
         if ( bdpu )
         {
             pVar(EnvVars_dPdu) ->SetVector( SO_DuType<CqVector3D>( pSDP, i, m_pShaderExecEnv.get(), Defvec ), i );
