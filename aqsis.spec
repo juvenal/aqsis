@@ -1,22 +1,19 @@
-%{!?rel:    %define rel    %(date +%Y%m%d)}
+# Mo Jan 17 16:36:55 CET 2005 
+# automatically created with specgen.sh
 
 Name: aqsis
-
-Version: 0.9.3_%{rel}
-#Version: 0.9.3
-
-Release: %{distro}
+Version: 1.0.0
+Release: FC1
 Summary: RenderMan(tm)-compatible renderer
 License: GPL
 Group: Applications/Graphics
 Vendor: none
 URL: www.aqsis.com
-Packager: cgtobix
+Packager: Tobias Sauerwein
 Source: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
 Requires: /sbin/ldconfig, libtiff >= 3.5.7, libjpeg >= 6b, zlib >= 1.1.4, fltk
 AutoReqProv: no
-
 
 %description
 A RenderMan(tm)-compatible renderer
@@ -25,8 +22,8 @@ A RenderMan(tm)-compatible renderer
 %setup -q
 
 %build
-#export CFLAGS="-O2" 
-#export CXXFLAGS="-O29" 
+export CFLAGS="-O3"
+export CXXFLAGS="-O3"
 ./configure --bindir=%{_bindir} --mandir=%{_mandir} --libdir=%{_libdir} --datadir=%{_datadir} --includedir=%{_includedir} --sysconfdir=%{_sysconfdir}
 
 make
@@ -35,15 +32,6 @@ make
 rm -fr %{buildroot}
 
 %makeinstall
-#cat << EOF > $RPM_BUILD_ROOT/%{_sysconfdir}/displays.ini
-#cat << EOF > $RPM_BUILD_ROOT/%{_libdir}/displays.ini
-#file	%{_libdir}/aqsis/libdisplay.so
-#framebuffer	%{_libdir}/aqsis/libdisplay.so
-#zfile	%{_libdir}/aqsis/libdisplay.so
-#zframebuffer	%{_libdir}/aqsis/libdisplay.so
-#shadow	%{_libdir}/aqsis/libdisplay.so
-#tiff	%{_libdir}/aqsis/libdisplay.so
-#EOF
 
 %post -p /sbin/ldconfig
 
@@ -61,8 +49,6 @@ rm -fr %{buildroot}
 %{_datadir}/aqsis/shaders/*
 %{_includedir}/*
 %{_mandir}/man1/*
-#%dir %{_sysconfdir}/
-#%{_sysconfdir}/*
 
 %changelog
 
@@ -74,7 +60,4 @@ rm -fr %{buildroot}
 - Make it working for RedHat9/Fedora
 * Wed Oct 23 2002 Damien Miller <djm@mindrot.org>
 - Make an RPM
-
-
-
 
