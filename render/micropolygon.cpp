@@ -351,18 +351,21 @@ void CqMicroPolyGrid::Shade()
 
 	/// \note: This second pass over the grid is necessary, as the "P" primitive variable isn't fully populated
 	/// until the previous loop is complete, making it impossible to calculate derivatives.
-    for ( i = gsmin1; i >= 0; i-- )
-    {
-        if ( bdpu )
-        {
-            pVar(EnvVars_dPdu) ->SetVector( SO_DuType<CqVector3D>( pSDP, i, m_pShaderExecEnv.get(), Defvec ), i );
-        }
-        if ( bdpv )
-        {
-            pVar(EnvVars_dPdv) ->SetVector( SO_DvType<CqVector3D>( pSDP, i, m_pShaderExecEnv.get(), Defvec ), i );
-        }
+    if ( bdpu || bdpv )
+	{
+		for ( i = gsmin1; i >= 0; i-- )
+		{
+			if ( bdpu )
+			{
+				pVar(EnvVars_dPdu) ->SetVector( SO_DuType<CqVector3D>( pSDP, i, m_pShaderExecEnv.get(), Defvec ), i );
+			}
+			if ( bdpv )
+			{
+				pVar(EnvVars_dPdv) ->SetVector( SO_DvType<CqVector3D>( pSDP, i, m_pShaderExecEnv.get(), Defvec ), i );
+			}
+		}
     }
-    
+
     if ( USES( lUses, EnvVars_Ci ) ) pVar(EnvVars_Ci) ->SetColor( gColBlack );
     if ( USES( lUses, EnvVars_Oi ) ) pVar(EnvVars_Oi) ->SetColor( gColWhite );
 
