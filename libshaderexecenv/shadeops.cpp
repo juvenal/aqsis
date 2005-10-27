@@ -7208,7 +7208,10 @@ void CqShaderExecEnv::SO_textureinfo( IqShaderData* name, IqShaderData* dataname
 
 
 	if ( pMap == 0 )
+	{
+		(Result)->SetFloat(Ret,__iGrid);
 		return ;
+	}
 
 	if ( _aq_dataname.compare( "resolution" ) == 0 )
 	{

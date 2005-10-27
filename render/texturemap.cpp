@@ -1549,55 +1549,55 @@ void CqTextureMap::WriteTileImage( TIFF* ptex, CqTextureMapBuffer* pBuffer, TqUl
 
 void CqTextureMap::WriteTileImage( TIFF* ptex, TqFloat *raster, TqUlong width, TqUlong length, TqUlong twidth, TqUlong tlength, TqInt samples, TqInt compression, TqInt quality )
 {
-    //TIFFCreateDirectory(ptex);
-    TqChar version[ 80 ];
-    sprintf( version, "%s %s", STRNAME, VERSION_STR );
-    TIFFSetField( ptex, TIFFTAG_SOFTWARE, ( char* ) version );
-    TIFFSetField( ptex, TIFFTAG_IMAGEWIDTH, width );
-    TIFFSetField( ptex, TIFFTAG_IMAGELENGTH, length );
-    TIFFSetField( ptex, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG );
-    TIFFSetField( ptex, TIFFTAG_BITSPERSAMPLE, 32 );
-    TIFFSetField( ptex, TIFFTAG_SAMPLESPERPIXEL, samples );
-    TIFFSetField( ptex, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
-    TIFFSetField( ptex, TIFFTAG_TILEWIDTH, twidth );
-    TIFFSetField( ptex, TIFFTAG_TILELENGTH, tlength );
-    TIFFSetField( ptex, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP );
-    TIFFSetField( ptex, TIFFTAG_COMPRESSION, compression );
+	//TIFFCreateDirectory(ptex);
+	TqChar version[ 80 ];
+	snprintf( version, 80, "%s %s", STRNAME, VERSION_STR );
+	TIFFSetField( ptex, TIFFTAG_SOFTWARE, ( char* ) version );
+	TIFFSetField( ptex, TIFFTAG_IMAGEWIDTH, width );
+	TIFFSetField( ptex, TIFFTAG_IMAGELENGTH, length );
+	TIFFSetField( ptex, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG );
+	TIFFSetField( ptex, TIFFTAG_BITSPERSAMPLE, 32 );
+	TIFFSetField( ptex, TIFFTAG_SAMPLESPERPIXEL, samples );
+	TIFFSetField( ptex, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
+	TIFFSetField( ptex, TIFFTAG_TILEWIDTH, twidth );
+	TIFFSetField( ptex, TIFFTAG_TILELENGTH, tlength );
+	TIFFSetField( ptex, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_IEEEFP );
+	TIFFSetField( ptex, TIFFTAG_COMPRESSION, compression );
 
 
-    TqInt tsize = twidth * tlength;
-    TqInt tperrow = ( width + twidth - 1 ) / twidth;
-    TqFloat* ptile = static_cast<TqFloat*>( _TIFFmalloc( tsize * samples * sizeof( TqFloat ) ) );
+	TqInt tsize = twidth * tlength;
+	TqInt tperrow = ( width + twidth - 1 ) / twidth;
+	TqFloat* ptile = static_cast<TqFloat*>( _TIFFmalloc( tsize * samples * sizeof( TqFloat ) ) );
 
-    if ( ptile != NULL )
-    {
-        TqInt ctiles = tperrow * ( ( length + tlength - 1 ) / tlength );
-        TqInt itile;
-        for ( itile = 0; itile < ctiles; itile++ )
-        {
-            TqInt x = ( itile % tperrow ) * twidth;
-            TqInt y = ( itile / tperrow ) * tlength;
-            TqFloat* ptdata = raster + ( ( y * width ) + x ) * samples;
-            // Clear the tile to black.
-            memset( ptile, 0, tsize * samples * sizeof( TqFloat ) );
-            for ( TqUlong i = 0; i < tlength; i++ )
-            {
-                for ( TqUlong j = 0; j < twidth; j++ )
-                {
-                    if ( ( x + j ) < width && ( y + i ) < length )
-                    {
-                        TqInt ii;
-                        for ( ii = 0; ii < samples; ii++ )
-                            ptile[ ( i * twidth * samples ) + ( ( ( j * samples ) + ii ) ) ] = ptdata[ ( ( j * samples ) + ii ) ];
-                    }
-                }
-                ptdata += ( width * samples );
-            }
-            TIFFWriteTile( ptex, ptile, x, y, 0, 0 );
-        }
-        TIFFWriteDirectory( ptex );
-
-    }
+	if ( ptile != NULL )
+	{
+		TqInt ctiles = tperrow * ( ( length + tlength - 1 ) / tlength );
+		TqInt itile;
+		for ( itile = 0; itile < ctiles; itile++ )
+		{
+			TqInt x = ( itile % tperrow ) * twidth;
+			TqInt y = ( itile / tperrow ) * tlength;
+			TqFloat* ptdata = raster + ( ( y * width ) + x ) * samples;
+			// Clear the tile to black.
+			memset( ptile, 0, tsize * samples * sizeof( TqFloat ) );
+			for ( TqUlong i = 0; i < tlength; i++ )
+			{
+				for ( TqUlong j = 0; j < twidth; j++ )
+				{
+					if ( ( x + j ) < width && ( y + i ) < length )
+					{
+						TqInt ii;
+						for ( ii = 0; ii < samples; ii++ )
+							ptile[ ( i * twidth * samples ) + ( ( ( j * samples ) + ii ) ) ] = ptdata[ ( ( j * samples ) + ii ) ];
+					}
+				}
+				ptdata += ( width * samples );
+			}
+			TIFFWriteTile( ptex, ptile, x, y, 0, 0 );
+		}
+		TIFFWriteDirectory( ptex );
+		_TIFFfree( ptile );
+	}
 }
 
 
@@ -1608,55 +1608,55 @@ void CqTextureMap::WriteTileImage( TIFF* ptex, TqFloat *raster, TqUlong width, T
 
 void CqTextureMap::WriteTileImage( TIFF* ptex, TqUshort *raster, TqUlong width, TqUlong length, TqUlong twidth, TqUlong tlength, TqInt samples, TqInt compression, TqInt quality )
 {
-    //TIFFCreateDirectory(ptex);
-    TqChar version[ 80 ];
-    sprintf( version, "%s %s", STRNAME, VERSION_STR );
-    TIFFSetField( ptex, TIFFTAG_SOFTWARE, ( char* ) version );
-    TIFFSetField( ptex, TIFFTAG_IMAGEWIDTH, width );
-    TIFFSetField( ptex, TIFFTAG_IMAGELENGTH, length );
-    TIFFSetField( ptex, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG );
-    TIFFSetField( ptex, TIFFTAG_BITSPERSAMPLE, 16 );
-    TIFFSetField( ptex, TIFFTAG_SAMPLESPERPIXEL, samples );
-    TIFFSetField( ptex, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
-    TIFFSetField( ptex, TIFFTAG_TILEWIDTH, twidth );
-    TIFFSetField( ptex, TIFFTAG_TILELENGTH, tlength );
-    TIFFSetField( ptex, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT );
-    TIFFSetField( ptex, TIFFTAG_COMPRESSION, compression );
+	//TIFFCreateDirectory(ptex);
+	TqChar version[ 80 ];
+	snprintf( version, 80, "%s %s", STRNAME, VERSION_STR );
+	TIFFSetField( ptex, TIFFTAG_SOFTWARE, ( char* ) version );
+	TIFFSetField( ptex, TIFFTAG_IMAGEWIDTH, width );
+	TIFFSetField( ptex, TIFFTAG_IMAGELENGTH, length );
+	TIFFSetField( ptex, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG );
+	TIFFSetField( ptex, TIFFTAG_BITSPERSAMPLE, 16 );
+	TIFFSetField( ptex, TIFFTAG_SAMPLESPERPIXEL, samples );
+	TIFFSetField( ptex, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
+	TIFFSetField( ptex, TIFFTAG_TILEWIDTH, twidth );
+	TIFFSetField( ptex, TIFFTAG_TILELENGTH, tlength );
+	TIFFSetField( ptex, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT );
+	TIFFSetField( ptex, TIFFTAG_COMPRESSION, compression );
 
 
-    TqInt tsize = twidth * tlength;
-    TqInt tperrow = ( width + twidth - 1 ) / twidth;
-    TqUshort* ptile = static_cast<TqUshort*>( _TIFFmalloc( tsize * samples * sizeof( TqUshort ) ) );
+	TqInt tsize = twidth * tlength;
+	TqInt tperrow = ( width + twidth - 1 ) / twidth;
+	TqUshort* ptile = static_cast<TqUshort*>( _TIFFmalloc( tsize * samples * sizeof( TqUshort ) ) );
 
-    if ( ptile != NULL )
-    {
-        TqInt ctiles = tperrow * ( ( length + tlength - 1 ) / tlength );
-        TqInt itile;
-        for ( itile = 0; itile < ctiles; itile++ )
-        {
-            TqInt x = ( itile % tperrow ) * twidth;
-            TqInt y = ( itile / tperrow ) * tlength;
-            TqUshort* ptdata = raster + ( ( y * width ) + x ) * samples;
-            // Clear the tile to black.
-            memset( ptile, 0, tsize * samples * sizeof( TqUshort ) );
-            for ( TqUlong i = 0; i < tlength; i++ )
-            {
-                for ( TqUlong j = 0; j < twidth; j++ )
-                {
-                    if ( ( x + j ) < width && ( y + i ) < length )
-                    {
-                        TqInt ii;
-                        for ( ii = 0; ii < samples; ii++ )
-                            ptile[ ( i * twidth * samples ) + ( ( ( j * samples ) + ii ) ) ] = ptdata[ ( ( j * samples ) + ii ) ];
-                    }
-                }
-                ptdata += ( width * samples );
-            }
-            TIFFWriteTile( ptex, ptile, x, y, 0, 0 );
-        }
-        TIFFWriteDirectory( ptex );
-
-    }
+	if ( ptile != NULL )
+	{
+		TqInt ctiles = tperrow * ( ( length + tlength - 1 ) / tlength );
+		TqInt itile;
+		for ( itile = 0; itile < ctiles; itile++ )
+		{
+			TqInt x = ( itile % tperrow ) * twidth;
+			TqInt y = ( itile / tperrow ) * tlength;
+			TqUshort* ptdata = raster + ( ( y * width ) + x ) * samples;
+			// Clear the tile to black.
+			memset( ptile, 0, tsize * samples * sizeof( TqUshort ) );
+			for ( TqUlong i = 0; i < tlength; i++ )
+			{
+				for ( TqUlong j = 0; j < twidth; j++ )
+				{
+					if ( ( x + j ) < width && ( y + i ) < length )
+					{
+						TqInt ii;
+						for ( ii = 0; ii < samples; ii++ )
+							ptile[ ( i * twidth * samples ) + ( ( ( j * samples ) + ii ) ) ] = ptdata[ ( ( j * samples ) + ii ) ];
+					}
+				}
+				ptdata += ( width * samples );
+			}
+			TIFFWriteTile( ptex, ptile, x, y, 0, 0 );
+		}
+		TIFFWriteDirectory( ptex );
+		_TIFFfree( ptile );
+	}
 }
 
 
@@ -1667,53 +1667,54 @@ void CqTextureMap::WriteTileImage( TIFF* ptex, TqUshort *raster, TqUlong width, 
 
 void CqTextureMap::WriteTileImage( TIFF* ptex, TqPuchar raster, TqUlong width, TqUlong length, TqUlong twidth, TqUlong tlength, TqInt samples, TqInt compression, TqInt quality )
 {
-    TqChar version[ 80 ];
-    sprintf( version, "%s %s", STRNAME, VERSION_STR );
-    TIFFSetField( ptex, TIFFTAG_SOFTWARE, ( char* ) version );
-    TIFFSetField( ptex, TIFFTAG_IMAGEWIDTH, width );
-    TIFFSetField( ptex, TIFFTAG_IMAGELENGTH, length );
-    TIFFSetField( ptex, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG );
-    TIFFSetField( ptex, TIFFTAG_BITSPERSAMPLE, 8 );
-    TIFFSetField( ptex, TIFFTAG_SAMPLESPERPIXEL, samples );
-    TIFFSetField( ptex, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
-    TIFFSetField( ptex, TIFFTAG_TILEWIDTH, twidth );
-    TIFFSetField( ptex, TIFFTAG_TILELENGTH, tlength );
-    TIFFSetField( ptex, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT );
-    TIFFSetField( ptex, TIFFTAG_COMPRESSION, compression );
-    TIFFSetField( ptex, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB );
+	TqChar version[ 80 ];
+	snprintf( version, 80, "%s %s", STRNAME, VERSION_STR );
+	TIFFSetField( ptex, TIFFTAG_SOFTWARE, ( char* ) version );
+	TIFFSetField( ptex, TIFFTAG_IMAGEWIDTH, width );
+	TIFFSetField( ptex, TIFFTAG_IMAGELENGTH, length );
+	TIFFSetField( ptex, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG );
+	TIFFSetField( ptex, TIFFTAG_BITSPERSAMPLE, 8 );
+	TIFFSetField( ptex, TIFFTAG_SAMPLESPERPIXEL, samples );
+	TIFFSetField( ptex, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT );
+	TIFFSetField( ptex, TIFFTAG_TILEWIDTH, twidth );
+	TIFFSetField( ptex, TIFFTAG_TILELENGTH, tlength );
+	TIFFSetField( ptex, TIFFTAG_SAMPLEFORMAT, SAMPLEFORMAT_UINT );
+	TIFFSetField( ptex, TIFFTAG_COMPRESSION, compression );
+	TIFFSetField( ptex, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB );
 
-    TqInt tsize = twidth * tlength;
-    TqInt tperrow = ( width + twidth - 1 ) / twidth;
-    TqPuchar ptile = static_cast<TqPuchar>( _TIFFmalloc( tsize * samples ) );
+	TqInt tsize = twidth * tlength;
+	TqInt tperrow = ( width + twidth - 1 ) / twidth;
+	TqPuchar ptile = static_cast<TqPuchar>( _TIFFmalloc( tsize * samples ) );
 
-    if ( ptile != NULL )
-    {
-        TqInt ctiles = tperrow * ( ( length + tlength - 1 ) / tlength );
-        TqInt itile;
-        for ( itile = 0; itile < ctiles; itile++ )
-        {
-            TqInt x = ( itile % tperrow ) * twidth;
-            TqInt y = ( itile / tperrow ) * tlength;
-            TqPuchar ptdata = raster + ( ( y * width ) + x ) * samples;
-            // Clear the tile to black.
-            memset( ptile, 0, tsize * samples );
-            for ( TqUlong i = 0; i < tlength; i++ )
-            {
-                for ( TqUlong j = 0; j < twidth; j++ )
-                {
-                    if ( ( x + j ) < width && ( y + i ) < length )
-                    {
-                        TqInt ii;
-                        for ( ii = 0; ii < samples; ii++ )
-                            ptile[ ( i * twidth * samples ) + ( ( ( j * samples ) + ii ) ) ] = ptdata[ ( ( j * samples ) + ii ) ];
-                    }
-                }
-                ptdata += ( width * samples );
-            }
-            TIFFWriteTile( ptex, ptile, x, y, 0, 0 );
-        }
-        TIFFWriteDirectory( ptex );
-    }
+	if ( ptile != NULL )
+	{
+		TqInt ctiles = tperrow * ( ( length + tlength - 1 ) / tlength );
+		TqInt itile;
+		for ( itile = 0; itile < ctiles; itile++ )
+		{
+			TqInt x = ( itile % tperrow ) * twidth;
+			TqInt y = ( itile / tperrow ) * tlength;
+			TqPuchar ptdata = raster + ( ( y * width ) + x ) * samples;
+			// Clear the tile to black.
+			memset( ptile, 0, tsize * samples );
+			for ( TqUlong i = 0; i < tlength; i++ )
+			{
+				for ( TqUlong j = 0; j < twidth; j++ )
+				{
+					if ( ( x + j ) < width && ( y + i ) < length )
+					{
+						TqInt ii;
+						for ( ii = 0; ii < samples; ii++ )
+							ptile[ ( i * twidth * samples ) + ( ( ( j * samples ) + ii ) ) ] = ptdata[ ( ( j * samples ) + ii ) ];
+					}
+				}
+				ptdata += ( width * samples );
+			}
+			TIFFWriteTile( ptex, ptile, x, y, 0, 0 );
+		}
+		TIFFWriteDirectory( ptex );
+		_TIFFfree( ptile );
+	}
 }
 
 

@@ -392,6 +392,8 @@ PtDspyError DspyImageOpen(PtDspyImageHandle * image,
 		// Create and initialise a byte array if rendering 8bit image, or we are in framebuffer mode
 		if(pImage->m_imageType == Type_Framebuffer)
 		{
+			// Allocate the buffer, even if the formatcount <3, always allocated 3, as that is what's needed for the
+			// display.
 			pImage->m_data = new unsigned char[ pImage->m_width * pImage->m_height * pImage->m_iFormatCount ];
 			pImage->m_entrySize = pImage->m_iFormatCount * sizeof(char);
 
