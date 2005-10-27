@@ -5,10 +5,10 @@ AM_CFLAGS=@AQSIS_CFLAGS@
 
 aqsl=$(top_builddir)/aqsl/aqsl
 
-check-local:
-	rm -f *.slx
-	for file in $$(find $(top_srcdir) -name "*.sl" | sort); do $(aqsl) $$file; done
+#check-local:
+#	rm -f *.slx
+#	for file in $$(find $(top_srcdir) -name "*.sl" | sort); do $(aqsl) $$file; done
 
-clean-local:
-	rm -f *.slx
+#clean-local:
+#	rm -f *.slx
 

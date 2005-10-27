@@ -466,6 +466,18 @@ RendermanInterface::RtFilterFunc Stream::GetFilterFunction( RtToken type )
 RendermanInterface::RtBasis* Stream::GetBasisMatrix( RtToken type )
 {
     m_Stream << "Filter: " << type << std::endl;
+
+    if ( strcmp( type, "bezier" ) == 0 )
+        return ( &::RiBezierBasis );
+    else if ( strcmp( type, "b-spline" ) == 0 )
+        return ( &::RiBSplineBasis );
+    else if ( strcmp( type, "catmull-rom" ) == 0 )
+        return ( &::RiCatmullRomBasis );
+    else if ( strcmp( type, "hermite" ) == 0 )
+        return ( &::RiHermiteBasis );
+    else if ( strcmp( type, "power" ) == 0 )
+        return ( &::RiPowerBasis );
+
     return ( NULL );
 }
 RendermanInterface::RtFunc Stream::GetProceduralFunction( RtToken type )
