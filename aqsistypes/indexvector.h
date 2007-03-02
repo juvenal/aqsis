@@ -10,19 +10,19 @@
 namespace Aqsis {
 
 //------------------------------------------------------------------------------
-class  CqRunningState
+class  CqIndexVector
 {
 	public:
 		typedef TqUint value_type;
 		typedef std::vector<value_type>::size_type size_type;
 		typedef std::vector<value_type>::const_iterator iterator;
 
-		CqRunningState(TqInt maxLength = 0);
+		CqIndexVector(TqInt maxLength = 0);
 		// Use default copy constructor.
-		CqRunningState(CqBitVector& bitVector);
-		void intersect(const CqRunningState& from);
+		CqIndexVector(CqBitVector& bitVector);
+		void intersect(const CqIndexVector& from);
 		void complement();
-		void unionRS(const CqRunningState& from);
+		void unionRS(const CqIndexVector& from);
 		void fromBitVector(CqBitVector& bv);
 		iterator begin() const;
 		iterator end() const;
@@ -31,7 +31,7 @@ class  CqRunningState
 		// Use default assignment operator
 		value_type operator[](const size_type idx) const;
 
-		friend std::ostream& operator<<(std::ostream &stream, CqRunningState& rsOut);
+		friend std::ostream& operator<<(std::ostream &stream, CqIndexVector& rsOut);
 	private:
 		typedef std::vector<value_type> RsVector;
 		RsVector m_data;
@@ -41,35 +41,35 @@ class  CqRunningState
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-// Implementation for CqRunningState inline functions.
-inline CqRunningState::CqRunningState(TqInt maxLength)
+// Implementation for CqIndexVector inline functions.
+inline CqIndexVector::CqIndexVector(TqInt maxLength)
 	: m_data(),
 	m_maxLength(maxLength)
 {
 	m_data.reserve(maxLength);
 }
 
-inline CqRunningState::iterator CqRunningState::begin() const
+inline CqIndexVector::iterator CqIndexVector::begin() const
 {
 	return m_data.begin();
 }
 
-inline CqRunningState::iterator CqRunningState::end() const
+inline CqIndexVector::iterator CqIndexVector::end() const
 {
 	return m_data.end();
 }
 
-inline CqRunningState::size_type CqRunningState::size() const
+inline CqIndexVector::size_type CqIndexVector::size() const
 {
 	return m_data.size();
 }
 
-inline CqRunningState::size_type CqRunningState::maxSize() const
+inline CqIndexVector::size_type CqIndexVector::maxSize() const
 {
 	return m_maxLength;
 }
 
-inline CqRunningState::value_type CqRunningState::operator[](const size_type idx) const
+inline CqIndexVector::value_type CqIndexVector::operator[](const size_type idx) const
 {
 	return m_data[idx];
 }
