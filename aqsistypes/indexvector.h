@@ -1,5 +1,5 @@
-#ifndef RUNNINGSTATE_H_INCLUDED
-#define RUNNINGSTATE_H_INCLUDED
+#ifndef INDEXVECTOR_H_INCLUDED
+#define INDEXVECTOR_H_INCLUDED
 
 #include <vector>
 #include <iostream>
@@ -13,7 +13,7 @@ namespace Aqsis {
 class  CqIndexVector
 {
 	public:
-		typedef TqUint value_type;
+		typedef unsigned short int value_type;
 		typedef std::vector<value_type>::size_type size_type;
 		typedef std::vector<value_type>::const_iterator iterator;
 
@@ -77,4 +77,4 @@ inline CqIndexVector::value_type CqIndexVector::operator[](const size_type idx) 
 //------------------------------------------------------------------------------
 } // namespace Aqsis
 
-#endif // !RUNNINGSTATE_H_INCLUDED
+#endif // !INDEXVECTOR_H_INCLUDED

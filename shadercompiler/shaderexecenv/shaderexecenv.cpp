@@ -193,6 +193,7 @@ void CqShaderExecEnv::Initialise( const TqInt uGridRes, const TqInt vGridRes, Tq
 	m_CurrentState.SetSize( m_shadingPointCount );
 	m_RunningState.SetSize( m_shadingPointCount );
 	m_RunningState.SetAll( TqTrue );
+	m_RunningState2.fromBitVector(m_RunningState);
 
 
 	if ( pShader )

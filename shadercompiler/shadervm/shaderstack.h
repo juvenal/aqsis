@@ -40,6 +40,7 @@
 #include	"matrix.h"
 #include	"ishaderdata.h"
 #include	"bitvector.h"
+#include	"indexvector.h"
 #include	"shadervariable.h"
 #include	"shadervm_common.h"
 
@@ -144,14 +145,14 @@ static CqMatrix temp_matrix;
 
 #define OpABRS(OP, NAME) \
 		template <class A, class B, class R>	\
-		inline void	Op##NAME( A& a, B&b, R& r, IqShaderData* pA, IqShaderData* pB, IqShaderData* pRes, CqBitVector& RunningState ) \
+		inline void	Op##NAME( A& a, B&b, R& r, IqShaderData* pA, IqShaderData* pB, IqShaderData* pRes, CqIndexVector& RunningState ) \
 		{ \
 			A vA; \
 			B vB; \
 			A* pdA; \
 			B* pdB; \
 			R* pdR; \
-			TqInt i, ii; \
+			TqUint i; \
 			\
 			TqBool fAVar = pA->Size() > 1; \
 			TqBool fBVar = pB->Size() > 1; \
@@ -162,44 +163,31 @@ static CqMatrix temp_matrix;
 				pA->GetValuePtr( pdA ); \
 				pB->GetValuePtr( pdB ); \
 				pRes->GetValuePtr( pdR ); \
-				ii = pA->Size(); \
-				for ( i = 0; i < ii; i++ ) \
+				for ( i = 0; i < RunningState.size(); i++) \
 				{ \
-					if ( RunningState.Value( i ) ) \
-						(*pdR) = ( (*pdA) OP (*pdB) ); \
-					pdA++; \
-					pdB++; \
-					pdR++; \
+					pdR[RunningState[i]] = ( pdA[RunningState[i]] OP pdB[RunningState[i]] ); \
 				} \
 			} \
 			else if( !fBVar && fAVar) \
 			{ \
 				/* A is varying, can just get B's value once. */ \
-				ii = pA->Size(); \
 				pA->GetValuePtr( pdA ); \
 				pB->GetValue( vB ); \
 				pRes->GetValuePtr( pdR ); \
-				for ( i = 0; i < ii; i++ ) \
+				for ( i = 0; i < RunningState.size(); i++) \
 				{ \
-					if ( RunningState.Value( i ) ) \
-						(*pdR) = ( (*pdA) OP vB ); \
-					pdA++; \
-					pdR++; \
+					pdR[RunningState[i]] = ( pdA[RunningState[i]] OP vB ); \
 				} \
 			} \
 			else if( !fAVar && fBVar) \
 			{ \
 				/* B is varying, can just get A's value once. */ \
-				ii = pB->Size(); \
 				pB->GetValuePtr( pdB ); \
 				pA->GetValue( vA ); \
 				pRes->GetValuePtr( pdR ); \
-				for ( i = 0; i < ii; i++ ) \
+				for ( i = 0; i < RunningState.size(); i++) \
 				{ \
-					if ( RunningState.Value( i ) ) \
-						(*pdR) = ( vA OP (*pdB) ); \
-					pdB++; \
-					pdR++; \
+					pdR[RunningState[i]] = ( vA OP pdB[RunningState[i]] ); \
 				} \
 			} \
 			else \

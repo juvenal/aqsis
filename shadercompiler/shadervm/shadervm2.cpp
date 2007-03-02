@@ -42,7 +42,7 @@ void CqShaderVM::SO_land()
 	POPV( A );
 	POPV( B );
 	RESULT(type_float, __fVarying?class_varying:class_uniform);
-	OpLAND_B( A, B, pResult, m_pEnv->RunningState() );
+	OpLAND_B( A, B, pResult, m_pEnv->RunningState2() );
 	Push( pResult );
 	RELEASE( B );
 	RELEASE( A );
@@ -54,7 +54,7 @@ void CqShaderVM::SO_lor()
 	POPV( A );
 	POPV( B );
 	RESULT(type_float, __fVarying?class_varying:class_uniform);
-	OpLOR_B( A, B, pResult, m_pEnv->RunningState() );
+	OpLOR_B( A, B, pResult, m_pEnv->RunningState2() );
 	Push( pResult );
 	RELEASE( B );
 	RELEASE( A );

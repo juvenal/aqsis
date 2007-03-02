@@ -34,6 +34,7 @@
 #include	<map>
 
 #include	"bitvector.h"
+#include	"indexvector.h"
 #include	"color.h"
 #include	"noise.h"
 #include	"random.h"
@@ -211,6 +212,7 @@ class SHADERCONTEXT_SHARE CqShaderExecEnv : public IqShaderExecEnv
 		virtual	void	GetCurrentState()
 		{
 			m_RunningState = m_CurrentState;
+			GetCurrentState2();
 		}
 		virtual	void	ClearCurrentState()
 		{
@@ -219,18 +221,58 @@ class SHADERCONTEXT_SHARE CqShaderExecEnv : public IqShaderExecEnv
 		virtual	void	PushState()
 		{
 			m_stkState.push( m_RunningState );
+			PushState2();
 		}
 		virtual	void	PopState()
 		{
 			m_RunningState = m_stkState.top();
 			m_stkState.pop();
+			PopState2();
 		}
 		virtual	void	InvertRunningState()
 		{
 			m_RunningState.Complement();
 			if ( !m_stkState.empty() )
 				m_RunningState.Intersect( m_stkState.top() );
+			InvertRunningState2();
 		}
+
+
+		// UGLY HACK
+//		virtual	CqBitVector& CurrentState()
+//		{
+//			return ( m_CurrentState2 );
+//		}
+		virtual	CqIndexVector& RunningState2()
+		{
+			return ( m_RunningState2 );
+		}
+		virtual	void	GetCurrentState2()
+		{
+			m_RunningState2.fromBitVector(m_CurrentState);
+		}
+//		virtual	void	ClearCurrentState2()
+//		{
+//			m_CurrentState.SetAll( TqFalse );
+//		}
+		virtual	void	PushState2()
+		{
+			m_stkState2.push( m_RunningState2 );
+		}
+		virtual	void	PopState2()
+		{
+			m_RunningState2 = m_stkState2.top();
+			m_stkState2.pop();
+		}
+		virtual	void	InvertRunningState2()
+		{
+			m_RunningState2.complement();
+			if ( !m_stkState2.empty() )
+				m_RunningState2.intersect( m_stkState2.top() );
+		}
+
+
+
 		virtual IqShaderData* FindStandardVar( const char* pname );
 
 		virtual	TqInt	FindStandardVarIndex( const char* pname );
@@ -411,7 +453,9 @@ class SHADERCONTEXT_SHARE CqShaderExecEnv : public IqShaderExecEnv
 		CqTransformPtr m_pTransform;		///< Pointer to the associated transform.
 		CqBitVector	m_CurrentState;			///< SIMD execution state bit vector accumulator.
 		CqBitVector	m_RunningState;			///< SIMD running execution state bit vector.
+		CqIndexVector	m_RunningState2;			///< SIMD running execution state vector
 		std::stack<CqBitVector>	m_stkState;				///< Stack of execution state bit vectors.
+		std::stack<CqIndexVector>	m_stkState2;			///< Stack of execution state index vectors
 		IqRenderer*	m_pRenderContext;
 		TqInt	m_LocalIndex;			///< Local cached variable index to speed repeated access to the same local variable.
 		IqSurface*	m_pCurrentSurface;	///< Pointer to the surface being shaded.

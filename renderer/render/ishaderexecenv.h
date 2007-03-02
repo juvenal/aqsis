@@ -34,6 +34,7 @@
 #include	"matrix.h"
 #include	"sstring.h"
 #include	"bitvector.h"
+#include	"indexvector.h"
 #include 	"shadeop.h"
 
 START_NAMESPACE( Aqsis )
@@ -182,6 +183,32 @@ struct IqShaderExecEnv
 	/** Invert the bits in the running state, to perform the opposite to the condition, i.e. else.
 	 */
 	virtual	void	InvertRunningState() = 0;
+
+	// UGLY HACK
+	/** Get the current execution state. Bits in the vector indicate which SIMD indexes have passed the current condition.
+	 */
+	//virtual	CqBitVector& CurrentState2() = 0;
+	/** Get the running execution state. Bits in the vector indicate which SIMD indexes are valid.
+	 */
+	virtual	CqIndexVector& RunningState2() = 0;
+	/** Transfer the current state into the running state.
+	 */
+	virtual	void	GetCurrentState2() = 0;
+	/** Clear the current state ready for a new condition.
+	 */
+	//virtual	void	ClearCurrentState2() = 0;
+	/** Push the running state onto the stack.
+	 */
+	virtual	void	PushState2() = 0;
+	/** Pop the running state from the stack.
+	 */
+	virtual	void	PopState2() = 0;
+	/** Invert the bits in the running state, to perform the opposite to the condition, i.e. else.
+	 */
+	virtual	void	InvertRunningState2() = 0;
+
+
+
 	/** Find a named standard variable in the list.
 	 * \param pname Character pointer to the name.
 	 * \return IqShaderData pointer or 0.

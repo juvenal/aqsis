@@ -5,6 +5,7 @@ aqsistypes_sources = Split("""
 	cellnoise.cpp
 	color.cpp
 	file.cpp
+	indexvector.cpp
 	logging.cpp
 	lowdiscrep.cpp
 	matrix.cpp
@@ -28,6 +29,7 @@ aqsistypes_headers = Split("""
 	color.h
 	exception.h
 	file.h
+	indexvector.h
 	list.h
 	logging.h
 	logging_streambufs.h
