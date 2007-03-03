@@ -250,7 +250,7 @@ void CqSurface::SetDefaultPrimitiveVariables( TqBool bUseDef_st )
 	// to the surface to override or change this after the fact.
 	if ( USES( bUses, EnvVars_s ) && bUseDef_st && !bHasVar(EnvVars_s) )
 	{
-		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s" ) );
+		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s", 1) );
 		s() ->SetSize( 4 );
 		TqInt i;
 		for ( i = 0; i < 4; i++ )
@@ -259,7 +259,7 @@ void CqSurface::SetDefaultPrimitiveVariables( TqBool bUseDef_st )
 
 	if ( USES( bUses, EnvVars_t ) && bUseDef_st && !bHasVar(EnvVars_t))
 	{
-		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t" ) );
+		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t", 1 ) );
 		t() ->SetSize( 4 );
 		TqInt i;
 		for ( i = 0; i < 4; i++ )
@@ -268,7 +268,7 @@ void CqSurface::SetDefaultPrimitiveVariables( TqBool bUseDef_st )
 
 	if ( USES( bUses, EnvVars_u ) )
 	{
-		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "u" ) );
+		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "u", 1 ) );
 		u() ->SetSize( 4 );
 		u() ->pValue() [ 0 ] = u() ->pValue() [ 2 ] = 0.0;
 		u() ->pValue() [ 1 ] = u() ->pValue() [ 3 ] = 1.0;
@@ -276,7 +276,7 @@ void CqSurface::SetDefaultPrimitiveVariables( TqBool bUseDef_st )
 
 	if ( USES( bUses, EnvVars_v ) )
 	{
-		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "v" ) );
+		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "v", 1 ) );
 		v() ->SetSize( 4 );
 		v() ->pValue() [ 0 ] = v() ->pValue() [ 1 ] = 0.0;
 		v() ->pValue() [ 2 ] = v() ->pValue() [ 3 ] = 1.0;

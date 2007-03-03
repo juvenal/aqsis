@@ -47,14 +47,14 @@ START_NAMESPACE( Aqsis )
 class CqParameter
 {
 	public:
-		CqParameter( const char* strName, TqInt Count = 1 );
+		CqParameter( const char* strName, TqInt Count, TqInt Identifier = 0 );
 		CqParameter( const CqParameter& From );
 		virtual	~CqParameter();
 
 		/** Pure virtual, clone function, which only creates a new parameter with matching type, no data.
 		 * \return A pointer to a new parameter with the same type.
 		 */
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const = 0;
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const = 0;
 		/** Pure virtual, duplicate function.
 		 * \return A pointer to a new parameter with the same name and value.
 		 */
@@ -133,10 +133,18 @@ class CqParameter
 			return ( m_Count );
 		}
 
+		/** Get the array size.
+		 */
+		TqInt	Identifier() const
+		{
+			return ( m_Identifier );
+		}
+
 	protected:
 		CqString	m_strName;		///< String name of the parameter.
 		TqInt	m_Count;		///< Array size of value.
 		TqUlong m_hash;
+		TqInt	m_Identifier; 		///< Internal system identifier
 
 }
 ;
@@ -151,8 +159,8 @@ template <class T, class SLT>
 class CqParameterTyped : public CqParameter
 {
 	public:
-		CqParameterTyped( const char* strName, TqInt Count = 1 ) :
-				CqParameter( strName, Count )
+		CqParameterTyped( const char* strName, TqInt Count, TqInt Identifier = 0 ) :
+				CqParameter( strName, Count, Identifier)
 		{}
 		CqParameterTyped( const CqParameterTyped<T, SLT>& From ) :
 				CqParameter( From )
@@ -194,8 +202,8 @@ template <class T, EqVariableType I, class SLT>
 class CqParameterTypedVarying : public CqParameterTyped<T, SLT>
 {
 	public:
-		CqParameterTypedVarying( const char* strName, TqInt Count = 1 ) :
-				CqParameterTyped<T, SLT>( strName, Count )
+		CqParameterTypedVarying( const char* strName, TqInt Count, TqInt Identifier = 0 ) :
+				CqParameterTyped<T, SLT>( strName, Count, Identifier )
 		{
 			m_aValues.resize( 1 );
 		}
@@ -211,9 +219,9 @@ class CqParameterTypedVarying : public CqParameterTyped<T, SLT>
 
 
 
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const
 		{
-			return ( new CqParameterTypedVarying<T, I, SLT>( Name, Count ) );
+			return ( new CqParameterTypedVarying<T, I, SLT>( Name, Count, Identifier ) );
 		}
 		virtual	CqParameter* Clone() const
 		{
@@ -320,9 +328,9 @@ class CqParameterTypedVarying : public CqParameterTyped<T, SLT>
 		 * \param strName Character pointer to new parameter name.
 		 * \param Count Integer array size.
 		 */
-		static	CqParameter*	Create( const char* strName, TqInt Count = 1 )
+		static	CqParameter*	Create( const char* strName, TqInt Count, TqInt Identifier = 0 )
 		{
-			return ( new CqParameterTypedVarying<T, I, SLT>( strName, Count ) );
+			return ( new CqParameterTypedVarying<T, I, SLT>( strName, Count, Identifier ) );
 		}
 
 	private:
@@ -340,8 +348,8 @@ template <class T, EqVariableType I, class SLT>
 class CqParameterTypedUniform : public CqParameterTyped<T, SLT>
 {
 	public:
-		CqParameterTypedUniform( const char* strName, TqInt Count = 1 ) :
-				CqParameterTyped<T, SLT>( strName, Count )
+		CqParameterTypedUniform( const char* strName, TqInt Count, TqInt Identifier = 0 ) :
+				CqParameterTyped<T, SLT>( strName, Count, Identifier )
 		{
 			m_aValues.resize( 1 );
 		}
@@ -353,9 +361,9 @@ class CqParameterTypedUniform : public CqParameterTyped<T, SLT>
 		virtual	~CqParameterTypedUniform()
 		{}
 
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const
 		{
-			return ( new CqParameterTypedUniform<T, I, SLT>( Name, Count ) );
+			return ( new CqParameterTypedUniform<T, I, SLT>( Name, Count, Identifier ) );
 		}
 		virtual	CqParameter* Clone() const
 		{
@@ -464,9 +472,9 @@ class CqParameterTypedUniform : public CqParameterTyped<T, SLT>
 		 * \param strName Character pointer to new parameter name.
 		 * \param Count Integer array size.
 		 */
-		static	CqParameter*	Create( const char* strName, TqInt Count = 1 )
+		static	CqParameter*	Create( const char* strName, TqInt Count, TqInt Identifier = 0 )
 		{
-			return ( new CqParameterTypedUniform<T, I, SLT>( strName, Count ) );
+			return ( new CqParameterTypedUniform<T, I, SLT>( strName, Count, Identifier ) );
 		}
 	private:
 		std::vector<T>	m_aValues;		///< Vector of values, one per uniform index.
@@ -483,8 +491,8 @@ template <class T, EqVariableType I, class SLT>
 class CqParameterTypedConstant : public CqParameterTyped<T, SLT>
 {
 	public:
-		CqParameterTypedConstant( const char* strName, TqInt Count = 1 ) :
-				CqParameterTyped<T, SLT>( strName, Count )
+		CqParameterTypedConstant( const char* strName, TqInt Count, TqInt Identifier = 0 ) :
+				CqParameterTyped<T, SLT>( strName, Count, Identifier )
 		{}
 		CqParameterTypedConstant( const CqParameterTypedConstant<T, I, SLT>& From ) :
 				CqParameterTyped<T, SLT>( From )
@@ -494,9 +502,9 @@ class CqParameterTypedConstant : public CqParameterTyped<T, SLT>
 		virtual	~CqParameterTypedConstant()
 		{}
 
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const
 		{
-			return ( new CqParameterTypedConstant<T, I, SLT>( Name, Count ) );
+			return ( new CqParameterTypedConstant<T, I, SLT>( Name, Count, Identifier ) );
 		}
 		virtual	CqParameter* Clone() const
 		{
@@ -588,9 +596,9 @@ class CqParameterTypedConstant : public CqParameterTyped<T, SLT>
 		 * \param strName Character pointer to new parameter name.
 		 * \param Count Integer array size.
 		 */
-		static	CqParameter*	Create( const char* strName, TqInt Count = 1 )
+		static	CqParameter*	Create( const char* strName, TqInt Count, TqInt Identifier = 0 )
 		{
-			return ( new CqParameterTypedConstant<T, I, SLT>( strName, Count ) );
+			return ( new CqParameterTypedConstant<T, I, SLT>( strName, Count, Identifier ) );
 		}
 	private:
 		T	m_Value;	///< Single constant value.
@@ -607,8 +615,8 @@ template <class T, EqVariableType I, class SLT>
 class CqParameterTypedVertex : public CqParameterTypedVarying<T, I, SLT>
 {
 	public:
-		CqParameterTypedVertex( const char* strName, TqInt Count = 1 ) :
-				CqParameterTypedVarying<T, I, SLT>( strName, Count )
+		CqParameterTypedVertex( const char* strName, TqInt Count, TqInt Identifier = 0 ) :
+				CqParameterTypedVarying<T, I, SLT>( strName, Count, Identifier )
 		{}
 		CqParameterTypedVertex( const CqParameterTypedVertex<T, I, SLT>& From ) :
 				CqParameterTypedVarying<T, I, SLT>( From )
@@ -616,9 +624,9 @@ class CqParameterTypedVertex : public CqParameterTypedVarying<T, I, SLT>
 		virtual	~CqParameterTypedVertex()
 		{}
 
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const
 		{
-			return ( new CqParameterTypedVertex<T, I, SLT>( Name, Count ) );
+			return ( new CqParameterTypedVertex<T, I, SLT>( Name, Count, Identifier ) );
 		}
 		virtual	CqParameter* Clone() const
 		{
@@ -663,9 +671,9 @@ class CqParameterTypedVertex : public CqParameterTypedVarying<T, I, SLT>
 		 * \param strName Character pointer to new parameter name.
 		 * \param Count Integer array size.
 		 */
-		static	CqParameter*	Create( const char* strName, TqInt Count = 1 )
+		static	CqParameter*	Create( const char* strName, TqInt Count, TqInt Identifier = 0 )
 		{
-			return ( new CqParameterTypedVertex<T, I, SLT>( strName, Count ) );
+			return ( new CqParameterTypedVertex<T, I, SLT>( strName, Count, Identifier ) );
 		}
 
 	private:
@@ -681,7 +689,7 @@ template <class T, EqVariableType I, class SLT>
 class CqParameterTypedFaceVarying : public CqParameterTypedVarying<T, I, SLT>
 {
 	public:
-		CqParameterTypedFaceVarying( const char* strName, TqInt Count = 1 ) :
+		CqParameterTypedFaceVarying( const char* strName, TqInt Count, TqInt Identifier = 0  ) :
 				CqParameterTypedVarying<T, I, SLT>( strName, Count )
 		{}
 		CqParameterTypedFaceVarying( const CqParameterTypedVertex<T, I, SLT>& From ) :
@@ -690,9 +698,9 @@ class CqParameterTypedFaceVarying : public CqParameterTypedVarying<T, I, SLT>
 		virtual	~CqParameterTypedFaceVarying()
 		{}
 
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const
 		{
-			return ( new CqParameterTypedFaceVarying<T, I, SLT>( Name, Count ) );
+			return ( new CqParameterTypedFaceVarying<T, I, SLT>( Name, Count, Identifier ) );
 		}
 		virtual	CqParameter* Clone() const
 		{
@@ -707,9 +715,9 @@ class CqParameterTypedFaceVarying : public CqParameterTypedVarying<T, I, SLT>
 		 * \param strName Character pointer to new parameter name.
 		 * \param Count Integer array size.
 		 */
-		static	CqParameter*	Create( const char* strName, TqInt Count = 1 )
+		static	CqParameter*	Create( const char* strName, TqInt Count , TqInt Identifier = 0 )
 		{
-			return ( new CqParameterTypedFaceVarying<T, I, SLT>( strName, Count ) );
+			return ( new CqParameterTypedFaceVarying<T, I, SLT>( strName, Count, Identifier ) );
 		}
 
 	private:
@@ -725,8 +733,8 @@ template <class T, EqVariableType I, class SLT>
 class CqParameterTypedFaceVertex : public CqParameterTypedVertex<T, I, SLT>
 {
 	public:
-		CqParameterTypedFaceVertex( const char* strName, TqInt Count = 1 ) :
-				CqParameterTypedVertex<T, I, SLT>( strName, Count )
+		CqParameterTypedFaceVertex( const char* strName, TqInt Count, TqInt Identifier = 0 ) :
+				CqParameterTypedVertex<T, I, SLT>( strName, Count, Identifier )
 		{}
 		CqParameterTypedFaceVertex( const CqParameterTypedVertex<T, I, SLT>& From ) :
 				CqParameterTypedVertex<T, I, SLT>( From )
@@ -734,9 +742,9 @@ class CqParameterTypedFaceVertex : public CqParameterTypedVertex<T, I, SLT>
 		virtual	~CqParameterTypedFaceVertex()
 		{}
 
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const
 		{
-			return ( new CqParameterTypedFaceVertex<T, I, SLT>( Name, Count ) );
+			return ( new CqParameterTypedFaceVertex<T, I, SLT>( Name, Count, Identifier ) );
 		}
 		virtual	CqParameter* Clone() const
 		{
@@ -751,9 +759,9 @@ class CqParameterTypedFaceVertex : public CqParameterTypedVertex<T, I, SLT>
 		 * \param strName Character pointer to new parameter name.
 		 * \param Count Integer array size.
 		 */
-		static	CqParameter*	Create( const char* strName, TqInt Count = 1 )
+		static	CqParameter*	Create( const char* strName, TqInt Count, TqInt Identifier )
 		{
-			return ( new CqParameterTypedFaceVertex<T, I, SLT>( strName, Count ) );
+			return ( new CqParameterTypedFaceVertex<T, I, SLT>( strName, Count, Identifier ) );
 		}
 
 	private:
@@ -768,8 +776,8 @@ template <class T, EqVariableType I, class SLT>
 class CqParameterTypedVaryingArray : public CqParameterTyped<T, SLT>
 {
 	public:
-		CqParameterTypedVaryingArray( const char* strName, TqInt Count = 1 ) :
-				CqParameterTyped<T, SLT>( strName, Count )
+		CqParameterTypedVaryingArray( const char* strName, TqInt Count, TqInt Identifier = 0 ) :
+				CqParameterTyped<T, SLT>( strName, Count, Identifier )
 		{
 			m_aValues.resize( 1, std::vector<T>(Count) );
 		}
@@ -781,9 +789,9 @@ class CqParameterTypedVaryingArray : public CqParameterTyped<T, SLT>
 		virtual	~CqParameterTypedVaryingArray()
 		{}
 
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const
 		{
-			return ( new CqParameterTypedVaryingArray<T, I, SLT>( Name, Count ) );
+			return ( new CqParameterTypedVaryingArray<T, I, SLT>( Name, Count, Identifier ) );
 		}
 		virtual	CqParameter* Clone() const
 		{
@@ -909,9 +917,9 @@ class CqParameterTypedVaryingArray : public CqParameterTyped<T, SLT>
 		 * \param strName Character pointer to new parameter name.
 		 * \param Count Integer array size.
 		 */
-		static	CqParameter*	Create( const char* strName, TqInt Count = 1 )
+		static	CqParameter*	Create( const char* strName, TqInt Count, TqInt Identifier )
 		{
-			return ( new CqParameterTypedVaryingArray<T, I, SLT>( strName, Count ) );
+			return ( new CqParameterTypedVaryingArray<T, I, SLT>( strName, Count, Identifier ) );
 		}
 
 	private:
@@ -929,8 +937,8 @@ template <class T, EqVariableType I, class SLT>
 class CqParameterTypedUniformArray : public CqParameterTyped<T, SLT>
 {
 	public:
-		CqParameterTypedUniformArray( const char* strName, TqInt Count = 1 ) :
-				CqParameterTyped<T, SLT>( strName, Count )
+		CqParameterTypedUniformArray( const char* strName, TqInt Count, TqInt Identifier = 0 ) :
+				CqParameterTyped<T, SLT>( strName, Count, Identifier )
 		{
 			m_aValues.resize( Count );
 		}
@@ -945,9 +953,9 @@ class CqParameterTypedUniformArray : public CqParameterTyped<T, SLT>
 		virtual	~CqParameterTypedUniformArray()
 	{}
 
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const
 		{
-			return ( new CqParameterTypedUniformArray<T, I, SLT>( Name, Count ) );
+			return ( new CqParameterTypedUniformArray<T, I, SLT>( Name, Count, Identifier ) );
 		}
 		virtual	CqParameter* Clone() const
 		{
@@ -1047,9 +1055,9 @@ class CqParameterTypedUniformArray : public CqParameterTyped<T, SLT>
 		 * \param strName Character pointer to new parameter name.
 		 * \param Count Integer array size.
 		 */
-		static	CqParameter*	Create( const char* strName, TqInt Count = 1 )
+		static	CqParameter*	Create( const char* strName, TqInt Count, TqInt Identifier )
 		{
-			return ( new CqParameterTypedUniformArray<T, I, SLT>( strName, Count ) );
+			return ( new CqParameterTypedUniformArray<T, I, SLT>( strName, Count, Identifier ) );
 		}
 	private:
 		std::vector<T>	m_aValues;	///< Array of uniform values.
@@ -1065,8 +1073,8 @@ template <class T, EqVariableType I, class SLT>
 class CqParameterTypedConstantArray : public CqParameterTyped<T, SLT>
 {
 	public:
-		CqParameterTypedConstantArray( const char* strName, TqInt Count = 1 ) :
-				CqParameterTyped<T, SLT>( strName, Count )
+		CqParameterTypedConstantArray( const char* strName, TqInt Count, TqInt Identifier = 0 ) :
+				CqParameterTyped<T, SLT>( strName, Count, Identifier )
 		{
 			m_aValues.resize( Count );
 		}
@@ -1081,9 +1089,9 @@ class CqParameterTypedConstantArray : public CqParameterTyped<T, SLT>
 		virtual	~CqParameterTypedConstantArray()
 	{}
 
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const
 		{
-			return ( new CqParameterTypedConstantArray<T, I, SLT>( Name, Count ) );
+			return ( new CqParameterTypedConstantArray<T, I, SLT>( Name, Count, Identifier ) );
 		}
 		virtual	CqParameter* Clone() const
 		{
@@ -1183,9 +1191,9 @@ class CqParameterTypedConstantArray : public CqParameterTyped<T, SLT>
 		 * \param strName Character pointer to new parameter name.
 		 * \param Count Integer array size.
 		 */
-		static	CqParameter*	Create( const char* strName, TqInt Count = 1 )
+		static	CqParameter*	Create( const char* strName, TqInt Count, TqInt Identifier = 0 )
 		{
-			return ( new CqParameterTypedConstantArray<T, I, SLT>( strName, Count ) );
+			return ( new CqParameterTypedConstantArray<T, I, SLT>( strName, Count, Identifier ) );
 		}
 	private:
 		std::vector<T>	m_aValues;	///< Array of uniform values.
@@ -1202,8 +1210,8 @@ template <class T, EqVariableType I, class SLT>
 class CqParameterTypedVertexArray : public CqParameterTypedVaryingArray<T, I, SLT>
 {
 	public:
-		CqParameterTypedVertexArray( const char* strName, TqInt Count ) :
-				CqParameterTypedVaryingArray<T, I, SLT>( strName, Count )
+		CqParameterTypedVertexArray( const char* strName, TqInt Count, TqInt Identifier = 0 ) :
+				CqParameterTypedVaryingArray<T, I, SLT>( strName, Count, Identifier )
 		{}
 		CqParameterTypedVertexArray( const CqParameterTypedVertexArray<T, I, SLT>& From ) :
 				CqParameterTypedVaryingArray<T, I, SLT>( From )
@@ -1211,9 +1219,9 @@ class CqParameterTypedVertexArray : public CqParameterTypedVaryingArray<T, I, SL
 		virtual	~CqParameterTypedVertexArray()
 		{}
 
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const
 		{
-			return ( new CqParameterTypedVertexArray<T, I, SLT>( Name, Count ) );
+			return ( new CqParameterTypedVertexArray<T, I, SLT>( Name, Count, Identifier ) );
 		}
 		virtual	CqParameter* Clone() const
 		{
@@ -1254,9 +1262,9 @@ class CqParameterTypedVertexArray : public CqParameterTypedVaryingArray<T, I, SL
 		 * \param strName Character pointer to new parameter name.
 		 * \param Count Integer array size.
 		 */
-		static	CqParameter*	Create( const char* strName, TqInt Count = 1 )
+		static	CqParameter*	Create( const char* strName, TqInt Count, TqInt Identifier = 0 )
 		{
-			return ( new CqParameterTypedVertexArray<T, I, SLT>( strName, Count ) );
+			return ( new CqParameterTypedVertexArray<T, I, SLT>( strName, Count, Identifier ) );
 		}
 
 	private:
@@ -1272,15 +1280,15 @@ template <class T, EqVariableType I, class SLT>
 class CqParameterTypedFaceVaryingArray : public CqParameterTypedVaryingArray<T, I, SLT>
 {
 	public:
-		CqParameterTypedFaceVaryingArray( const char* strName, TqInt Count = 1 ) :
-				CqParameterTypedVaryingArray<T, I, SLT>( strName, Count )
+		CqParameterTypedFaceVaryingArray( const char* strName, TqInt Count, TqInt Identifier = 0 ) :
+				CqParameterTypedVaryingArray<T, I, SLT>( strName, Count, Identifier )
 		{}
 		virtual	~CqParameterTypedFaceVaryingArray()
 		{}
 
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const
 		{
-			return ( new CqParameterTypedFaceVaryingArray<T, I, SLT>( Name, Count ) );
+			return ( new CqParameterTypedFaceVaryingArray<T, I, SLT>( Name, Count, Identifier ) );
 		}
 		virtual	CqParameter* Clone() const
 		{
@@ -1295,9 +1303,9 @@ class CqParameterTypedFaceVaryingArray : public CqParameterTypedVaryingArray<T, 
 		 * \param strName Character pointer to new parameter name.
 		 * \param Count Integer array size.
 		 */
-		static	CqParameter*	Create( const char* strName, TqInt Count = 1 )
+		static	CqParameter*	Create( const char* strName, TqInt Count, TqInt Identifier )
 		{
-			return ( new CqParameterTypedFaceVaryingArray<T, I, SLT>( strName, Count ) );
+			return ( new CqParameterTypedFaceVaryingArray<T, I, SLT>( strName, Count, Identifier ) );
 		}
 
 	private:
@@ -1313,15 +1321,15 @@ template <class T, EqVariableType I, class SLT>
 class CqParameterTypedFaceVertexArray : public CqParameterTypedVertexArray<T, I, SLT>
 {
 	public:
-		CqParameterTypedFaceVertexArray( const char* strName, TqInt Count = 1 ) :
-				CqParameterTypedVertexArray<T, I, SLT>( strName, Count )
+		CqParameterTypedFaceVertexArray( const char* strName, TqInt Count, TqInt Identifier = 0 ) :
+				CqParameterTypedVertexArray<T, I, SLT>( strName, Count, Identifier )
 		{}
 		virtual	~CqParameterTypedFaceVertexArray()
 		{}
 
-		virtual	CqParameter* CloneType( const char* Name, TqInt Count = 1 ) const
+		virtual	CqParameter* CloneType( const char* Name, TqInt Count, TqInt Identifier = 0 ) const
 		{
-			return ( new CqParameterTypedFaceVertexArray<T, I, SLT>( Name, Count ) );
+			return ( new CqParameterTypedFaceVertexArray<T, I, SLT>( Name, Count, Identifier ) );
 		}
 		virtual	CqParameter* Clone() const
 		{
@@ -1336,9 +1344,9 @@ class CqParameterTypedFaceVertexArray : public CqParameterTypedVertexArray<T, I,
 		 * \param strName Character pointer to new parameter name.
 		 * \param Count Integer array size.
 		 */
-		static	CqParameter*	Create( const char* strName, TqInt Count = 1 )
+		static	CqParameter*	Create( const char* strName, TqInt Count, TqInt Identifier )
 		{
-			return ( new CqParameterTypedFaceVertexArray<T, I, SLT>( strName, Count ) );
+			return ( new CqParameterTypedFaceVertexArray<T, I, SLT>( strName, Count, Identifier ) );
 		}
 
 	private:
@@ -1549,8 +1557,9 @@ class CqNamedParameterList
 
 		/** Add a new name/value pair to this option/attribute.
 		 * \param pParameter Pointer to a CqParameter containing the name/value pair.
+		 * \param iIdentifier Integer ID for an internal attribute.
 		 */
-		void	AddParameter( const CqParameter* pParameter )
+		void	AddParameter( const CqParameter* pParameter, TqInt iIdentifier = 0 )
 		{
 			for ( std::vector<CqParameter*>::iterator i = m_aParameters.begin(); i != m_aParameters.end(); i++ )
 			{
@@ -1908,18 +1917,18 @@ class CqNamedParameterList
 	typedef boost::shared_ptr<CqMatrixFaceVaryingArrayParameter> CqMatrixFaceVaryingArrayParameterPtr;
 ///////////////////////////////////////////////////////////////////////////////
 
-extern CqParameter* ( *gVariableCreateFuncsConstant[] ) ( const char* strName, TqInt Count );
-extern CqParameter* ( *gVariableCreateFuncsUniform[] ) ( const char* strName, TqInt Count );
-extern CqParameter* ( *gVariableCreateFuncsVarying[] ) ( const char* strName, TqInt Count );
-extern CqParameter* ( *gVariableCreateFuncsVertex[] ) ( const char* strName, TqInt Count );
-extern CqParameter* ( *gVariableCreateFuncsFaceVarying[] ) ( const char* strName, TqInt Count );
-extern CqParameter* ( *gVariableCreateFuncsFaceVertex[] ) ( const char* strName, TqInt Count );
-extern CqParameter* ( *gVariableCreateFuncsConstantArray[] ) ( const char* strName, TqInt Count );
-extern CqParameter* ( *gVariableCreateFuncsUniformArray[] ) ( const char* strName, TqInt Count );
-extern CqParameter* ( *gVariableCreateFuncsVaryingArray[] ) ( const char* strName, TqInt Count );
-extern CqParameter* ( *gVariableCreateFuncsVertexArray[] ) ( const char* strName, TqInt Count );
-extern CqParameter* ( *gVariableCreateFuncsFaceVaryingArray[] ) ( const char* strName, TqInt Count );
-extern CqParameter* ( *gVariableCreateFuncsFaceVertexArray[] ) ( const char* strName, TqInt Count );
+extern CqParameter* ( *gVariableCreateFuncsConstant[] ) ( const char* strName, TqInt Count, TqInt Identifier );
+extern CqParameter* ( *gVariableCreateFuncsUniform[] ) ( const char* strName, TqInt Count, TqInt Identifier );
+extern CqParameter* ( *gVariableCreateFuncsVarying[] ) ( const char* strName, TqInt Count, TqInt Identifier );
+extern CqParameter* ( *gVariableCreateFuncsVertex[] ) ( const char* strName, TqInt Count, TqInt Identifier );
+extern CqParameter* ( *gVariableCreateFuncsFaceVarying[] ) ( const char* strName, TqInt Count, TqInt Identifier );
+extern CqParameter* ( *gVariableCreateFuncsFaceVertex[] ) ( const char* strName, TqInt Count, TqInt Identifier );
+extern CqParameter* ( *gVariableCreateFuncsConstantArray[] ) ( const char* strName, TqInt Count, TqInt Identifier );
+extern CqParameter* ( *gVariableCreateFuncsUniformArray[] ) ( const char* strName, TqInt Count, TqInt Identifier );
+extern CqParameter* ( *gVariableCreateFuncsVaryingArray[] ) ( const char* strName, TqInt Count, TqInt Identifier );
+extern CqParameter* ( *gVariableCreateFuncsVertexArray[] ) ( const char* strName, TqInt Count, TqInt Identifier );
+extern CqParameter* ( *gVariableCreateFuncsFaceVaryingArray[] ) ( const char* strName, TqInt Count, TqInt Identifier );
+extern CqParameter* ( *gVariableCreateFuncsFaceVertexArray[] ) ( const char* strName, TqInt Count, TqInt Identifier );
 
 //-----------------------------------------------------------------------
 

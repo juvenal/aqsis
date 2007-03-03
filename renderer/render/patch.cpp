@@ -1049,7 +1049,7 @@ TqInt CqSurfacePatchMeshBicubic::Split( std::vector<boost::shared_ptr<CqSurface>
 			// If the shaders need u/v or s/t and they are not specified, then we need to put them in as defaults.
 			if ( USES( MyUses, EnvVars_u ) && !bHasVar(EnvVars_u) )
 			{
-				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "u" ) );
+				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "u", 1 ) );
 				pSurface->u() ->SetSize( 4 );
 				pSurface->u() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( 0.0f, 1.0f, 0.0f, 1.0f, u0, v0 );
 				pSurface->u() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( 0.0f, 1.0f, 0.0f, 1.0f, u1, v0 );
@@ -1059,7 +1059,7 @@ TqInt CqSurfacePatchMeshBicubic::Split( std::vector<boost::shared_ptr<CqSurface>
 
 			if ( USES( MyUses, EnvVars_v ) && !bHasVar(EnvVars_v) )
 			{
-				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "v" ) );
+				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "v", 1 ) );
 				pSurface->v() ->SetSize( 4 );
 				pSurface->v() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( 0.0f, 0.0f, 1.0f, 1.0f, u0, v0 );
 				pSurface->v() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( 0.0f, 0.0f, 1.0f, 1.0f, u1, v0 );
@@ -1069,7 +1069,7 @@ TqInt CqSurfacePatchMeshBicubic::Split( std::vector<boost::shared_ptr<CqSurface>
 
 			if ( USES( MyUses, EnvVars_s ) && !bHasVar(EnvVars_s) )
 			{
-				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s" ) );
+				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s", 1 ) );
 				pSurface->s() ->SetSize( 4 );
 				pSurface->s() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u0, v0 );
 				pSurface->s() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u1, v0 );
@@ -1079,7 +1079,7 @@ TqInt CqSurfacePatchMeshBicubic::Split( std::vector<boost::shared_ptr<CqSurface>
 
 			if ( USES( MyUses, EnvVars_t ) && !bHasVar(EnvVars_t) )
 			{
-				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t" ) );
+				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t", 1 ) );
 				pSurface->t() ->SetSize( 4 );
 				pSurface->t() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u0, v0 );
 				pSurface->t() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u1, v0 );
@@ -1268,7 +1268,7 @@ TqInt CqSurfacePatchMeshBilinear::Split( std::vector<boost::shared_ptr<CqSurface
 			// If the shaders need u/v or s/t and they are not specified, then we need to put them in as defaults.
 			if ( USES( MyUses, EnvVars_u ) && !bHasVar(EnvVars_u) )
 			{
-				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "u" ) );
+				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "u", 1 ) );
 				pSurface->u() ->SetSize( 4 );
 				pSurface->u() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( 0.0f, 1.0f, 0.0f, 1.0f, u0, v0 );
 				pSurface->u() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( 0.0f, 1.0f, 0.0f, 1.0f, u1, v0 );
@@ -1278,7 +1278,7 @@ TqInt CqSurfacePatchMeshBilinear::Split( std::vector<boost::shared_ptr<CqSurface
 
 			if ( USES( MyUses, EnvVars_v ) && !bHasVar(EnvVars_v) )
 			{
-				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "v" ) );
+				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "v", 1 ) );
 				pSurface->v() ->SetSize( 4 );
 				pSurface->v() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( 0.0f, 0.0f, 1.0f, 1.0f, u0, v0 );
 				pSurface->v() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( 0.0f, 0.0f, 1.0f, 1.0f, u1, v0 );
@@ -1288,7 +1288,7 @@ TqInt CqSurfacePatchMeshBilinear::Split( std::vector<boost::shared_ptr<CqSurface
 
 			if ( USES( MyUses, EnvVars_s ) && !bHasVar(EnvVars_s) )
 			{
-				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s" ) );
+				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s", 1 ) );
 				pSurface->s() ->SetSize( 4 );
 				pSurface->s() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u0, v0 );
 				pSurface->s() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u1, v0 );
@@ -1298,7 +1298,7 @@ TqInt CqSurfacePatchMeshBilinear::Split( std::vector<boost::shared_ptr<CqSurface
 
 			if ( USES( MyUses, EnvVars_t ) && !bHasVar(EnvVars_t) )
 			{
-				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t" ) );
+				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t", 1 ) );
 				pSurface->t() ->SetSize( 4 );
 				pSurface->t() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u0, v0 );
 				pSurface->t() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u1, v0 );

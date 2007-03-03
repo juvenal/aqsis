@@ -40,9 +40,10 @@ START_NAMESPACE( Aqsis )
  * \param strName Character pointer to parameter name.
  * \param Count Integer value count, for arrays.
  */
-CqParameter::CqParameter( const char* strName, TqInt Count ) :
+CqParameter::CqParameter( const char* strName, TqInt Count, TqInt Identifier ) :
 		m_strName( strName ),
-		m_Count( Count )
+		m_Count( Count ),
+		m_Identifier( Identifier )
 {
 	/// \note Had to remove this as paramters are now created as part of the Renderer construction, so the
 	///		  renderer context isn't ready yet.
@@ -86,7 +87,7 @@ CqParameter::~CqParameter()
 }
 
 
-CqParameter* ( *gVariableCreateFuncsConstant[] ) ( const char* strName, TqInt Count ) =
+CqParameter* ( *gVariableCreateFuncsConstant[] ) ( const char* strName, TqInt Count, TqInt Identifier ) =
     {
         0,
         CqParameterTypedConstant<TqFloat, type_float, TqFloat>::Create,
@@ -105,7 +106,7 @@ CqParameter* ( *gVariableCreateFuncsConstant[] ) ( const char* strName, TqInt Co
     };
 
 
-CqParameter* ( *gVariableCreateFuncsUniform[] ) ( const char* strName, TqInt Count ) =
+CqParameter* ( *gVariableCreateFuncsUniform[] ) ( const char* strName, TqInt Count, TqInt Identifier ) =
     {
         0,
         CqParameterTypedUniform<TqFloat, type_float, TqFloat>::Create,
@@ -123,7 +124,7 @@ CqParameter* ( *gVariableCreateFuncsUniform[] ) ( const char* strName, TqInt Cou
         0,
     };
 
-CqParameter* ( *gVariableCreateFuncsVarying[] ) ( const char* strName, TqInt Count ) =
+CqParameter* ( *gVariableCreateFuncsVarying[] ) ( const char* strName, TqInt Count, TqInt Identifier ) =
     {
         0,
         CqParameterTypedVarying<TqFloat, type_float, TqFloat>::Create,
@@ -141,7 +142,7 @@ CqParameter* ( *gVariableCreateFuncsVarying[] ) ( const char* strName, TqInt Cou
         0,
     };
 
-CqParameter* ( *gVariableCreateFuncsVertex[] ) ( const char* strName, TqInt Count ) =
+CqParameter* ( *gVariableCreateFuncsVertex[] ) ( const char* strName, TqInt Count, TqInt Identifier ) =
     {
         0,
         CqParameterTypedVertex<TqFloat, type_float, TqFloat>::Create,
@@ -160,7 +161,7 @@ CqParameter* ( *gVariableCreateFuncsVertex[] ) ( const char* strName, TqInt Coun
     };
 
 
-CqParameter* ( *gVariableCreateFuncsFaceVarying[] ) ( const char* strName, TqInt Count ) =
+CqParameter* ( *gVariableCreateFuncsFaceVarying[] ) ( const char* strName, TqInt Count, TqInt Identifier ) =
     {
         0,
         CqParameterTypedFaceVarying<TqFloat, type_float, TqFloat>::Create,
@@ -179,7 +180,7 @@ CqParameter* ( *gVariableCreateFuncsFaceVarying[] ) ( const char* strName, TqInt
     };
 
 
-CqParameter* ( *gVariableCreateFuncsFaceVertex[] ) ( const char* strName, TqInt Count ) =
+CqParameter* ( *gVariableCreateFuncsFaceVertex[] ) ( const char* strName, TqInt Count, TqInt Identifier ) =
     {
         0,
         CqParameterTypedFaceVertex<TqFloat, type_float, TqFloat>::Create,
@@ -197,7 +198,7 @@ CqParameter* ( *gVariableCreateFuncsFaceVertex[] ) ( const char* strName, TqInt 
         0,
     };
 
-CqParameter* ( *gVariableCreateFuncsConstantArray[] ) ( const char* strName, TqInt Count ) =
+CqParameter* ( *gVariableCreateFuncsConstantArray[] ) ( const char* strName, TqInt Count, TqInt Identifier ) =
     {
         0,
         CqParameterTypedConstantArray<TqFloat, type_float, TqFloat>::Create,
@@ -216,7 +217,7 @@ CqParameter* ( *gVariableCreateFuncsConstantArray[] ) ( const char* strName, TqI
     };
 
 
-CqParameter* ( *gVariableCreateFuncsUniformArray[] ) ( const char* strName, TqInt Count ) =
+CqParameter* ( *gVariableCreateFuncsUniformArray[] ) ( const char* strName, TqInt Count, TqInt Identifier ) =
     {
         0,
         CqParameterTypedUniformArray<TqFloat, type_float, TqFloat>::Create,
@@ -234,7 +235,7 @@ CqParameter* ( *gVariableCreateFuncsUniformArray[] ) ( const char* strName, TqIn
         0,
     };
 
-CqParameter* ( *gVariableCreateFuncsVaryingArray[] ) ( const char* strName, TqInt Count ) =
+CqParameter* ( *gVariableCreateFuncsVaryingArray[] ) ( const char* strName, TqInt Count, TqInt Identifier ) =
     {
         0,
         CqParameterTypedVaryingArray<TqFloat, type_float, TqFloat>::Create,
@@ -252,7 +253,7 @@ CqParameter* ( *gVariableCreateFuncsVaryingArray[] ) ( const char* strName, TqIn
         0,
     };
 
-CqParameter* ( *gVariableCreateFuncsVertexArray[] ) ( const char* strName, TqInt Count ) =
+CqParameter* ( *gVariableCreateFuncsVertexArray[] ) ( const char* strName, TqInt Count, TqInt Identifier ) =
     {
         0,
         CqParameterTypedVertexArray<TqFloat, type_float, TqFloat>::Create,
@@ -270,7 +271,7 @@ CqParameter* ( *gVariableCreateFuncsVertexArray[] ) ( const char* strName, TqInt
         0,
     };
 
-CqParameter* ( *gVariableCreateFuncsFaceVaryingArray[] ) ( const char* strName, TqInt Count ) =
+CqParameter* ( *gVariableCreateFuncsFaceVaryingArray[] ) ( const char* strName, TqInt Count, TqInt Identifier ) =
     {
         0,
         CqParameterTypedFaceVaryingArray<TqFloat, type_float, TqFloat>::Create,
@@ -288,7 +289,7 @@ CqParameter* ( *gVariableCreateFuncsFaceVaryingArray[] ) ( const char* strName, 
         0,
     };
 
-CqParameter* ( *gVariableCreateFuncsFaceVertexArray[] ) ( const char* strName, TqInt Count ) =
+CqParameter* ( *gVariableCreateFuncsFaceVertexArray[] ) ( const char* strName, TqInt Count, TqInt Identifier ) =
     {
         0,
         CqParameterTypedFaceVertexArray<TqFloat, type_float, TqFloat>::Create,

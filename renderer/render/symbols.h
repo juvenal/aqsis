@@ -53,7 +53,7 @@ struct SqParameterDeclaration
 			m_hash(0)
 	{}
 	SqParameterDeclaration( const char* strName, EqVariableType Type, EqVariableClass Class, TqInt Count,
-	                        CqParameter* ( *pCreate ) ( const char* strName, TqInt Count ), const char* strSpace ) :
+	                        CqParameter* ( *pCreate ) ( const char* strName, TqInt Count, TqInt Identifier ), const char* strSpace ) :
 			m_strName( strName ),
 			m_Type( Type ),
 			m_Class( Class ),
@@ -69,7 +69,7 @@ struct SqParameterDeclaration
 	EqVariableType	m_Type;										///< Type.
 	EqVariableClass	m_Class;									///< Class.
 	TqInt	m_Count;										///< Array length if an array.
-	CqParameter* ( *m_pCreate ) ( const char* strName, TqInt Count );		///< Constructor function.
+	CqParameter* ( *m_pCreate ) ( const char* strName, TqInt Count, TqInt Identifier );		///< Constructor function.
 	CqString	m_strSpace;										///< Specification coordinate system name.
 	TqUlong         m_hash; ///< Hash key for m_strName;
 

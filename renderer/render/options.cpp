@@ -289,25 +289,25 @@ CqOptions& CqOptions::operator=( const CqOptions& From )
 
 
 #define	ADD_SYSTEM_PARAM(name, type, sltype, id, def) \
-	CqParameterTypedUniform<type,id,sltype>* p##name = new CqParameterTypedUniform<type,id,sltype>(#name); \
+	CqParameterTypedUniform<type,id,sltype>* p##name = new CqParameterTypedUniform<type,id,sltype>(#name, 1);\
 	p##name->pValue()[0] = ( def ); \
 	pdefopts->AddParameter(p##name);
 
 #define	ADD_SYSTEM_PARAM2(name, type, sltype, id, def0, def1) \
-	CqParameterTypedUniformArray<type,id,sltype>* p##name = new CqParameterTypedUniformArray<type,id,sltype>(#name,2); \
+	CqParameterTypedUniformArray<type,id,sltype>* p##name = new CqParameterTypedUniformArray<type,id,sltype>(#name, 2);\
 	p##name->pValue()[0] = ( def0 ); \
 	p##name->pValue()[1] = ( def1 ); \
 	pdefopts->AddParameter(p##name);
 
 #define	ADD_SYSTEM_PARAM3(name, type, sltype, id, def0, def1, def2) \
-	CqParameterTypedUniformArray<type,id,sltype>* p##name = new CqParameterTypedUniformArray<type,id,sltype>(#name,3); \
+	CqParameterTypedUniformArray<type,id,sltype>* p##name = new CqParameterTypedUniformArray<type,id,sltype>(#name, 3);\
 	p##name->pValue()[0] = ( def0 ); \
 	p##name->pValue()[1] = ( def1 ); \
 	p##name->pValue()[2] = ( def2 ); \
 	pdefopts->AddParameter(p##name);
 
 #define	ADD_SYSTEM_PARAM4(name, type, sltype, id, def0, def1, def2, def3) \
-	CqParameterTypedUniformArray<type,id,sltype>* p##name = new CqParameterTypedUniformArray<type,id,sltype>(#name,4); \
+	CqParameterTypedUniformArray<type,id,sltype>* p##name = new CqParameterTypedUniformArray<type,id,sltype>(#name, 4);\
 	p##name->pValue()[0] = ( def0 ); \
 	p##name->pValue()[1] = ( def1 ); \
 	p##name->pValue()[2] = ( def2 ); \

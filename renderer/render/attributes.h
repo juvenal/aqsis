@@ -56,12 +56,40 @@ class	CqLightsource;
 */
 
 
+enum EqSystemParamIDs
+{
+			DICE_BINARY = 1,
+			DISPLACEMENTBOUNT_COORDINATESYSTEM,
+			DISPLACEMENTBOUNT_SPHERE,
+			IDENTIFIER_NAME,
+			SYSTEM_BASIS,
+			SYSTEM_BASISSTEP,
+			SYSTEM_COLOR,
+			SYSTEM_LEVELOFDETAILBOUNDS,
+			SYSTEM_LODBOUND,
+			SYSTEM_LODRANGES,
+			SYSTEM_MATTE,
+			SYSTEM_OPACITY,
+			SYSTEM_ORIENTATION,
+			SYSTEM_SHADINGINTERPOLATION,
+			SYSTEM_SHADINGRATE,
+			SYSTEM_SHADINGRATESQRT,
+			SYSTEM_SIDES,
+			SYSTEM_TEXTURECOORDINATES,
+			TRIMCURVE_SENSE,
+			AUTOSHADOWS_RES,
+			AUTOSHADOWS_SHADOWMAPNAME,
+			LASTPARAM
+} ;
+
 class CqAttributes : public CqRefCount, public IqAttributes
 {
 	public:
 		CqAttributes();
 		CqAttributes( const CqAttributes& From );
 		virtual	~CqAttributes();
+
+		CqParameter* m_systemParams[(EqSystemParamIDs) LASTPARAM];
 
 		/** Get a pointer to this attribute state suitable for writing.
 		 * I the external references count is greater than 1, then create a copy on the stack and return that.
@@ -263,6 +291,24 @@ class CqAttributes : public CqRefCount, public IqAttributes
 		virtual CqVector3D*	GetNormalAttributeWrite( const char* strName, const char* strParam );
 		virtual CqColor*	GetColorAttributeWrite( const char* strName, const char* strParam );
 		virtual CqMatrix*	GetMatrixAttributeWrite( const char* strName, const char* strParam );
+
+                virtual const TqFloat*  GetFloatAttribute( const TqInt iIdentifier ) const;
+                virtual const TqInt*    GetIntegerAttribute( const TqInt iIdentifier ) const;
+                virtual const CqString* GetStringAttribute( const TqInt iIdentifier ) const;
+                virtual const CqVector3D*       GetPointAttribute( const TqInt iIdentifier ) const;
+                virtual const CqVector3D*       GetVectorAttribute( const TqInt iIdentifier ) const;
+                virtual const CqVector3D*       GetNormalAttribute( const TqInt iIdentifier ) const;
+                virtual const CqColor*  GetColorAttribute( const TqInt iIdentifier ) const;
+                virtual const CqMatrix* GetMatrixAttribute( const TqInt iIdentifier ) const;
+
+                virtual TqFloat*        GetFloatAttributeWrite( const TqInt iIdentifier ) ;
+                virtual TqInt* 		GetIntegerAttributeWrite( const TqInt iIdentifier ) ;
+                virtual CqString*       GetStringAttributeWrite( const TqInt iIdentifier ) ;
+                virtual CqVector3D*     GetPointAttributeWrite( const TqInt iIdentifier ) ;
+                virtual CqVector3D*     GetVectorAttributeWrite( const TqInt iIdentifier ) ;
+                virtual CqVector3D*     GetNormalAttributeWrite( const TqInt iIdentifier ) ;
+                virtual CqColor*        GetColorAttributeWrite( const TqInt iIdentifier ) ;
+                virtual CqMatrix*       GetMatrixAttributeWrite( const TqInt iIdentifier ) ;
 
 		virtual	TqUint	cLights() const
 		{

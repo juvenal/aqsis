@@ -247,7 +247,7 @@ void CqCurve::PopulateWidth()
 	// create and fill in the width array
 	CqParameterTypedVarying<TqFloat, type_float, TqFloat>* widthP =
 	    new CqParameterTypedVarying<TqFloat, type_float, TqFloat>(
-	        "width"
+	        "width", 1
 	    );
 	widthP->SetSize( cVarying() );
 	for ( TqUint i = 0; i < cVarying(); i++ )

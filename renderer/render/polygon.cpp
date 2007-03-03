@@ -242,7 +242,7 @@ TqInt CqPolygonBase::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits 
 
 			if ( USES( iUses, EnvVars_s ) && !bHasVar(EnvVars_s) )
 			{
-				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s" );
+				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s", 1 );
 				pNewUP->SetSize( pNew->cVarying() );
 
 				pNewUP->pValue() [ 0 ] = PA.x();
@@ -255,7 +255,7 @@ TqInt CqPolygonBase::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits 
 
 			if ( USES( iUses, EnvVars_t ) && !bHasVar(EnvVars_t) )
 			{
-				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t" );
+				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t", 1 );
 				pNewUP->SetSize( pNew->cVarying() );
 
 				pNewUP->pValue() [ 0 ] = PA.y();
@@ -268,7 +268,7 @@ TqInt CqPolygonBase::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits 
 
 			if ( USES( iUses, EnvVars_u ) && !bHasVar(EnvVars_u) )
 			{
-				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "u" );
+				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "u", 1 );
 				pNewUP->SetSize( pNew->cVarying() );
 
 				pNewUP->pValue() [ 0 ] = PA.x();
@@ -281,7 +281,7 @@ TqInt CqPolygonBase::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits 
 
 			if ( USES( iUses, EnvVars_v ) && !bHasVar(EnvVars_v) )
 			{
-				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "v" );
+				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "v", 1 );
 				pNewUP->SetSize( pNew->cVarying() );
 
 				pNewUP->pValue() [ 0 ] = PA.y();

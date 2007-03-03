@@ -38,55 +38,49 @@ struct IqAttributes
 	virtual ~IqAttributes()
 	{}
 
-	/** Get a named float attribute as read only
+	/** Get a named attribute as read only
 	 */
 	virtual	const	TqFloat*	GetFloatAttribute( const char* strName, const char* strParam ) const = 0;
-	/** Get a named integer attribute as read only
-	 */
 	virtual	const	TqInt*	GetIntegerAttribute( const char* strName, const char* strParam ) const = 0;
-	/** Get a named string attribute as read only
-	 */
 	virtual	const	CqString* GetStringAttribute( const char* strName, const char* strParam ) const = 0;
-	/** Get a named point attribute as read only
-	 */
 	virtual	const	CqVector3D*	GetPointAttribute( const char* strName, const char* strParam ) const = 0;
-	/** Get a named point attribute as read only
-	 */
 	virtual	const	CqVector3D*	GetVectorAttribute( const char* strName, const char* strParam ) const = 0;
-	/** Get a named point attribute as read only
-	 */
 	virtual	const	CqVector3D*	GetNormalAttribute( const char* strName, const char* strParam ) const = 0;
-	/** Get a named color attribute as read only
-	 */
 	virtual	const	CqColor*	GetColorAttribute( const char* strName, const char* strParam ) const = 0;
-	/** Get a named matrix attribute as read only
-	 */
 	virtual	const	CqMatrix*	GetMatrixAttribute( const char* strName, const char* strParam ) const = 0;
 
-	/** Get a named float attribute as writable
+	/** Get a named attribute as writable
 	 */
 	virtual	TqFloat*	GetFloatAttributeWrite( const char* strName, const char* strParam ) = 0;
-	/** Get a named integer attribute as writable
-	 */
 	virtual	TqInt*	GetIntegerAttributeWrite( const char* strName, const char* strParam ) = 0;
-	/** Get a named string attribute as writable
-	 */
 	virtual	CqString* GetStringAttributeWrite( const char* strName, const char* strParam ) = 0;
-	/** Get a named point attribute as writable
-	 */
 	virtual	CqVector3D*	GetPointAttributeWrite( const char* strName, const char* strParam ) = 0;
-	/** Get a named point attribute as writable
-	 */
 	virtual	CqVector3D*	GetVectorAttributeWrite( const char* strName, const char* strParam ) = 0;
-	/** Get a named point attribute as writable
-	 */
 	virtual	CqVector3D*	GetNormalAttributeWrite( const char* strName, const char* strParam ) = 0;
-	/** Get a named color attribute as writable
-	 */
 	virtual	CqColor*	GetColorAttributeWrite( const char* strName, const char* strParam ) = 0;
-	/** Get a named matrix attribute as writable
-	 */
 	virtual	CqMatrix*	GetMatrixAttributeWrite( const char* strName, const char* strParam ) = 0;
+
+	/** Get an internal attribute as read only
+	 */
+	virtual	const	TqFloat*	GetFloatAttribute( const TqInt iIdentifier ) const = 0;
+	virtual	const	TqInt*	GetIntegerAttribute( const TqInt iIdentifier ) const = 0;
+	virtual	const	CqString* GetStringAttribute( const TqInt iIdentifier ) const = 0;
+	virtual	const	CqVector3D*	GetPointAttribute( const TqInt iIdentifier ) const = 0;
+	virtual	const	CqVector3D*	GetVectorAttribute( const TqInt iIdentifier ) const = 0;
+	virtual	const	CqVector3D*	GetNormalAttribute( const TqInt iIdentifier ) const = 0;
+	virtual	const	CqColor*	GetColorAttribute( const TqInt iIdentifier ) const = 0;
+	virtual	const	CqMatrix*	GetMatrixAttribute( const TqInt iIdentifier ) const = 0;
+
+	/** Get an internal attribute as writable
+	 */
+	virtual	TqFloat*	GetFloatAttributeWrite( const TqInt iIdentifier ) = 0;
+	virtual	TqInt*	GetIntegerAttributeWrite( const TqInt iIdentifier ) = 0;
+	virtual	CqString* GetStringAttributeWrite( const TqInt iIdentifier ) = 0;
+	virtual	CqVector3D*	GetPointAttributeWrite( const TqInt iIdentifier ) = 0;
+	virtual	CqVector3D*	GetVectorAttributeWrite( const TqInt iIdentifier ) = 0;
+	virtual	CqVector3D*	GetNormalAttributeWrite( const TqInt iIdentifier ) = 0;
+	virtual	CqColor*	GetColorAttributeWrite( const TqInt iIdentifier ) = 0;
+	virtual	CqMatrix*	GetMatrixAttributeWrite( const TqInt iIdentifier ) = 0;
 
 	/** Get the current dislacement shader.
 	 * \param time the frame time to get the values in the case of a motion blurred attribute. (not used).

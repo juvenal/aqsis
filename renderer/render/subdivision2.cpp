@@ -1617,7 +1617,7 @@ TqInt CqSurfaceSubdivisionPatch::Split( std::vector<boost::shared_ptr<CqSurface>
 		{
 			if ( USES( iUses, EnvVars_s ) && !pTopology()->pPoints()->bHasVar(EnvVars_s) )
 			{
-				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s" );
+				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s", 1 );
 				pNewUP->SetSize( pSurface->cVarying() );
 
 				pNewUP->pValue() [ 0 ] = 0.0f;
@@ -1630,7 +1630,7 @@ TqInt CqSurfaceSubdivisionPatch::Split( std::vector<boost::shared_ptr<CqSurface>
 
 			if ( USES( iUses, EnvVars_t ) && !pTopology()->pPoints()->bHasVar(EnvVars_t) )
 			{
-				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t" );
+				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t", 1 );
 				pNewUP->SetSize( pSurface->cVarying() );
 
 				pNewUP->pValue() [ 0 ] = 0.0f;
@@ -1643,7 +1643,7 @@ TqInt CqSurfaceSubdivisionPatch::Split( std::vector<boost::shared_ptr<CqSurface>
 
 			if ( USES( iUses, EnvVars_u ) && !pTopology()->pPoints()->bHasVar(EnvVars_u) )
 			{
-				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "u" );
+				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "u", 1 );
 				pNewUP->SetSize( pSurface->cVarying() );
 
 				pNewUP->pValue() [ 0 ] = 0.0f;
@@ -1656,7 +1656,7 @@ TqInt CqSurfaceSubdivisionPatch::Split( std::vector<boost::shared_ptr<CqSurface>
 
 			if ( USES( iUses, EnvVars_v ) && !pTopology()->pPoints()->bHasVar(EnvVars_v) )
 			{
-				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "v" );
+				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "v", 1 );
 				pNewUP->SetSize( pSurface->cVarying() );
 
 				pNewUP->pValue() [ 0 ] = 0.0f;

@@ -3018,7 +3018,7 @@ RtVoid	RiAttributeV( RtToken name, PARAMETERLIST )
 			}
 			if ( Decl.m_strName != "" && Decl.m_Class == class_uniform )
 			{
-				pParam = Decl.m_pCreate( Decl.m_strName.c_str(), Decl.m_Count );
+				pParam = Decl.m_pCreate( Decl.m_strName.c_str(), Decl.m_Count, 0 );
 				Type = Decl.m_Type;
 				Class = Decl.m_Class;
 				bArray = Decl.m_Count > 0;
@@ -6019,7 +6019,7 @@ static RtBoolean ProcessPrimitiveVariables( CqSurface * pSurface, PARAMETERLIST 
 				continue;
 			}
 
-			CqParameter* pNewParam = ( *Decl.m_pCreate ) ( Decl.m_strName.c_str(), Decl.m_Count );
+			CqParameter* pNewParam = ( *Decl.m_pCreate ) ( Decl.m_strName.c_str(), Decl.m_Count, 0 );
 			// Now go across all values and fill in the parameter variable.
 			TqInt cValues = 1;
 			switch ( Decl.m_Class )

@@ -443,8 +443,8 @@ CqTeapot::CqTeapot( TqBool addCrowBase ) : m_CrowBase( addCrowBase )
 	pSurface->SetDefaultPrimitiveVariables();
 	pSurface->SetSurfaceParameters( *this );
 
-	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs" ) );
-	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os" ) );
+	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs", 1 ) );
+	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os", 1 ) );
 	pSurface->Cs() ->SetSize( 130 );
 	pSurface->Os() ->SetSize( 130 );
 	for ( i = 0; i < 13*10; i++ )
@@ -468,8 +468,8 @@ CqTeapot::CqTeapot( TqBool addCrowBase ) : m_CrowBase( addCrowBase )
 	pSurface->SetDefaultPrimitiveVariables();
 	pSurface->SetSurfaceParameters( *this );
 
-	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs" ) );
-	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os" ) );
+	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs", 1 ) );
+	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os", 1 ) );
 	pSurface->Cs() ->SetSize( 13 * 7 );
 	pSurface->Os() ->SetSize( 13 * 7 );
 	for ( i = 0; i < 13*7; i++ )
@@ -491,8 +491,8 @@ CqTeapot::CqTeapot( TqBool addCrowBase ) : m_CrowBase( addCrowBase )
 	pSurface->SetDefaultPrimitiveVariables();
 	pSurface->SetSurfaceParameters( *this );
 
-	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs" ) );
-	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os" ) );
+	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs", 1 ) );
+	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os", 1 ) );
 	pSurface->Cs() ->SetSize( 4 * 7 );
 	pSurface->Os() ->SetSize( 4 * 7 );
 	for ( i = 0; i < 4*7; i++ )
@@ -514,8 +514,8 @@ CqTeapot::CqTeapot( TqBool addCrowBase ) : m_CrowBase( addCrowBase )
 	pSurface->SetDefaultPrimitiveVariables();
 	pSurface->SetSurfaceParameters( *this );
 
-	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs" ) );
-	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os" ) );
+	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs", 1 ) );
+	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os", 1 ) );
 	pSurface->Cs() ->SetSize( 4 * 7 );
 	pSurface->Os() ->SetSize( 4 * 7 );
 	for ( i = 0; i < 4*7; i++ )
@@ -537,8 +537,8 @@ CqTeapot::CqTeapot( TqBool addCrowBase ) : m_CrowBase( addCrowBase )
 	pSurface->SetDefaultPrimitiveVariables();
 	pSurface->SetSurfaceParameters( *this );
 
-	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs" ) );
-	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os" ) );
+	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs", 1 ) );
+	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os", 1 ) );
 	pSurface->Cs() ->SetSize( 4 * 7 );
 	pSurface->Os() ->SetSize( 4 * 7 );
 	for ( i = 0; i < 4*7; i++ )
@@ -560,8 +560,8 @@ CqTeapot::CqTeapot( TqBool addCrowBase ) : m_CrowBase( addCrowBase )
 	pSurface->SetDefaultPrimitiveVariables();
 	pSurface->SetSurfaceParameters( *this );
 
-	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs" ) );
-	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os" ) );
+	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs", 1 ) );
+	pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os", 1 ) );
 	pSurface->Cs() ->SetSize( 4 * 7 );
 	pSurface->Os() ->SetSize( 4 * 7 );
 	for ( i = 0; i < 4*7; i++ )
@@ -596,8 +596,8 @@ CqTeapot::CqTeapot( TqBool addCrowBase ) : m_CrowBase( addCrowBase )
 		pSurface->SetDefaultPrimitiveVariables();
 		pSurface->SetSurfaceParameters( *this );
 
-		pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs" ) );
-		pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os" ) );
+		pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Cs", 1 ) );
+		pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<CqColor, type_color, CqColor>( "Os", 1 ) );
 		pSurface->Cs() ->SetSize( 13 * 4 );
 		pSurface->Os() ->SetSize( 13 * 4 );
 		for ( i = 0; i < 13*4; i++ )

@@ -869,7 +869,7 @@ TqInt CqCubicCurvesGroup::Split(
 				TqFloat, type_float, TqFloat
 				> * pVP = new CqParameterTypedVarying <
 				          TqFloat, type_float, TqFloat
-				          > ( "v", 1 );
+				          > ( "v", 1, 1 );
 				pVP->SetSize( pSeg->cVarying() );
 				pVP->pValue( 0 )[0] = vstart;
 				pVP->pValue( 1 )[0] = vend;

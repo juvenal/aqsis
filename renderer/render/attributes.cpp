@@ -45,54 +45,58 @@ const TqUlong CqAttributes::CqHashTable::tableSize = 127;
  *  Creates a new CqParameter derived class, initialises it to the given default value and 
  *  adds it to the default attributes member.
  */
-#define	ADD_SYSTEM_ATTR(name, type, sltype, id, def) \
-	CqParameterTypedUniform<type,id, sltype>* p##name = new CqParameterTypedUniform<type,id, sltype>(#name); \
+#define	ADD_SYSTEM_ATTR(name, id, type, sltype, type_id, def) \
+	CqParameterTypedUniform<type,type_id, sltype>* p##name = new CqParameterTypedUniform<type, type_id, sltype>(#name, 1, id); \
 	p##name->pValue()[0] = ( def ); \
-	pdefattrs->AddParameter(p##name);
+	pdefattrs->AddParameter(p##name); \
+ 	m_systemParams[ id ] = p##name;
 
 /** A macro to take care of adding a system attribute given a name.
  *  Creates a new CqParameter derived class, initialises it to the given default value and 
  *  adds it to the default attributes member.
  */
-#define	ADD_SYSTEM_ATTR2(name, type, sltype, id, def0, def1) \
-	CqParameterTypedUniformArray<type,id, sltype>* p##name = new CqParameterTypedUniformArray<type,id, sltype>(#name,2); \
+#define	ADD_SYSTEM_ATTR2(name, id, type, sltype, type_id, def0, def1) \
+	CqParameterTypedUniformArray<type,type_id, sltype>* p##name = new CqParameterTypedUniformArray<type, type_id, sltype>(#name, 2, id ); \
 	p##name->pValue()[0] = ( def0 ); \
 	p##name->pValue()[1] = ( def1 ); \
-	pdefattrs->AddParameter(p##name);
+	pdefattrs->AddParameter(p##name); \
+ 	m_systemParams[ id ] = p##name;
 
 /** A macro to take care of adding a system attribute given a name.
  *  Creates a new CqParameter derived class, initialises it to the given default value and 
  *  adds it to the default attributes member.
  */
-#define	ADD_SYSTEM_ATTR4(name, type, sltype, id, def0, def1, def2, def3) \
-	CqParameterTypedUniformArray<type,id, sltype>* p##name = new CqParameterTypedUniformArray<type,id, sltype>(#name,4); \
+#define	ADD_SYSTEM_ATTR4(name, id, type, sltype, type_id, def0, def1, def2, def3) \
+	CqParameterTypedUniformArray<type,type_id, sltype>* p##name = new CqParameterTypedUniformArray<type, type_id, sltype>(#name, 4, id); \
 	p##name->pValue()[0] = ( def0 ); \
 	p##name->pValue()[1] = ( def1 ); \
 	p##name->pValue()[2] = ( def2 ); \
 	p##name->pValue()[3] = ( def3 ); \
-	pdefattrs->AddParameter(p##name);
+	pdefattrs->AddParameter(p##name); \
+ 	m_systemParams[ id ] = p##name;
 
 /** A macro to take care of adding a system attribute given a name.
  *  Creates a new CqParameter derived class, initialises it to the given default value and 
  *  adds it to the default attributes member.
  */
-#define	ADD_SYSTEM_ATTR6(name, type, sltype, id, def0, def1, def2, def3, def4, def5) \
-	CqParameterTypedUniformArray<type,id, sltype>* p##name = new CqParameterTypedUniformArray<type,id, sltype>(#name,8); \
+#define	ADD_SYSTEM_ATTR6(name, id, type, sltype, type_id, def0, def1, def2, def3, def4, def5) \
+	CqParameterTypedUniformArray<type, type_id, sltype>* p##name = new CqParameterTypedUniformArray<type,type_id, sltype>(#name, 8, id); \
 	p##name->pValue()[0] = ( def0 ); \
 	p##name->pValue()[1] = ( def1 ); \
 	p##name->pValue()[2] = ( def2 ); \
 	p##name->pValue()[3] = ( def3 ); \
 	p##name->pValue()[4] = ( def4 ); \
 	p##name->pValue()[5] = ( def5 ); \
-	pdefattrs->AddParameter(p##name);
+	pdefattrs->AddParameter(p##name); \
+ 	m_systemParams[ id ] = p##name;
 
 
 /** A macro to take care of adding a system attribute given a name.
  *  Creates a new CqParameter derived class, initialises it to the given default value and 
  *  adds it to the default attributes member.
  */
-#define	ADD_SYSTEM_ATTR8(name, type, sltype, id, def0, def1, def2, def3, def4, def5, def6, def7) \
-	CqParameterTypedUniformArray<type,id, sltype>* p##name = new CqParameterTypedUniformArray<type,id, sltype>(#name,8); \
+#define	ADD_SYSTEM_ATTR8(name, id, type, sltype, type_id, def0, def1, def2, def3, def4, def5, def6, def7) \
+	CqParameterTypedUniformArray<type, type_id, sltype>* p##name = new CqParameterTypedUniformArray<type, type_id, sltype>(#name, 8, id); \
 	p##name->pValue()[0] = ( def0 ); \
 	p##name->pValue()[1] = ( def1 ); \
 	p##name->pValue()[2] = ( def2 ); \
@@ -101,7 +105,8 @@ const TqUlong CqAttributes::CqHashTable::tableSize = 127;
 	p##name->pValue()[5] = ( def5 ); \
 	p##name->pValue()[6] = ( def6 ); \
 	p##name->pValue()[7] = ( def7 ); \
-	pdefattrs->AddParameter(p##name);
+	pdefattrs->AddParameter(p##name); \
+ 	m_systemParams[ id ] = p##name;
 
 //---------------------------------------------------------------------
 /** Constructor.
@@ -114,20 +119,20 @@ CqAttributes::CqAttributes()
 
 	boost::shared_ptr<CqNamedParameterList> pdefattrs( new CqNamedParameterList( "System" ) );
 
-	ADD_SYSTEM_ATTR( Color, CqColor, CqColor, type_color, CqColor( 1.0f, 1.0f, 1.0f ) );		// the current color attribute.
-	ADD_SYSTEM_ATTR( Opacity, CqColor, CqColor, type_color, CqColor( 1.0f, 1.0f, 1.0f ) );	// the current opacity attribute.
-	ADD_SYSTEM_ATTR8( TextureCoordinates, TqFloat, TqFloat, type_float, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f );	// an array of 2D vectors representing the coordinate space.
-	ADD_SYSTEM_ATTR( ShadingRate, TqFloat, TqFloat, type_float, 1.0f );					// the current effective shading rate.
-	ADD_SYSTEM_ATTR( ShadingRateSqrt, TqFloat, TqFloat, type_float, 1.0f );					// the current effective sqrt(shading rate).
-	ADD_SYSTEM_ATTR( ShadingInterpolation, TqFloat, TqInt, type_integer, ShadingConstant );	// the current shading interpolation mode.
-	ADD_SYSTEM_ATTR( Matte, TqInt, TqFloat, type_integer, 0 );				// the current state of the matte flag.
-	ADD_SYSTEM_ATTR2( Basis, CqMatrix, CqMatrix, type_matrix, RiBezierBasis, RiBezierBasis );	// the basis matrix for the u direction.
-	ADD_SYSTEM_ATTR2( BasisStep, TqInt, TqFloat, type_integer, 3, 3 );	// the steps to advance the evaluation window in the u direction.
-	ADD_SYSTEM_ATTR( Orientation, TqInt, TqFloat, type_integer, 0 );	// the orientation associated primitives are described in.
-	ADD_SYSTEM_ATTR( Sides, TqInt, TqFloat, type_integer, 2 );		// the number of visible sides associated primitives have.
-	ADD_SYSTEM_ATTR2( LevelOfDetailBounds, TqFloat, TqFloat, type_float, 0.0f, 1.0f );	// relative importance bounds for this LOD representation
-	ADD_SYSTEM_ATTR6( LODBound, TqFloat, TqFloat, type_float, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );	// object space bounds for level of detail calculation of surfaces in this attribute scope.
-	ADD_SYSTEM_ATTR4( LODRanges, TqFloat, TqFloat, type_float, 0.0f, 0.0f, 0.0f, 0.0f );	// Range values minvisible, lowertransition, uppertransition, maxvisible
+	ADD_SYSTEM_ATTR( Color, (EqSystemParamIDs) SYSTEM_COLOR, CqColor, CqColor, type_color, CqColor( 1.0f, 1.0f, 1.0f ) );		// the current color attribute.
+	ADD_SYSTEM_ATTR( Opacity, (EqSystemParamIDs) SYSTEM_OPACITY, CqColor, CqColor, type_color, CqColor( 1.0f, 1.0f, 1.0f ) );	// the current opacity attribute.
+	ADD_SYSTEM_ATTR8( TextureCoordinates, (EqSystemParamIDs) SYSTEM_TEXTURECOORDINATES, TqFloat, TqFloat, type_float, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f );	// an array of 2D vectors representing the coordinate space.
+	ADD_SYSTEM_ATTR( ShadingRate, (EqSystemParamIDs) SYSTEM_SHADINGRATE, TqFloat, TqFloat, type_float, 1.0f );					// the current effective shading rate.
+	ADD_SYSTEM_ATTR( ShadingRateSqrt, (EqSystemParamIDs) SYSTEM_SHADINGRATESQRT, TqFloat, TqFloat, type_float, 1.0f );					// the current effective sqrt(shading rate).
+	ADD_SYSTEM_ATTR( ShadingInterpolation, (EqSystemParamIDs) SYSTEM_SHADINGINTERPOLATION, TqFloat, TqInt, type_integer, ShadingConstant );	// the current shading interpolation mode.
+	ADD_SYSTEM_ATTR( Matte, (EqSystemParamIDs) SYSTEM_MATTE, TqInt, TqFloat, type_integer, 0 );				// the current state of the matte flag.
+	ADD_SYSTEM_ATTR2( Basis, (EqSystemParamIDs) SYSTEM_BASIS, CqMatrix, CqMatrix, type_matrix, RiBezierBasis, RiBezierBasis );	// the basis matrix for the u direction.
+	ADD_SYSTEM_ATTR2( BasisStep, (EqSystemParamIDs) SYSTEM_BASISSTEP, TqInt, TqFloat, type_integer, 3, 3 );	// the steps to advance the evaluation window in the u direction.
+	ADD_SYSTEM_ATTR( Orientation, (EqSystemParamIDs) SYSTEM_ORIENTATION, TqInt, TqFloat, type_integer, 0 );	// the orientation associated primitives are described in.
+	ADD_SYSTEM_ATTR( Sides, (EqSystemParamIDs) SYSTEM_SIDES, TqInt, TqFloat, type_integer, 2 );		// the number of visible sides associated primitives have.
+	ADD_SYSTEM_ATTR2( LevelOfDetailBounds, (EqSystemParamIDs) SYSTEM_LEVELOFDETAILBOUNDS, TqFloat, TqFloat, type_float, 0.0f, 1.0f );	// relative importance bounds for this LOD representation
+	ADD_SYSTEM_ATTR6( LODBound, (EqSystemParamIDs) SYSTEM_LODBOUND, TqFloat, TqFloat, type_float, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );	// object space bounds for level of detail calculation of surfaces in this attribute scope.
+	ADD_SYSTEM_ATTR4( LODRanges, (EqSystemParamIDs) SYSTEM_LODRANGES, TqFloat, TqFloat, type_float, 0.0f, 0.0f, 0.0f, 0.0f );	// Range values minvisible, lowertransition, uppertransition, maxvisible
 	AddAttribute( pdefattrs );
 }
 
@@ -197,18 +202,7 @@ CqAttributes& CqAttributes::operator=( const CqAttributes& From )
 
 //---------------------------------------------------------------------
 /** Get a system attribute parameter.
- * \param strName The name of the attribute.
- * \param strParam The name of the paramter on the attribute.
- * \return CqParameter pointer or 0 if not found.
- */
-
-const CqParameter* CqAttributes::pParameter( const char* strName, const char* strParam ) const
-{
-	const CqNamedParameterList* pList = pAttribute( strName ).get();
-	if ( pList )
-	{
-		return ( pList->pParameter( strParam ) );
-	}
+ * \param strName The name of the attribute.  * \param strParam The name of the paramter on the attribute.  * \return CqParameter pointer or 0 if not found.  */ const CqParameter* CqAttributes::pParameter( const char* strName, const char* strParam ) const { const CqNamedParameterList* pList = pAttribute( strName ).get(); if ( pList ) { return ( pList->pParameter( strParam ) ); }
 	return ( 0 );
 }
 
@@ -247,6 +241,14 @@ TqFloat* CqAttributes::GetFloatAttributeWrite( const char* strName, const char* 
 		return ( 0 );
 }
 
+TqFloat* CqAttributes::GetFloatAttributeWrite( const TqInt iIdentifier )
+{
+	CqParameter * pParam = m_systemParams[iIdentifier];
+	if ( pParam != 0 )
+		return ( static_cast<CqParameterTyped<TqFloat, TqFloat>*>( pParam ) ->pValue() );
+	else
+		return ( 0 );
+}
 
 //---------------------------------------------------------------------
 /** Get an integer system attribute parameter.
@@ -258,6 +260,15 @@ TqFloat* CqAttributes::GetFloatAttributeWrite( const char* strName, const char* 
 TqInt* CqAttributes::GetIntegerAttributeWrite( const char* strName, const char* strParam )
 {
 	CqParameter * pParam = pParameterWrite( strName, strParam );
+	if ( pParam != 0 )
+		return ( static_cast<CqParameterTyped<TqInt, TqFloat>*>( pParam ) ->pValue() );
+	else
+		return ( 0 );
+}
+
+TqInt* CqAttributes::GetIntegerAttributeWrite( const TqInt iIdentifier )
+{
+	CqParameter * pParam = m_systemParams[iIdentifier];
 	if ( pParam != 0 )
 		return ( static_cast<CqParameterTyped<TqInt, TqFloat>*>( pParam ) ->pValue() );
 	else
@@ -281,6 +292,14 @@ CqString* CqAttributes::GetStringAttributeWrite( const char* strName, const char
 		return ( 0 );
 }
 
+CqString* CqAttributes::GetStringAttributeWrite( const TqInt iIdentifier )
+{
+	CqParameter * pParam = m_systemParams[iIdentifier];
+	if ( pParam != 0 )
+		return ( static_cast<CqParameterTyped<CqString, CqString>*>( pParam ) ->pValue() );
+	else
+		return ( 0 );
+}
 
 //---------------------------------------------------------------------
 /** Get a point system attribute parameter.
@@ -298,6 +317,14 @@ CqVector3D* CqAttributes::GetPointAttributeWrite( const char* strName, const cha
 		return ( 0 );
 }
 
+CqVector3D* CqAttributes::GetPointAttributeWrite( const TqInt iIdentifier )
+{
+	CqParameter * pParam = m_systemParams[iIdentifier];
+	if ( pParam != 0 )
+		return ( static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( pParam ) ->pValue() );
+	else
+		return ( 0 );
+}
 
 //---------------------------------------------------------------------
 /** Get a vector system attribute parameter.
@@ -311,6 +338,10 @@ CqVector3D* CqAttributes::GetVectorAttributeWrite( const char* strName, const ch
 	return ( GetPointAttributeWrite( strName, strParam ) );
 }
 
+CqVector3D* CqAttributes::GetVectorAttributeWrite( const TqInt iIdentifier )
+{
+	return ( GetPointAttributeWrite( iIdentifier ) );
+}
 
 //---------------------------------------------------------------------
 /** Get a normal system attribute parameter.
@@ -324,6 +355,10 @@ CqVector3D* CqAttributes::GetNormalAttributeWrite( const char* strName, const ch
 	return ( GetPointAttributeWrite( strName, strParam ) );
 }
 
+CqVector3D* CqAttributes::GetNormalAttributeWrite( const TqInt iIdentifier )
+{
+	return ( GetPointAttributeWrite( iIdentifier ) );
+}
 
 //---------------------------------------------------------------------
 /** Get a color system attribute parameter.
@@ -335,6 +370,15 @@ CqVector3D* CqAttributes::GetNormalAttributeWrite( const char* strName, const ch
 CqColor* CqAttributes::GetColorAttributeWrite( const char* strName, const char* strParam )
 {
 	CqParameter * pParam = pParameterWrite( strName, strParam );
+	if ( pParam != 0 )
+		return ( static_cast<CqParameterTyped<CqColor, CqColor>*>( pParam ) ->pValue() );
+	else
+		return ( 0 );
+}
+
+CqColor* CqAttributes::GetColorAttributeWrite( const TqInt iIdentifier )
+{
+	CqParameter * pParam = m_systemParams[iIdentifier];
 	if ( pParam != 0 )
 		return ( static_cast<CqParameterTyped<CqColor, CqColor>*>( pParam ) ->pValue() );
 	else
@@ -358,6 +402,15 @@ CqMatrix* CqAttributes::GetMatrixAttributeWrite( const char* strName, const char
 		return ( 0 );
 }
 
+CqMatrix* CqAttributes::GetMatrixAttributeWrite( const TqInt iIdentifier )
+{
+	CqParameter * pParam = m_systemParams[iIdentifier];
+	if ( pParam != 0 )
+		return ( static_cast<CqParameterTyped<CqMatrix, CqMatrix>*>( pParam ) ->pValue() );
+	else
+		return ( 0 );
+}
+
 
 //---------------------------------------------------------------------
 /** Get a float system attribute parameter.
@@ -369,6 +422,15 @@ CqMatrix* CqAttributes::GetMatrixAttributeWrite( const char* strName, const char
 const TqFloat* CqAttributes::GetFloatAttribute( const char* strName, const char* strParam ) const
 {
 	const CqParameter * pParam = pParameter( strName, strParam );
+	if ( pParam != 0 )
+		return ( static_cast<const CqParameterTyped<TqFloat, TqFloat>*>( pParam ) ->pValue() );
+	else
+		return ( 0 );
+}
+
+const TqFloat* CqAttributes::GetFloatAttribute( const TqInt iIdentifier ) const
+{
+	const CqParameter * pParam = m_systemParams[iIdentifier];
 	if ( pParam != 0 )
 		return ( static_cast<const CqParameterTyped<TqFloat, TqFloat>*>( pParam ) ->pValue() );
 	else
@@ -392,6 +454,14 @@ const TqInt* CqAttributes::GetIntegerAttribute( const char* strName, const char*
 		return ( 0 );
 }
 
+const TqInt* CqAttributes::GetIntegerAttribute( const TqInt iIdentifier ) const
+{
+	const CqParameter * pParam = m_systemParams[iIdentifier];
+	if ( pParam != 0 )
+		return ( static_cast<const CqParameterTyped<TqInt, TqFloat>*>( pParam ) ->pValue() );
+	else
+		return ( 0 );
+}
 
 //---------------------------------------------------------------------
 /** Get a string system attribute parameter.
@@ -409,6 +479,14 @@ const CqString* CqAttributes::GetStringAttribute( const char* strName, const cha
 		return ( 0 );
 }
 
+const CqString* CqAttributes::GetStringAttribute( const TqInt iIdentifier ) const
+{
+	const CqParameter * pParam = m_systemParams[iIdentifier];
+	if ( pParam != 0 )
+		return ( static_cast<const CqParameterTyped<CqString, CqString>*>( pParam ) ->pValue() );
+	else
+		return ( 0 );
+}
 
 //---------------------------------------------------------------------
 /** Get a point system attribute parameter.
@@ -420,6 +498,15 @@ const CqString* CqAttributes::GetStringAttribute( const char* strName, const cha
 const CqVector3D* CqAttributes::GetPointAttribute( const char* strName, const char* strParam ) const
 {
 	const CqParameter * pParam = pParameter( strName, strParam );
+	if ( pParam != 0 )
+		return ( static_cast<const CqParameterTyped<CqVector3D, CqVector3D>*>( pParam ) ->pValue() );
+	else
+		return ( 0 );
+}
+
+const CqVector3D* CqAttributes::GetPointAttribute( const TqInt iIdentifier ) const
+{
+	const CqParameter * pParam = m_systemParams[iIdentifier];
 	if ( pParam != 0 )
 		return ( static_cast<const CqParameterTyped<CqVector3D, CqVector3D>*>( pParam ) ->pValue() );
 	else
@@ -439,6 +526,10 @@ const CqVector3D* CqAttributes::GetVectorAttribute( const char* strName, const c
 	return ( GetPointAttribute( strName, strParam ) );
 }
 
+const CqVector3D* CqAttributes::GetVectorAttribute( const TqInt iIdentifier ) const
+{
+	return ( GetPointAttribute( iIdentifier ) );
+}
 
 //---------------------------------------------------------------------
 /** Get a normal system attribute parameter.
@@ -450,6 +541,11 @@ const CqVector3D* CqAttributes::GetVectorAttribute( const char* strName, const c
 const CqVector3D* CqAttributes::GetNormalAttribute( const char* strName, const char* strParam ) const
 {
 	return ( GetPointAttribute( strName, strParam ) );
+}
+
+const CqVector3D* CqAttributes::GetNormalAttribute( const TqInt iIdentifier ) const
+{
+	return ( GetPointAttribute( iIdentifier ) );
 }
 
 
@@ -469,6 +565,14 @@ const CqColor* CqAttributes::GetColorAttribute( const char* strName, const char*
 		return ( 0 );
 }
 
+const CqColor* CqAttributes::GetColorAttribute( const TqInt iIdentifier ) const
+{
+	const CqParameter * pParam = m_systemParams[iIdentifier];
+	if ( pParam != 0 )
+		return ( static_cast<const CqParameterTyped<CqColor, CqColor>*>( pParam ) ->pValue() );
+	else
+		return ( 0 );
+}
 
 //---------------------------------------------------------------------
 /** Get a matrix system attribute parameter.
@@ -486,6 +590,15 @@ const CqMatrix* CqAttributes::GetMatrixAttribute( const char* strName, const cha
 		return ( 0 );
 }
 
+const CqMatrix* CqAttributes::GetMatrixAttribute( const TqInt iIdentifier ) const
+{
+	const CqParameter * pParam = m_systemParams[iIdentifier];
+	if ( pParam != 0 )
+		return ( static_cast<const CqParameterTyped<CqMatrix, CqMatrix>*>( pParam ) ->pValue() );
+	else
+		return ( 0 );
+}
+
 
 IqLightsource*	CqAttributes::pLight( TqInt index )
 {
@@ -495,5 +608,4 @@ IqLightsource*	CqAttributes::pLight( TqInt index )
 //---------------------------------------------------------------------
 
 END_NAMESPACE( Aqsis )
-
 

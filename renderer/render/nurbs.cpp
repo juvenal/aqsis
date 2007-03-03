@@ -449,7 +449,7 @@ TqUint CqSurfaceNURBS::InsertKnotU( TqFloat u, TqInt r )
 			( *iUP ) ->SetSize( m_cuVerts * m_cvVerts );
 
 			// Save unaltered control points
-			CqParameter* R = ( *iUP ) ->CloneType( "R" );
+			CqParameter* R = ( *iUP ) ->CloneType( "R", 1 );
 			R->SetSize( p + 1 );
 
 			// Insert control points as required on each row.
@@ -635,7 +635,7 @@ TqUint CqSurfaceNURBS::InsertKnotV( TqFloat v, TqInt r )
 			( *iUP ) ->SetSize( m_cuVerts * m_cvVerts );
 
 			// Save unaltered control points
-			CqParameter* R = ( *iUP ) ->CloneType( "R" );
+			CqParameter* R = ( *iUP ) ->CloneType( "R", 1 );
 			R->SetSize( p + 1 );
 
 			// Insert control points as required on each row.
@@ -1947,7 +1947,7 @@ void CqSurfaceNURBS::SetDefaultPrimitiveVariables( TqBool bUseDef_st )
 
 	if ( USES( bUses, EnvVars_u ) )
 	{
-		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "u" ) );
+		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "u" , 1 ) );
 		u() ->SetSize( cVarying() );
 
 		TqFloat uinc = ( m_umax - m_umin ) / ( cuSegments() );
@@ -1967,7 +1967,7 @@ void CqSurfaceNURBS::SetDefaultPrimitiveVariables( TqBool bUseDef_st )
 
 	if ( USES( bUses, EnvVars_v ) )
 	{
-		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "v" ) );
+		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "v" , 1) );
 		v() ->SetSize( cVarying() );
 
 		TqFloat vinc = ( m_vmax - m_vmin ) / ( cvSegments() );
@@ -1991,7 +1991,7 @@ void CqSurfaceNURBS::SetDefaultPrimitiveVariables( TqBool bUseDef_st )
 
 	if ( USES( bUses, EnvVars_s ) && !bHasVar(EnvVars_s) && bUseDef_st )
 	{
-		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s" ) );
+		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s", 1 ) );
 		s() ->SetSize( cVarying() );
 
 		TqInt c, r;
@@ -2009,7 +2009,7 @@ void CqSurfaceNURBS::SetDefaultPrimitiveVariables( TqBool bUseDef_st )
 
 	if ( USES( bUses, EnvVars_t ) && !bHasVar(EnvVars_t) && bUseDef_st )
 	{
-		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t" ) );
+		AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t", 1 ) );
 		t() ->SetSize( cVarying() );
 
 		TqInt c, r;
