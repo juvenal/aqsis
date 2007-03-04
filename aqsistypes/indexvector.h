@@ -17,7 +17,7 @@ class  CqIndexVector
 		typedef std::vector<value_type>::size_type size_type;
 		typedef std::vector<value_type>::const_iterator iterator;
 
-		CqIndexVector(TqInt maxLength = 0);
+		CqIndexVector(size_type maxLength = 0);
 		// Use default copy constructor.
 		CqIndexVector(CqBitVector& bitVector);
 		void intersect(const CqIndexVector& from);
@@ -42,7 +42,7 @@ class  CqIndexVector
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 // Implementation for CqIndexVector inline functions.
-inline CqIndexVector::CqIndexVector(TqInt maxLength)
+inline CqIndexVector::CqIndexVector(size_type maxLength)
 	: m_data(),
 	m_maxLength(maxLength)
 {

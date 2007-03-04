@@ -29,7 +29,7 @@ void CqIndexVector::complement()
 	CqIndexVector::RsVector oldData = m_data;
 	m_data.clear();
 	CqIndexVector::RsVector::iterator oldI = oldData.begin();
-	for(TqUint j = 0; j < m_maxLength; j++)
+	for(CqIndexVector::size_type j = 0; j < m_maxLength; j++)
 	{
 		if(oldI != oldData.end() && j == *oldI)
 			oldI++;
@@ -54,7 +54,7 @@ void CqIndexVector::fromBitVector(CqBitVector& bv)
 	m_data.reserve(m_maxLength);
 	m_data.resize(bv.Count());
 	CqIndexVector::RsVector::iterator i = m_data.begin();
-	for(TqUint j = 0; j < m_maxLength; j++)
+	for(CqIndexVector::size_type j = 0; j < m_maxLength; j++)
 	{
 		if(bv.Value(j))
 		{
