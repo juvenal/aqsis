@@ -376,17 +376,22 @@ void CqShaderExecEnv::SO_pnoise3( IqShaderData* p, IqShaderData* Result, IqShade
 	__fVarying=(Result)->Class()==class_varying||__fVarying;
 
 	__iGrid = 0;
-	CqBitVector& RS = RunningState();
-	do
+	CqIndexVector& rs = RunningState2();
+	if(!__fVarying)
 	{
-		if(!__fVarying || RS.Value( __iGrid ) )
+		CqVector3D _aq_p;
+		(p)->GetPoint(_aq_p,0);
+		(Result)->SetPoint( m_noise.PGNoise3( _aq_p ),0);
+	}
+	else
+	{
+		for(TqUint i = 0, ii = rs.size(); i < ii; i++)
 		{
 			CqVector3D _aq_p;
-			(p)->GetPoint(_aq_p,__iGrid);
-			(Result)->SetPoint( m_noise.PGNoise3( _aq_p ),__iGrid);
+			(p)->GetPoint(_aq_p,rs[i]);
+			(Result)->SetPoint( m_noise.PGNoise3( _aq_p ),rs[i]);
 		}
 	}
-	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
 }
 
 //----------------------------------------------------------------------

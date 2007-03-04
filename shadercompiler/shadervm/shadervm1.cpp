@@ -124,12 +124,16 @@ void CqShaderVM::SO_pop()
 	POPV( Val );
 	TqUint ext = MAX( m_pEnv->shadingPointCount(), pV->Size() );
 	TqBool fVarying = ext > 1;
-	TqUint i;
-	CqBitVector& RS = m_pEnv->RunningState();
-	for ( i = 0; i < ext; i++ )
+	if(!fVarying)
 	{
-		if(!fVarying || RS.Value( i ))
+		for (TqUint i = 0; i < ext; i++ )
 			pV->SetValueFromVariable( Val, i );
+	}
+	else
+	{
+		CqIndexVector& rs = m_pEnv->RunningState2();
+		for (TqUint i = 0, ii = rs.size(); i < ii; i++ )
+			pV->SetValueFromVariable( Val, rs[i] );
 	}
 	RELEASE( Val );
 }
@@ -287,7 +291,7 @@ void CqShaderVM::SO_setfc()
 	AUTOFUNC;
 	POPV( A );
 	RESULT(type_color, __fVarying?class_varying:class_uniform);
-	OpCAST_FC( A, pResult, m_pEnv->RunningState() );
+	OpCAST_FC( A, pResult, m_pEnv->RunningState2() );
 	Push( pResult );
 	RELEASE( A );
 }
@@ -297,7 +301,7 @@ void CqShaderVM::SO_setfp()
 	AUTOFUNC;
 	POPV( A );
 	RESULT(type_point, __fVarying?class_varying:class_uniform);
-	OpCAST_FP( A, pResult, m_pEnv->RunningState() );
+	OpCAST_FP( A, pResult, m_pEnv->RunningState2() );
 	Push( pResult );
 	RELEASE( A );
 }
@@ -308,7 +312,7 @@ void CqShaderVM::SO_setfm()
 	AUTOFUNC;
 	POPV( A );
 	RESULT(type_matrix, __fVarying?class_varying:class_uniform);
-	OpCAST_FM( A, pResult, m_pEnv->RunningState() );
+	OpCAST_FM( A, pResult, m_pEnv->RunningState2() );
 	Push( pResult );
 	RELEASE( A );
 }
@@ -346,7 +350,7 @@ void CqShaderVM::SO_setpc()
 	AUTOFUNC;
 	POPV( A );
 	RESULT(type_color, __fVarying?class_varying:class_uniform);
-	OpCAST_PC( A, pResult, m_pEnv->RunningState() );
+	OpCAST_PC( A, pResult, m_pEnv->RunningState2() );
 	Push( pResult );
 	RELEASE( A );
 }
@@ -356,7 +360,7 @@ void CqShaderVM::SO_setcp()
 	AUTOFUNC;
 	POPV( A );
 	RESULT(type_point, __fVarying?class_varying:class_uniform);
-	OpCAST_CP( A, pResult, m_pEnv->RunningState() );
+	OpCAST_CP( A, pResult, m_pEnv->RunningState2() );
 	Push( pResult );
 	RELEASE( A );
 }
@@ -431,17 +435,12 @@ void CqShaderVM::SO_S_GET()
 	// Get the current state from the current stack entry
 	AUTOFUNC;
 	POPV( A );
-	TqInt i;
-	CqBitVector& RS = m_pEnv->RunningState();
-	TqInt ext = m_pEnv->shadingPointCount();
-	for ( i = 0; i < ext; i++ )
+	CqIndexVector& rs = m_pEnv->RunningState2();
+	for (TqUint i = 0, ii = rs.size(); i < ii; i++ )
 	{
-		if ( RS.Value( i ) )
-		{
-			TqBool _aq_A;
-			A->GetBool( _aq_A, i );
-			m_pEnv->CurrentState().SetValue( i, _aq_A );
-		}
+		TqBool _aq_A;
+		A->GetBool( _aq_A, rs[i] );
+		m_pEnv->CurrentState().SetValue( rs[i], _aq_A );
 	}
 	RELEASE( A );
 }

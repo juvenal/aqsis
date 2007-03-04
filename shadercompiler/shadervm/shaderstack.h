@@ -152,7 +152,6 @@ static CqMatrix temp_matrix;
 			A* pdA; \
 			B* pdB; \
 			R* pdR; \
-			TqUint i; \
 			\
 			TqBool fAVar = pA->Size() > 1; \
 			TqBool fBVar = pB->Size() > 1; \
@@ -163,9 +162,10 @@ static CqMatrix temp_matrix;
 				pA->GetValuePtr( pdA ); \
 				pB->GetValuePtr( pdB ); \
 				pRes->GetValuePtr( pdR ); \
-				for ( i = 0; i < RunningState.size(); i++) \
+				for (TqUint i = 0, ii = RunningState.size(); i < ii; i++) \
 				{ \
-					pdR[RunningState[i]] = ( pdA[RunningState[i]] OP pdB[RunningState[i]] ); \
+					TqUint j = RunningState[i]; \
+					pdR[j] = ( pdA[j] OP pdB[j] ); \
 				} \
 			} \
 			else if( !fBVar && fAVar) \
@@ -174,9 +174,10 @@ static CqMatrix temp_matrix;
 				pA->GetValuePtr( pdA ); \
 				pB->GetValue( vB ); \
 				pRes->GetValuePtr( pdR ); \
-				for ( i = 0; i < RunningState.size(); i++) \
+				for (TqUint i = 0, ii = RunningState.size(); i < ii; i++) \
 				{ \
-					pdR[RunningState[i]] = ( pdA[RunningState[i]] OP vB ); \
+					TqUint j = RunningState[i]; \
+					pdR[j] = ( pdA[j] OP vB ); \
 				} \
 			} \
 			else if( !fAVar && fBVar) \
@@ -185,9 +186,10 @@ static CqMatrix temp_matrix;
 				pB->GetValuePtr( pdB ); \
 				pA->GetValue( vA ); \
 				pRes->GetValuePtr( pdR ); \
-				for ( i = 0; i < RunningState.size(); i++) \
+				for (TqUint i = 0, ii = RunningState.size(); i < ii; i++) \
 				{ \
-					pdR[RunningState[i]] = ( vA OP pdB[RunningState[i]] ); \
+					TqUint j = RunningState[i]; \
+					pdR[j] = ( vA OP pdB[j] ); \
 				} \
 			} \
 			else \
@@ -595,11 +597,10 @@ inline void	OpNEG( A& a, IqShaderData* pA, IqShaderData* pRes, CqBitVector& Runn
  * \param RunningState The current SIMD state.
  */
 template <class A, class B>
-inline void	OpCAST( A& a, B& b, IqShaderData* pA, IqShaderData* pRes, CqBitVector& RunningState )
+inline void	OpCAST( A& a, B& b, IqShaderData* pA, IqShaderData* pRes, CqIndexVector& RunningState )
 {
 	A vA;
 	A* pdA;
-	TqInt i, ii;
 
 	TqBool fAVar = pA->Size() > 1;
 
@@ -607,13 +608,8 @@ inline void	OpCAST( A& a, B& b, IqShaderData* pA, IqShaderData* pRes, CqBitVecto
 	{
 		/* Varying, must go accross all processing each element. */
 		pA->GetValuePtr( pdA );
-		ii = pA->Size();
-		for ( i = 0; i < ii; i++ )
-		{
-			if ( RunningState.Value( i ) )
-				pRes->SetValue( static_cast<B>( *pdA ), i );
-			pdA++;
-		}
+		for (TqUint i = 0, ii = RunningState.size(); i < ii; i++ )
+			pRes->SetValue( static_cast<B>( pdA[RunningState[i]] ), RunningState[i] );
 	}
 	else
 	{
