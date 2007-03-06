@@ -133,7 +133,7 @@ class CqParameter
 			return ( m_Count );
 		}
 
-		/** Get the array size.
+		/** Get the internal ID of this parameter.
 		 */
 		TqInt	Identifier() const
 		{
@@ -1601,6 +1601,12 @@ class CqNamedParameterList
 		{
 			return m_hash;
 		}
+
+		std::vector<CqParameter*> *GetParameterList()
+		{
+			return &m_aParameters;
+		}
+
 	private:
 		CqString	m_strName;			///< The name of this parameter list.
 		std::vector<CqParameter*>	m_aParameters;		///< A vector of name/value parameters.

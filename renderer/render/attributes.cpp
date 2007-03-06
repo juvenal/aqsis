@@ -178,14 +178,28 @@ CqAttributes::~CqAttributes()
 CqAttributes& CqAttributes::operator=( const CqAttributes& From )
 {
 	// Copy the system attributes.
-	//	m_aAttributes.resize( From.m_aAttributes.size() );
-	//	TqInt i = From.m_aAttributes.size();
-	//	while ( i-- > 0 )
-	//	{
-	//		m_aAttributes[ i ] = From.m_aAttributes[ i ];
-	//		m_aAttributes[ i ] ->AddRef();
-	//	}
 	m_aAttributes = From.m_aAttributes;
+
+	// XXX Update m_systemParams, the internal table of known system
+	// attributes.
+	CqHashTable::plist_const_iterator it ;
+	for (it = m_aAttributes.begin() ; it != m_aAttributes.end() ; it++)
+	{
+		std::vector<CqParameter*> *paramvec = (*it).second->GetParameterList();
+		std::vector<CqParameter*>::iterator pit = paramvec->begin();
+		for (; pit != paramvec->end(); pit++){
+			TqInt internalid = (*pit)->Identifier();
+			if ( internalid != 0 ) 
+			{
+				m_systemParams[internalid] = *pit;
+			}
+		};
+	};
+//	while ( i-- > 0 )
+//	{
+//		// Iterate over the list and update
+//		//
+//	}
 
 	m_apLightsources = From.m_apLightsources;
 
