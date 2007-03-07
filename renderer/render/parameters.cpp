@@ -50,6 +50,7 @@ CqParameter::CqParameter( const char* strName, TqInt Count, TqInt Identifier ) :
 	//	QGetRenderContext() ->Stats().IncParametersAllocated();
 
 	assert( Count >= 1 );
+	assert( Identifier < (EqSystemParamIDs) LASTPARAM );
 
 	STATS_INC( PRM_created );
 	STATS_INC( PRM_current );
@@ -65,7 +66,8 @@ CqParameter::CqParameter( const char* strName, TqInt Count, TqInt Identifier ) :
 CqParameter::CqParameter( const CqParameter& From ) :
 		m_strName( From.m_strName ),
 		m_Count( From.m_Count ),
-		m_hash(From.m_hash)
+		m_hash(From.m_hash),
+		m_Identifier( From.m_Identifier )
 {
 	/// \note Had to remove this as paramters are now created as part of the Renderer construction, so the
 	///		  renderer context isn't ready yet.
