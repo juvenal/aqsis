@@ -42,8 +42,6 @@
 #include	<valarray>
 
 
-//comment added to bucket.cpp
-
 START_NAMESPACE( Aqsis )
 
 
