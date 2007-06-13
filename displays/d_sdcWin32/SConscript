@@ -1,4 +1,4 @@
-Import('env')
+Import('env', 'embedManifest')
 
 d_win32_sources = Split("""
 	d_sdcWin32.cpp
@@ -20,6 +20,9 @@ if sys.platform == 'win32':
 	d_win32env.UseTargetOptions('d_win32')
 
 	d_win32 = d_win32env.SharedLibrary('d_win32', d_win32_sources)
+	
+	embedManifest(env, d_win32env, d_win32, 'DLL')
+	
 	d_win32env.Install('$DISPLAYSDIR', d_win32)
 
 	Return('d_win32')

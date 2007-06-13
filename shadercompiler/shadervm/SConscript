@@ -1,5 +1,5 @@
 import os
-Import('env')
+Import('env', 'embedManifest')
 
 shadervm_sources = Split("""
 	dsoshadeops.cpp
@@ -30,6 +30,9 @@ if env.has_key('shadervm_add_sources'):
 Import('shaderexecenv_objs')
 
 shadervm = shadervmenv.SharedLibrary('shadervm', [shadervm_sources, shaderexecenv_objs])
+
+embedManifest(env, shadervmenv, shadervm, 'DLL')
+
 shadervmenv.PostBuildSharedLibrary(shadervmenv, shadervm)
 
 shadervmenv.InstallAs([os.path.join('${RENDERENGINEDIR}', '%s${SHLIB_VERSION_SUFFIX}') %(shadervm[0])], [shadervm[0]])

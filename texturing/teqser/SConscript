@@ -1,4 +1,4 @@
-Import('env')
+Import('env', 'embedManifest')
 teqserenv = env.Copy()
 teqser_sources = Split("""
 	teqser.cpp""")
@@ -9,6 +9,9 @@ teqserenv.AppendUnique(LIBS = ['argparse', 'shadervm', 'aqsis', 'aqsistypes'])
 teqserenv.UseTargetOptions('teqser')
 
 teqser = teqserenv.Program('teqser', teqser_sources)
+
+embedManifest(env, teqserenv, teqser, 'EXE')
+
 teqserenv.Install('$BINDIR', teqser)
 
 env.Distribute(teqser_sources)

@@ -1,4 +1,4 @@
-Import('env')
+Import('env', 'embedManifest')
 bmp2tifenv = env.Copy()
 bmp2tif_sources=Split("""
 	bmp2tif.c""")
@@ -11,6 +11,9 @@ bmp2tifenv.UseTargetOptions('bmp2tif')
 Import('common_objs')
 
 bmp2tif = bmp2tifenv.SharedLibrary('bmp2tif', [bmp2tif_sources, common_objs], LIBS=['$tiff_lib', '$z_lib', 'jpg2tif'])
+
+embedManifest(env, bmp2tifenv, bmp2tif, 'DLL')
+	
 bmp2tifenv.Install('$PLUGINDIR', bmp2tif)
 
 env.Distribute(bmp2tif_sources)

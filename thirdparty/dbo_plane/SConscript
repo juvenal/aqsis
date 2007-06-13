@@ -1,4 +1,4 @@
-Import('env')
+Import('env', 'embedManifest')
 dbo_planeenv = env.Copy()
 dbo_plane_headers=Split("""
 	implicit.h""")
@@ -12,6 +12,8 @@ dbo_planeenv.UseTargetOptions('dbo_plane')
 
 dbo_plane = dbo_planeenv.SharedLibrary('dbo_plane', dbo_plane_sources, LIBS=[''])
 
+embedManifest(env, dbo_planeenv, dbo_plane, 'DLL')
+	
 dbo_planeenv.Install('$PLUGINDIR', dbo_plane)
 
 env.Distribute(dbo_plane_headers)

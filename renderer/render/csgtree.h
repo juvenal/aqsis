@@ -106,21 +106,21 @@ class CqCSGTreeNode : public boost::enable_shared_from_this<CqCSGTreeNode>
 		 *  Given an array of in/out booleans for each of the children of this node,
 		 *  evaluate the resulting in/out state after applying the operation.
 		 */
-		virtual	TqBool	EvaluateState( std::vector<TqBool>& abChildStates ) = 0;
+		virtual	bool	EvaluateState( std::vector<bool>& abChildStates ) = 0;
 
 		virtual	void	ProcessSampleList( std::deque<SqImageSample>& samples );
 
 		void	ProcessTree( std::deque<SqImageSample>& samples );
 
 		static boost::shared_ptr<CqCSGTreeNode> CreateNode( CqString& type );
-		static TqBool IsRequired();
-		static void SetRequired(TqBool value);
+		static bool IsRequired();
+		static void SetRequired(bool value);
 
 
 	private:
 		boost::shared_ptr<CqCSGTreeNode>	m_pParent;		///< Pointer to the parent CSG node.
 		std::list<boost::weak_ptr<CqCSGTreeNode> >	m_lChildren;	///< List of children nodes.
-		static TqBool m_bCSGRequired;    ///< Tell imagebuffer the processing for CSG is not required
+		static bool m_bCSGRequired;    ///< Tell imagebuffer the processing for CSG is not required
 }
 ;
 
@@ -146,12 +146,16 @@ class CqCSGNodePrimitive : public CqCSGTreeNode
 
 		virtual std::list<boost::weak_ptr<CqCSGTreeNode> >& lChildren()
 		{
-			assert( TqFalse );
+			assert( false );
 			return ( m_lDefPrimChildren );
 		}
+
+		/**
+		* @todo Review: Unused parameter pChild
+		*/
 		virtual	void	AddChild( const boost::weak_ptr<CqCSGTreeNode>& pChild )
 		{
-			assert( TqFalse );
+			assert( false );
 		}
 
 		virtual	EqCSGNodeType	NodeType() const
@@ -159,9 +163,13 @@ class CqCSGNodePrimitive : public CqCSGTreeNode
 			return ( CSGNodeType_Primitive );
 		}
 		virtual	void	ProcessSampleList( std::deque<SqImageSample>& samples );
-		virtual	TqBool	EvaluateState( std::vector<TqBool>& abChildStates )
+		
+		/**
+		* @todo Review: Unused parameter abChildStates
+		*/
+		virtual	bool	EvaluateState( std::vector<bool>& abChildStates )
 		{
-			return ( TqTrue );
+			return ( true );
 		}
 
 	private:
@@ -192,7 +200,7 @@ class CqCSGNodeUnion : public CqCSGTreeNode
 		{
 			return ( CSGNodeType_Union );
 		}
-		virtual	TqBool	EvaluateState( std::vector<TqBool>& abChildStates );
+		virtual	bool	EvaluateState( std::vector<bool>& abChildStates );
 
 	private:
 };
@@ -220,7 +228,7 @@ class CqCSGNodeIntersection : public CqCSGTreeNode
 		{
 			return ( CSGNodeType_Intersection );
 		}
-		virtual	TqBool	EvaluateState( std::vector<TqBool>& abChildStates );
+		virtual	bool	EvaluateState( std::vector<bool>& abChildStates );
 
 	private:
 };
@@ -248,7 +256,7 @@ class CqCSGNodeDifference : public CqCSGTreeNode
 		{
 			return ( CSGNodeType_Difference );
 		}
-		virtual	TqBool	EvaluateState( std::vector<TqBool>& abChildStates );
+		virtual	bool	EvaluateState( std::vector<bool>& abChildStates );
 
 	private:
 };

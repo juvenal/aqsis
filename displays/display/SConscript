@@ -1,4 +1,4 @@
-Import('env')
+Import('env', 'embedManifest')
 displayenv = env.Copy()
 displayenv.AppendUnique(CPPPATH=['#/renderer/ddmanager'])
 displayenv.AppendUnique(CPPDEFINES=['DISPLAY_EXPORTS'])
@@ -18,6 +18,10 @@ displayenv.AppendUnique(CPPPATH=['$tiff_include_path', '$zlib_include_path', '$f
 displayenv.UseTargetOptions('display')
 
 display = displayenv.SharedLibrary('display', display_sources)
+
+embedManifest(env, displayenv, display, 'DLL')
+
+	
 displayenv.Install('$DISPLAYSDIR', display)
 
 Return('display')

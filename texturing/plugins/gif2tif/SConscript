@@ -1,4 +1,4 @@
-Import('env')
+Import('env', 'embedManifest')
 gif2tifenv = env.Copy()
 gif2tif_sources=Split("""
 	gif2tif.c""")
@@ -11,6 +11,8 @@ gif2tifenv.UseTargetOptions('gif2tif')
 Import('common_objs')
 
 gif2tif = gif2tifenv.SharedLibrary('gif2tif', [gif2tif_sources, common_objs], LIBS=['$tiff_lib', '$z_lib'])
+
+embedManifest(env, gif2tifenv, gif2tif, 'DLL')
 
 gif2tifenv.Install('$PLUGINDIR', gif2tif)
 

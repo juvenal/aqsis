@@ -42,7 +42,7 @@ START_NAMESPACE( Aqsis )
 /** Constructor.
  */
 
-CqSurfaceNURBS::CqSurfaceNURBS() : CqSurface(), m_uOrder( 0 ), m_vOrder( 0 ), m_cuVerts( 0 ), m_cvVerts( 0 ), m_umin( 0.0f ), m_umax( 1.0f ), m_vmin( 0.0f ), m_vmax( 1.0f ), m_fPatchMesh( TqFalse )
+CqSurfaceNURBS::CqSurfaceNURBS() : CqSurface(), m_uOrder( 0 ), m_vOrder( 0 ), m_cuVerts( 0 ), m_cvVerts( 0 ), m_umin( 0.0f ), m_umax( 1.0f ), m_vmin( 0.0f ), m_vmax( 1.0f ), m_fPatchMesh( false )
 {
 	TrimLoops() = static_cast<const CqAttributes*>( pAttributes() ) ->TrimLoops();
 
@@ -421,22 +421,13 @@ TqUint CqSurfaceNURBS::InsertKnotU( TqFloat u, TqInt r )
 	if ( r <= 0 )
 		return ( 0 );
 
-
-	m_cuVerts = m_cuVerts + r;
-	m_auKnots.resize( m_cuVerts + m_uOrder );
-
-	std::vector<TqFloat>	auHold( m_auKnots );
-	// Load new knot vector
-	// Copy up to the insertion point.
-	for ( i = 0;i <= k;i++ )
-		m_auKnots[ i ] = auHold[ i ];
-	// Add the specified value 'r' times at the insertion point.
-	for ( i = 1;i <= r;i++ )
-		m_auKnots[ k + i ] = u;
-	// Copy after the insertion point up to the end.
-	for ( i = k + 1; i < static_cast<TqInt>( m_auKnots.size() ); i++ )
-		m_auKnots[ i + r ] = auHold[ i ];
-
+	std::vector<TqFloat> auHold(m_auKnots);
+	// Reserve more space for new knots.
+	m_cuVerts += r;
+	m_auKnots.reserve( m_cuVerts + m_uOrder );
+	// Insert r new knots.
+	std::vector<TqFloat> newKnots(r, u);
+	m_auKnots.insert(m_auKnots.begin()+(k+1), newKnots.begin(), newKnots.end());
 
 	// Now process all the 'vertex' class variables.
 	std::vector<CqParameter*>::iterator iUP;
@@ -610,19 +601,13 @@ TqUint CqSurfaceNURBS::InsertKnotV( TqFloat v, TqInt r )
 	if ( r <= 0 )
 		return ( 0 );
 
-	// Work on a copy.
-	m_cvVerts = m_cvVerts + r;
-	m_avKnots.resize( m_cvVerts + m_vOrder );
-	std::vector<TqFloat>	avHold( m_avKnots );
-
-	// Load new knot vector
-	for ( i = 0;i <= k;i++ )
-		m_avKnots[ i ] = avHold[ i ];
-	for ( i = 1;i <= r;i++ )
-		m_avKnots[ k + i ] = v;
-	size = static_cast<TqInt>( m_avKnots.size() );
-	for ( i = k + 1;i < size; i++ )
-		m_avKnots[ i + r ] = avHold[ i ];
+	std::vector<TqFloat> avHold(m_avKnots);
+	// Reserve more space for new knots.
+	m_cvVerts += r;
+	m_avKnots.reserve( m_cvVerts + m_vOrder );
+	// Insert r new knots
+	std::vector<TqFloat> newKnots(r, v);
+	m_avKnots.insert(m_avKnots.begin()+(k+1), newKnots.begin(), newKnots.end());
 
 	// Now process all the 'vertex' class variables.
 	std::vector<CqParameter*>::iterator iUP;
@@ -1210,7 +1195,7 @@ void CqSurfaceNURBS::ClampV()
 /** Split this NURBS surface into two subsurfaces along u or v depending on dirflag (TRUE=u)
  */
 
-void CqSurfaceNURBS::SplitNURBS( CqSurfaceNURBS& nrbA, CqSurfaceNURBS& nrbB, TqBool dirflag )
+void CqSurfaceNURBS::SplitNURBS( CqSurfaceNURBS& nrbA, CqSurfaceNURBS& nrbB, bool dirflag )
 {
 	std::vector<TqFloat>& aKnots = ( dirflag ) ? m_auKnots : m_avKnots;
 	TqUint Order = ( dirflag ) ? m_uOrder : m_vOrder;
@@ -1335,7 +1320,7 @@ void CqSurfaceNURBS::uSubdivide( CqSurfaceNURBS*& pnrbA, CqSurfaceNURBS*& pnrbB 
 	pnrbA = new CqSurfaceNURBS();
 	pnrbB = new CqSurfaceNURBS();
 
-	SplitNURBS( *pnrbA, *pnrbB, TqTrue );
+	SplitNURBS( *pnrbA, *pnrbB, true );
 
 	uSubdivideUserParameters( pnrbA, pnrbB );
 }
@@ -1350,7 +1335,7 @@ void CqSurfaceNURBS::vSubdivide( CqSurfaceNURBS*& pnrbA, CqSurfaceNURBS*& pnrbB 
 	pnrbA = new CqSurfaceNURBS();
 	pnrbB = new CqSurfaceNURBS();
 
-	SplitNURBS( *pnrbA, *pnrbB, TqFalse );
+	SplitNURBS( *pnrbA, *pnrbB, false );
 
 	vSubdivideUserParameters( pnrbA, pnrbB );
 }
@@ -1528,8 +1513,8 @@ void CqSurfaceNURBS::GenerateGeometricNormals( TqInt uDiceSize, TqInt vDiceSize,
 	// the coordinate system specified, to check for normal flipping.
 	assert( NULL != P() );
 
-	TqBool CSO = pTransform()->GetHandedness(pTransform()->Time(0));
-	TqBool O = pAttributes() ->GetIntegerAttribute( "System", "Orientation" ) [ 0 ] != 0;
+	bool CSO = pTransform()->GetHandedness(pTransform()->Time(0));
+	bool O = pAttributes() ->GetIntegerAttribute( "System", "Orientation" ) [ 0 ] != 0;
 
 	CqVector3D	N;
 	CqVector4D P;
@@ -1573,7 +1558,7 @@ TqInt CqSurfaceNURBS::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits
 		{
 			S[ i ] ->SetSurfaceParameters( *this );
 			S[ i ] ->TrimLoops() = TrimLoops();
-			S[ i ] ->m_fDiceable = TqTrue;
+			S[ i ] ->m_fDiceable = true;
 			S[ i ] ->m_SplitDir = m_SplitDir;
 			S[ i ] ->m_EyeSplitCount = m_EyeSplitCount;
 			//ADDREF( S[ i ] );
@@ -1607,14 +1592,14 @@ TqInt CqSurfaceNURBS::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits
 	pNew2->SetSurfaceParameters( *this );
 	pNew1->TrimLoops() = TrimLoops();
 	pNew2->TrimLoops() = TrimLoops();
-	pNew1->m_fDiceable = TqTrue;
-	pNew2->m_fDiceable = TqTrue;
+	pNew1->m_fDiceable = true;
+	pNew2->m_fDiceable = true;
 	pNew1->m_SplitDir = ( m_SplitDir == SplitDir_U )? SplitDir_V : SplitDir_U;
 	pNew2->m_SplitDir = ( m_SplitDir == SplitDir_U )? SplitDir_V : SplitDir_U;
 	pNew1->m_EyeSplitCount = m_EyeSplitCount;
 	pNew2->m_EyeSplitCount = m_EyeSplitCount;
-	pNew1->SetfPatchMesh( TqFalse );
-	pNew2->SetfPatchMesh( TqFalse );
+	pNew1->SetfPatchMesh( false );
+	pNew2->SetfPatchMesh( false );
 
 	aSplits.push_back( pNew1 );
 	aSplits.push_back( pNew2 );
@@ -1641,14 +1626,14 @@ TqInt CqSurfaceNURBS::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits
 /** Return whether or not the patch is diceable
  */
 
-TqBool	CqSurfaceNURBS::Diceable()
+bool	CqSurfaceNURBS::Diceable()
 {
 	assert( NULL != P() );
 
 	// If the cull check showed that the primitive cannot be diced due to crossing the e and hither planes,
 	// then we can return immediately.
 	if ( !m_fDiceable )
-		return ( TqFalse );
+		return ( false );
 
 	// Otherwise we should continue to try to find the most advantageous split direction, OR the dice size.
 	// Convert the control hull to raster space.
@@ -1707,7 +1692,7 @@ TqBool	CqSurfaceNURBS::Diceable()
 	{
 		m_SplitDir = ( MaxuLen > MaxvLen ) ? SplitDir_U : SplitDir_V;
 		delete[] ( avecHull );
-		return ( TqFalse );
+		return ( false );
 	}
 
 	MaxuLen /= ShadingRateSqrt;
@@ -1725,9 +1710,9 @@ TqBool	CqSurfaceNURBS::Diceable()
 
 	if ( MaxuLen < FLT_EPSILON || MaxvLen < FLT_EPSILON )
 	{
-		m_fDiscard = TqTrue;
+		m_fDiscard = true;
 		delete[] ( avecHull );
-		return ( TqFalse );
+		return ( false );
 	}
 
 
@@ -1735,11 +1720,11 @@ TqBool	CqSurfaceNURBS::Diceable()
 	m_SplitDir = ( MaxuLen > MaxvLen ) ? SplitDir_U : SplitDir_V;
 
 	if ( m_uDiceSize > gs)
-		return TqFalse;
+		return false;
 	if ( m_vDiceSize > gs)
-		return TqFalse;
+		return false;
 
-	return ( TqTrue );
+	return ( true );
 }
 
 
@@ -1941,7 +1926,7 @@ void CqSurfaceNURBS::Output( const char* name )
 }
 
 
-void CqSurfaceNURBS::SetDefaultPrimitiveVariables( TqBool bUseDef_st )
+void CqSurfaceNURBS::SetDefaultPrimitiveVariables( bool bUseDef_st )
 {
 	TqInt bUses = Uses();
 
@@ -2177,7 +2162,7 @@ void CqSurfaceNURBS::SubdivideSegments( std::vector<boost::shared_ptr<CqSurfaceN
 			// The index of the patch we are working on.
 			TqInt iS = ( vPatch * uSplits ) + uPatch;
 			S[ iS ] = boost::shared_ptr<CqSurfaceNURBS>( new CqSurfaceNURBS );
-			S[ iS ] ->SetfPatchMesh( TqFalse );
+			S[ iS ] ->SetfPatchMesh( false );
 			// Initialise it to the same orders as us, with the calculated control point densities.
 			S[ iS ] ->Init( m_uOrder, m_vOrder, ( uEnd + 1 ) - uOffset, ( vEnd + 1 ) - vOffset );
 

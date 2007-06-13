@@ -1,4 +1,4 @@
-Import('env')
+Import('env', 'embedManifest')
 aqsltellenv = env.Copy()
 aqsltellenv.AppendUnique(CPPPATH=['#/shadercompiler/slxargs'])
 aqsltell_sources = Split("""
@@ -10,6 +10,9 @@ aqsltellenv.AppendUnique(LIBS = ['argparse', 'slxargs', 'shadervm', 'aqsistypes'
 aqsltellenv.UseTargetOptions('aqsltell')
 
 aqsltell = aqsltellenv.Program('aqsltell', aqsltell_sources)
+
+embedManifest(env, aqsltellenv, aqsltell, 'EXE')
+	
 aqsltellenv.Install('$BINDIR', aqsltell)
 
 env.Distribute(aqsltell_sources)

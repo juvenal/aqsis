@@ -1,4 +1,5 @@
-Import('env')
+Import('env', 'embedManifest')
+
 aqsis_sources = Split("""
 	aqsis.cpp""")
 
@@ -11,6 +12,9 @@ aqsisenv.AppendUnique(CPPPATH=['$zlib_include_path'])
 aqsisenv.UseTargetOptions('aqsis')
 
 aqsis = aqsisenv.Program('aqsis', aqsis_sources)
+
+embedManifest(env, aqsisenv, aqsis, 'EXE')
+
 aqsisenv.Install('$BINDIR', aqsis)
 
 env.Distribute(aqsis_sources)

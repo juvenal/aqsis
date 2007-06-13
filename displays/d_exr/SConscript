@@ -1,4 +1,4 @@
-Import('env')
+Import('env', 'embedManifest')
 
 d_exr_sources = Split("""
 	d_exr.cpp
@@ -17,6 +17,9 @@ if not env['no_exr']:
 	d_exrenv.UseTargetOptions('exr')
 
 	exr = d_exrenv.SharedLibrary('d_exr', d_exr_sources)
+		
+	embedManifest(env, d_exrenv, exr, 'DLL')
+
 	d_exrenv.Install('$DISPLAYSDIR', exr)
 
 	Return('exr')

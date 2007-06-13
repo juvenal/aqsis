@@ -1,5 +1,5 @@
 import os
-Import('env')
+Import('env', 'embedManifest')
 aqsistypes_sources = Split("""
 	bitvector.cpp
 	cellnoise.cpp
@@ -83,6 +83,9 @@ if env.has_key('aqsistypes_add_sources'):
 	aqsistypes_sources = aqsistypes_sources + ['$aqsistypes_add_sources']
 
 aqsistypes = aqsistypesenv.SharedLibrary('aqsistypes', aqsistypes_sources)
+
+embedManifest(env, aqsistypesenv, aqsistypes, 'DLL')
+
 aqsistypesenv.PostBuildSharedLibrary(aqsistypesenv, aqsistypes)
 #aqsistypesenv.Install('$RENDERENGINEDIR', aqsistypes)
 aqsistypesenv.Install('$INCLUDEDIR',aqsistypes_install_headers)

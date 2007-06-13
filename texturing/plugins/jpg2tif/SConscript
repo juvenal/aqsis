@@ -1,4 +1,4 @@
-Import('env')
+Import('env', 'embedManifest')
 jpg2tifenv = env.Copy()
 jpg2tif_sources=Split("""
 	jpg2tif.c""")
@@ -13,6 +13,8 @@ jpg2tifenv.UseTargetOptions('jpg2tif')
 Import('common_objs')
 
 jpg2tif = jpg2tifenv.SharedLibrary('jpg2tif', [jpg2tif_sources, common_objs], LIBS=['$tiff_lib', '$z_lib', '$jpeg_lib'])
+
+embedManifest(env, jpg2tifenv, jpg2tif, 'DLL')
 
 jpg2tifenv.Install('$PLUGINDIR', jpg2tif)
 
