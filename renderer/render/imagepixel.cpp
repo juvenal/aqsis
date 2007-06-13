@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright © 1997 - 2001, Paul C. Gregory
+// Copyright ï¿½ 1997 - 2001, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -37,7 +37,6 @@
 #include	"imagepixel.h"
 #include	"logging.h"
 #include	"bucket.h"
-
 
 START_NAMESPACE( Aqsis )
 
@@ -371,13 +370,21 @@ void CqImagePixel::Combine(enum EqFilterDepth depthfilter, CqColor zThreshold)
 	for ( std::vector<TqInt>::iterator sample_index = m_SampleIndices.begin(); sample_index != end; ++sample_index )
 	{
 		SqSampleData* samples = &CqBucket::SamplePoints()[*sample_index];
+		//samples represents a single sub-pixel sample for the current pixel
+		//it has all the data for the mpg hits this sample covers
+		//Note: this data may be de-allocated once the current bucket is finished
 
 		SqImageSample& opaqueValue = samples->m_OpaqueSample;
 		sampleIndex++;
-
+		
+		/* Samples are stored in one of 2 ways:
+		*	1) If the closest MP is opaque, then any MPs behind it are ignored, and it is stored in samples->m_OpaqueSample
+		*		In this case the samples list is empty.
+		*	2) If there are semi-transparent MPs in front, then they are stored (unsorted) in samples, and we must account for them now
+		*/
 		if(!samples->m_Data.empty())
 		{
-			// Sort the samples by depth.
+			// Sort by depth the mpg samples for the current subpixel
 			std::sort(samples->m_Data.begin(), samples->m_Data.end(), SqAscendingDepthSort());
 			if(opaqueValue.m_flags & SqImageSample::Flag_Valid)
 			{
@@ -395,12 +402,12 @@ void CqImagePixel::Combine(enum EqFilterDepth depthfilter, CqColor zThreshold)
 			}
 
 			// Find out if any of the samples are in a CSG tree.
-			TqBool bProcessed;
-			TqBool CqCSGRequired = CqCSGTreeNode::IsRequired();
+			bool bProcessed;
+			bool CqCSGRequired = CqCSGTreeNode::IsRequired();
 			if (CqCSGRequired)
 				do
 				{
-					bProcessed = TqFalse;
+					bProcessed = false;
 					//Warning ProcessTree add or remove elements in samples list
 					//We could not optimized the for loop here at all.
 					for ( std::deque<SqImageSample>::iterator isample = samples->
@@ -411,7 +418,7 @@ void CqImagePixel::Combine(enum EqFilterDepth depthfilter, CqColor zThreshold)
 						if ( isample->m_pCSGNode )
 						{
 							isample->m_pCSGNode->ProcessTree( samples->m_Data );
-							bProcessed = TqTrue;
+							bProcessed = true;
 							break;
 						}
 					}
@@ -420,16 +427,18 @@ void CqImagePixel::Combine(enum EqFilterDepth depthfilter, CqColor zThreshold)
 
 			CqColor samplecolor = gColBlack;
 			CqColor sampleopacity = gColBlack;
-			TqBool samplehit = TqFalse;
+			bool samplehit = false;
 			TqFloat opaqueDepths[2] = { FLT_MAX, FLT_MAX };
 			TqFloat maxOpaqueDepth = FLT_MAX;
 
+			//iterate over all the subpixel samples, one at a time
 			for ( std::deque<SqImageSample>::reverse_iterator sample = samples->
 			        m_Data.rbegin();
 			        sample != samples->m_Data.rend();
 			        sample++ )
 			{
 				TqFloat* sample_data = sample->Data();
+				
 				if ( sample->m_flags & SqImageSample::Flag_Matte )
 				{
 					if ( sample->m_flags & SqImageSample::Flag_Occludes )
@@ -474,7 +483,7 @@ void CqImagePixel::Combine(enum EqFilterDepth depthfilter, CqColor zThreshold)
 					if(!(maxOpaqueDepth < FLT_MAX))
 						maxOpaqueDepth = sample->Data()[Sample_Depth];
 				}
-				samplehit = TqTrue;
+				samplehit = true;
 			}
 
 			if ( samplehit )
@@ -538,11 +547,13 @@ void CqImagePixel::Combine(enum EqFilterDepth depthfilter, CqColor zThreshold)
 		}
 		else
 		{
+			//The samples list was empty: all we have is the opaque entry
 			if(opaqueValue.m_flags & SqImageSample::Flag_Valid)
 			{
 				samplecount++;
 			}
 		}
+		
 	}
 }
 

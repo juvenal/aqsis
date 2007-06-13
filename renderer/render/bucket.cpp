@@ -44,7 +44,6 @@
 
 START_NAMESPACE( Aqsis )
 
-
 //----------------------------------------------------------------------
 /** Static data on CqBucket
  */
@@ -79,7 +78,7 @@ std::vector<TqFloat> CqBucket::m_aCoverages;
  *  Clear,Allocate, Init. the m_aieImage samples
  */
 
-void CqBucket::PrepareBucket( TqInt xorigin, TqInt yorigin, TqInt xsize, TqInt ysize, TqBool fJitter, TqBool empty )
+void CqBucket::PrepareBucket( TqInt xorigin, TqInt yorigin, TqInt xsize, TqInt ysize, bool fJitter, bool empty )
 {
 	m_XOrigin = xorigin;
 	m_YOrigin = yorigin;
@@ -313,9 +312,19 @@ void CqBucket::InitialiseFilterValues()
 
 void CqBucket::CombineElements(enum EqFilterDepth filterdepth, CqColor zThreshold)
 {
+	//TqInt index = 0;
 	std::vector<CqImagePixel>::iterator end = m_aieImage.end();
 	for ( std::vector<CqImagePixel>::iterator i = m_aieImage.begin(); i != end ; i++ )
+	{
 		i->Combine(filterdepth, zThreshold);
+		/*
+		if (RENDER_DSM)
+		{
+			DeepShadowGenerator.setCurrentPixelIndex(index);
+		}
+		index++;
+		*/
+	}
 }
 
 
@@ -412,11 +421,13 @@ const TqFloat* CqBucket::Data( TqInt iXPos, TqInt iYPos )
 /** Filter the samples in this bucket according to type and filter widths.
  */
 
-void CqBucket::FilterBucket(TqBool empty)
+void CqBucket::FilterBucket(bool empty)
 {
 	CqImagePixel * pie;
 
 	TqInt datasize = QGetRenderContext()->GetOutputDataTotalSize();
+	//Can we get the DSM rendering flag here too?
+	//QGetRenderContext()->RenderingDSM()
 	m_aDatas.resize( datasize * RealWidth() * RealHeight() );
 	m_aCoverages.resize( RealWidth() * RealHeight() );
 
@@ -435,11 +446,11 @@ void CqBucket::FilterBucket(TqBool empty)
 	TqInt x, y;
 	TqInt i = 0;
 
-	TqBool fImager = TqFalse;
+	bool fImager = false;
 	const CqString* systemOptions;
 	if( ( systemOptions = QGetRenderContext() ->poptCurrent()->GetStringOption( "System", "Imager" ) ) != 0 )
 		if( systemOptions[ 0 ].compare("null") != 0 )
-			fImager = TqTrue;
+			fImager = true;
 
 	TqInt endy = YOrigin() + Height();
 	TqInt endx = XOrigin() + Width();

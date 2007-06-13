@@ -11,6 +11,7 @@ aqsisdll_sources = Split("""
 	csgtree.cpp
 	cubiccurves.cpp
 	curves.cpp
+	deepshadow.cpp
 	environment.cpp
 	filters.cpp
 	genpoly.cpp
@@ -65,6 +66,7 @@ aqsisdll_headers = Split("""
 	converter.h             irenderer.h             options.h               subdivision2.h
 	csgtree.h               ishader.h               parameters.h            surface.h
 	curves.h                ishaderdata.h           patch.h                 symbols.h
+	deepshadow.h
 	focus.h                 ishaderexecenv.h        plane.h                 teapot.h
 	forwarddiff.h           isurface.h              points.h                texturemap.h
 	genpoly.h               itexturemap.h           polygon.h               transform.h

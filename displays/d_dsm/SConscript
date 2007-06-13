@@ -1,0 +1,30 @@
+Import('env', 'embedManifest')
+d_dsmenv = env.Copy()
+d_dsmenv.AppendUnique(CPPPATH=['#/renderer/ddmanager'])
+d_dsmenv.AppendUnique(CPPDEFINES=['d_dsm_EXPORTS'])
+
+d_dsm_sources = Split("""
+	dsm.cpp
+	""")
+
+d_dsm_headers =  Split("""
+	d_dsm.h""")
+
+
+d_dsmenv.AppendUnique(LIBS = ['$tiff_lib', '$z_lib'])
+
+# Set any platform specific target options.
+d_dsmenv.UseTargetOptions('d_dsm')
+
+d_dsm = d_dsmenv.SharedLibrary('d_dsm', d_dsm_sources)
+
+embedManifest(env, d_dsmenv, d_dsm, 'DLL')
+
+d_dsmenv.Install('$DISPLAYSDIR', d_dsm)
+
+Return('d_dsm')
+
+env.Distribute(d_dsm_sources)
+env.Distribute(d_dsm_headers)
+env.Distribute('SConscript')
+

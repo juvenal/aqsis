@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright © 1997 - 2001, Paul C. Gregory
+// Copyright ï¿½ 1997 - 2001, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -354,7 +354,7 @@ void CqCodeGenDataGather::Visit( IqParseNodeGatherConstruct& IC )
 	IqParseNode* pArg = pNode->pChild();
 	assert( pArg != 0 );
 	IqParseNode* pHitStmt = pArg->pNextSibling();
-	assert( pStmt != 0 );
+	assert( pHitStmt != 0 );
 	IqParseNode* pNoHitStmt = pHitStmt->pNextSibling();
 
 	pArg->Accept( *this );

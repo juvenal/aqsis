@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright Î÷Î÷ 1997 - 2001, Paul C. Gregory
+// Copyright ï¿½ï¿½ï¿½ï¿½ 1997 - 2001, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -57,7 +57,7 @@
 #include	"bitvector.h"
 
 #include	"renderer.h"
-#include        "csgtree.h"
+#include    "csgtree.h"
 #include	"color.h"
 #include	"vector2d.h"
 
@@ -237,6 +237,7 @@ struct SqSampleData
 	TqInt		m_SubCellIndex;		///< Subcell index.
 	TqFloat		m_Time;				///< Float sample time.
 	TqFloat		m_DetailLevel;		///< Float level-of-detail sample.
+	//the following two items are what DSM rendering should be interested in
 	std::deque<SqImageSample>	m_Data;	///< Array of sampled surface data for this sample.
 	SqImageSample m_OpaqueSample;	///< Single opaque sample for optimised processing if all encountered surfaces are opaque
 };

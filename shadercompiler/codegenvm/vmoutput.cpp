@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright © 1997 - 2001, Paul C. Gregory
+// Copyright ï¿½ 1997 - 2001, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -640,7 +640,7 @@ void CqCodeGenOutput::Visit( IqParseNodeGatherConstruct& IC )
 	TqInt iLabelD = m_gcLabels++;
 
 	IqParseNode* pArgs = pNode->pChild();
-	assert( pArg != 0 );
+	assert( pArgs != 0 );
 	IqParseNode* pHitStmt = pArgs->pNextSibling();
 	assert( pHitStmt != 0 );
 	IqParseNode* pNoHitStmt = pHitStmt->pNextSibling();
