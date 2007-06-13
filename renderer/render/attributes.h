@@ -135,6 +135,34 @@ class CqAttributes : public CqRefCount, public IqAttributes
 		boost::shared_ptr<CqNamedParameterList> pAttributeWrite( const char* strName )
 		{
 			boost::shared_ptr<CqNamedParameterList> pAttr = m_aAttributes.Find( strName );
+
+			if ( pAttr )
+			{
+				if ( pAttr.unique() )
+					return ( pAttr );
+				else
+				{
+					boost::shared_ptr<CqNamedParameterList> pNew( new CqNamedParameterList( *pAttr ) );
+					m_aAttributes.Remove( pAttr );
+					m_aAttributes.Add( pNew );
+					return ( pNew );
+				}
+			}
+			boost::shared_ptr<CqNamedParameterList> pNew( new CqNamedParameterList( strName ) );
+			m_aAttributes.Add( pNew );
+			return ( pNew );
+		}
+
+		boost::shared_ptr<CqNamedParameterList> pAttributeWrite( TqImt Identifier = 0 )
+		{
+			boost::shared_ptr<CqNamedParameterList> pAttr;
+			if ( Identifier != 0) {
+			{
+					pattr = m_aAttributes.Find( strName );
+			} else {
+					pattr = m_systemParamIDs[;
+			};
+
 			if ( pAttr )
 			{
 				if ( pAttr.unique() )

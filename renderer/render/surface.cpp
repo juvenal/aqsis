@@ -487,8 +487,8 @@ CqMicroPolyGridBase* CqSurface::Dice()
 	// Special case handlers for primitive variables that have defaults.
 	if ( !isDONE( lDone, EnvVars_Cs ) && USES( lUses, EnvVars_Cs ) && ( NULL != pGrid->pVar(EnvVars_Cs) ) )
 	{
-		if ( NULL != pAttributes() ->GetColorAttribute( "System", "Color" ) )
-			pGrid->pVar(EnvVars_Cs) ->SetColor( pAttributes() ->GetColorAttribute( "System", "Color" ) [ 0 ] );
+		if ( NULL != pAttributes() ->GetColorAttribute( (EqSystemParamIDs) SYSTEM_COLOR ) )
+			pGrid->pVar(EnvVars_Cs) ->SetColor( pAttributes() ->GetColorAttribute( (EqSystemParamIDs) SYSTEM_COLOR ) [ 0 ] );
 		else
 			pGrid->pVar(EnvVars_Cs) ->SetColor( CqColor( 1, 1, 1 ) );
 	}

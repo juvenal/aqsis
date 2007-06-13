@@ -117,6 +117,10 @@ CqAttributes::CqAttributes()
 	Attribute_stack.push_front( this );
 	m_StackIterator = Attribute_stack.begin();
 
+	for (TqInt n = 0; n < (EqSystemParamIDs) LASTPARAM; n++)
+	{
+		m_systemParams[n] = NULL;
+	}
 	boost::shared_ptr<CqNamedParameterList> pdefattrs( new CqNamedParameterList( "System" ) );
 
 	ADD_SYSTEM_ATTR( Color, (EqSystemParamIDs) SYSTEM_COLOR, CqColor, CqColor, type_color, CqColor( 1.0f, 1.0f, 1.0f ) );		// the current color attribute.
@@ -143,6 +147,10 @@ CqAttributes::CqAttributes()
 
 CqAttributes::CqAttributes( const CqAttributes& From )
 {
+	for (TqInt n = 0; n < (EqSystemParamIDs) LASTPARAM; n++)
+	{
+		m_systemParams[n] = NULL;
+	}
 	*this = From;
 
 	// Register ourself with the global attribute stack.
@@ -177,6 +185,10 @@ CqAttributes::~CqAttributes()
 
 CqAttributes& CqAttributes::operator=( const CqAttributes& From )
 {
+	for (TqInt n = 0; n < (EqSystemParamIDs) LASTPARAM; n++)
+	{
+		m_systemParams[n] = NULL;
+	}
 	// Copy the system attributes.
 	m_aAttributes = From.m_aAttributes;
 
@@ -216,7 +228,17 @@ CqAttributes& CqAttributes::operator=( const CqAttributes& From )
 
 //---------------------------------------------------------------------
 /** Get a system attribute parameter.
- * \param strName The name of the attribute.  * \param strParam The name of the paramter on the attribute.  * \return CqParameter pointer or 0 if not found.  */ const CqParameter* CqAttributes::pParameter( const char* strName, const char* strParam ) const { const CqNamedParameterList* pList = pAttribute( strName ).get(); if ( pList ) { return ( pList->pParameter( strParam ) ); }
+ * \param strName The name of the attribute.  
+ * \param strParam The name of the paramter on the attribute. 
+ * \return CqParameter pointer or 0 if not found.  
+ */ 
+const CqParameter* CqAttributes::pParameter( const char* strName, const char* strParam ) const 
+{
+	const CqNamedParameterList* pList = pAttribute( strName ).get();
+	 if ( pList ) 
+	{ 
+		return ( pList->pParameter( strParam ) ); 
+	}
 	return ( 0 );
 }
 
