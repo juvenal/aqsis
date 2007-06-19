@@ -1,3 +1,33 @@
+// Aqsis
+// Copyright (C) 1997 - 2007, Paul C. Gregory
+//
+// Contact: pgregory@aqsis.org
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public
+// License as published by the Free Software Foundation; either
+// version 2 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+//
+// You should have received a copy of the GNU General Public
+// License along with this library; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+/** \file
+ *
+ * \author Zachary Carter (zcarter@aqsis.org)
+ *
+ * \brief Implementation of the deep shadow display driver which is
+ * responsible for compression of deep shadow maps and output to file.
+ */
+
+#ifndef D_DSM_H_INCLUDED
+#define D_DSM_H_INCLUDED
+
 #include <string>
 #include <iostream>
 #include <sstream>
@@ -5,35 +35,22 @@
 #include <iosfwd>
 #include <vector>
 
-#ifndef d_dsm_H
-#define d_dsm_H
-
-struct aspRGB
-{
-  unsigned char r;
-  unsigned char g;
-  unsigned char b;
-};
-
-struct aspRGBA
-{
-  unsigned char a;
-  unsigned char r;
-  unsigned char g;
-  unsigned char b;
-};
-
 struct tag
 {
   unsigned char value[4];
 };
 
-class aspXpm
+//------------------------------------------------------------------------------
+/** \brief A deep shadow map processing class with functions to compress visibility data, 
+ *  store store compressed and save to file or other display type.
+ *
+ */
+class DeepShadowDisplay
 {
   public:
 
-  aspXpm(const char *filename, int width, int height, int bpp);
-  ~aspXpm();
+  DeepShadowDisplay(const char *filename, int width, int height, int bpp);
+  ~DeepShadowDisplay();
   int processData( void *th, int x, int y, int xmax, int ymax, const unsigned char *data );     // processes one bucket of rendered pixels
 
   int getColors();      // return the number of colors in the image
@@ -60,6 +77,4 @@ class aspXpm
 
 };
 
-#endif
-
-
+#endif // D_DSM_H_INCLUDED

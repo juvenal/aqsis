@@ -414,7 +414,6 @@ class CqImagePixel
 	private:
 		TqInt	m_XSamples;						///< The number of samples in the horizontal direction.
 		TqInt	m_YSamples;						///< The number of samples in the vertical direction.
-		//std::vector<SqSampleData> m_Samples;	///< A Vector of samples. Holds position, time, dof offset etc for each sample.
 		SqImageSample	m_Data;
 }
 ;

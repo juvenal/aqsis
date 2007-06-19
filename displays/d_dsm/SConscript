@@ -4,7 +4,7 @@ d_dsmenv.AppendUnique(CPPPATH=['#/renderer/ddmanager'])
 d_dsmenv.AppendUnique(CPPDEFINES=['d_dsm_EXPORTS'])
 
 d_dsm_sources = Split("""
-	dsm.cpp
+	d_dsm.cpp
 	""")
 
 d_dsm_headers =  Split("""

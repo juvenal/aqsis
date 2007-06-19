@@ -24,17 +24,18 @@
 //
 
 /** \file
- * \brief Implements the deep shadow display devices for Aqsis.
- * This driver stores deep shadow map image data in a DTEX tiled image file.
  * 
  * \author Zachary L. Carter (zcarter@aqsis.org)
+ * 
+ * \brief Implements the deep shadow display devices for Aqsis.
+ * This driver stores deep shadow map image data in a DTEX tiled image file. 
 */
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-
+#include "d_dsm.h"
 #include "ndspy.h"  // NOTE: Use Pixar's ndspy.h if you've got it.
 
 typedef struct tagDSMFILEHEADER {	  
@@ -65,12 +66,31 @@ Hopefully all resolutions are power of 2.
 } DSMFILEHEADER; 
 
 //******************************************************************************
+// DspyImageQuery
+//
+// Query the display driver for image size (if not specified in the open call)
+// and aspect ratio.
+//******************************************************************************
+PtDspyError DspyImageQuery(PtDspyImageHandle image,
+                           PtDspyQueryType   type,
+                           size_t            size,
+                           void              *data)
+{
+#if SHOW_CALLSTACK
+	fprintf(stderr, "d_dsm_DspyImageQuery called, type: %d.\n", type);
+#endif
+
+	PtDspyError          ret = PkDspyErrorNone;
+
+	return ret;
+}
+
+//******************************************************************************
 // DspyImageOpen
 //
 // Initializes the display driver, allocates necessary resources, checks image
 // size, specifies format in which incoming data will arrive.
 //******************************************************************************
-
 PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
                           const char           *drivername,
                           const char           *filename,
@@ -82,154 +102,7 @@ PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
                           PtDspyDevFormat      *format,
                           PtFlagStuff          *flagstuff)
 {
-	PtDspyError rval = PkDspyErrorNone;
-
-   static AppData g_Data;
-   AppData *pData;
-
-#if SHOW_CALLSTACK
-
-	fprintf(stderr, "sdcBMP_DspyImageOpen called.\n");
-#endif
-
-   pData = (AppData *) calloc(1, sizeof(g_Data));
-   *image = pData;
-
-   // Initialize our global resources
-
-	memset(&g_Data, sizeof(AppData), 0);
-
-	flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
-
-	if ( width <= 0 )
-		width = DEFAULT_IMAGEWIDTH;
-
-	if ( height <= 0 )
-		height = DEFAULT_IMAGEHEIGHT;
-
-	
-	g_Data.FileName = strdup(filename);
-	g_Data.Channels = formatCount;
-
-	g_Data.PixelBytes = 3; // One byte for red, one for green, and one for blue.
-
-	g_Data.bmi.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
-	g_Data.bmi.bmiHeader.biWidth       = width;
-	g_Data.bmi.bmiHeader.biHeight      = height;
-	g_Data.bmi.bmiHeader.biPlanes      = 1;
-	g_Data.bmi.bmiHeader.biBitCount    = 24;
-	g_Data.bmi.bmiHeader.biCompression = BI_RGB;
-
-	g_Data.RowSize                     = DWORDALIGN(width * g_Data.bmi.bmiHeader.biBitCount);
-	g_Data.bmi.bmiHeader.biSizeImage   = g_Data.RowSize * height;
-
-	g_Data.TotalPixels     = width * height;
-
-
-	// Prepare the file header
-
-	g_Data.bfh.bfType     = 0x4D42;    // ASCII "BM"
-	g_Data.bfh.bfSize     = BITMAPFILEHEADER_SIZEOF +
-	                        sizeof(BITMAPINFOHEADER) +
-	                        g_Data.bmi.bmiHeader.biSizeImage;
-	g_Data.bfh.bfOffBits  = BITMAPFILEHEADER_SIZEOF + sizeof(BITMAPINFOHEADER);
-
-
-	// Create a buffer for the image data (calloc clears all pixels to black)
-
-	g_Data.ImageData = (char *)calloc(1, g_Data.RowSize);
-
-	if ( ! g_Data.ImageData )
-	{
-		fprintf(stderr, "sdcBMP_DspyImageOpen_sdcBMP: Insufficient Memory\n");
-		rval = PkDspyErrorNoResource;
-	}
-
-
-	// Open the file and get ready to write.
-
-	g_Data.fp = fopen(g_Data.FileName, "wb");
-
-	if ( ! g_Data.fp )
-	{
-		fprintf(stderr, "sdcBMP_DspyImageOpen: Unable to open [%s]\n", g_Data.FileName);
-		rval = PkDspyErrorNoResource;
-		goto Exit;
-	}
-
-	// Write out the BITMAPFILEHEADER
-	if (lowendian())
-	{
-    		g_Data.bfh.bfType = swap2(g_Data.bfh.bfType);
-    		g_Data.bfh.bfSize = swap4(g_Data.bfh.bfSize);
-    		g_Data.bfh.bfOffBits = swap4(g_Data.bfh.bfOffBits);
-	}
-	if ( ! bitmapfileheader(&g_Data.bfh, g_Data.fp) )
-      
-	{
-		fprintf(stderr, "sdcBMP_SaveBitmap: Error writing to [%s]\n", g_Data.FileName);
-		goto Exit;
-	}
-
-	if (lowendian())
-	{
-    		g_Data.bfh.bfType = swap2(g_Data.bfh.bfType);
-    		g_Data.bfh.bfSize = swap4(g_Data.bfh.bfSize);
-    		g_Data.bfh.bfOffBits = swap4(g_Data.bfh.bfOffBits);
-	}
-
-	if (lowendian())
-	{
-   		g_Data.bmi.bmiHeader.biSize = swap4(g_Data.bmi.bmiHeader.biSize);
-		   g_Data.bmi.bmiHeader.biWidth= swap4(g_Data.bmi.bmiHeader.biWidth);
-   		g_Data.bmi.bmiHeader.biHeight= swap4(g_Data.bmi.bmiHeader.biHeight);
-   		g_Data.bmi.bmiHeader.biPlanes = swap2(g_Data.bmi.bmiHeader.biPlanes);
-   		g_Data.bmi.bmiHeader.biBitCount = swap2(g_Data.bmi.bmiHeader.biBitCount);
-   		g_Data.bmi.bmiHeader.biCompression= swap4(g_Data.bmi.bmiHeader.biCompression); 
-   		g_Data.bmi.bmiHeader.biSizeImage= swap4(g_Data.bmi.bmiHeader.biSizeImage);
-   		g_Data.bmi.bmiHeader.biXPelsPerMeter= swap4(g_Data.bmi.bmiHeader.biXPelsPerMeter); 
-   		g_Data.bmi.bmiHeader.biYPelsPerMeter= swap4(g_Data.bmi.bmiHeader.biYPelsPerMeter); 
-   		g_Data.bmi.bmiHeader.biClrUsed= swap4(g_Data.bmi.bmiHeader.biClrUsed);
-   		g_Data.bmi.bmiHeader.biClrImportant= swap4(g_Data.bmi.bmiHeader.biClrImportant);
-	}
-	// Write out the BITMAPINFOHEADER
-
-	if ( ! fwrite(&g_Data.bmi.bmiHeader,
-	              sizeof(BITMAPINFOHEADER),
-	              1,
-	              g_Data.fp) )
-	{
-		fprintf(stderr, "sdcBMP_SaveBitmap: Error writing to [%s]\n", g_Data.FileName);
-		rval = PkDspyErrorNoResource;
-		goto Exit;
-	}
-
-	if (lowendian())
-	{
-   		g_Data.bmi.bmiHeader.biSize = swap4(g_Data.bmi.bmiHeader.biSize);
-		   g_Data.bmi.bmiHeader.biWidth= swap4(g_Data.bmi.bmiHeader.biWidth);
-   		g_Data.bmi.bmiHeader.biHeight= swap4(g_Data.bmi.bmiHeader.biHeight);
-   		g_Data.bmi.bmiHeader.biPlanes = swap2(g_Data.bmi.bmiHeader.biPlanes);
-   		g_Data.bmi.bmiHeader.biBitCount = swap2(g_Data.bmi.bmiHeader.biBitCount);
-   		g_Data.bmi.bmiHeader.biCompression= swap4(g_Data.bmi.bmiHeader.biCompression); 
-   		g_Data.bmi.bmiHeader.biSizeImage= swap4(g_Data.bmi.bmiHeader.biSizeImage);
-   		g_Data.bmi.bmiHeader.biXPelsPerMeter= swap4(g_Data.bmi.bmiHeader.biXPelsPerMeter); 
-   		g_Data.bmi.bmiHeader.biYPelsPerMeter= swap4(g_Data.bmi.bmiHeader.biYPelsPerMeter); 
-   		g_Data.bmi.bmiHeader.biClrUsed= swap4(g_Data.bmi.bmiHeader.biClrUsed);
-   		g_Data.bmi.bmiHeader.biClrImportant= swap4(g_Data.bmi.bmiHeader.biClrImportant);
-	}
-
-   
-   memcpy((void*) pData, (void *) &g_Data, sizeof(AppData));
-   
-Exit:
-
-	if ( rval != PkDspyErrorNone )
-	{
-		if ( g_Data.fp )
-			fclose(g_Data.fp);
-		g_Data.fp = NULL;
-	}
+	PtDspyError rval = PkDspyErrorNone;		
 
 	return rval;
 }
@@ -247,74 +120,36 @@ PtDspyError DspyImageDeepData(PtDspyImageHandle image,
                           int ymin,
                           int ymax_plusone,
                           int entrysize,
-                          const struct DeepPixel* data)
+                          const unsigned char *data)
 {
-	int  x;
-	int  r, g, b;
-     
-	char *to;
-	long spot;
 
-   	AppData *pData = (AppData *)image;
-   	r = g = b = 0;
+	return PkDspyErrorNone;
+}
 
+//******************************************************************************
+// DspyImageClose
+//******************************************************************************
+PtDspyError DspyImageClose(PtDspyImageHandle image)
+{
 #if SHOW_CALLSTACK
-
-	fprintf(stderr, "d_dsm_DspyImageDeepData called.\n");
+	fprintf(stderr, "d_dsm_DspyImageClose called.\n");
 #endif
+/*
+   AppData *pData = (AppData *)image;
 
-	if ( (ymin+1) != ymax_plusone )
-	{
-		fprintf(stderr, "sdcBMP_DspyImageData: Image data not in scanline format\n");
-		return PkDspyErrorBadParams;
-	}
+	if ( pData->fp )
+		fclose(pData->fp);
+	pData->fp = NULL;
 
-	spot  = pData->bfh.bfOffBits +
-	        (pData->RowSize * (pData->bmi.bmiHeader.biHeight - ymin - 1));
-	spot += pData->PixelBytes * xmin;
+	if ( pData->FileName )
+		free(pData->FileName);
+	pData->FileName = NULL;
 
-	if ( fseek(pData->fp, spot, SEEK_SET) != 0 )
-	{
-		fprintf(stderr, "sdcBMP_DspyImageData: Seek failure\n");
-		return PkDspyErrorUndefined;
-	}
+	if ( pData->ImageData )
+		free(pData->ImageData);
+	pData->ImageData = NULL;
 
-
-	to = pData->ImageData;
-
-	for (x = xmin; x < xmax_plusone; x++)
-	{
-		// Extract the r, g, and b values from data
-
-		if ( ! data )
-			r = g = b = 0;
-		else
-			if ( pData->Channels == 1 )
-				r = g = b = data[0];
-			else
-				if ( pData->Channels >= 3 )
-				{
-					r = data[pData->Channels - 1];
-					g = data[pData->Channels - 2];
-					b = data[pData->Channels - 3];
-				}
-
-
-		if ( data )
-			data += entrysize;
-
-		// Place the r, g, and b values into our bitmap
-
-		*to++ = r;
-		*to++ = g;
-		*to++ = b;
-	}
-
-	if ( ! fwrite(pData->ImageData, int(to - pData->ImageData), 1, pData->fp) )
-	{
-		fprintf(stderr, "sdcBMP_DspyImageData: Error writing file\n");
-		return PkDspyErrorUndefined;
-	}
-
+   free(pData);
+*/
 	return PkDspyErrorNone;
 }

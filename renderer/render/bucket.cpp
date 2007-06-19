@@ -317,13 +317,6 @@ void CqBucket::CombineElements(enum EqFilterDepth filterdepth, CqColor zThreshol
 	for ( std::vector<CqImagePixel>::iterator i = m_aieImage.begin(); i != end ; i++ )
 	{
 		i->Combine(filterdepth, zThreshold);
-		/*
-		if (RENDER_DSM)
-		{
-			DeepShadowGenerator.setCurrentPixelIndex(index);
-		}
-		index++;
-		*/
 	}
 }
 
@@ -425,9 +418,15 @@ void CqBucket::FilterBucket(bool empty)
 {
 	CqImagePixel * pie;
 
-	TqInt datasize = QGetRenderContext()->GetOutputDataTotalSize();
-	//Can we get the DSM rendering flag here too?
-	//QGetRenderContext()->RenderingDSM()
+	TqInt datasize = QGetRenderContext()->GetOutputDataTotalSize();	
+	//If rendering a DSM, invoke the transmittance filtering function
+	if ( strncmp( QGetRenderContext() ->poptCurrent()->GetStringOption( "System", "DisplayType" ) [ 0 ].c_str(),
+		 "dsm", strlen("dsm") ) == 0 )
+	{
+		FilterTransmittance(empty);
+	}
+	else
+		FilterTransmittance(empty);
 	m_aDatas.resize( datasize * RealWidth() * RealHeight() );
 	m_aCoverages.resize( RealWidth() * RealHeight() );
 
@@ -456,7 +455,12 @@ void CqBucket::FilterBucket(bool empty)
 	TqInt endx = XOrigin() + Width();
 
 	bool useSeperable = true;
-
+	// [Zac]
+	TqFloat mydepth = -1;
+	TqFloat mydepth2 = -1;
+	TqInt mysize = -1;
+	bool myempty = false;
+	// [Zac]
 
 	if(!empty)
 	{
@@ -468,7 +472,6 @@ void CqBucket::FilterBucket(bool empty)
 		{
 			// seperable filter. filtering by fx,fy is equivalent to filtering
 			// by fx,1 followed by 1,fy.
-
 			TqInt size = Width() * RealHeight() * PixelYSamples();
 			std::valarray<TqFloat> intermediateSamples( 0.0f, size * datasize);
 			std::valarray<TqInt> sampleCounts(0, size);
@@ -503,6 +506,7 @@ void CqBucket::FilterBucket(bool empty)
 							for ( TqInt sx = 0; sx < PixelXSamples(); sx++ )
 							{
 								const SqSampleData& sampleData = pie2->SampleData( sampleIndex );
+								mydepth = sampleData.m_Data[0].Data()[Sample_Depth];
 								CqVector2D vecS = sampleData.m_Position;
 								vecS -= CqVector2D( xcent, ycent );
 								if ( vecS.x() >= -xfwo2 && vecS.y() >= -yfwo2 && vecS.x() <= xfwo2 && vecS.y() <= yfwo2 )
@@ -563,6 +567,13 @@ void CqBucket::FilterBucket(bool empty)
 						{
 							TqInt sindex = index + ( ( ( sy * PixelXSamples() ) + sx ) * numsubpixels );
 							const SqSampleData& sampleData = pie2->SampleData( sampleIndex );
+							// [Zac]
+							const SqImageSample& opaqueSample = sampleData.m_OpaqueSample;
+							mysize = sampleData.m_Data.size();
+							mydepth = sampleData.m_Data[0].Data()[Sample_Depth];
+							mydepth2 = opaqueSample.Data()[Sample_Depth];
+							myempty = sampleData.m_Data.empty();
+							// [Zac]							
 							CqVector2D vecS = sampleData.m_Position;
 							vecS -= CqVector2D( xcent, ycent );
 							if ( vecS.x() >= -xfwo2 && vecS.y() >= -yfwo2 && vecS.x() <= xfwo2 && vecS.y() <= yfwo2 )
@@ -638,6 +649,13 @@ void CqBucket::FilterBucket(bool empty)
 								{
 									TqInt sindex = index + ( ( ( sy * PixelXSamples() ) + sx ) * numsubpixels );
 									const SqSampleData& sampleData = pie2->SampleData( sampleIndex );
+									//[Zac]
+									const SqImageSample& opaqueSample = sampleData.m_OpaqueSample;
+									mysize = sampleData.m_Data.size();
+									mydepth = sampleData.m_Data[0].Data()[Sample_Depth];
+									mydepth2 = opaqueSample.Data()[Sample_Depth];
+									myempty = sampleData.m_Data.empty();
+									// [Zac]
 									CqVector2D vecS = sampleData.m_Position;
 									vecS -= CqVector2D( xcent, ycent );
 									if ( vecS.x() >= -xfwo2 && vecS.y() >= -yfwo2 && vecS.x() <= xfwo2 && vecS.y() <= yfwo2 )
@@ -783,7 +801,7 @@ void CqBucket::ExposeBucket()
 		TqFloat exposegamma = QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "Exposure" ) [ 1 ];
 		TqFloat oneovergamma = 1.0f / exposegamma;
 		TqFloat endx, endy;
-		TqInt   nextx;
+		TqInt nextx;
 		endy = Height();
 		endx = Width();
 		nextx = RealWidth();
@@ -976,6 +994,97 @@ void CqBucket::ShutdownBucket()
 	m_SamplePoints.clear();
 }
 
+//----------------------------------------------------------------------
+/** Generate piecewise-linear visibility functions for each
+ * pixel in this bucket (for rendering Deep Shadow maps).
+ */
+void CqBucket::FilterTransmittance(bool empty)
+{
+	CqImagePixel * pie;
+	CqImagePixel* pie2;
+	TqInt i = 0;
+	TqInt xmax = m_DiscreteShiftX;
+	TqInt ymax = m_DiscreteShiftY;
+	TqInt numsubpixels = ( PixelXSamples() * PixelYSamples() );
+	TqInt numperpixel = numsubpixels * numsubpixels;
+	TqInt	xlen = RealWidth();
+	CqColor imager;
+	TqInt x, y;
+	TqInt endy = YOrigin() + Height();
+	TqInt endx = XOrigin() + Width();
+	
+	std::priority_queue< SqHitHeapNode, std::vector<SqHitHeapNode>, closest_hit > nexthitheap; // min-heap keeps next-closest "hit" in each transmittance data set
+
+	if (!empty)
+	{
+		// non-seperable filter
+		for ( y = YOrigin(); y < endy ; y++ )
+		{
+			for ( x = XOrigin(); x < endx ; x++ )
+			{
+				TqInt fx, fy;
+				m_VisibilityFunctions.reserve(RealWidth() * RealHeight());
+				// Get the pixel at the top left of the filter area
+				ImageElement( x - xmax, y - ymax, pie );
+				for ( fy = -ymax; fy <= ymax; ++fy )
+				{
+					pie2 = pie;
+					for ( fx = -xmax; fx <= xmax; ++fx )
+					{
+						SqVisibilityFunction* currentVisFunc = new SqVisibilityFunction();
+						m_VisibilityFunctions.push_back(*currentVisFunc);
+						// Now go over each subsample within the pixel
+						// Get subpixel samples
+						for (i = 0; i < numsubpixels; ++i)
+						{
+							// each sample stores an index into this array (aFilterValues) used during sampling
+							TqInt filterValuesSize = m_aFilterValues.size();
+							SqSampleData& currentSampleData = pie2->SampleData(i);
+							 
+							if ( !currentSampleData.m_Data.empty() )
+							{ // subpixel covers multiple samples, and the frontmost sample is not opaque 
+								SqHitHeapNode hitNode(&currentSampleData, 0, 1);
+								nexthitheap.push(hitNode);
+							}
+							else // special case: we only have the opaque entry 
+							{ // this subpixel only had one hit, so construct its tuple, add it to the heap and we are done with it
+								SqHitHeapNode hitNode(&currentSampleData, -1, 1);
+								nexthitheap.push(hitNode);
+							}
+						}
+						/*
+						while ( !nexthitheap.empty() )
+						{
+							SqHitHeapNode currentHit = nexthitheap.top();
+							SqVisibilityNode* newNode = new SqVisibilityNode();
+							if (currentHit.queueIndex == -1)
+							{ // special case: we only have the opaque entry
+								newNode->zdepth = currentHit.samplepointer->m_OpaqueSample.Data()[Sample_Depth];
+								
+								newNode->deltatransmittance.SetColorRGB( currentHit.samplepointer->m_OpaqueSample.Data()[Sample_ORed],
+																	currentHit.samplepointer->m_OpaqueSample.Data()[Sample_OGreen],
+																	currentHit.samplepointer->m_OpaqueSample.Data()[Sample_OBlue]);
+								TqInt sci = currentHit.samplepointer->m_SubCellIndex;
+								newNode->deltatransmittance *= (-1)*m_aFilterValues[sci]; // apply filter weight and negate the delta  
+								newNode->deltaslope.SetColorRGB(0,0,0); // this case will not have slope change
+								currentVisFunc->vnodes.push_back(*newNode);								
+							}
+							else
+							{
+								// construct a visibility node from the dequeued item and push it onto the visibility function V
+								// if the source transmittance function of the above still has more to contribute, enqueue another node 
+								// from the same source with updated index
+							}
+						}
+						*/
+						pie2++;
+					}
+					pie += xlen;
+				}
+			}
+		}
+	}
+}
 
 //---------------------------------------------------------------------
 /* Pure virtual destructor for CqBucket

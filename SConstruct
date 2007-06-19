@@ -300,6 +300,7 @@ env.SConscript( dirs = sub_sconsdirs_noret )
 sub_sconsdirs_withret = prependBuildDir(Split('''
 		renderer/aqsis
 		displays/display
+		displays/d_dsm
 		displays/d_exr
 		displays/d_sdcBMP
 		displays/d_sdcWin32
@@ -307,6 +308,7 @@ sub_sconsdirs_withret = prependBuildDir(Split('''
 '''))
 (	aqsis,
 	display,
+	dsm,
 	exr,
 	bmp,
 	win32,
@@ -326,6 +328,7 @@ def aqsis_rc_build(target, source, env):
 	# Code to build "target" from "source"
 	displaylib = os.path.basename(display[0].path)
 	xpmlib = os.path.basename(xpm[0].path)
+	dsmlib = os.path.basename(dsm[0].path)
 	bmplib = os.path.basename(bmp[0].path)
 	win32lib = ""
 	if sys.platform == 'win32':
@@ -334,6 +337,7 @@ def aqsis_rc_build(target, source, env):
 		"displaylib": displaylib,
 		"xpmlib": xpmlib,
 		"bmplib": bmplib,
+		"dsmlib": dsmlib,
 		"win32lib": win32lib,
 		"shaderpath": env.Dir('$SHADERDIR').abspath,
 		"displaypath": env.Dir('$DISPLAYSDIR').abspath,
