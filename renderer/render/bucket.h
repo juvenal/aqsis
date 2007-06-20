@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright ���� 1997 - 2001, Paul C. Gregory
+// Copyright (C) 1997 - 2007, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -23,9 +23,7 @@
 		\author Paul C. Gregory (pgregory@aqsis.org)
 */
 
-//? Is imagebuffer.h included already?
 #ifndef BUCKET_H_INCLUDED
-//{
 #define BUCKET_H_INCLUDED 1
 
 #include	"aqsis.h"
@@ -51,34 +49,55 @@ START_NAMESPACE( Aqsis )
  *
  * A visibility function is a collection of these structures.
  */
-struct SqVisibilityNode
+struct SqDeltaNode
 {
 	TqFloat zdepth;
 	/// an [additive] change in light color associated with a transmittance function "hit" at this zdepth
 	CqColor deltatransmittance;
-	/// an [additive] change in transmittance slope after a "hit" at this zdpth
+	/// an [additive] change in transmittance function slope occuring at this node
 	CqColor deltaslope;
+};
+
+ //------------------------------------------------------------------------------
+/** \brief Structure representing a visibility function node
+ * This is a (depth, visibility) tuple as described by the Lokovic and Veach DSM paper
+ * A visibility function is a collection of these structures.
+ */
+struct SqVisibilityNode
+{
+	TqFloat zdepth;
+	/// an [additive] change in light color associated with a transmittance function "hit" at this zdepth
+	CqColor visibility;
 };
 
 //------------------------------------------------------------------------------
 /** \brief Structure a hit heap entry
- * These are used in the transmittance filtering function process the transmittance data in depth order
+ * These are used in the transmittance filtering function to process the transmittance data in depth order
  */
 struct SqHitHeapNode
 {
-	SqHitHeapNode(SqSampleData* sp, TqInt qI, TqFloat rV)
+	/** Constructor: initialize an SqHitHeapNode
+	 */ 
+	SqHitHeapNode(SqSampleData* sp, TqInt qI, CqColor rV)
 	{
 		samplepointer = sp;
 		queueIndex = qI;
 		runningVisibility = rV;
 	}
+	
+	/** Compare nodes for sorting in a priority queue
+	 * \param nodeComp the node compare against
+	 * \return true if this node is less (closer) than nodeComp
+	 */	
+	bool operator<( const SqHitHeapNode& nodeComp ) const;
+	
 	/// a pointer to a subpixel sample
 	SqSampleData* samplepointer;
 	/// the index inside of samplepointer->m_Data we should use for constructing the next visibility node
 	/// == -1 if we should use the SqSampleData::m_OpaqueEntry instead
 	TqInt queueIndex;
 	/// running total visibility at queueIndex of sample data
-	TqFloat runningVisibility; 
+	CqColor runningVisibility; 
 };
 
 
@@ -216,6 +235,8 @@ class CqBucket : public IqBucket
 		void	QuantizeBucket();
 		static	void	ShutdownBucket();
 		void FilterTransmittance(bool empty);
+		void CalculateVisibility( CqImagePixel* pie);
+		void ReconstructVisibilityFunction();
 
 		/** Add a GPRim to the stack of deferred GPrims.
 		* \param The Gprim to be added.
@@ -326,32 +347,13 @@ class CqBucket : public IqBucket
 		static	TqInt	m_NumDofBounds;
 		static	std::vector<CqBound>		m_DofBounds;
 		static	std::vector<CqImagePixel>	m_aieImage;
-		static	std::vector<SqSampleData>	m_SamplePoints;
+		static	std::vector<SqSampleData>	m_SamplePoints; ///< The micropolygon sample data relevent to this bucket
 		static	TqInt	m_NextSamplePoint;
 		static	std::vector<std::vector<CqVector2D> >	m_aSamplePositions;///< Vector of vectors of jittered sample positions precalculated.
 		static	std::vector<TqFloat>	m_aFilterValues;				///< Vector of filter weights precalculated.
 		static	std::vector<TqFloat>	m_aDatas;
 		static	std::vector<TqFloat>	m_aCoverages;
 		static	CqImageBuffer*	m_ImageBuffer;	///< Pointer to the image buffer this bucket belongs to.
-		
-		// a compare functor for sorting transmittance data nodes in order of depth
-		struct closest_hit
-		{
-			bool operator()(const SqHitHeapNode& s1, const SqHitHeapNode& s2) const
-			{
-				TqFloat s1depth, s2depth;
-				if ( s1.samplepointer->m_Data.empty() )
-					s1depth = s1.samplepointer->m_OpaqueSample.Data()[Sample_Depth];
-				else
-					s1depth = s1.samplepointer->m_Data[s1.queueIndex].Data()[Sample_Depth];	
-				if ( s2.samplepointer->m_Data.empty() )
-					s2depth = s2.samplepointer->m_OpaqueSample.Data()[Sample_Depth];
-				else
-					s2depth = s2.samplepointer->m_Data[s2.queueIndex].Data()[Sample_Depth];						
-				return ( s1depth < s2depth );
-
-			}
-		};	
 
 		// this is a compare functor for sorting surfaces in order of depth.
 		struct closest_surface
@@ -366,7 +368,7 @@ class CqBucket : public IqBucket
 				// don't have bounds for the surface(s). I suspect we should assert here.
 				return true;
 			}
-		};	
+		};
 
 		std::vector<SqVisibilityFunction>	m_VisibilityFunctions; ///< The Visibility functions (one per pixel) when rendering a dsm
 		std::vector<CqMicroPolygon*> m_ampgWaiting;			///< Vector of vectors of waiting micropolygons in this bucket
