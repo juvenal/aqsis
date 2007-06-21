@@ -236,7 +236,7 @@ class CqBucket : public IqBucket
 		static	void	ShutdownBucket();
 		void FilterTransmittance(bool empty);
 		void CalculateVisibility(CqImagePixel* pie);
-		void ReconstructVisibilityFunction(std::vector<SqDeltaNode>& deltaData);
+		void ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor& slopeAtJ );
 
 		/** Add a GPRim to the stack of deferred GPrims.
 		* \param The Gprim to be added.
