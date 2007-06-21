@@ -1020,8 +1020,8 @@ void CqBucket::FilterTransmittance(bool empty)
 	TqInt xmax = m_DiscreteShiftX;
 	TqInt ymax = m_DiscreteShiftY;
 	TqInt x, y;
-	TqInt endy = YOrigin() + Height();
-	TqInt endx = XOrigin() + Width();
+	TqInt endy = YOrigin() +  RealHeight(); // Was Height(), but I think we need to use  RealHeight()
+	TqInt endx = XOrigin() + RealWidth(); // Likewise ^^
 	bool useSeperable = true;
 	// non-seperable is faster for very small filter widths.
 	if(FilterXWidth() <= 16.0 || FilterYWidth() <= 16.0)
@@ -1057,8 +1057,8 @@ void CqBucket::CalculateVisibility( CqImagePixel* pie )
 	TqInt numsubpixels = ( PixelXSamples() * PixelYSamples() );
 	TqInt xlen = RealWidth();
 	std::priority_queue< SqHitHeapNode, std::vector<SqHitHeapNode> > nexthitheap; // min-heap keeps next-closest "hit" in each transmittance data set
-	// We may be able to bypass this storage and compute the final visibility nodes directly, but I will do things this way for now,
-	// until I get a feel for how to do it better 
+	// As oer Chris, we may be able to bypass this storage and compute the final visibility nodes directly, without first storing
+	// all the deltas, but I will do things this way for now, until I get a feel for how to do it better 
 	std::vector<SqDeltaNode> deltaData; // a depth-ordered list of delta nodes: we can build the final visibility function directly from this
 	CqColor fullVisibility(1.0,1.0,1.0);
 	CqColor zeroVisibility(0.0,0.0,0.0);
@@ -1068,10 +1068,7 @@ void CqBucket::CalculateVisibility( CqImagePixel* pie )
 		pie2 = pie;
 		for ( fx = -xmax; fx <= xmax; ++fx )
 		{
-			SqVisibilityFunction* currentVisFunc = new SqVisibilityFunction();
-			m_VisibilityFunctions.push_back(*currentVisFunc);
-			// Now go over each subsample within the pixel
-			// Get subpixel samples
+			// Iterate over each subsample within the pixel
 			for (i = 0; i < numsubpixels; ++i)
 			{
 				SqSampleData& currentSampleData = pie2->SampleData(i);	 
@@ -1101,6 +1098,7 @@ void CqBucket::CalculateVisibility( CqImagePixel* pie )
 					TqInt sci = currentHit.samplepointer->m_SubCellIndex;
 					deltaNode.deltatransmittance *= (-1)*m_aFilterValues[sci]; // apply filter weight and negate the delta  
 					deltaNode.deltaslope.SetColorRGB(0,0,0); // this case will not have slope change
+					// Here we should also multiply the deltaslope with the filter weight
 					deltaData.push_back(deltaNode);								
 				}
 				else
@@ -1115,8 +1113,9 @@ void CqBucket::CalculateVisibility( CqImagePixel* pie )
 														 currentHit.samplepointer->m_Data[currentHit.queueIndex].Data()[Sample_OBlue]);
 					TqInt sci = currentHit.samplepointer->m_SubCellIndex;
 					deltaNode.deltatransmittance *= (-1)*m_aFilterValues[sci]; // apply filter weight and negate the delta  
-					// we should call a function to take the deltaData and compute the slope change here 
+					// NOTE: We should call a function to take the deltaData and compute the slope change here 
 					deltaNode.deltaslope.SetColorRGB(0,0,0); // 0s for now, since slope change should only occur when rendering participating media
+					// Here we should also multiply the deltaslope with the filter weight
 					deltaData.push_back(deltaNode);
 					// Now we decide whether we should enque another node from currentHit.samplepointer
 					// We want to do so if: 
@@ -1132,7 +1131,7 @@ void CqBucket::CalculateVisibility( CqImagePixel* pie )
 				}
 			}
 			// At this point deltaData has all the data needed to directly construct the final visibility function 
-			// We should call a construction function here
+			ReconstructVisibilityFunction(deltaData);
 			pie2++;
 		}
 		pie += xlen;
@@ -1140,13 +1139,44 @@ void CqBucket::CalculateVisibility( CqImagePixel* pie )
 }
 
 //----------------------------------------------------------------------
-/** Reconstruct the visibility function as a list of (depth, visibility) pairs 
- * using the deltas we have computed in FilterTransmittance()
- *  (for rendering Deep Shadow maps).
+/** Generate a visibility function and add it to this bucket's list. 
+ * This means reconstruct the visibility function as a list of (depth, visibility) pairs 
+ *  using the deltas we have computed in FilterTransmittance().
+ *  This is another deep shadow map generator function. 
  */
-void CqBucket::ReconstructVisibilityFunction( )
+void CqBucket::ReconstructVisibilityFunction( std::vector<SqDeltaNode>& deltaData )
 {
-
+	TqInt j;
+	CqColor slopeAtJ(0,0,0); // Keeps track of the sum of the changes in slope up until node j
+							// which happens to equal the slope of the visibility curve at that point
+	 
+	SqVisibilityFunction* currentVisFunc = new SqVisibilityFunction;
+	currentVisFunc->vnodes.reserve(deltaData.size());
+	
+	// First, build and insert node 0, which has 100% visibility at depth z=0
+	SqVisibilityNode* visibilityNode = new SqVisibilityNode;
+	visibilityNode->zdepth = 0;
+	visibilityNode->visibility.SetColorRGB(1,1,1);
+	currentVisFunc->vnodes.push_back(*visibilityNode);
+	
+	// Iterate over deltaData making an SqVisibilityNode for each SqDeltaNode
+	for (j = 0; j < deltaData.size(); ++j)
+	{
+		SqVisibilityNode* visibilityNodePreHit = new SqVisibilityNode;
+		SqVisibilityNode* visibilityNodePostHit = new SqVisibilityNode;
+		visibilityNodePreHit->zdepth = deltaData[j].zdepth;
+		visibilityNodePreHit->visibility = currentVisFunc->vnodes.back().visibility + (visibilityNodePreHit->zdepth-currentVisFunc->vnodes.back().zdepth)*slopeAtJ;
+		visibilityNodePostHit->zdepth = deltaData[j].zdepth;
+		visibilityNodePostHit->visibility = visibilityNodePreHit->visibility + deltaData[j].deltatransmittance; 
+		slopeAtJ += deltaData[j].deltaslope;
+		currentVisFunc->vnodes.push_back(*visibilityNodePreHit);
+		// QUESTION: Should I really be adding 2 nodes to the visibility function for every delta node? I think yes.
+		currentVisFunc->vnodes.push_back(*visibilityNodePostHit);
+	}
+	// QUESTION: Should we push the data, or a pointer to the data, onto the vector?
+	// I think the line below causes the entire visibility function to be COPIED over to the m_VisibilityFunctions vector.
+	// Maybe we want to copy a pointer instead.
+	m_VisibilityFunctions.push_back(*currentVisFunc);
 }
 
 //---------------------------------------------------------------------
