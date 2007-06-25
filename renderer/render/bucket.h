@@ -78,11 +78,16 @@ struct SqHitHeapNode
 {
 	/** Constructor: initialize an SqHitHeapNode
 	 */ 
-	SqHitHeapNode(SqSampleData* sp, TqInt qI, CqColor rV)
+	SqHitHeapNode(const SqSampleData* sp, TqInt qI, CqColor rV, TqFloat w):
+		samplepointer( sp ),
+		queueIndex( qI ),
+		runningVisibility( rV ),
+		weight( w )
 	{
-		samplepointer = sp;
-		queueIndex = qI;
-		runningVisibility = rV;
+		//samplepointer = sp;
+		//queueIndex = qI;
+		//runningVisibility = rV;
+		//weight = w;
 	}
 	
 	/** Compare nodes for sorting in a priority queue
@@ -92,23 +97,28 @@ struct SqHitHeapNode
 	bool operator<( const SqHitHeapNode& nodeComp ) const;
 	
 	/// a pointer to a subpixel sample
-	SqSampleData* samplepointer;
+	const SqSampleData* samplepointer;
 	/// the index inside of samplepointer->m_Data we should use for constructing the next visibility node
 	/// == -1 if we should use the SqSampleData::m_OpaqueEntry instead
 	TqInt queueIndex;
 	/// running total visibility at queueIndex of sample data
-	CqColor runningVisibility; 
+	CqColor runningVisibility;
+	/// running total visibility at queueIndex of sample data
+	TqFloat weight;  
 };
 
+/// \todo Performance tuning: Consider alternatives to shared_ptr here.  Possibly intrusive_ptr, or holding the structures by value, with a memory pooling mechanism like SqImageSample
+typedef std::vector< boost::shared_ptr<SqVisibilityNode> > TqVisibilityFunction;
 
 //------------------------------------------------------------------------------
 /** \brief Structure representing a visibility function for a pixel
  *
- */
+ 
 struct SqVisibilityFunction
 {
 	std::vector<SqVisibilityNode> vnodes;
 };
+*/
 
 //-----------------------------------------------------------------------
 /** Class holding data about a particular bucket.
@@ -235,8 +245,10 @@ class CqBucket : public IqBucket
 		void	QuantizeBucket();
 		static	void	ShutdownBucket();
 		void FilterTransmittance(bool empty);
-		void CalculateVisibility(CqImagePixel* pie);
-		void ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor& slopeAtJ );
+		void CalculateVisibility(TqFloat xcent, TqFloat ycent, CqImagePixel* pie);
+		void ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor& slopeAtJ, boost::shared_ptr<TqVisibilityFunction> currentVisFunc );
+		void CheckHeapSorted(std::priority_queue< SqHitHeapNode, std::vector<SqHitHeapNode> > nexthitheap);
+		void CheckVisibilityFunction(TqInt index) const;
 
 		/** Add a GPRim to the stack of deferred GPrims.
 		* \param The Gprim to be added.
@@ -369,8 +381,8 @@ class CqBucket : public IqBucket
 				return true;
 			}
 		};
-
-		std::vector<SqVisibilityFunction>	m_VisibilityFunctions; ///< The Visibility functions (one per pixel) when rendering a dsm
+	
+		std::vector< boost::shared_ptr<TqVisibilityFunction> >	m_VisibilityFunctions; ///< The Visibility functions (one per pixel) representing a dsm
 		std::vector<CqMicroPolygon*> m_ampgWaiting;			///< Vector of vectors of waiting micropolygons in this bucket
 		std::vector<CqMicroPolyGridBase*> m_agridWaiting;		///< Vector of vectors of waiting micropolygrids in this bucket
 

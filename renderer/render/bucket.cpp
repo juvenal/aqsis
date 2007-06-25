@@ -77,17 +77,17 @@ std::vector<TqFloat> CqBucket::m_aCoverages;
  * \return true if this node is less (closer) than nodeComp
  */	
 bool SqHitHeapNode::operator<( const SqHitHeapNode& nodeComp ) const
-{
+{	
 	TqFloat s1depth, s2depth;
-	if ( samplepointer->m_Data.empty() )
+	if ( this->queueIndex == -1 )
 		s1depth = this->samplepointer->m_OpaqueSample.Data()[Sample_Depth];
 	else
 		s1depth = this->samplepointer->m_Data[this->queueIndex].Data()[Sample_Depth];	
-	if ( nodeComp.samplepointer->m_Data.empty() )
+	if ( nodeComp.queueIndex == -1 )
 		s2depth = nodeComp.samplepointer->m_OpaqueSample.Data()[Sample_Depth];
 	else
 		s2depth = nodeComp.samplepointer->m_Data[nodeComp.queueIndex].Data()[Sample_Depth];						
-	return ( s1depth < s2depth );
+	return ( s1depth > s2depth ); // It works as desired with the ">" but logically this should be "<"
 }
 
 //----------------------------------------------------------------------
@@ -436,13 +436,6 @@ void CqBucket::FilterBucket(bool empty)
 	CqImagePixel * pie;
 
 	TqInt datasize = QGetRenderContext()->GetOutputDataTotalSize();	
-	//If rendering a DSM, invoke the transmittance filtering function
-	if ( QGetRenderContext()->poptCurrent()->GetStringOption( "System", "DisplayType" )[0] == "dsm" )
-	{
-		FilterTransmittance(empty);
-	}
-	else // remove this case later, but for now we want to test the FilterTransmittance() function
-		FilterTransmittance(empty);
 	m_aDatas.resize( datasize * RealWidth() * RealHeight() );
 	m_aCoverages.resize( RealWidth() * RealHeight() );
 
@@ -471,12 +464,14 @@ void CqBucket::FilterBucket(bool empty)
 	TqInt endx = XOrigin() + Width();
 
 	bool useSeperable = true;
-	// [Zac]
-	TqFloat mydepth = -1;
-	TqFloat mydepth2 = -1;
-	TqInt mysize = -1;
-	bool myempty = false;
-	// [Zac]
+	
+	//If rendering a DSM, invoke the transmittance filtering function
+	if ( QGetRenderContext()->poptCurrent()->GetStringOption( "System", "DisplayType" )[0] == "dsm" )
+	{
+		FilterTransmittance(empty);
+	}
+	else // remove this case later, but for now we want to test the FilterTransmittance() function
+		FilterTransmittance(empty);
 
 	if(!empty)
 	{
@@ -522,7 +517,6 @@ void CqBucket::FilterBucket(bool empty)
 							for ( TqInt sx = 0; sx < PixelXSamples(); sx++ )
 							{
 								const SqSampleData& sampleData = pie2->SampleData( sampleIndex );
-								mydepth = sampleData.m_Data[0].Data()[Sample_Depth];
 								CqVector2D vecS = sampleData.m_Position;
 								vecS -= CqVector2D( xcent, ycent );
 								if ( vecS.x() >= -xfwo2 && vecS.y() >= -yfwo2 && vecS.x() <= xfwo2 && vecS.y() <= yfwo2 )
@@ -582,14 +576,7 @@ void CqBucket::FilterBucket(bool empty)
 						for ( sy = 0; sy < PixelYSamples(); sy++ )
 						{
 							TqInt sindex = index + ( ( ( sy * PixelXSamples() ) + sx ) * numsubpixels );
-							const SqSampleData& sampleData = pie2->SampleData( sampleIndex );
-							// [Zac]
-							const SqImageSample& opaqueSample = sampleData.m_OpaqueSample;
-							mysize = sampleData.m_Data.size();
-							mydepth = sampleData.m_Data[0].Data()[Sample_Depth];
-							mydepth2 = opaqueSample.Data()[Sample_Depth];
-							myempty = sampleData.m_Data.empty();
-							// [Zac]							
+							const SqSampleData& sampleData = pie2->SampleData( sampleIndex );							
 							CqVector2D vecS = sampleData.m_Position;
 							vecS -= CqVector2D( xcent, ycent );
 							if ( vecS.x() >= -xfwo2 && vecS.y() >= -yfwo2 && vecS.x() <= xfwo2 && vecS.y() <= yfwo2 )
@@ -665,13 +652,6 @@ void CqBucket::FilterBucket(bool empty)
 								{
 									TqInt sindex = index + ( ( ( sy * PixelXSamples() ) + sx ) * numsubpixels );
 									const SqSampleData& sampleData = pie2->SampleData( sampleIndex );
-									//[Zac]
-									const SqImageSample& opaqueSample = sampleData.m_OpaqueSample;
-									mysize = sampleData.m_Data.size();
-									mydepth = sampleData.m_Data[0].Data()[Sample_Depth];
-									mydepth2 = opaqueSample.Data()[Sample_Depth];
-									myempty = sampleData.m_Data.empty();
-									// [Zac]
 									CqVector2D vecS = sampleData.m_Position;
 									vecS -= CqVector2D( xcent, ycent );
 									if ( vecS.x() >= -xfwo2 && vecS.y() >= -yfwo2 && vecS.x() <= xfwo2 && vecS.y() <= yfwo2 )
@@ -1020,131 +1000,149 @@ void CqBucket::FilterTransmittance(bool empty)
 	TqInt xmax = m_DiscreteShiftX;
 	TqInt ymax = m_DiscreteShiftY;
 	TqInt x, y;
-	TqInt endy = YOrigin() +  RealHeight(); // Was Height(), but I think we need to use  RealHeight()
-	TqInt endx = XOrigin() + RealWidth(); // Likewise ^^
+	TqInt endy = YOrigin() +  Height(); 
+	TqInt endx = XOrigin() + Width();
 	bool useSeperable = true;
-	// non-seperable is faster for very small filter widths.
+	// non-separable is faster for very small filter widths.
 	if(FilterXWidth() <= 16.0 || FilterYWidth() <= 16.0)
 		useSeperable = false;	
 	
 	if (!empty)
 	{
-		// non-seperable filter
+		// non-separable filter
 		m_VisibilityFunctions.reserve(RealWidth() * RealHeight());
-		for ( y = YOrigin(); y < endy ; y++ )
+		for ( y = YOrigin(); y < endy ; ++y )
 		{
-			for ( x = XOrigin(); x < endx ; x++ )
+			TqFloat ycent = y + 0.5f;
+			for ( x = XOrigin(); x < endx ; ++x )
 			{	
+				TqFloat xcent = x + 0.5f;
 				// Get the pixel at the top left of the filter area
 				ImageElement( x - xmax, y - ymax, pie );
-				CalculateVisibility(pie);
+				CalculateVisibility(xcent, ycent, pie);
 			}
 		}
 	}
+	CheckVisibilityFunction(1);
 }
 
 //----------------------------------------------------------------------
 /** Generate a visibility function for the given
  * pixel (for rendering Deep Shadow maps).
  */
-void CqBucket::CalculateVisibility( CqImagePixel* pie )
+void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* pie )
 {
 	CqImagePixel* pie2;
 	TqInt fx, fy;
-	TqInt i = 0;
+	TqInt SampleCount = 0;
+	TqFloat xfwo2 = CEIL(FilterXWidth()) * 0.5f;
+	TqFloat yfwo2 = CEIL(FilterYWidth()) * 0.5f;
 	TqInt xmax = m_DiscreteShiftX;
 	TqInt ymax = m_DiscreteShiftY;
 	TqInt numsubpixels = ( PixelXSamples() * PixelYSamples() );
+	TqInt numperpixel = numsubpixels * numsubpixels;
 	TqInt xlen = RealWidth();
 	std::priority_queue< SqHitHeapNode, std::vector<SqHitHeapNode> > nexthitheap; // min-heap keeps next-closest "hit" in each transmittance data set
-	CqColor fullVisibility(1.0,1.0,1.0);
-	CqColor zeroVisibility(0.0,0.0,0.0);
-	TqInt j;
 	CqColor slopeAtJ(0,0,0); // Keeps track of the sum of the changes in slope up until node j (the current node)
-							// which happens to equal the slope of the visibility curve at that point
+							 // which happens to equal the slope of the visibility curve at that point
 	// Setup						
-	SqVisibilityFunction* currentVisFunc = new SqVisibilityFunction;
-	currentVisFunc->vnodes.reserve(numsubpixels); // There may be more, but at least this many
-	m_VisibilityFunctions.push_back(*currentVisFunc);
+	boost::shared_ptr<TqVisibilityFunction> currentVisFunc(new TqVisibilityFunction);
+	currentVisFunc->reserve(numperpixel); // There may be more, but at least this many
+	m_VisibilityFunctions.push_back(currentVisFunc);
 	// First, build and insert node 0, which has 100% visibility at depth z=0
-	SqVisibilityNode* visibilityNode = new SqVisibilityNode;
+	boost::shared_ptr<SqVisibilityNode> visibilityNode(new SqVisibilityNode);	
 	visibilityNode->zdepth = 0;
 	visibilityNode->visibility.SetColorRGB(1,1,1);
-	currentVisFunc->vnodes.push_back(*visibilityNode);
-	// QUESTION: Should we push the data, or a pointer to the data, onto the vector (above)?
-	// I think the line below causes the entire visibility function to be COPIED over to the m_VisibilityFunctions vector.
-	// Maybe we want to copy a pointer instead.
+	currentVisFunc->push_back(visibilityNode);
 	
 	for ( fy = -ymax; fy <= ymax; ++fy )
 	{	
 		pie2 = pie;
 		for ( fx = -xmax; fx <= xmax; ++fx )
 		{
-			// Iterate over each subsample within the pixel
-			for (i = 0; i < numsubpixels; ++i)
+			TqInt index = ( ( ( fy + ymax ) * CEIL(FilterXWidth()) ) + ( fx + xmax ) ) * numperpixel;
+			// Now go over each subsample within the pixel
+			TqInt sx, sy;
+			TqInt sampleIndex = 0;
+			for ( sy = 0; sy < PixelYSamples(); sy++ )
 			{
-				SqSampleData& currentSampleData = pie2->SampleData(i);	 
-				if ( !currentSampleData.m_Data.empty() )
-				{ // This subpixel covers multiple samples, and the frontmost sample is not opaque 
-					SqHitHeapNode hitNode(&currentSampleData, 0, fullVisibility);
-					nexthitheap.push(hitNode);
-				}
-				else 
-				{ // This subpixel only had one hit (m_OpaqueSample), so construct its tuple, add it to the heap and we are done
-					SqHitHeapNode hitNode(&currentSampleData, -1, fullVisibility);
-					nexthitheap.push(hitNode);
-				}
-			}
-			while ( !nexthitheap.empty() )
-			{
-				// NOTE: In here we will want to premultiply the volume 
-				// and surface transmittance data before calculatting the deltas
-				SqHitHeapNode currentHit = nexthitheap.top();
-				nexthitheap.pop(); // I need this because top() does not actually dequeue the heap
-				SqDeltaNode deltaNode;
-				if (currentHit.queueIndex == -1)
-				{ // special case: we only have the opaque entry
-					deltaNode.zdepth = currentHit.samplepointer->m_OpaqueSample.Data()[Sample_Depth];
-					
-					deltaNode.deltatransmittance.SetColorRGB( currentHit.samplepointer->m_OpaqueSample.Data()[Sample_ORed],
-														currentHit.samplepointer->m_OpaqueSample.Data()[Sample_OGreen],
-														currentHit.samplepointer->m_OpaqueSample.Data()[Sample_OBlue]);
-					TqInt sci = currentHit.samplepointer->m_SubCellIndex;
-					deltaNode.deltatransmittance *= (-1)*m_aFilterValues[sci]; // apply filter weight and negate the delta  
-					deltaNode.deltaslope.SetColorRGB(0,0,0); // this case will not have slope change: no need to apply filter weight						
-				}
-				else
+				for ( sx = 0; sx < PixelXSamples(); sx++ )
 				{
-					// Construct a delta node from the dequeued item
-					// If the source transmittance function of the above still has more to contribute, enqueue another node 
-					deltaNode.zdepth = currentHit.samplepointer->m_Data[currentHit.queueIndex].Data()[Sample_Depth];
-					
-					deltaNode.deltatransmittance.SetColorRGB(  currentHit.samplepointer->m_Data[currentHit.queueIndex].Data()[Sample_ORed],
-														 currentHit.samplepointer->m_Data[currentHit.queueIndex].Data()[Sample_OGreen],
-														 currentHit.samplepointer->m_Data[currentHit.queueIndex].Data()[Sample_OBlue]);
-					TqInt sci = currentHit.samplepointer->m_SubCellIndex;
-					deltaNode.deltatransmittance *= (-1)*m_aFilterValues[sci]; // apply filter weight and negate the delta  
-					// NOTE: We should compute the slope change here
-					deltaNode.deltaslope.SetColorRGB(0,0,0); // 0s for now, since slope change should only occur when rendering participating media
-					// Here we should also multiply the deltaslope with the filter weight
-					// Now we decide whether we should enque another node from currentHit.samplepointer
-					// We want to do so iff: 
-							// 1) Visibility for that transmittance function has not yet reached 0 as we step along its nodes
-							// 2) That particular transmittance function still has nodes remaining
-					if ((currentHit.samplepointer->m_Data.size()-1 > currentHit.queueIndex) && (currentHit.runningVisibility > zeroVisibility))
-					{ // Enqueue another node
-						SqHitHeapNode hitNode(currentHit.samplepointer,
-											currentHit.queueIndex+1,
-											currentHit.runningVisibility+deltaNode.deltatransmittance);
-						nexthitheap.push(hitNode);						
-					}		
+					TqInt sindex = index + ( ( ( sy * PixelXSamples() ) + sx ) * numsubpixels );
+					const SqSampleData& currentSampleData = pie2->SampleData(sampleIndex);
+					CqVector2D vecS = currentSampleData.m_Position;
+					vecS -= CqVector2D( xcent, ycent );
+					if ( vecS.x() >= -xfwo2 && vecS.y() >= -yfwo2 && vecS.x() <= xfwo2 && vecS.y() <= yfwo2 )
+					{
+						TqInt cindex = sindex + currentSampleData.m_SubCellIndex;
+						//printf("Filter value: %f\n", m_aFilterValues[ cindex ] );
+						if ( !currentSampleData.m_Data.empty() )
+						{ // This subpixel covers multiple samples, and the frontmost sample is not opaque 
+							SqHitHeapNode hitNode(&currentSampleData, 0, gColWhite, m_aFilterValues[ cindex ]/numsubpixels);
+							nexthitheap.push(hitNode);
+						}
+						else 
+						{ // This subpixel only had one hit (m_OpaqueSample), so construct its tuple, add it to the heap and we are done
+							SqHitHeapNode hitNode(&currentSampleData, -1, gColWhite, m_aFilterValues[ cindex ]/numsubpixels);
+							nexthitheap.push(hitNode);
+						}
+						SampleCount++;
+					}
+					sampleIndex++;
 				}
-				// Add next visibility node to the current visibility function	
-				ReconstructVisibilityNode( deltaNode, slopeAtJ );
 			}
 			pie2++;
 		}
-		pie += xlen;
+		pie += xlen; // This is for filter widths larger than a single pixel
+	}
+	// Check if the heap is sorted
+	//CheckHeapSorted(nexthitheap);
+	// The nested loops above will place the first hit from all sub-samples into the heap.			
+	while ( !nexthitheap.empty() && currentVisFunc->back()->visibility > gColBlack )
+	{
+		// NOTE: In here we will want to premultiply the volume 
+		// and surface transmittance data before calculatting the deltas
+		SqHitHeapNode currentHit = nexthitheap.top();
+		nexthitheap.pop(); // I need this because top() does not actually dequeue the heap
+		SqDeltaNode deltaNode;
+		if (currentHit.queueIndex == -1)
+		{ // special case: we only have the opaque entry
+			deltaNode.zdepth = currentHit.samplepointer->m_OpaqueSample.Data()[Sample_Depth];
+			
+			deltaNode.deltatransmittance.SetColorRGB( currentHit.samplepointer->m_OpaqueSample.Data()[Sample_ORed],
+												currentHit.samplepointer->m_OpaqueSample.Data()[Sample_OGreen],
+												currentHit.samplepointer->m_OpaqueSample.Data()[Sample_OBlue]);
+			deltaNode.deltatransmittance *= (-1)*currentHit.weight; // apply filter weight and negate the delta  
+			deltaNode.deltaslope.SetColorRGB(0,0,0); // Normally no slope change, but if we have participating media? Might have slope change.
+		}
+		else
+		{
+			// Construct a delta node from the dequeued item
+			// If the source transmittance function of the above still has more to contribute, enqueue another node 
+			deltaNode.zdepth = currentHit.samplepointer->m_Data[currentHit.queueIndex].Data()[Sample_Depth];
+			
+			deltaNode.deltatransmittance.SetColorRGB(  currentHit.samplepointer->m_Data[currentHit.queueIndex].Data()[Sample_ORed],
+												 currentHit.samplepointer->m_Data[currentHit.queueIndex].Data()[Sample_OGreen],
+												 currentHit.samplepointer->m_Data[currentHit.queueIndex].Data()[Sample_OBlue]);
+			deltaNode.deltatransmittance *= (-1)*currentHit.weight; // apply filter weight and negate the delta  
+			// NOTE: We should compute the slope change here
+			deltaNode.deltaslope.SetColorRGB(0,0,0); // 0s for now, since slope change should only occur when rendering participating media
+			// Here we should also multiply the deltaslope with the filter weight
+			// Now we decide whether we should enque another node from currentHit.samplepointer
+			// We want to do so iff: 
+					// 1) Visibility for that transmittance function has not yet reached 0 as we step along its nodes
+					// 2) That particular transmittance function still has nodes remaining
+			if ((currentHit.samplepointer->m_Data.size()-1 > currentHit.queueIndex) && (currentHit.runningVisibility > gColBlack))
+			{ // Enqueue another node
+				SqHitHeapNode hitNode(currentHit.samplepointer,
+									currentHit.queueIndex+1,
+									currentHit.runningVisibility+deltaNode.deltatransmittance, // This needs to also include slope
+									currentHit.weight);
+				nexthitheap.push(hitNode);						
+			}		
+		}
+		// Add next visibility node to the current visibility function	
+		ReconstructVisibilityNode( deltaNode, slopeAtJ, currentVisFunc );
 	}
 }
 
@@ -1153,20 +1151,62 @@ void CqBucket::CalculateVisibility( CqImagePixel* pie )
  *  visibility function at the top of the list: m_VisibilityFunctions. 
  *  This is another deep shadow map generator function. 
  */
-void CqBucket::ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor& slopeAtJ )
-{	
-	SqVisibilityFunction* currentVisFunc = &(m_VisibilityFunctions.back());
+void CqBucket::ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor& slopeAtJ, boost::shared_ptr<TqVisibilityFunction> currentVisFunc )
+{		
+	// \todo Performance tuning: Consider alternatives to shared_ptr here.
+	// Possibly intrusive_ptr, or holding the structures by value, with a memory pooling mechanism like SqImageSample
+	boost::shared_ptr<SqVisibilityNode> visibilityNodePreHit(new SqVisibilityNode);
+	boost::shared_ptr<SqVisibilityNode> visibilityNodePostHit(new SqVisibilityNode);
 	
-	SqVisibilityNode* visibilityNodePreHit = new SqVisibilityNode;
-	SqVisibilityNode* visibilityNodePostHit = new SqVisibilityNode;
 	visibilityNodePreHit->zdepth = deltaNode.zdepth;
-	visibilityNodePreHit->visibility = currentVisFunc->vnodes.back().visibility + (visibilityNodePreHit->zdepth-currentVisFunc->vnodes.back().zdepth)*slopeAtJ;
+	visibilityNodePreHit->visibility = MAX((currentVisFunc->back()->visibility + (visibilityNodePreHit->zdepth-currentVisFunc->back()->zdepth)*slopeAtJ), gColBlack);
 	visibilityNodePostHit->zdepth = deltaNode.zdepth;
-	visibilityNodePostHit->visibility = visibilityNodePreHit->visibility + deltaNode.deltatransmittance; 
+	visibilityNodePostHit->visibility = MAX((visibilityNodePreHit->visibility + deltaNode.deltatransmittance), gColBlack); 
 	slopeAtJ += deltaNode.deltaslope;
-	currentVisFunc->vnodes.push_back(*visibilityNodePreHit);
-	currentVisFunc->vnodes.push_back(*visibilityNodePostHit);
-	// QUESTION: Should I really be adding 2 nodes to the visibility function for every delta node? I think yes.
+	currentVisFunc->push_back(visibilityNodePreHit);
+	currentVisFunc->push_back(visibilityNodePostHit);
+}
+
+/** Assert that the heap is sorted by depth
+ * Note: This takes nexthitheap in by copy, so that it may be dequeued without affecting the original.
+ */
+void CqBucket::CheckHeapSorted(std::priority_queue< SqHitHeapNode, std::vector<SqHitHeapNode> > nexthitheap)
+{
+	TqFloat prevDepth = -1;
+	
+	while (!nexthitheap.empty())
+	{
+		SqHitHeapNode hitHeapNode = nexthitheap.top();
+		nexthitheap.pop(); // I need this because top() does not actually dequeue the heap
+		if (hitHeapNode.queueIndex == -1)
+		{ // special case: we only have the opaque entry
+			//std::cout << "Next depth: " << hitHeapNode.samplepointer->m_OpaqueSample.Data()[Sample_Depth] << std::endl;
+			assert(hitHeapNode.samplepointer->m_OpaqueSample.Data()[Sample_Depth] >= prevDepth);
+			prevDepth = hitHeapNode.samplepointer->m_OpaqueSample.Data()[Sample_Depth];
+		}
+		else
+		{
+			//std::cout << "Next depth: " << hitHeapNode.samplepointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth] << std::endl;
+			assert(hitHeapNode.samplepointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth] >= prevDepth);
+			prevDepth = hitHeapNode.samplepointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth];		
+		}
+	}		
+}
+
+
+/** Print a specified visibility function to standard out as a sequence of (depth, visibility) pairs
+ */
+void CqBucket::CheckVisibilityFunction(TqInt index) const
+{
+	TqInt j;
+	boost::shared_ptr<TqVisibilityFunction> checkFunction = m_VisibilityFunctions[index];
+	
+	std::cout << "This visibility function has # nodes: " << checkFunction->size() << std::endl;
+	std::cout << "Printing (depth, visibility)\n";
+	for (j = 0; j < checkFunction->size(); ++j)
+	{
+		std::cout << (*checkFunction)[j]->zdepth << ", " << (*checkFunction)[j]->visibility.fRed() << std::endl;
+	}
 }
 
 //---------------------------------------------------------------------
