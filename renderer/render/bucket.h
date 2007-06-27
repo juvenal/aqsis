@@ -247,6 +247,7 @@ class CqBucket : public IqBucket
 		void FilterTransmittance(bool empty);
 		void CalculateVisibility(TqFloat xcent, TqFloat ycent, CqImagePixel* pie);
 		void ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor& slopeAtJ, boost::shared_ptr<TqVisibilityFunction> currentVisFunc );
+		virtual	const TqVisibilityFunction* VisibilityData( TqInt iXPos, TqInt iYPos );
 		void CheckHeapSorted(std::priority_queue< SqHitHeapNode, std::vector<SqHitHeapNode> > nexthitheap);
 		void CheckVisibilityFunction(TqInt index) const;
 

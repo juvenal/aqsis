@@ -66,26 +66,6 @@ Hopefully all resolutions are power of 2.
 } DSMFILEHEADER; 
 
 //******************************************************************************
-// DspyImageQuery
-//
-// Query the display driver for image size (if not specified in the open call)
-// and aspect ratio.
-//******************************************************************************
-PtDspyError DspyImageQuery(PtDspyImageHandle image,
-                           PtDspyQueryType   type,
-                           size_t            size,
-                           void              *data)
-{
-#if SHOW_CALLSTACK
-	fprintf(stderr, "d_dsm_DspyImageQuery called, type: %d.\n", type);
-#endif
-
-	PtDspyError          ret = PkDspyErrorNone;
-
-	return ret;
-}
-
-//******************************************************************************
 // DspyImageOpen
 //
 // Initializes the display driver, allocates necessary resources, checks image
@@ -102,9 +82,35 @@ PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
                           PtDspyDevFormat      *format,
                           PtFlagStuff          *flagstuff)
 {
+#if SHOW_CALLSTACK
+	fprintf(stderr, "d_dsm_DspyImageOpen called.\n");
+#endif
 	PtDspyError rval = PkDspyErrorNone;		
 
+// Note from the format field we can decide if this will be a monochrome or color depth map,
+// and choose the storage type accordingly
+
 	return rval;
+}
+
+//******************************************************************************
+// DspyImageQuery
+//
+// Query the display driver for image size (if not specified in the open call)
+// and aspect ratio.
+//******************************************************************************
+PtDspyError DspyImageQuery(PtDspyImageHandle image,
+                           PtDspyQueryType   type,
+                           size_t            size,
+                           void              *data)
+{
+#if SHOW_CALLSTACK
+	fprintf(stderr, "d_dsm_DspyImageQuery called, type: %d.\n", type);
+#endif
+
+	PtDspyError ret = PkDspyErrorNone; // No-error signal
+
+	return ret;
 }
 
 //******************************************************************************
@@ -125,6 +131,10 @@ PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 
 	return PkDspyErrorNone;
 }
+
+// Write a DspyImageDeepData() function with an additional parameter: an array of integers specifying
+// the length of each visibility function, so we can break up the data correctly. This will replace DspyImageData 
+// for the dsm display device
 
 //******************************************************************************
 // DspyImageClose

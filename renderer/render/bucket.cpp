@@ -470,8 +470,6 @@ void CqBucket::FilterBucket(bool empty)
 	{
 		FilterTransmittance(empty);
 	}
-	else // remove this case later, but for now we want to test the FilterTransmittance() function
-		FilterTransmittance(empty);
 
 	if(!empty)
 	{
@@ -993,6 +991,7 @@ void CqBucket::ShutdownBucket()
 //----------------------------------------------------------------------
 /** Generate piecewise-linear visibility functions for each
  * pixel in this bucket (for rendering Deep Shadow maps).
+ * \param empty True iff this bucket is empty (i.e. covers no micropolygons)
  */
 void CqBucket::FilterTransmittance(bool empty)
 {
@@ -1006,11 +1005,12 @@ void CqBucket::FilterTransmittance(bool empty)
 	// non-separable is faster for very small filter widths.
 	if(FilterXWidth() <= 16.0 || FilterYWidth() <= 16.0)
 		useSeperable = false;	
-	
+
 	if (!empty)
 	{
 		// non-separable filter
-		m_VisibilityFunctions.reserve(RealWidth() * RealHeight());
+		// is this correct, below??
+		m_VisibilityFunctions.reserve(RealWidth() * RealHeight()); // RealWidth, or should it be Width()??
 		for ( y = YOrigin(); y < endy ; ++y )
 		{
 			TqFloat ycent = y + 0.5f;
@@ -1022,13 +1022,16 @@ void CqBucket::FilterTransmittance(bool empty)
 				CalculateVisibility(xcent, ycent, pie);
 			}
 		}
+		//CheckVisibilityFunction(1);
 	}
-	CheckVisibilityFunction(1);
 }
 
 //----------------------------------------------------------------------
 /** Generate a visibility function for the given
  * pixel (for rendering Deep Shadow maps).
+ * \param xcent the x-coordinate of the current pixel's center, in raster space
+ * \param ycent the y-coordinate of the current pixel's center, in raster space
+ * \param pie a pointer to the current pixel
  */
 void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* pie )
 {
@@ -1042,6 +1045,8 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 	TqInt numsubpixels = ( PixelXSamples() * PixelYSamples() );
 	TqInt numperpixel = numsubpixels * numsubpixels;
 	TqInt xlen = RealWidth();
+	TqFloat sumFilterValues = 0; // For normalizing the filter values
+	TqFloat inverseSumFilterValues = 0; // so we can do multiplication instead of division (faster?)
 	std::priority_queue< SqHitHeapNode, std::vector<SqHitHeapNode> > nexthitheap; // min-heap keeps next-closest "hit" in each transmittance data set
 	CqColor slopeAtJ(0,0,0); // Keeps track of the sum of the changes in slope up until node j (the current node)
 							 // which happens to equal the slope of the visibility curve at that point
@@ -1078,15 +1083,16 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 						//printf("Filter value: %f\n", m_aFilterValues[ cindex ] );
 						if ( !currentSampleData.m_Data.empty() )
 						{ // This subpixel covers multiple samples, and the frontmost sample is not opaque 
-							SqHitHeapNode hitNode(&currentSampleData, 0, gColWhite, m_aFilterValues[ cindex ]/numsubpixels);
+							SqHitHeapNode hitNode(&currentSampleData, 0, gColWhite, m_aFilterValues[ cindex ]); // I should really divide by Sum(weights)
 							nexthitheap.push(hitNode);
 						}
 						else 
 						{ // This subpixel only had one hit (m_OpaqueSample), so construct its tuple, add it to the heap and we are done
-							SqHitHeapNode hitNode(&currentSampleData, -1, gColWhite, m_aFilterValues[ cindex ]/numsubpixels);
-							nexthitheap.push(hitNode);
+							SqHitHeapNode hitNode(&currentSampleData, -1, gColWhite, m_aFilterValues[ cindex ]);
+							nexthitheap.push(hitNode); // Because for some filters we don't want to divide by numsubpixels
 						}
 						SampleCount++;
+						sumFilterValues += m_aFilterValues[ cindex ];
 					}
 					sampleIndex++;
 				}
@@ -1095,9 +1101,10 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 		}
 		pie += xlen; // This is for filter widths larger than a single pixel
 	}
+	inverseSumFilterValues = 1.0/sumFilterValues;
 	// Check if the heap is sorted
 	//CheckHeapSorted(nexthitheap);
-	// The nested loops above will place the first hit from all sub-samples into the heap.			
+	// The nested loops above will place the first hit from each sub-sample into the heap.			
 	while ( !nexthitheap.empty() && currentVisFunc->back()->visibility > gColBlack )
 	{
 		// NOTE: In here we will want to premultiply the volume 
@@ -1112,7 +1119,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 			deltaNode.deltatransmittance.SetColorRGB( currentHit.samplepointer->m_OpaqueSample.Data()[Sample_ORed],
 												currentHit.samplepointer->m_OpaqueSample.Data()[Sample_OGreen],
 												currentHit.samplepointer->m_OpaqueSample.Data()[Sample_OBlue]);
-			deltaNode.deltatransmittance *= (-1)*currentHit.weight; // apply filter weight and negate the delta  
+			deltaNode.deltatransmittance *= (-1)*currentHit.weight*inverseSumFilterValues; // apply filter weight and negate the delta  
 			deltaNode.deltaslope.SetColorRGB(0,0,0); // Normally no slope change, but if we have participating media? Might have slope change.
 		}
 		else
@@ -1124,7 +1131,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 			deltaNode.deltatransmittance.SetColorRGB(  currentHit.samplepointer->m_Data[currentHit.queueIndex].Data()[Sample_ORed],
 												 currentHit.samplepointer->m_Data[currentHit.queueIndex].Data()[Sample_OGreen],
 												 currentHit.samplepointer->m_Data[currentHit.queueIndex].Data()[Sample_OBlue]);
-			deltaNode.deltatransmittance *= (-1)*currentHit.weight; // apply filter weight and negate the delta  
+			deltaNode.deltatransmittance *= (-1)*currentHit.weight*inverseSumFilterValues; // apply filter weight and negate the delta  
 			// NOTE: We should compute the slope change here
 			deltaNode.deltaslope.SetColorRGB(0,0,0); // 0s for now, since slope change should only occur when rendering participating media
 			// Here we should also multiply the deltaslope with the filter weight
@@ -1149,7 +1156,10 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 //----------------------------------------------------------------------
 /** Generate a visibility function node and add it to the current
  *  visibility function at the top of the list: m_VisibilityFunctions. 
- *  This is another deep shadow map generator function. 
+ *  This is another deep shadow map generator function.
+ * \param deltaNode data from which to construct visibility node.
+ * \param slopeAtJ the current slope of the visibility function
+ * \param currentVisFunc a pointer to the visibility function for the current pixel 
  */
 void CqBucket::ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor& slopeAtJ, boost::shared_ptr<TqVisibilityFunction> currentVisFunc )
 {		
@@ -1167,6 +1177,23 @@ void CqBucket::ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor&
 	currentVisFunc->push_back(visibilityNodePostHit);
 }
 
+//----------------------------------------------------------------------
+/** Get a pointer to the visibility data for the given pixel
+ * If position is outside bucket, return NULL
+ * \param iXPos Screen position of sample.
+ * \param iYPos Screen position of sample.
+ */
+const TqVisibilityFunction* CqBucket::VisibilityData( TqInt iXPos, TqInt iYPos )
+{
+	TqInt index = iYPos*m_RealWidth+iXPos;
+	if ( index < m_VisibilityFunctions.size() )
+	{
+		return m_VisibilityFunctions[index].get();
+	}
+	return NULL;	
+}
+
+//----------------------------------------------------------------------
 /** Assert that the heap is sorted by depth
  * Note: This takes nexthitheap in by copy, so that it may be dequeued without affecting the original.
  */
@@ -1192,7 +1219,6 @@ void CqBucket::CheckHeapSorted(std::priority_queue< SqHitHeapNode, std::vector<S
 		}
 	}		
 }
-
 
 /** Print a specified visibility function to standard out as a sequence of (depth, visibility) pairs
  */

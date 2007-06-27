@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright © 1997 - 2001, Paul C. Gregory
+// Copyright ï¿½ 1997 - 2001, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -178,6 +178,11 @@ TqInt CqDDManager::DisplayBucket( IqBucket* pBucket )
 			{
 				TqInt index = 0;
 				const TqFloat* pSamples = pBucket->Data( x, y );
+				// If outputting to a dsm display, we want to do something other than the above: 
+				// we do not want the normal pixel data, we want the visibility data
+				// In order for the below to work, I need to cast from IqBucket* to CqBucket*
+				// but I am not sure whether I should use dynamic_cast or reinterpret_cast, or what?
+				const TqVisibilityFunction* visibilitySamples = dynamic_cast<CqBucket*>(pBucket)->VisibilityData( x, y ); 				
 				std::vector<PtDspyDevFormat>::iterator iformat;
 				double s = random.RandomFloat();
 				for(iformat = i->m_formats.begin(); iformat != i->m_formats.end(); iformat++)
@@ -378,6 +383,11 @@ void CqDDManager::LoadDisplayLibrary( SqDisplayRequest& req )
 				m_strDataMethod = "_" + m_strDataMethod;
 				req.m_DataMethod = (DspyImageDataMethod)m_DspyPlugin.SimpleDLSym( req.m_DriverHandle, &m_strDataMethod );
 			}
+			if (!req.m_DataMethod)
+			{
+				m_strDataMethod = "DspyImageDeepData";
+				req.m_DataMethod = (DspyImageDataMethod)m_DspyPlugin.SimpleDLSym( req.m_DriverHandle, &m_strDataMethod );
+			}			
 			req.m_CloseMethod = (DspyImageCloseMethod)m_DspyPlugin.SimpleDLSym( req.m_DriverHandle, &m_strCloseMethod );
 			if (!req.m_OpenMethod)
 			{

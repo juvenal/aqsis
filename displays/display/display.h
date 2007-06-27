@@ -73,7 +73,6 @@ enum EqDisplayTypes
     Type_ZFile,
     Type_ZFramebuffer,
     Type_Shadowmap,
-    Type_DeepShadowmap,
 };
 
 
