@@ -1089,7 +1089,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 						else 
 						{ // This subpixel only had one hit (m_OpaqueSample), so construct its tuple, add it to the heap and we are done
 							SqHitHeapNode hitNode(&currentSampleData, -1, gColWhite, m_aFilterValues[ cindex ]);
-							nexthitheap.push(hitNode); // Because for some filters we don't want to divide by numsubpixels
+							nexthitheap.push(hitNode);
 						}
 						SampleCount++;
 						sumFilterValues += m_aFilterValues[ cindex ];
