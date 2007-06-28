@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright © 1997 - 2001, Paul C. Gregory
+// Copyright ï¿½ 1997 - 2001, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -113,6 +113,24 @@ class CqDDManager : public IqDDManager
 		void	CloseDisplayLibrary( SqDisplayRequest& req );
 		void	PrepareCustomParameters( std::map<std::string, void*>& mapParams, SqDisplayRequest& req );
 		void	PrepareSystemParameters( SqDisplayRequest& req );
+		/** \brief Pass a bucket of deep shadow data to a dsm display device
+		 *
+		 * This function takes responsibility away from
+		 * DisplayBucket() for the special case of deep shadow data.
+		 *
+		 * \param iDisplayRequest - request for dsm output
+		 * \param iDisplayRequest - the bucket to take the deep shadow data from
+		 */
+		void 	DSMDisplayBucket(SqDisplayRequest& iDisplayRequest, IqBucket* pBucket);
+		/** \brief Build and send a full line of visibility data to a dsm diplay device
+		 *
+		 * This helper function shares some of the responsibility 
+		 * for implementing DisplayBucket() for dsm displays
+		 *
+		 * \param iDisplayRequest - request for dsm output
+		 * \param iDisplayRequest - the bucket to take the deep shadow data from
+		 */
+		void	DSMDisplayDataLines(const SqDisplayRequest& iDisplayRequest, const IqBucket* pBucket);
 
 		std::vector<SqDisplayRequest>	m_displayRequests;		///< Array of requested display drivers.
 		bool	m_fDisplayMapInitialised;

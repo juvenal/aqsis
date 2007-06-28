@@ -39,12 +39,13 @@
 #include "ndspy.h"  // NOTE: Use Pixar's ndspy.h if you've got it.
 
 typedef struct tagDSMFILEHEADER {	  
-    short   bfType; 
-    int     bfSize; 
-    short   bfReserved1; 
-    short   bfReserved2; 
-    int     bfOffBits;
+    short   fType; 
+    int     fSize; 
+    short   fReserved1; 
+    short   fReserved2; 
+    int     fOffBits;
 /*    
+ * From Pseudonym's Aqsis file spec wiki page:
     bits		Value			Comment
 0-39		"DSMFF"			String
 40-48		Uint8			Major_Version
@@ -65,13 +66,50 @@ Hopefully all resolutions are power of 2.
 */ 
 } DSMFILEHEADER; 
 
+typedef struct tagDSMINFOHEADER{ // bmih 
+    int     iSize; 
+    long    iWidth; 
+    long    iHeight; 
+    short   iPlanes; 
+    int     iCompression; 
+    int     iSizeImage; 
+    long    iXPelsPerMeter; 
+    long    iYPelsPerMeter; 
+    int     iClrUsed; 
+    int     iClrImportant; 
+} DSMINFOHEADER; 
+
+typedef struct tagDSMINFO {
+    DSMINFOHEADER    	dsmiHeader;
+} DSMINFO;
+
+typedef struct
+{
+	FILE			*fp;
+	DSMFILEHEADER	dsmfh;
+	char            *FileName;
+	DSMINFO			dsmi;
+	char            *ImageData;
+	int             Channels;
+	long            TotalPixels;
+}
+DeepShadowData;
+
+// -----------------------------------------------------------------------------
+// Constants
+// -----------------------------------------------------------------------------
+static const int     DEFAULT_IMAGEWIDTH         = 512;
+static const int     DEFAULT_IMAGEHEIGHT        = 512;
+static const float   DEFAULT_PIXELASPECTRATIO   = 1.0f;
+
+
 //******************************************************************************
 // DspyImageOpen
 //
 // Initializes the display driver, allocates necessary resources, checks image
 // size, specifies format in which incoming data will arrive.
 //******************************************************************************
-PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
+extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
                           const char           *drivername,
                           const char           *filename,
                           int                  width,
@@ -85,9 +123,51 @@ PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 #if SHOW_CALLSTACK
 	fprintf(stderr, "d_dsm_DspyImageOpen called.\n");
 #endif
+	
 	PtDspyError rval = PkDspyErrorNone;		
 
-// Note from the format field we can decide if this will be a monochrome or color depth map,
+	// This is all bookkeeping information
+	static DeepShadowData g_Data;
+	DeepShadowData *pData;
+	pData = (DeepShadowData *) calloc(1, sizeof(g_Data));
+	*image = pData; // This is how the caller gets a handle on this new image
+	
+
+	// Initialize our global resources
+	memset(&g_Data, sizeof(DeepShadowData), 0);
+
+	flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
+
+	if ( width <= 0 )
+		width = DEFAULT_IMAGEWIDTH;
+	if ( height <= 0 )
+		height = DEFAULT_IMAGEHEIGHT;
+
+	
+	g_Data.FileName = strdup(filename);
+	g_Data.Channels = formatCount;
+
+	g_Data.dsmi.dsmiHeader.iSize        = sizeof(DSMINFOHEADER);
+	g_Data.dsmi.dsmiHeader.iWidth       = width;
+	g_Data.dsmi.dsmiHeader.iHeight      = height;
+	g_Data.dsmi.dsmiHeader.iPlanes      = 1;
+	g_Data.dsmi.dsmiHeader.iCompression = 0;
+
+	g_Data.TotalPixels     = width*height;
+	
+	// Prepare the file header
+	g_Data.dsmfh.fType     = 0x4D42;    // ASCII "BM"
+	g_Data.dsmfh.fSize     = sizeof(DSMFILEHEADER) +
+	                         sizeof(DSMINFOHEADER);
+	g_Data.dsmfh.fOffBits  = sizeof(DSMFILEHEADER) + sizeof(DSMINFOHEADER);
+	
+	// We would pre-allocate the memory for the deep shadow map, but there
+	// is no way of knowing ahead of time how big it will be
+		
+	// More stuff to do here, but probably not worth writing out until we want to store the real
+	// DSM to file. But for now we want to store it as a sequence of bitmaps.	
+	
+// Note from the formatCount field we can decide if this will be a monochrome or color depth map,
 // and choose the storage type accordingly
 
 	return rval;
@@ -99,7 +179,7 @@ PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 // Query the display driver for image size (if not specified in the open call)
 // and aspect ratio.
 //******************************************************************************
-PtDspyError DspyImageQuery(PtDspyImageHandle image,
+extern "C" PtDspyError DspyImageQuery(PtDspyImageHandle image,
                            PtDspyQueryType   type,
                            size_t            size,
                            void              *data)
@@ -120,7 +200,7 @@ PtDspyError DspyImageQuery(PtDspyImageHandle image,
 // This function is called once per bucket. It should add the bucket's data to the image.
 // This does not write the image to disk. That is done at the end by WriteDTEX
 //******************************************************************************
-PtDspyError DspyImageDeepData(PtDspyImageHandle image,
+extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
                           int xmin,
                           int xmax_plusone,
                           int ymin,
@@ -139,11 +219,15 @@ PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 //******************************************************************************
 // DspyImageClose
 //******************************************************************************
-PtDspyError DspyImageClose(PtDspyImageHandle image)
+extern "C" PtDspyError DspyImageClose(PtDspyImageHandle image)
 {
 #if SHOW_CALLSTACK
 	fprintf(stderr, "d_dsm_DspyImageClose called.\n");
 #endif
+
+// This is where we will write to disk the DSM
+// When doing testing, write out a sequence of bitmaps for visualizing the deep data
+
 /*
    AppData *pData = (AppData *)image;
 

@@ -193,7 +193,6 @@ class CqBucket : public IqBucket
 		{
 			return m_NumDofBounds;
 		}
-
 		static const CqBound& DofSubBound(TqInt index)
 		{
 			assert(index < m_NumDofBounds);
@@ -247,9 +246,18 @@ class CqBucket : public IqBucket
 		void FilterTransmittance(bool empty);
 		void CalculateVisibility(TqFloat xcent, TqFloat ycent, CqImagePixel* pie);
 		void ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor& slopeAtJ, boost::shared_ptr<TqVisibilityFunction> currentVisFunc );
-		virtual	const TqVisibilityFunction* VisibilityData( TqInt iXPos, TqInt iYPos );
+		virtual	const TqVisibilityFunction* VisibilityDataPixel( TqInt iXPos, TqInt iYPos );
 		void CheckHeapSorted(std::priority_queue< SqHitHeapNode, std::vector<SqHitHeapNode> > nexthitheap);
 		void CheckVisibilityFunction(TqInt index) const;
+		/** \brief Get the size of the visibility data for this bucket
+		 *
+		 * It is important to have easy access to this information
+		 * because visibility data size is non-uniform per-pixel.
+		 * 
+		 * \return The total number of TqFloats used in representing all
+		 * visibility functions for this bucket
+		 */
+		inline TqInt VisibilityBucketDataSize() const;
 
 		/** Add a GPRim to the stack of deferred GPrims.
 		* \param The Gprim to be added.
@@ -383,7 +391,8 @@ class CqBucket : public IqBucket
 			}
 		};
 	
-		std::vector< boost::shared_ptr<TqVisibilityFunction> >	m_VisibilityFunctions; ///< The Visibility functions (one per pixel) representing a dsm
+		TqInt m_VisibilityDataSize; ///< Total number of TqFloats stored in the visibility functions: 2 per-node if grayscale, 4 per-node if color 
+		std::vector< boost::shared_ptr<TqVisibilityFunction> >	m_VisibilityFunctions; ///< The Visibility functions (one per pixel) in this bucket, only used when rendering a DSM
 		std::vector<CqMicroPolygon*> m_ampgWaiting;			///< Vector of vectors of waiting micropolygons in this bucket
 		std::vector<CqMicroPolyGridBase*> m_agridWaiting;		///< Vector of vectors of waiting micropolygrids in this bucket
 
@@ -392,6 +401,14 @@ class CqBucket : public IqBucket
 		bool	m_bProcessed;	///< Flag indicating if this bucket has been processed yet.
 }
 ;
+
+//------------------------------------------------------------------------------
+// Inline function(s) for CqBucket
+//------------------------------------------------------------------------------
+inline TqInt CqBucket::VisibilityBucketDataSize() const
+{
+	return m_VisibilityDataSize;
+}
 
 END_NAMESPACE( Aqsis )
 

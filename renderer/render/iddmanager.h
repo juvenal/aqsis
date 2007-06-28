@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright © 1997 - 2001, Paul C. Gregory
+// Copyright ï¿½ 1997 - 2001, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -87,6 +87,11 @@ struct IqBucket
 	 * \param iYPos Screen position of the requested element.
 	 */
 	virtual const TqFloat* Data( TqInt iXPos, TqInt iYPos ) = 0;
+	/** Get a pointer to the visibility data
+	 * \param iXPos Screen position of the requested element.
+	 * \param iYPos Screen position of the requested element.
+	 */	
+	//virtual const TqVisibilityFunction* VisibilityData( TqInt iXPos, TqInt iYPos ) = 0;	
 };
 
 struct IqDDManager
