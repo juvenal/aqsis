@@ -41,6 +41,7 @@
 #include	"color.h"
 #include	"vector2d.h"
 #include    "imagepixel.h"
+#include	"visibility_function.h"
 
 START_NAMESPACE( Aqsis )
 
@@ -56,18 +57,6 @@ struct SqDeltaNode
 	CqColor deltatransmittance;
 	/// an [additive] change in transmittance function slope occuring at this node
 	CqColor deltaslope;
-};
-
- //------------------------------------------------------------------------------
-/** \brief Structure representing a visibility function node
- * This is a (depth, visibility) tuple as described by the Lokovic and Veach DSM paper
- * A visibility function is a collection of these structures.
- */
-struct SqVisibilityNode
-{
-	TqFloat zdepth;
-	/// an [additive] change in light color associated with a transmittance function "hit" at this zdepth
-	CqColor visibility;
 };
 
 //------------------------------------------------------------------------------
@@ -106,9 +95,6 @@ struct SqHitHeapNode
 	/// running total visibility at queueIndex of sample data
 	TqFloat weight;  
 };
-
-/// \todo Performance tuning: Consider alternatives to shared_ptr here.  Possibly intrusive_ptr, or holding the structures by value, with a memory pooling mechanism like SqImageSample
-typedef std::vector< boost::shared_ptr<SqVisibilityNode> > TqVisibilityFunction;
 
 //------------------------------------------------------------------------------
 /** \brief Structure representing a visibility function for a pixel
@@ -257,7 +243,7 @@ class CqBucket : public IqBucket
 		 * \return The total number of TqFloats used in representing all
 		 * visibility functions for this bucket
 		 */
-		inline TqInt VisibilityBucketDataSize() const;
+		inline TqInt VisibilityDataTotalSize() const;
 
 		/** Add a GPRim to the stack of deferred GPrims.
 		* \param The Gprim to be added.
@@ -405,7 +391,7 @@ class CqBucket : public IqBucket
 //------------------------------------------------------------------------------
 // Inline function(s) for CqBucket
 //------------------------------------------------------------------------------
-inline TqInt CqBucket::VisibilityBucketDataSize() const
+inline TqInt CqBucket::VisibilityDataTotalSize() const
 {
 	return m_VisibilityDataSize;
 }

@@ -1072,8 +1072,7 @@ void CqDDManager::DSMDisplayBucket(SqDisplayRequest& iDisplayRequest, IqBucket* 
 	TqUint	ymaxplus1 = ymin + pBucket->Height();
 	
 	// Find out the size of the deep data for this bucket
-	// Here I am doing that casting again. Maybe we should change the IqBucket interface 
-	TqInt bucketDataSize = dynamic_cast<CqBucket*>(pBucket)->VisibilityBucketDataSize();
+	TqInt bucketDataSize = pBucket->VisibilityDataTotalSize();
 	
 	// Allocate enough space to put the whole bucket data into.
 	if (iDisplayRequest.m_DataBucket == 0)
@@ -1107,7 +1106,7 @@ void CqDDManager::DSMDisplayBucket(SqDisplayRequest& iDisplayRequest, IqBucket* 
 			// In order for the below to work, I need to cast from IqBucket* to CqBucket*
 			// but I am not sure whether I should use dynamic_cast or reinterpret_cast, or what?
 			// Maybe we can modify the IqBucket interface to have a VisibilityData() function
-			const TqVisibilityFunction* visibilitySamples = dynamic_cast<CqBucket*>(pBucket)->VisibilityDataPixel( x, y );
+			const TqVisibilityFunction* visibilitySamples = pBucket->VisibilityDataPixel( x, y );
 			// I don't understand the purpose of the comment out region below (taken from CqDDManager::DisplayBucket()),
 			// so I think I may not need it in this dsm case
 			/*		

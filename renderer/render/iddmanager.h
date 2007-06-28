@@ -29,6 +29,7 @@
 
 #include	"aqsis.h"
 #include	"color.h"
+#include	"visibility_function.h"
 #include	<map>
 
 
@@ -87,11 +88,14 @@ struct IqBucket
 	 * \param iYPos Screen position of the requested element.
 	 */
 	virtual const TqFloat* Data( TqInt iXPos, TqInt iYPos ) = 0;
-	/** Get a pointer to the visibility data
+	/** Get a pointer to the visibility data for the specified pixel
 	 * \param iXPos Screen position of the requested element.
 	 * \param iYPos Screen position of the requested element.
 	 */	
-	//virtual const TqVisibilityFunction* VisibilityData( TqInt iXPos, TqInt iYPos ) = 0;	
+	virtual const TqVisibilityFunction* VisibilityDataPixel( TqInt iXPos, TqInt iYPos ) = 0;
+	/** Get the size (number of TqFloats) used in representing visibility data for this bucket.
+	 */		
+	virtual TqInt VisibilityDataTotalSize() const = 0;	
 };
 
 struct IqDDManager
