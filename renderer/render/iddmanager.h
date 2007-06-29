@@ -29,15 +29,30 @@
 
 #include	"aqsis.h"
 #include	"color.h"
-#include	"visibility_function.h"
 #include	<map>
-
+#include	<boost/shared_ptr.hpp>
 
 START_NAMESPACE( Aqsis )
 
 struct SqImageSample;
 struct IqRenderer;
 class CqParameter;
+
+//------------------------------------------------------------------------------
+/** \brief Structure representing a visibility function node
+ * This is a (depth, visibility) tuple as described by the Lokovic and Veach DSM paper
+ * A visibility function is a collection of these structures.
+ */
+struct SqVisibilityNode
+{
+	TqFloat zdepth;
+	/// an [additive] change in light color associated with a transmittance function "hit" at this zdepth
+	CqColor visibility;
+};
+
+/// \todo Performance tuning: Consider alternatives to shared_ptr here.  Possibly intrusive_ptr, or holding the structures by value, with a memory pooling mechanism like SqImageSample
+typedef std::vector< boost::shared_ptr<SqVisibilityNode> > TqVisibilityFunction;
+
 
 struct IqBucket
 {

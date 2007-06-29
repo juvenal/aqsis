@@ -41,7 +41,6 @@
 #include	"color.h"
 #include	"vector2d.h"
 #include    "imagepixel.h"
-#include	"visibility_function.h"
 
 START_NAMESPACE( Aqsis )
 
