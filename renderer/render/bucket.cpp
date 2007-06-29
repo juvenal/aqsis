@@ -1189,7 +1189,7 @@ void CqBucket::ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor&
  * \param iXPos Screen position of sample.
  * \param iYPos Screen position of sample.
  */
-const TqVisibilityFunction* CqBucket::VisibilityDataPixel( TqInt iXPos, TqInt iYPos )
+const TqVisibilityFunction* CqBucket::VisibilityDataPixel( TqInt iXPos, TqInt iYPos ) const
 {
 	TqInt index = iYPos*m_RealWidth+iXPos;
 	if ( index < m_VisibilityFunctions.size() )

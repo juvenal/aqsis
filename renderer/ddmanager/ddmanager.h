@@ -107,6 +107,10 @@ class CqDDManager : public IqDDManager
 			DspyImageDelayCloseMethod	m_DelayCloseMethod;
 			unsigned char  *m_DataRow;    // A row of bucket's data
 			unsigned char  *m_DataBucket; // A bucket's data
+			float** m_VisibilityFunctionEndIndexes; // Indexes to the end of each visibility function in m_VisibilityDataRows, below
+													// Can use a 2-D array since the size can be pre-determined 
+			std::vector< std::vector<float> > m_VisibilityDataRows; // A row of buckets's visibility data. 
+														// That is, a row of buckets, each with n rows of pixels
 		};
 
 		void	LoadDisplayLibrary( SqDisplayRequest& req );
@@ -118,8 +122,8 @@ class CqDDManager : public IqDDManager
 		 * This function takes responsibility away from
 		 * DisplayBucket() for the special case of deep shadow data.
 		 *
-		 * \param iDisplayRequest - request for dsm output
-		 * \param iDisplayRequest - the bucket to take the deep shadow data from
+		 * \param iDisplayRequest - Display request structure
+		 * \param pBucket - The bucket to take the deep shadow data from
 		 */
 		void 	DSMDisplayBucket(SqDisplayRequest& iDisplayRequest, IqBucket* pBucket);
 		/** \brief Build and send a full line of visibility data to a dsm diplay device
@@ -127,10 +131,16 @@ class CqDDManager : public IqDDManager
 		 * This helper function shares some of the responsibility 
 		 * for implementing DisplayBucket() for dsm displays
 		 *
-		 * \param iDisplayRequest - request for dsm output
-		 * \param iDisplayRequest - the bucket to take the deep shadow data from
+		 * \param iDisplayRequest - Display request structure
+		 * \param pBucket - The bucket to take the deep shadow data from
 		 */
 		void	DSMDisplayDataLines(const SqDisplayRequest& iDisplayRequest, const IqBucket* pBucket);
+		/** \brief Copy by value the visibility data from a bucket into a buffer for this display request  
+		 *
+		 * \param iDisplayRequest - Display request structure
+		 * \param pBucket - The bucket to take the deep shadow data from
+		 */		
+		void DSMVisibilityDataCopyIn(SqDisplayRequest& iDisplayRequest, const IqBucket* pBucket);
 
 		std::vector<SqDisplayRequest>	m_displayRequests;		///< Array of requested display drivers.
 		bool	m_fDisplayMapInitialised;

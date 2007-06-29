@@ -92,7 +92,7 @@ struct IqBucket
 	 * \param iXPos Screen position of the requested element.
 	 * \param iYPos Screen position of the requested element.
 	 */	
-	virtual const TqVisibilityFunction* VisibilityDataPixel( TqInt iXPos, TqInt iYPos ) = 0;
+	virtual const TqVisibilityFunction* VisibilityDataPixel( TqInt iXPos, TqInt iYPos ) const = 0;
 	/** Get the size (number of TqFloats) used in representing visibility data for this bucket.
 	 */		
 	virtual TqInt VisibilityDataTotalSize() const = 0;	
