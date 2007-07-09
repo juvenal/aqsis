@@ -39,12 +39,24 @@
 
 START_NAMESPACE( Aqsis )
 
+//------------------------------------------------------------------------------
+/** \brief Structure to hold the final deep data for output to deep display device.
+*
+*/
+struct SqCompressedDeepData
+{
+	// Lengths (# nodes) in each visibility function in m_VisibilityDataRows
+	// This is important because these lengths are arbitrary, not uniform.
+	// Note: using C-type "float" because this data gets passed to the C API:
+	std::vector< std::vector<float> > m_VisibilityFunctionLengths;
+	// A row of buckets's visibility data:
+	std::vector< std::vector<float> > m_VisibilityDataRows; 	
+};
 
 //---------------------------------------------------------------------
 /** \class CqDDManagerSimple
  * Class providing display device management to the renderer.
  */
-
 class CqDDManager : public IqDDManager
 {
 	public:
@@ -107,10 +119,9 @@ class CqDDManager : public IqDDManager
 			DspyImageDelayCloseMethod	m_DelayCloseMethod;
 			unsigned char  *m_DataRow;    // A row of bucket's data
 			unsigned char  *m_DataBucket; // A bucket's data
-			float** m_VisibilityFunctionEndIndexes; // Indexes to the end of each visibility function in m_VisibilityDataRows, below
-													// Can use a 2-D array since the size can be pre-determined 
-			std::vector< std::vector<float> > m_VisibilityDataRows; // A row of buckets's visibility data. 
-														// That is, a row of buckets, each with n rows of pixels
+			std::vector< std::vector<float> > m_VisibilityFunctionLengths;
+			// A row of buckets's visibility data:
+			std::vector< std::vector<float> > m_VisibilityDataRows; 
 		};
 
 		void	LoadDisplayLibrary( SqDisplayRequest& req );

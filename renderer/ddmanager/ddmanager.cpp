@@ -328,7 +328,6 @@ TqInt CqDDManager::Uses()
 	return ( Uses );
 }
 
-
 void CqDDManager::LoadDisplayLibrary( SqDisplayRequest& req )
 {
 	// Get the display mapping from the "display" options, if one exists.
@@ -414,9 +413,10 @@ void CqDDManager::LoadDisplayLibrary( SqDisplayRequest& req )
 	}
 
 	// Nullified the data part
+	// Move this to CqDisplayRequest constructor
 	req.m_DataRow = 0;
 	req.m_DataBucket = 0;
-	req.m_VisibilityFunctionEndIndexes = 0;
+	//req.m_VisibilityFunctionLengths = 0;
 
 	if( NULL != req.m_OpenMethod )
 	{
@@ -1089,14 +1089,6 @@ void CqDDManager::DSMDisplayBucket(SqDisplayRequest& iDisplayRequest, IqBucket* 
 		// Possible solution: use a std::vector<TqFloat> to store the data for each row... this gets complicated
 		// I actually need n = pBucket->Height() separate vectors, one for each row. So I need a vector of vectors, or array of vectors
 		// We might as well store this data by value now. But we might want to perform compression as we copy in, to minimize space
-		if (iDisplayRequest.m_VisibilityFunctionEndIndexes == NULL)
-		{
-			iDisplayRequest.m_VisibilityFunctionEndIndexes = (float**)malloc(height);
-			for (i = 0; i < height; ++i)
-			{
-				iDisplayRequest.m_VisibilityFunctionEndIndexes[i] = (float*)malloc(width);
-			}
-		}
 		iDisplayRequest.m_VisibilityDataRows.reserve(height); 
 		for (i = 0; i < height; ++i)
 		{
@@ -1155,7 +1147,7 @@ void CqDDManager::DSMDisplayDataLines(const SqDisplayRequest& iDisplayRequest, c
 	// For displays that want scanline order 
 	// we need to gather line data across several buckets before sending
 	// Get a pointer to the beginning of the bucket
-	float** visDataEndNodes = iDisplayRequest.m_VisibilityFunctionEndIndexes;
+	const std::vector< std::vector<float> >* visDataFunctionLengths = &(iDisplayRequest.m_VisibilityFunctionLengths);
 	const std::vector< std::vector<float> >* visData= &(iDisplayRequest.m_VisibilityDataRows);
 	TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
 	for (y = ymin; y < ymaxplus1; ++y)
@@ -1198,7 +1190,7 @@ void CqDDManager::DSMVisibilityDataCopyIn(SqDisplayRequest& iDisplayRequest, con
 	TqUint	ymaxplus1 = ymin + pBucket->Height();	
 	
 	// The following are the structures we want to populate
-	float** visDataEndNodes = iDisplayRequest.m_VisibilityFunctionEndIndexes;
+	std::vector< std::vector<float> >* visDataFunctionLengths = &(iDisplayRequest.m_VisibilityFunctionLengths);
 	std::vector< std::vector<float> >* visDataCopyDest = &(iDisplayRequest.m_VisibilityDataRows);
 	TqUint y;
 	for ( y = ymin; y < ymaxplus1; ++y )
@@ -1207,7 +1199,7 @@ void CqDDManager::DSMVisibilityDataCopyIn(SqDisplayRequest& iDisplayRequest, con
 		for ( x = xmin; x < xmaxplus1; ++x )
 		{
 			TqInt index = 0;
-			const TqVisibilityFunction* visibilityDataSource = pBucket->VisibilityDataPixel( x, y );
+			const TqVisibilityFunction* visibilityDataSource = pBucket->DeepData( x, y );
 			// Copy into the iDisplayRequest::m_VisibilityDataRows the visibility data in this bucket,
 			// keeping track of the index of the last node in each visibility function
 		}
