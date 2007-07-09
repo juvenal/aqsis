@@ -41,7 +41,8 @@
 START_NAMESPACE( Aqsis )
 
 //------------------------------------------------------------------------------
-/** \brief Structure to hold the final deep data for output to deep display device.
+/** \brief Structure to hold the final deep data (from a bucket) 
+ * for output to deep display device.
 *
 */
 struct SqCompressedDeepData
@@ -49,8 +50,15 @@ struct SqCompressedDeepData
 	// Lengths (# nodes) in each visibility function in m_VisibilityDataRows
 	// This is important because these lengths are arbitrary, not uniform.
 	// Note: using C-type "float" because this data gets passed to the C API:
-	std::vector< std::vector<float> > m_VisibilityFunctionLengths;
-	// A row of buckets's visibility data:
+	// The external vector is indexed by pixel row, and the second vector is indexed by pixel column,
+	// yielding the length of the visibility function (number of nodes) at pixel (x,y).
+	std::vector< std::vector<int> > m_VisibilityFunctionLengths;
+	// A buckets's visibility data: 
+	// The external vector is indexed by pixel row, wrt the first row in the bucket (row 0)
+	// and the second vector has all visibility data for the row, with pixel boundaries determined by
+	// the data in m_VisibilityFunctionLengths. 
+	// Note: The data is stored contiguously, and a node has length between 2 and 4 floats,
+	// depending on whether the visibility functions are grayscale of color.
 	std::vector< std::vector<float> > m_VisibilityDataRows; 	
 };
 
@@ -122,7 +130,7 @@ class CqDisplayRequest
 		/* Determine all of the environment variables this display uses
 		 * by querying this display's mode hash.
 		 */
-		virtual	TqInt ThisDisplayUses( TqInt& Uses );
+		virtual	void ThisDisplayUses( TqInt& Uses );
 		
 		virtual void ClearDisplayParams();
 		void LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimplePlugin& dspyPlugin );
@@ -275,7 +283,7 @@ class CqDeepDisplayRequest : virtual public CqDisplayRequest
 		virtual void SendToDisplay(TqUint ymin, TqUint ymaxplus1);
 		
 	private:
-	
+		std::map<TqInt, std::vector<boost::shared_ptr<SqCompressedDeepData> > > m_BucketDeepDataMap;
 };
 
 //---------------------------------------------------------------------
