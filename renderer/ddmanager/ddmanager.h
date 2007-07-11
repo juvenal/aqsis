@@ -42,8 +42,9 @@ START_NAMESPACE( Aqsis )
 
 //------------------------------------------------------------------------------
 /** \brief Structure to hold the final deep data (from a bucket) 
- * for output to deep display device.
-*
+ * for output to deep display device. 
+ * There is one of these per bucket in CqDeepDisplayRequest::m_BucketDeepDataMap
+ * and one of them in CqDeepDisplayRequest::m_CollapsedBucketRow.
 */
 struct SqCompressedDeepData
 {
@@ -59,7 +60,12 @@ struct SqCompressedDeepData
 	// the data in m_VisibilityFunctionLengths. 
 	// Note: The data is stored contiguously, and a node has length between 2 and 4 floats,
 	// depending on whether the visibility functions are grayscale of color.
-	std::vector< std::vector<float> > m_VisibilityDataRows; 	
+	std::vector< std::vector<float> > m_VisibilityDataRows;
+	// CqDeepDisplayRequest::m_BucketDeepDataMap keeps an unsorted list of buckets
+	// which need to be sorted before collapsing to scanline.
+	// The variable below will be the sort criteria. It can be set to the xmin
+	// value associated with the bucket.
+	TqInt horizontalBucketIndex;
 };
 
 //------------------------------------------------------------------------------
@@ -162,7 +168,7 @@ class CqDisplayRequest
 		virtual bool CollapseBucketsToScanlines(IqBucket* pBucket) = 0;
 		 /* Sends the data to the display.
 		 */
-		virtual void SendToDisplay(TqUint ymin, TqUint ymaxplus1) = 0;
+		virtual void SendToDisplay(IqBucket* pBucket) = 0;
 		      
 	protected:
 		bool		m_valid;
@@ -236,7 +242,7 @@ class CqShallowDisplayRequest : virtual public CqDisplayRequest
 		 * Sends the data to the display.
 		 * Invoked only when the bucket row data is full.
 		 */
-		void SendToDisplay(TqUint ymin, TqUint ymaxplus1);
+		void SendToDisplay(IqBucket* pBucket);
 	
 	private:
 		
@@ -245,7 +251,8 @@ class CqShallowDisplayRequest : virtual public CqDisplayRequest
 		// The inner vector stores an unsorted list of the buckets for a row.
 		// The fact that it is unsorted may be an issue because the display needs to
 		// receive data in sorted order. We may need to store identifying info to re-determine order.
-		// Note: I want to use a boost:shared_array here, but my boost library does not have it.
+		// Note: I want to use a boost:shared_array here, but my boost library does not have it,
+		// nor do I see it used anywhere else in the code.
 		std::map<TqInt, std::vector<boost::shared_ptr<unsigned char> > > m_BucketDataMap;
 };
 
@@ -280,10 +287,11 @@ class CqDeepDisplayRequest : virtual public CqDisplayRequest
 		/*
 		 * Sends the data to the display.
 		 */
-		virtual void SendToDisplay(TqUint ymin, TqUint ymaxplus1);
+		virtual void SendToDisplay(IqBucket* pBucket);
 		
 	private:
 		std::map<TqInt, std::vector<boost::shared_ptr<SqCompressedDeepData> > > m_BucketDeepDataMap;
+		boost::shared_ptr<SqCompressedDeepData> m_CollapsedBucketRow;
 };
 
 //---------------------------------------------------------------------

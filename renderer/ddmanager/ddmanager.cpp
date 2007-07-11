@@ -42,6 +42,18 @@
 
 START_NAMESPACE( Aqsis )
 
+// Not sure where is the best place to put this.
+// I tried making it a member function in CqDeepDisplayRequest, but
+// it is used as a template argument to std::sort(), which requires external linkage,
+// so here it sits.
+/*
+ * Ensure the buckets in m_BucketDeepDataMap
+ * under the given map key are sorted left-to-right.
+ */	
+inline bool DeepDataMapRowSortPredicate(const boost::shared_ptr<SqCompressedDeepData>& lhs, const boost::shared_ptr<SqCompressedDeepData>& rhs)
+{
+	return (*lhs).horizontalBucketIndex < (*rhs).horizontalBucketIndex;
+}
 
 /// Required function that implements Class Factory design pattern for DDManager libraries
 IqDDManager* CreateDisplayDriverManager()
@@ -62,7 +74,7 @@ TqInt CqDDManager::AddDisplay( const TqChar* name, const TqChar* type, const TqC
 	/// \todo The shared_ptr should be declared before the if-else block and initialized inside,
 	// then the last 2 lines in the if-else blocks should follow afterward. I couldn't figure out
 	// how to declare the boost pointer separately from its initialization.
-	if (type == "dsm")
+	if (strcmp(type, "dsm") == 0)
 	{	
 		boost::shared_ptr<CqDisplayRequest> req(new CqDeepDisplayRequest(false, name, type, mode, CqString::hash( mode ), modeID,
 				dataOffset,	dataSize, 0.0f, 255.0f, 0.0f, 0.0f, 0.0f, false, false));
@@ -245,6 +257,17 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 			{
 				ddMemberData.m_strDataMethod = "_" + ddMemberData.m_strDataMethod;
 				m_DataMethod = (DspyImageDataMethod)dspyPlugin.SimpleDLSym( m_DriverHandle, &ddMemberData.m_strDataMethod );
+			}
+			if (!m_DataMethod)
+			{
+				CqString strDeepDataMethod = "DspyImageDeepData";
+				ddMemberData.m_strDataMethod = "_" + ddMemberData.m_strDataMethod;
+				m_DataMethod = (DspyImageDataMethod)dspyPlugin.SimpleDLSym( m_DriverHandle, &strDeepDataMethod );
+				if (!m_DataMethod)
+				{
+					strDeepDataMethod = "_" + strDeepDataMethod;
+					m_DataMethod = (DspyImageDataMethod)dspyPlugin.SimpleDLSym( m_DriverHandle, &strDeepDataMethod );
+				}	
 			}
 			m_CloseMethod = (DspyImageCloseMethod)dspyPlugin.SimpleDLSym( m_DriverHandle, &ddMemberData.m_strCloseMethod );
 			if (!m_OpenMethod)
@@ -917,33 +940,15 @@ void CqDisplayRequest::DisplayBucket( IqBucket* pBucket )
 	if( !m_valid || !m_DataMethod )
 		return;
 	
-	TqUint	xmin = pBucket->XOrigin();
-	TqUint	ymin = pBucket->YOrigin();
-	TqUint	xmaxplus1 = xmin + pBucket->Width();
-	TqUint	ymaxplus1 = ymin + pBucket->Height();
-	PtDspyError err;
-	
 	// Dispatch to display sub-type methods
 	// Copy relevant data from the bucket and store locally,
 	// while quantizing and/or compressing
 	FormatBucketForDisplay( pBucket );
 	// Now that the bucket data has been constructed, send it to the display
 	// either lines by lines or bucket by bucket.
+	SendToDisplay( pBucket );
 	// Check if the display needs scanlines, and if so, accumulate bucket data
-	// until a scanline is complete. Send to display when complete.
-	if (m_flags.flags & PkDspyFlagsWantsScanLineOrder)
-	{
-		if (CollapseBucketsToScanlines( pBucket ))
-		{
-			// Filled a scan line: time to send complete rows to display
-			SendToDisplay(ymin, ymaxplus1);
-		}
-	}
-	else
-	{
-		// Send the bucket information as they come in
-		err = (m_DataMethod)(m_imageHandle, xmin, xmaxplus1, ymin, ymaxplus1, m_elementSize, m_DataBucket);
-	}	
+	// until a scanline is complete. Send to display when complete.	
 }
 
 //----------------------------------------------------------------------
@@ -1042,7 +1047,7 @@ void CqShallowDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	// Allocate enough space to put the whole bucket data into
 	if (m_DataBucket == 0)
 		m_DataBucket = new unsigned char[m_elementSize * pBucket->Width() * pBucket->Height()];
-	if ((m_flags.flags & PkDspyFlagsWantsScanLineOrder) & m_DataRow == 0)
+	if ((m_flags.flags & PkDspyFlagsWantsScanLineOrder) && m_DataRow == 0)
 	{
 		TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
 		TqUint height = pBucket->Height();
@@ -1148,7 +1153,7 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	// where depth is 1 float, and visibility is 1 or 3 floats depending on 
 	// whether the deep shadow map is grayscale or color.
 	
-	// Copy by value the visibility data into a buffer
+	// Copy by value the visibility data into the bucket deep data map
 	for ( y = ymin; y < ymaxplus1; ++y )
 	{
 		++row;
@@ -1161,6 +1166,7 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 			/// \todo Compression function will be invoked here
 			for( visit = visibilityDataSource->begin(); visit != visibilityDataSource->end(); ++visit)
 			{
+				// Execution is seg-faulting on the following line, but not during the first loop
 				tvisData[row].push_back((**visit).zdepth);
 				tvisData[row].push_back((**visit).visibility.fRed());
 				tvisData[row].push_back((**visit).visibility.fGreen());
@@ -1170,28 +1176,34 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 			tvisFuncLengths[row].push_back(funcLength);
 		}
 	}
+	(*inBucketDeepData).horizontalBucketIndex = xmin;
 	m_BucketDeepDataMap[ymin].push_back(inBucketDeepData);
 }
 
+//-----------------------------------------------------------
+// Accumulate the bucket information to full rows of buckets
+//-----------------------------------------------------------
 bool CqShallowDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 {
 	TqUint	xmin = pBucket->XOrigin();
 	TqUint	ymin = pBucket->YOrigin();
 	TqUint	xmaxplus1 = xmin + pBucket->Width();
 	TqUint	ymaxplus1 = ymin + pBucket->Height();
-	TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
+	TqUint bucketsPerRow = QGetRenderContext()->pImage()->cXBuckets();
 	TqUint bucketDataSize = pBucket->Width() * pBucket->Height() * m_elementSize; 
 	
-	// Accumulate the bucket information to the full row of buckets
+	// Accumulate the bucket information to full rows of buckets
+	// Copy the current bucket to the bucket data map
 	boost::shared_ptr<unsigned char> pdata(new unsigned char[bucketDataSize]);
 	memcpy(&(*pdata), m_DataBucket, bucketDataSize);
+	m_BucketDataMap[ymin].push_back(pdata);
 	// A problem with arbitrary bucket orders is that the row vectors of buckets are not sorted, but we need to
 	// send data to the display in sorted order. How can we reconstruct the sorted order?
-	m_BucketDataMap[ymin].push_back(pdata);
 	
-	if (m_BucketDataMap[ymin].size() == width)
+	if (m_BucketDataMap[ymin].size() == bucketsPerRow)
 	{
-		// Filled a scan line
+		// Filled a row of buckets
+		/// \todo Collapse to scanlines. I'll do this after I do it for deep data
 		return true;
 	}
 	return false;	
@@ -1199,27 +1211,107 @@ bool CqShallowDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 
 bool CqDeepDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 {
+	TqUint xmin = pBucket->XOrigin();
+	TqUint ymin = pBucket->YOrigin();
+	TqUint xmaxplus1 = xmin + pBucket->Width();
+	TqUint ymaxplus1 = ymin + pBucket->Height();
+	TqUint bucketHeight = pBucket->Height();
+	TqUint bucketsPerRow = QGetRenderContext()->pImage()->cXBuckets();
+	TqUint y;
+	TqUint i;
+	// As per Chris: When the row of buckets is completed, you can copy all the buckets into a
+	// scanline at the same time, and immediately send it to the display. Then release the memory.
+	// We take the full row of buckets stored in m_BucketDeepDataMap and collapse into full rows
+	// of pixels in m_CollapsedBucketRow, which we send a line at a time to the display.
+	if (m_BucketDeepDataMap[ymin].size() == bucketsPerRow)
+	{
+		// First ensure the row of buckets is sorted
+		// Invoke Deep Data Map sort function
+		// SortDeepDataMapRow(ymin);
+		std::sort(m_BucketDeepDataMap[ymin].begin(), m_BucketDeepDataMap[ymin].end(), DeepDataMapRowSortPredicate);
+		boost::shared_ptr<SqCompressedDeepData> m_CollapsedBucketRow(new SqCompressedDeepData);
+		std::vector< std::vector<int> >& tvisFuncLengths = (*m_CollapsedBucketRow).m_VisibilityFunctionLengths;
+		std::vector< std::vector<float> >& tvisData = (*m_CollapsedBucketRow).m_VisibilityDataRows; 
+		tvisFuncLengths.reserve(bucketHeight);
+		tvisData.reserve(bucketHeight);
+		
+		for (i = 0; i < bucketsPerRow; ++i)
+		{
+			for ( y = 0; y < bucketHeight; ++y )
+			{
+				m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].begin();
+				tvisFuncLengths[y].insert(tvisFuncLengths[y].end(), 
+						m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].begin(), 
+						m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].begin());
+			}
+		}
+		return true;
+	}
 	return false;
 }
 
-void CqShallowDisplayRequest::SendToDisplay(TqUint ymin, TqUint ymaxplus1)
+void CqShallowDisplayRequest::SendToDisplay(IqBucket* pBucket)
 {
 	TqUint y;
+	TqUint xmin = pBucket->XOrigin();
+	TqUint ymin = pBucket->YOrigin();
+	TqUint xmaxplus1 = xmin + pBucket->Width();
+	TqUint ymaxplus1 = ymin + pBucket->Height();
 	PtDspyError err;
-	unsigned char* pdata = m_DataBucket;
+	// We will replace m_DataRow with m_BucketDataMap
+	unsigned char* pdata = m_DataRow;
 	TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
 	
-	// send to the display one line at the time
-	for (y = ymin; y < ymaxplus1; y++)
+	if (m_flags.flags & PkDspyFlagsWantsScanLineOrder)
 	{
-		err = (m_DataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, pdata);
-		pdata += m_elementSize * width;
+		if (CollapseBucketsToScanlines( pBucket ))
+		{
+			// Filled a row of buckets
+			// send to the display one line at a time
+			for (y = ymin; y < ymaxplus1; ++y)
+			{
+				err = (m_DataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, pdata);
+				pdata += m_elementSize * width;
+			}	
+		}
+	}
+	else
+	{
+		// Send the bucket information as they come in
+		err = (m_DataMethod)(m_imageHandle, xmin, xmaxplus1, ymin, ymaxplus1, m_elementSize, m_DataBucket);
 	}	
 }
 
-void CqDeepDisplayRequest::SendToDisplay(TqUint ymin, TqUint ymaxplus1)
+void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 {
+	TqUint i = 0;
+	TqUint y;
+	TqUint xmin = pBucket->XOrigin();
+	TqUint ymin = pBucket->YOrigin();
+	TqUint xmaxplus1 = xmin + pBucket->Width();
+	TqUint ymaxplus1 = ymin + pBucket->Height();
+	PtDspyError err;
+	TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
 	
+	if (m_flags.flags & PkDspyFlagsWantsScanLineOrder)
+	{
+		if (CollapseBucketsToScanlines( pBucket ))
+		{
+			// Filled a row of buckets
+			// send to the display one line at a time
+			for (y = ymin; y < ymaxplus1; ++y)
+			{
+				err = (m_DataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
+						reinterpret_cast<const unsigned char*>(&((*m_CollapsedBucketRow).m_VisibilityDataRows[i].front())));
+				++i;
+			}
+		}
+	}
+	else
+	{
+		// Send the bucket information as they come in
+		// But will DSM displays ever do this?
+	}
 }
 
 bool CqDisplayRequest::ThisDisplayNeeds( const TqUlong& htoken, const TqUlong& rgb, const TqUlong& rgba,
