@@ -48,6 +48,9 @@ START_NAMESPACE( Aqsis )
 /** Static data on CqBucket
  */
 
+//For testing:
+static TqInt myCount = 0;
+
 TqInt	CqBucket::m_XSize;
 TqInt	CqBucket::m_YSize;
 TqInt	CqBucket::m_RealWidth;
@@ -80,13 +83,13 @@ bool SqHitHeapNode::operator<( const SqHitHeapNode& nodeComp ) const
 {	
 	TqFloat s1depth, s2depth;
 	if ( this->queueIndex == -1 )
-		s1depth = this->samplepointer->m_OpaqueSample.Data()[Sample_Depth];
+		s1depth = this->samplePointer->m_OpaqueSample.Data()[Sample_Depth];
 	else
-		s1depth = this->samplepointer->m_Data[this->queueIndex].Data()[Sample_Depth];	
+		s1depth = this->samplePointer->m_Data[this->queueIndex].Data()[Sample_Depth];	
 	if ( nodeComp.queueIndex == -1 )
-		s2depth = nodeComp.samplepointer->m_OpaqueSample.Data()[Sample_Depth];
+		s2depth = nodeComp.samplePointer->m_OpaqueSample.Data()[Sample_Depth];
 	else
-		s2depth = nodeComp.samplepointer->m_Data[nodeComp.queueIndex].Data()[Sample_Depth];						
+		s2depth = nodeComp.samplePointer->m_Data[nodeComp.queueIndex].Data()[Sample_Depth];						
 	// The top of std::priority_queue is always the greatest element
 	// according to operator<, so we need > here to get the smallest depth
 	// out of priority_queue.pop()
@@ -1013,8 +1016,10 @@ void CqBucket::FilterTransmittance(bool empty)
 		useSeperable = false;	
 
 	m_VisibilityDataSize = 0;
+	// NOTE: THIS IS THE LIKELY CULPRIT FOR MY SEGMENTATION FAULTS... EMPTY BUCKETS AREN'T GETTING ANY VISIBILITY DATA
 	if (!empty)
 	{
+		m_bEmpty = false;
 		// non-separable filter
 		m_VisibilityFunctions.reserve(Width()*Height());
 		for ( y = YOrigin(); y < endy ; ++y )
@@ -1030,6 +1035,7 @@ void CqBucket::FilterTransmittance(bool empty)
 		}
 		//CheckVisibilityFunction(1);
 	}
+	// Empty buckets will be identified and handled in ddmanager
 }
 
 //----------------------------------------------------------------------
@@ -1110,7 +1116,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 	inverseSumFilterValues = 1.0/sumFilterValues;
 	// Check if the heap is sorted
 	//CheckHeapSorted(nextHitHeap);			
-	while ( !nextHitHeap.empty() && currentVisFunc->back()->visibility > gColBlack )
+	while ( (!nextHitHeap.empty()) && (currentVisFunc->back()->visibility > gColBlack) )
 	{
 		// NOTE: In here we will want to premultiply the volume 
 		// and surface transmittance data before calculatting the deltas
@@ -1120,17 +1126,17 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 		// Construct a delta node from the dequeued item. Two cases:
 		if (nextHit.queueIndex == -1)
 		{ // special case: we only have the opaque entry
-			deltaNode.zdepth = nextHit.samplepointer->m_OpaqueSample.Data()[Sample_Depth];
+			deltaNode.zdepth = nextHit.samplePointer->m_OpaqueSample.Data()[Sample_Depth];
 			
-			deltaNode.deltatransmittance.SetColorRGB( nextHit.samplepointer->m_OpaqueSample.Data()[Sample_ORed],
-												nextHit.samplepointer->m_OpaqueSample.Data()[Sample_OGreen],
-												nextHit.samplepointer->m_OpaqueSample.Data()[Sample_OBlue]);
+			deltaNode.deltatransmittance.SetColorRGB( nextHit.samplePointer->m_OpaqueSample.Data()[Sample_ORed],
+												nextHit.samplePointer->m_OpaqueSample.Data()[Sample_OGreen],
+												nextHit.samplePointer->m_OpaqueSample.Data()[Sample_OBlue]);
 			deltaNode.deltatransmittance *= (-1)*nextHit.weight*inverseSumFilterValues; // apply filter weight and negate the delta  
 			deltaNode.deltaslope.SetColorRGB(0,0,0); // Normally no slope change, but if we have participating media? Might have slope change.
 		}
 		else
 		{
-			const TqFloat* sampleData = nextHit.samplepointer->m_Data[nextHit.queueIndex].Data(); 
+			const TqFloat* sampleData = nextHit.samplePointer->m_Data[nextHit.queueIndex].Data(); 
 			deltaNode.zdepth = sampleData[Sample_Depth];
 			
 			deltaNode.deltatransmittance.SetColorRGB( sampleData[Sample_ORed],
@@ -1140,13 +1146,13 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 			// NOTE: We should compute the slope change here
 			deltaNode.deltaslope.SetColorRGB(0,0,0); // 0s for now, since slope change should only occur when rendering participating media
 			// Here we should also multiply the deltaslope with the filter weight
-			// Now we decide whether we should enque another node from nextHit.samplepointer
+			// Now we decide whether we should enque another node from nextHit.samplePointer
 			// We want to do so iff: 
 					// 1) Visibility for that transmittance function has not yet reached 0 as we step along its nodes
 					// 2) That particular transmittance function still has nodes remaining
-			if ((nextHit.samplepointer->m_Data.size()-1 > nextHit.queueIndex) && (nextHit.runningVisibility > gColBlack))
+			if ((nextHit.samplePointer->m_Data.size()-1 > nextHit.queueIndex) && (nextHit.runningVisibility > gColBlack))
 			{ // Enqueue another node
-				SqHitHeapNode hitNode(nextHit.samplepointer,
+				SqHitHeapNode hitNode(nextHit.samplePointer,
 									nextHit.queueIndex+1,
 									nextHit.runningVisibility+deltaNode.deltatransmittance, // This needs to also include slope
 									nextHit.weight);
@@ -1156,18 +1162,34 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 		// Add next visibility node to the current visibility function	
 		ReconstructVisibilityNode( deltaNode, slopeAtJ, currentVisFunc );
 	}
+	// Insert node at the end: zdepth == infinity
+	boost::shared_ptr<SqVisibilityNode> visibilityEndNode(new SqVisibilityNode);	
+	visibilityEndNode->zdepth = FLT_MAX;
+	visibilityEndNode->visibility = currentVisFunc->back()->visibility;
+	currentVisFunc->push_back(visibilityEndNode);
 }
 
 //----------------------------------------------------------------------
 /** Generate a visibility function node and add it to the current
- *  visibility function at the top of the list: m_VisibilityFunctions. 
+ *  visibility function at the end of the list: m_VisibilityFunctions. 
  *  This is another deep shadow map generator function.
  * \param deltaNode data from which to construct visibility node.
  * \param slopeAtJ the current slope of the visibility function
  * \param currentVisFunc a pointer to the visibility function for the current pixel 
  */
 void CqBucket::ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor& slopeAtJ, boost::shared_ptr<TqVisibilityFunction> currentVisFunc )
-{		
+{	
+	// Note: I am having to make the check below because
+	// too many nodes are added to the visibility function.
+	// For example: if this pixel is empty, no nodes should
+	// be added, except the one at (0,1), which does not use this function.
+	// However, x nodes are being added, all at (0,1) where x is the number of sample points.
+	// We do not want to add these. Or do we?
+	if (deltaNode.zdepth == currentVisFunc->back()->zdepth)
+	{
+		return;
+	}
+	
 	// \todo Performance tuning: Consider alternatives to shared_ptr here.
 	// Possibly intrusive_ptr, or holding the structures by value, with a memory pooling mechanism like SqImageSample
 	boost::shared_ptr<SqVisibilityNode> visibilityNodePreHit(new SqVisibilityNode);
@@ -1181,22 +1203,22 @@ void CqBucket::ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor&
 	currentVisFunc->push_back(visibilityNodePreHit);
 	currentVisFunc->push_back(visibilityNodePostHit);
 	m_VisibilityDataSize += 4; // Keeping track of how many floats are stored in visibility functions (use += 2 for grayscale maps)
+	myCount++;
 }
 
 //----------------------------------------------------------------------
 /** Get a pointer to the visibility data for the given pixel
  * If position is outside bucket, return NULL
- * \param iXPos Screen position of sample.
- * \param iYPos Screen position of sample.
+ * \param hpos horizontal pixel coordinate
+ * \param vpos vertical pixel coordinate
  */
-const TqVisibilityFunction* CqBucket::DeepData( TqInt iXPos, TqInt iYPos ) const
+const TqVisibilityFunction* CqBucket::DeepData( TqInt hpos, TqInt vpos ) const
 {
-	TqInt index = iYPos*m_RealWidth+iXPos;
-	if ( index < m_VisibilityFunctions.size() )
-	{
-		return m_VisibilityFunctions[index].get();
-	}
-	return NULL;	
+	TqInt index = vpos*m_XSize+hpos;
+	// Does Aqsis turn off assert statements by default? 
+	// This assertion was failing, but was not caught.
+	assert( (index < m_VisibilityFunctions.size()) && (index >= 0) );
+	return m_VisibilityFunctions[index].get();	
 }
 
 //----------------------------------------------------------------------
@@ -1213,15 +1235,15 @@ void CqBucket::CheckHeapSorted(std::priority_queue< SqHitHeapNode, std::vector<S
 		nextHitHeap.pop(); // I need this because top() does not actually dequeue the heap
 		if (hitHeapNode.queueIndex == -1)
 		{ // special case: we only have the opaque entry
-			//std::cout << "Next depth: " << hitHeapNode.samplepointer->m_OpaqueSample.Data()[Sample_Depth] << std::endl;
-			assert(hitHeapNode.samplepointer->m_OpaqueSample.Data()[Sample_Depth] >= prevDepth);
-			prevDepth = hitHeapNode.samplepointer->m_OpaqueSample.Data()[Sample_Depth];
+			//std::cout << "Next depth: " << hitHeapNode.samplePointer->m_OpaqueSample.Data()[Sample_Depth] << std::endl;
+			assert(hitHeapNode.samplePointer->m_OpaqueSample.Data()[Sample_Depth] >= prevDepth);
+			prevDepth = hitHeapNode.samplePointer->m_OpaqueSample.Data()[Sample_Depth];
 		}
 		else
 		{
-			//std::cout << "Next depth: " << hitHeapNode.samplepointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth] << std::endl;
-			assert(hitHeapNode.samplepointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth] >= prevDepth);
-			prevDepth = hitHeapNode.samplepointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth];		
+			//std::cout << "Next depth: " << hitHeapNode.samplePointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth] << std::endl;
+			assert(hitHeapNode.samplePointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth] >= prevDepth);
+			prevDepth = hitHeapNode.samplePointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth];		
 		}
 	}		
 }
@@ -1233,6 +1255,7 @@ void CqBucket::CheckVisibilityFunction(TqInt index) const
 	TqInt j;
 	boost::shared_ptr<TqVisibilityFunction> checkFunction = m_VisibilityFunctions[index];
 	
+	std::cout << "myCount is: " << myCount << std::endl;
 	std::cout << "This visibility function has # nodes: " << checkFunction->size() << std::endl;
 	std::cout << "Printing (depth, visibility)\n";
 	for (j = 0; j < checkFunction->size(); ++j)

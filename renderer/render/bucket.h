@@ -67,12 +67,12 @@ struct SqHitHeapNode
 	/** Constructor: initialize an SqHitHeapNode
 	 */ 
 	SqHitHeapNode(const SqSampleData* sp, TqInt qI, CqColor rV, TqFloat w):
-		samplepointer( sp ),
+		samplePointer( sp ),
 		queueIndex( qI ),
 		runningVisibility( rV ),
 		weight( w )
 	{
-		//samplepointer = sp;
+		//samplePointer = sp;
 		//queueIndex = qI;
 		//runningVisibility = rV;
 		//weight = w;
@@ -85,8 +85,8 @@ struct SqHitHeapNode
 	bool operator<( const SqHitHeapNode& nodeComp ) const;
 	
 	/// a pointer to a subpixel sample
-	const SqSampleData* samplepointer;
-	/// the index inside of samplepointer->m_Data we should use for constructing the next visibility node
+	const SqSampleData* samplePointer;
+	/// the index inside of samplePointer->m_Data we should use for constructing the next visibility node
 	/// == -1 if we should use the SqSampleData::m_OpaqueEntry instead
 	TqInt queueIndex;
 	/// running total visibility at queueIndex of sample data
@@ -95,16 +95,6 @@ struct SqHitHeapNode
 	TqFloat weight;  
 };
 
-//------------------------------------------------------------------------------
-/** \brief Structure representing a visibility function for a pixel
- *
- 
-struct SqVisibilityFunction
-{
-	std::vector<SqVisibilityNode> vnodes;
-};
-*/
-
 //-----------------------------------------------------------------------
 /** Class holding data about a particular bucket.
  */
@@ -112,7 +102,8 @@ struct SqVisibilityFunction
 class CqBucket : public IqBucket
 {
 	public:
-		CqBucket() : m_bProcessed( false )
+		CqBucket() : m_bProcessed( false ),
+					 m_bEmpty( true )
 		{}
 		CqBucket( const CqBucket& From )
 		{
@@ -125,6 +116,7 @@ class CqBucket : public IqBucket
 			m_ampgWaiting = From.m_ampgWaiting;
 			m_agridWaiting = From.m_agridWaiting;
 			m_bProcessed = From.m_bProcessed;
+			m_bEmpty = From.m_bEmpty;
 
 			return ( *this );
 		}
@@ -231,7 +223,7 @@ class CqBucket : public IqBucket
 		void FilterTransmittance(bool empty);
 		void CalculateVisibility(TqFloat xcent, TqFloat ycent, CqImagePixel* pie);
 		void ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor& slopeAtJ, boost::shared_ptr<TqVisibilityFunction> currentVisFunc );
-		virtual	const TqVisibilityFunction* DeepData( TqInt iXPos, TqInt iYPos ) const;
+		virtual	const TqVisibilityFunction* DeepData( TqInt hpos, TqInt vpos ) const;
 		void CheckHeapSorted(std::priority_queue< SqHitHeapNode, std::vector<SqHitHeapNode> > nexthitheap);
 		void CheckVisibilityFunction(TqInt index) const;
 		/** \brief Get the size of the visibility data for this bucket
@@ -321,6 +313,12 @@ class CqBucket : public IqBucket
 		{
 			return( m_bProcessed );
 		}
+		/** Get the flag that indicates if the bucket's visibility (deep) data is empty
+		 */
+		bool IsDeepEmpty() const
+		{
+			return( m_bEmpty );
+		}		
 
 		/** Mark this bucket as processed
 		 */
@@ -377,13 +375,15 @@ class CqBucket : public IqBucket
 		};
 	
 		TqInt m_VisibilityDataSize; ///< Total number of TqFloats stored in the visibility functions: 2 per-node if grayscale, 4 per-node if color 
-		std::vector< boost::shared_ptr<TqVisibilityFunction> >	m_VisibilityFunctions; ///< The Visibility functions (one per pixel) in this bucket, only used when rendering a DSM
+		std::vector< boost::shared_ptr<TqVisibilityFunction> >	m_VisibilityFunctions; ///< The Visibility functions (one per pixel),
+															//stored row after row, in this bucket; only used when rendering a DSM
 		std::vector<CqMicroPolygon*> m_ampgWaiting;			///< Vector of vectors of waiting micropolygons in this bucket
 		std::vector<CqMicroPolyGridBase*> m_agridWaiting;		///< Vector of vectors of waiting micropolygrids in this bucket
 
 		/// A sorted list of primitives for this bucket
 		std::priority_queue<boost::shared_ptr<CqSurface>, std::deque<boost::shared_ptr<CqSurface> >, closest_surface> m_aGPrims;
 		bool	m_bProcessed;	///< Flag indicating if this bucket has been processed yet.
+		bool	m_bEmpty; ///< Flag indicating if this bucket's visibility data is empty.
 }
 ;
 

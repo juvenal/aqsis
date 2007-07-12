@@ -110,7 +110,10 @@ struct IqBucket
 	virtual const TqVisibilityFunction* DeepData( TqInt iXPos, TqInt iYPos ) const = 0;
 	/** Get the size (number of TqFloats) used in representing visibility data for this bucket.
 	 */		
-	virtual TqInt VisibilityDataTotalSize() const = 0;	
+	virtual TqInt VisibilityDataTotalSize() const = 0;
+	/** Get the flag that indicates if the bucket's visibility (deep) data is empty
+	 */
+	virtual bool IsDeepEmpty() const = 0;	
 };
 
 struct IqDDManager

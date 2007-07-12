@@ -1126,13 +1126,11 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	static CqRandom random( 61 );
 	TqUint	xmin = pBucket->XOrigin();
 	TqUint	ymin = pBucket->YOrigin();
-	TqUint	xmaxplus1 = xmin + pBucket->Width();
-	TqUint	ymaxplus1 = ymin + pBucket->Height();
 	TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
 	TqUint bucketHeight = pBucket->Height();
 	TqUint bucketWidth = pBucket->Width();
 	TqUint x, y;
-	TqUint row = 0, col = 0, funcLength = 0;
+	TqUint row = 0, funcLength = 0;
 	
 	if ((m_flags.flags & PkDspyFlagsWantsScanLineOrder) && m_BucketDeepDataMap[ymin].empty())
 	{
@@ -1145,8 +1143,6 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	// Take temporary references to data members
 	std::vector< std::vector<int> >& tvisFuncLengths = (*inBucketDeepData).m_VisibilityFunctionLengths;
 	std::vector< std::vector<float> >& tvisData = (*inBucketDeepData).m_VisibilityDataRows; 
-	tvisFuncLengths.reserve(bucketHeight);
-	tvisData.reserve(bucketHeight);
 	
 	// Extract visibility data from the SqVisibilityNodes into std::vectors of Floats
 	// such that each consequtive pair, or tuple, of floats represents (depth, visibility)
@@ -1154,29 +1150,51 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	// whether the deep shadow map is grayscale or color.
 	
 	// Copy by value the visibility data into the bucket deep data map
-	for ( y = ymin; y < ymaxplus1; ++y )
+	// First check for empty buckets
+	if ( pBucket->IsDeepEmpty() )
 	{
-		++row;
-		for ( x = xmin; x < xmaxplus1; ++x )
-		{
-			col = 0;
-			funcLength = 0;
-			const TqVisibilityFunction* visibilityDataSource = pBucket->DeepData( x, y );
-			TqVisibilityFunction::const_iterator visit;
-			/// \todo Compression function will be invoked here
-			for( visit = visibilityDataSource->begin(); visit != visibilityDataSource->end(); ++visit)
-			{
-				// Execution is seg-faulting on the following line, but not during the first loop
-				tvisData[row].push_back((**visit).zdepth);
-				tvisData[row].push_back((**visit).visibility.fRed());
-				tvisData[row].push_back((**visit).visibility.fGreen());
-				tvisData[row].push_back((**visit).visibility.fBlue());
-				funcLength++;
-			}
-			tvisFuncLengths[row].push_back(funcLength);
-		}
+		// Empty buckets should get some minimal visibility data to indicate emptiness
+		// Store a single visibility node with negative depth to indicate empty
+		// ATTENTION: the line below is causing sigabrt
+		tvisData[0].push_back(-1);
+		// Keep a placeholder in the function lengths table too
+		tvisFuncLengths[0].push_back(-1);
 	}
+	else 
+	{
+		// Non-empty buckets:
+		tvisFuncLengths.reserve(bucketHeight);
+		tvisData.reserve(bucketHeight);
+		for ( y = 0; y < bucketHeight-1; ++y )
+		{
+			++row; // Might need to change this, since row should be 0 first time used
+			for ( x = 0; x < bucketWidth-1; ++x )
+			{
+				funcLength = 0;
+				const TqVisibilityFunction* visibilityDataSource = pBucket->DeepData( x, y );
+				TqVisibilityFunction::const_iterator visit;
+				//printf("x,y: %d,%d while xmin,xmax is %d,%d and ymin,ymax is %d,%d\n", x, y, xmin, xmaxplus1, ymin, ymaxplus1);
+				/// \todo Compression function will be invoked here
+				for( visit = visibilityDataSource->begin(); visit != visibilityDataSource->end(); ++visit)
+				{
+					printf("zdepth value: %f\n", (**visit).zdepth);
+					// Execution is seg-faulting on the following line, but not during the first loop
+					// Probable cause: empty buckets have no vis data stored for them.
+					tvisData[row].push_back((**visit).zdepth);
+					tvisData[row].push_back((**visit).visibility.fRed());
+					tvisData[row].push_back((**visit).visibility.fGreen());
+					tvisData[row].push_back((**visit).visibility.fBlue());
+					funcLength++;
+				}
+				tvisFuncLengths[row].push_back(funcLength);
+			}
+		}
+	}	
+	// Store the image pixel x-coordinate of the first pixel in the bucket.
+	// This lets us sort the buckets by row later when collapsing to scanlines:
+	// necessary if non-standard bucket ordering is ever supported.
 	(*inBucketDeepData).horizontalBucketIndex = xmin;
+	// Add bucket to the map.
 	m_BucketDeepDataMap[ymin].push_back(inBucketDeepData);
 }
 
