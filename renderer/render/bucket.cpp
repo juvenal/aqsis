@@ -1016,7 +1016,6 @@ void CqBucket::FilterTransmittance(bool empty)
 		useSeperable = false;	
 
 	m_VisibilityDataSize = 0;
-	// NOTE: THIS IS THE LIKELY CULPRIT FOR MY SEGMENTATION FAULTS... EMPTY BUCKETS AREN'T GETTING ANY VISIBILITY DATA
 	if (!empty)
 	{
 		m_bEmpty = false;
@@ -1033,7 +1032,7 @@ void CqBucket::FilterTransmittance(bool empty)
 				CalculateVisibility(xcent, ycent, pie);
 			}
 		}
-		//CheckVisibilityFunction(1);
+		//CheckVisibilityFunction(1); // This checks the visibility function of the first pixel in this bucket
 	}
 	// Empty buckets will be identified and handled in ddmanager
 }
@@ -1047,6 +1046,7 @@ void CqBucket::FilterTransmittance(bool empty)
  */
 void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* pie )
 {
+	/// \todo Break up the code in this function into a few smaller functions
 	CqImagePixel* pie2;
 	TqInt fx, fy;
 	TqInt SampleCount = 0;
@@ -1067,6 +1067,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 	currentVisFunc->reserve(numperpixel); // There may be more, but at least this many
 	m_VisibilityFunctions.push_back(currentVisFunc);
 	// First, build and insert node 0, which has 100% visibility at depth z=0
+	// Note: Perhaps we don't want to do this. The first and last nodes can be implicit.
 	boost::shared_ptr<SqVisibilityNode> visibilityNode(new SqVisibilityNode);	
 	visibilityNode->zdepth = 0;
 	visibilityNode->visibility.SetColorRGB(1,1,1);

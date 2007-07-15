@@ -48,6 +48,11 @@ START_NAMESPACE( Aqsis )
 */
 struct SqCompressedDeepData
 {
+	SqCompressedDeepData():
+		m_VisibilityFunctionLengths( 1 ),
+		m_VisibilityDataRows( 1 ),
+		horizontalBucketIndex( -1 )
+	{}
 	// Lengths (# nodes) in each visibility function in m_VisibilityDataRows
 	// This is important because these lengths are arbitrary, not uniform.
 	// Note: using C-type "float" because this data gets passed to the C API:

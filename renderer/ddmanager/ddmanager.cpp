@@ -1124,8 +1124,8 @@ void CqShallowDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 {
 	static CqRandom random( 61 );
-	TqUint	xmin = pBucket->XOrigin();
-	TqUint	ymin = pBucket->YOrigin();
+	TqUint xmin = pBucket->XOrigin();
+	TqUint ymin = pBucket->YOrigin();
 	TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
 	TqUint bucketHeight = pBucket->Height();
 	TqUint bucketWidth = pBucket->Width();
@@ -1134,17 +1134,19 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	
 	if ((m_flags.flags & PkDspyFlagsWantsScanLineOrder) && m_BucketDeepDataMap[ymin].empty())
 	{
-		// Reserve space for a pointers to 'width' buckets in the row
+		// Reserve space for pointers to 'width' buckets in the row
 		m_BucketDeepDataMap[ymin].reserve(width); 
 	}
 	
 	// Allocate enough space to put the whole bucket data into.
 	boost::shared_ptr<SqCompressedDeepData> inBucketDeepData(new SqCompressedDeepData);
 	// Take temporary references to data members
-	std::vector< std::vector<int> >& tvisFuncLengths = (*inBucketDeepData).m_VisibilityFunctionLengths;
-	std::vector< std::vector<float> >& tvisData = (*inBucketDeepData).m_VisibilityDataRows; 
+	std::vector< std::vector<int> >& tvisFuncLengths = inBucketDeepData->m_VisibilityFunctionLengths;
+	std::vector< std::vector<float> >& tvisData = inBucketDeepData->m_VisibilityDataRows;
+	tvisFuncLengths.resize(bucketHeight);
+	tvisData.resize(bucketHeight);
 	
-	// Extract visibility data from the SqVisibilityNodes into std::vectors of Floats
+	// Copy data from the SqVisibilityNodes into std::vectors of Floats
 	// such that each consequtive pair, or tuple, of floats represents (depth, visibility)
 	// where depth is 1 float, and visibility is 1 or 3 floats depending on 
 	// whether the deep shadow map is grayscale or color.
@@ -1154,32 +1156,27 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	if ( pBucket->IsDeepEmpty() )
 	{
 		// Empty buckets should get some minimal visibility data to indicate emptiness
-		// Store a single visibility node with negative depth to indicate empty
-		// ATTENTION: the line below is causing sigabrt
-		tvisData[0].push_back(-1);
-		// Keep a placeholder in the function lengths table too
-		tvisFuncLengths[0].push_back(-1);
+		// Store a single visibility node with negative depth to indicate empty; do so once per row.
+		for ( y = 0; y < bucketHeight; ++y )
+		{
+			tvisData[y].push_back(-1);
+			// Keep a placeholder in the function lengths table too
+			tvisFuncLengths[y].push_back(-1);
+		}
 	}
 	else 
 	{
 		// Non-empty buckets:
-		tvisFuncLengths.reserve(bucketHeight);
-		tvisData.reserve(bucketHeight);
-		for ( y = 0; y < bucketHeight-1; ++y )
+		for ( y = 0; y < bucketHeight; ++y )
 		{
-			++row; // Might need to change this, since row should be 0 first time used
-			for ( x = 0; x < bucketWidth-1; ++x )
+			for ( x = 0; x < bucketWidth; ++x )
 			{
 				funcLength = 0;
 				const TqVisibilityFunction* visibilityDataSource = pBucket->DeepData( x, y );
 				TqVisibilityFunction::const_iterator visit;
-				//printf("x,y: %d,%d while xmin,xmax is %d,%d and ymin,ymax is %d,%d\n", x, y, xmin, xmaxplus1, ymin, ymaxplus1);
 				/// \todo Compression function will be invoked here
 				for( visit = visibilityDataSource->begin(); visit != visibilityDataSource->end(); ++visit)
 				{
-					printf("zdepth value: %f\n", (**visit).zdepth);
-					// Execution is seg-faulting on the following line, but not during the first loop
-					// Probable cause: empty buckets have no vis data stored for them.
 					tvisData[row].push_back((**visit).zdepth);
 					tvisData[row].push_back((**visit).visibility.fRed());
 					tvisData[row].push_back((**visit).visibility.fGreen());
@@ -1188,6 +1185,7 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 				}
 				tvisFuncLengths[row].push_back(funcLength);
 			}
+			++row;
 		}
 	}	
 	// Store the image pixel x-coordinate of the first pixel in the bucket.
@@ -1237,6 +1235,7 @@ bool CqDeepDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 	TqUint bucketsPerRow = QGetRenderContext()->pImage()->cXBuckets();
 	TqUint y;
 	TqUint i;
+	
 	// As per Chris: When the row of buckets is completed, you can copy all the buckets into a
 	// scanline at the same time, and immediately send it to the display. Then release the memory.
 	// We take the full row of buckets stored in m_BucketDeepDataMap and collapse into full rows
@@ -1245,22 +1244,27 @@ bool CqDeepDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 	{
 		// First ensure the row of buckets is sorted
 		// Invoke Deep Data Map sort function
-		// SortDeepDataMapRow(ymin);
 		std::sort(m_BucketDeepDataMap[ymin].begin(), m_BucketDeepDataMap[ymin].end(), DeepDataMapRowSortPredicate);
-		boost::shared_ptr<SqCompressedDeepData> m_CollapsedBucketRow(new SqCompressedDeepData);
+		boost::shared_ptr<SqCompressedDeepData> collapsedBucketRow(new SqCompressedDeepData);
+		m_CollapsedBucketRow = collapsedBucketRow;
 		std::vector< std::vector<int> >& tvisFuncLengths = (*m_CollapsedBucketRow).m_VisibilityFunctionLengths;
 		std::vector< std::vector<float> >& tvisData = (*m_CollapsedBucketRow).m_VisibilityDataRows; 
-		tvisFuncLengths.reserve(bucketHeight);
-		tvisData.reserve(bucketHeight);
+		tvisFuncLengths.resize(bucketHeight);
+		tvisData.resize(bucketHeight);
 		
 		for (i = 0; i < bucketsPerRow; ++i)
 		{
 			for ( y = 0; y < bucketHeight; ++y )
 			{
-				m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].begin();
+				// Copy one row of bucket's pixels
+				// First copy the function lengths
 				tvisFuncLengths[y].insert(tvisFuncLengths[y].end(), 
 						m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].begin(), 
-						m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].begin());
+						m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].end());
+				// Then copy the visibility data
+				tvisData[y].insert(tvisData[y].end(),
+						m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows[y].begin(), 
+						m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows[y].end());
 			}
 		}
 		return true;
@@ -1320,15 +1324,17 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 			for (y = ymin; y < ymaxplus1; ++y)
 			{
 				err = (m_DataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
-						reinterpret_cast<const unsigned char*>(&((*m_CollapsedBucketRow).m_VisibilityDataRows[i].front())));
+						reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityDataRows[i].front())));
 				++i;
 			}
+			// Delete row data
 		}
 	}
 	else
 	{
-		// Send the bucket information as they come in
-		// But will DSM displays ever do this?
+		// Send the bucket information as they come in.
+		// But will DSM displays ever do this? Yes. In fact it is the more likely case.
+		// Just grab the bucket m_BucketDeepDataMap[ymin][0] and send its data
 	}
 }
 
