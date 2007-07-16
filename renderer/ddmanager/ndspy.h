@@ -166,6 +166,7 @@ UserParameter;
 typedef PtDspyError (*DspyImageOpenMethod)(PtDspyImageHandle*,const char*,const char*,int,int,int,const UserParameter*,int,PtDspyDevFormat*,PtFlagStuff*);
 typedef PtDspyError (*DspyImageQueryMethod)(PtDspyImageHandle,PtDspyQueryType,size_t,void*);
 typedef PtDspyError (*DspyImageDataMethod)(PtDspyImageHandle,int,int,int,int,int,const unsigned char*);
+typedef PtDspyError (*DspyImageDeepDataMethod)(PtDspyImageHandle,int,int,int,int,int,const float *data, int, const int*, int);
 typedef PtDspyError (*DspyImageCloseMethod)(PtDspyImageHandle);
 typedef PtDspyError (*DspyImageDelayCloseMethod)(PtDspyImageHandle);
 

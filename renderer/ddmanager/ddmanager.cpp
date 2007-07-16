@@ -262,11 +262,11 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 			{
 				CqString strDeepDataMethod = "DspyImageDeepData";
 				ddMemberData.m_strDataMethod = "_" + ddMemberData.m_strDataMethod;
-				m_DataMethod = (DspyImageDataMethod)dspyPlugin.SimpleDLSym( m_DriverHandle, &strDeepDataMethod );
-				if (!m_DataMethod)
+				m_DeepDataMethod = (DspyImageDeepDataMethod)dspyPlugin.SimpleDLSym( m_DriverHandle, &strDeepDataMethod );
+				if (!m_DeepDataMethod)
 				{
 					strDeepDataMethod = "_" + strDeepDataMethod;
-					m_DataMethod = (DspyImageDataMethod)dspyPlugin.SimpleDLSym( m_DriverHandle, &strDeepDataMethod );
+					m_DeepDataMethod = (DspyImageDeepDataMethod)dspyPlugin.SimpleDLSym( m_DriverHandle, &strDeepDataMethod );
 				}	
 			}
 			m_CloseMethod = (DspyImageCloseMethod)dspyPlugin.SimpleDLSym( m_DriverHandle, &ddMemberData.m_strCloseMethod );
@@ -572,6 +572,7 @@ void CqDisplayRequest::CloseDisplayLibrary()
 	// Empty out the display request data
 	m_CloseMethod = NULL;
 	m_DataMethod = NULL;
+	m_DeepDataMethod = NULL;
 	m_DelayCloseMethod = NULL;
 	m_DriverHandle = 0;
 	m_imageHandle = 0;
@@ -937,7 +938,7 @@ void CqDisplayRequest::DisplayBucket( IqBucket* pBucket )
 	// If the display is not validated, don't send it data.
 	// Or if a DspyImageData function was not found for
 	// this display request, then we cannot continue
-	if( !m_valid || !m_DataMethod )
+	if( (!m_valid || !m_DataMethod) && !m_DeepDataMethod )
 		return;
 	
 	// Dispatch to display sub-type methods
@@ -1323,11 +1324,15 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 			// send to the display one line at a time
 			for (y = ymin; y < ymaxplus1; ++y)
 			{
-				err = (m_DataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
-						reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityDataRows[i].front())));
+				err = (m_DeepDataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
+						reinterpret_cast<const float*>(&(m_CollapsedBucketRow->m_VisibilityDataRows[i].front())),
+						m_CollapsedBucketRow->m_VisibilityDataRows[i].size(),
+						reinterpret_cast<const int*>(&(m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].front())), 
+						m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].size());
 				++i;
 			}
 			// Delete row data
+			m_BucketDeepDataMap[ymin].clear();
 		}
 	}
 	else

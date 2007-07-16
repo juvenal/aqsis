@@ -236,24 +236,23 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
     		g_Data.bfh.bfSize = swap4(g_Data.bfh.bfSize);
     		g_Data.bfh.bfOffBits = swap4(g_Data.bfh.bfOffBits);
 	}
-	if ( ! bitmapfileheader(&g_Data.bfh, g_Data.fp) )
-      
+	if ( ! bitmapfileheader(&g_Data.bfh, g_Data.fp) ) 
 	{
 		fprintf(stderr, "sdcBMP_SaveBitmap: Error writing to [%s]\n", g_Data.FileName);
 		goto Exit;
 	}
-
+/* I believe this is uneeded duplicated code from above
 	if (lowendian())
 	{
     		g_Data.bfh.bfType = swap2(g_Data.bfh.bfType);
     		g_Data.bfh.bfSize = swap4(g_Data.bfh.bfSize);
     		g_Data.bfh.bfOffBits = swap4(g_Data.bfh.bfOffBits);
 	}
-
+*/
 	if (lowendian())
 	{
    		g_Data.bmi.bmiHeader.biSize = swap4(g_Data.bmi.bmiHeader.biSize);
-		   g_Data.bmi.bmiHeader.biWidth= swap4(g_Data.bmi.bmiHeader.biWidth);
+		g_Data.bmi.bmiHeader.biWidth= swap4(g_Data.bmi.bmiHeader.biWidth);
    		g_Data.bmi.bmiHeader.biHeight= swap4(g_Data.bmi.bmiHeader.biHeight);
    		g_Data.bmi.bmiHeader.biPlanes = swap2(g_Data.bmi.bmiHeader.biPlanes);
    		g_Data.bmi.bmiHeader.biBitCount = swap2(g_Data.bmi.bmiHeader.biBitCount);
@@ -275,11 +274,11 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 		rval = PkDspyErrorNoResource;
 		goto Exit;
 	}
-
+/* More duplicated code?
 	if (lowendian())
 	{
    		g_Data.bmi.bmiHeader.biSize = swap4(g_Data.bmi.bmiHeader.biSize);
-		   g_Data.bmi.bmiHeader.biWidth= swap4(g_Data.bmi.bmiHeader.biWidth);
+		g_Data.bmi.bmiHeader.biWidth= swap4(g_Data.bmi.bmiHeader.biWidth);
    		g_Data.bmi.bmiHeader.biHeight= swap4(g_Data.bmi.bmiHeader.biHeight);
    		g_Data.bmi.bmiHeader.biPlanes = swap2(g_Data.bmi.bmiHeader.biPlanes);
    		g_Data.bmi.bmiHeader.biBitCount = swap2(g_Data.bmi.bmiHeader.biBitCount);
@@ -290,7 +289,7 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
    		g_Data.bmi.bmiHeader.biClrUsed= swap4(g_Data.bmi.bmiHeader.biClrUsed);
    		g_Data.bmi.bmiHeader.biClrImportant= swap4(g_Data.bmi.bmiHeader.biClrImportant);
 	}
-
+*/
    
    memcpy((void*) pData, (void *) &g_Data, sizeof(AppData));
    

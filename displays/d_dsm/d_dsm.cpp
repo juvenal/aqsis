@@ -38,6 +38,81 @@
 #include "d_dsm.h"
 #include "ndspy.h"  // NOTE: Use Pixar's ndspy.h if you've got it.
 
+//*****************************************************************************
+// The following is taken directoy from d_sdcBMP.cpp, temporarily, so that I may write BMP image sequences to disk during the testing phase.
+
+typedef struct tagBITMAPFILEHEADER { // bmfh 
+    short   bfType; 
+    int     bfSize; 
+    short   bfReserved1; 
+    short   bfReserved2; 
+    int     bfOffBits; 
+} BITMAPFILEHEADER; 
+
+/* instead of sizeof(BITMAPFILEHEADER) since this must be 14 */
+#define BITMAPFILEHEADER_SIZEOF 14 
+
+typedef struct tagRGBQUAD { // rgbq 
+    unsigned char rgbBlue; 
+    unsigned char rgbGreen; 
+    unsigned char rgbRed; 
+    unsigned char rgbReserved; 
+} RGBQUAD; 
+
+typedef struct tagBITMAPINFOHEADER{ // bmih 
+    int     biSize; 
+    long    biWidth; 
+    long    biHeight; 
+    short   biPlanes; 
+    short   biBitCount;
+    int     biCompression; 
+    int     biSizeImage; 
+    long    biXPelsPerMeter; 
+    long    biYPelsPerMeter; 
+    int     biClrUsed; 
+    int     biClrImportant; 
+} BITMAPINFOHEADER; 
+
+typedef struct tagBITMAPINFO {
+    BITMAPINFOHEADER    bmiHeader;
+    RGBQUAD             bmiColors[1];
+} BITMAPINFO;
+
+#define BI_RGB 0
+
+// -----------------------------------------------------------------------------
+// Local structures
+// -----------------------------------------------------------------------------
+
+typedef struct
+{
+	// Bitmap data
+
+	FILE              *fp;
+	BITMAPFILEHEADER  bfh;
+	char              *FileName;
+	BITMAPINFO        bmi;
+	char              *ImageData;
+	int               Channels;
+	int               RowSize;
+	int               PixelBytes;
+	long              TotalPixels;
+}
+AppData;
+
+// -----------------------------------------------------------------------------
+// Function Prototypes
+// -----------------------------------------------------------------------------
+static int  DWORDALIGN(int bits);
+static bool bitmapfileheader(BITMAPFILEHEADER *bfh, FILE *fp);
+static unsigned short swap2( unsigned short s );
+static unsigned long  swap4( unsigned long l );
+static bool lowendian();
+
+
+// End section from d_sdcBMP.cpp
+//***********************************************************************************
+
 typedef struct tagDSMFILEHEADER {	  
     short   fType; 
     int     fSize; 
@@ -92,16 +167,165 @@ typedef struct
 	char            *ImageData;
 	int             Channels;
 	long            TotalPixels;
+	// NOTE: members below are for the testing phase, writing out bitmap sequences
+	FILE** fileHandleArray; ///< Array of file handles
+	float** testDeepData; ///< Array of pointers to the row data
+	int** functionLengths; ///< Array of pointers to arrays (one per row, terminated with an ARRAY_TERMINATOR) of vis function lengths (# of nodes) of each visbility function in testDeepData
+	int maxFunctionLength; ///< Longest visibility function in the DSM == number of file handles we will need
 }
 DeepShadowData;
 
 // -----------------------------------------------------------------------------
 // Constants
-// -----------------------------------------------------------------------------
 static const int     DEFAULT_IMAGEWIDTH         = 512;
 static const int     DEFAULT_IMAGEHEIGHT        = 512;
 static const float   DEFAULT_PIXELASPECTRATIO   = 1.0f;
+static const int	 ARRAY_TERMINATOR			= -9;
+// -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
+// Begin Functions
+// -----------------------------------------------------------------------------
+
+//******************************************************************************
+// LengthOfLongestVisFunc
+//
+// For testing: find and return the length of the longest visibility function in the DSM
+//******************************************************************************
+int LengthOfLongestVisFunc(PtDspyImageHandle image)
+{
+	DeepShadowData *pData = (DeepShadowData *)image;
+	int longest = 0;
+	int i, j;
+	
+	for(i = 0; i < pData->dsmi.dsmiHeader.iHeight; ++i)
+	{
+		j = 0;
+		while (pData->functionLengths[i][j] != ARRAY_TERMINATOR)
+		{
+			if (pData->functionLengths[i][j] > longest)
+			{
+				longest = pData->functionLengths[i][j];
+			}
+			++j;
+		}
+	}
+	
+	return longest;
+}
+
+//******************************************************************************
+// WriteDSMImageSequence
+//
+// For testing: output a sequence of image files for visualizing deep data.
+//******************************************************************************
+void WriteDSMImageSequence(PtDspyImageHandle image)
+{
+	DeepShadowData *pData = (DeepShadowData *)image;
+	static AppData g_Data;
+	int imageFileCount;
+	int width = pData->dsmi.dsmiHeader.iWidth;
+	int height = pData->dsmi.dsmiHeader.iHeight;
+	int dataSizeInBytes = 3*width*height*sizeof(char);
+	int i;
+	
+	// Prepare BMP file header (same header used for all files in the sequence)
+	memset(&g_Data, sizeof(AppData), 0);
+	g_Data.Channels = pData->Channels;
+	g_Data.PixelBytes = 3; // One byte for red, one for green, and one for blue.
+	g_Data.bmi.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
+	g_Data.bmi.bmiHeader.biWidth       = width;
+	g_Data.bmi.bmiHeader.biHeight      = height;
+	g_Data.bmi.bmiHeader.biPlanes      = 1;
+	g_Data.bmi.bmiHeader.biBitCount    = 24;
+	g_Data.bmi.bmiHeader.biCompression = BI_RGB;
+	g_Data.RowSize                     = DWORDALIGN(width * g_Data.bmi.bmiHeader.biBitCount);
+	g_Data.bmi.bmiHeader.biSizeImage   = g_Data.RowSize * height;
+	g_Data.TotalPixels     = width * height;
+	g_Data.bfh.bfType     = 0x4D42;    // ASCII "BM"
+	g_Data.bfh.bfSize     = BITMAPFILEHEADER_SIZEOF +
+	                        sizeof(BITMAPINFOHEADER) +
+	                        g_Data.bmi.bmiHeader.biSizeImage;
+	g_Data.bfh.bfOffBits  = BITMAPFILEHEADER_SIZEOF + sizeof(BITMAPINFOHEADER);		
+	if (lowendian())
+	{
+    	g_Data.bfh.bfType = swap2(g_Data.bfh.bfType);
+    	g_Data.bfh.bfSize = swap4(g_Data.bfh.bfSize);
+    	g_Data.bfh.bfOffBits = swap4(g_Data.bfh.bfOffBits);
+   		g_Data.bmi.bmiHeader.biSize = swap4(g_Data.bmi.bmiHeader.biSize);
+		g_Data.bmi.bmiHeader.biWidth= swap4(g_Data.bmi.bmiHeader.biWidth);
+   		g_Data.bmi.bmiHeader.biHeight= swap4(g_Data.bmi.bmiHeader.biHeight);
+   		g_Data.bmi.bmiHeader.biPlanes = swap2(g_Data.bmi.bmiHeader.biPlanes);
+   		g_Data.bmi.bmiHeader.biBitCount = swap2(g_Data.bmi.bmiHeader.biBitCount);
+   		g_Data.bmi.bmiHeader.biCompression= swap4(g_Data.bmi.bmiHeader.biCompression); 
+   		g_Data.bmi.bmiHeader.biSizeImage= swap4(g_Data.bmi.bmiHeader.biSizeImage);
+   		g_Data.bmi.bmiHeader.biXPelsPerMeter= swap4(g_Data.bmi.bmiHeader.biXPelsPerMeter); 
+   		g_Data.bmi.bmiHeader.biYPelsPerMeter= swap4(g_Data.bmi.bmiHeader.biYPelsPerMeter); 
+   		g_Data.bmi.bmiHeader.biClrUsed= swap4(g_Data.bmi.bmiHeader.biClrUsed);
+   		g_Data.bmi.bmiHeader.biClrImportant= swap4(g_Data.bmi.bmiHeader.biClrImportant);
+	}
+   //memcpy((void*) pData, (void *) &g_Data, sizeof(AppData));
+	
+	// Determine how many files are in the sequence
+	imageFileCount = LengthOfLongestVisFunc(image);
+	
+	char* mybuff = (char*)malloc(dataSizeInBytes);
+	memset(mybuff, 255, dataSizeInBytes);
+	
+	// Open files
+	//pData->fileHandleArray = (FILE**)malloc(imageFileCount*sizeof(FILE*));
+	for (i = 0; i < imageFileCount; ++i)
+	{
+		char fileName[40];
+		char sequenceNumber[10];
+		sprintf(sequenceNumber, "%d", i);
+		//strcpy(fileName, pData->FileName);
+		strcpy(fileName, "dsmTestSequenceImage_");
+		strcat(fileName, sequenceNumber);
+		strcat(fileName, ".bmp");
+		g_Data.FileName = strdup(fileName);
+		//pData->fileHandleArray[i] = fopen(fileName, "wb");
+		g_Data.fp = fopen(fileName, "wb");
+		if ( ! g_Data.fp )
+		{
+			fprintf(stderr, "WriteDSMImagequence: Unable to open [%s]\n", fileName);
+		}
+		// Write out the BITMAPFILEHEADER
+		if ( ! bitmapfileheader(&g_Data.bfh, g_Data.fp) )    
+		{
+			fprintf(stderr, "WriteDSMImagequence: Error writing to [%s]\n", g_Data.FileName);
+		}
+		// Write out the BITMAPINFOHEADER
+		if ( !fwrite(&g_Data.bmi.bmiHeader, sizeof(BITMAPINFOHEADER), 1, g_Data.fp) )
+		{
+			fprintf(stderr, "WriteDSMImagequence: Error writing to [%s]\n", g_Data.FileName);
+		}
+		// Write data to files
+
+		// Write a row of pixels
+		if ( ! fwrite(mybuff, dataSizeInBytes, 1, g_Data.fp) )
+		{
+			fprintf(stderr, "WriteDSMImagequence: Error writing file\n");
+		}
+		// Close file
+		fclose(g_Data.fp);
+		g_Data.fp = NULL;		
+	}
+	free(mybuff);
+	
+	// Close files and free memory
+	/*
+	for (i = 0; i < imageFileCount; ++i)
+	{	
+		if ( pData->fileHandleArray[i] )
+		{
+			fclose(pData->fileHandleArray[i]);
+			pData->fileHandleArray[i] = NULL;
+		}
+	}
+	free(pData->fileHandleArray);
+	*/
+}
 
 //******************************************************************************
 // DspyImageOpen
@@ -131,7 +355,6 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	DeepShadowData *pData;
 	pData = (DeepShadowData *) calloc(1, sizeof(g_Data));
 	*image = pData; // This is how the caller gets a handle on this new image
-	
 
 	// Initialize our global resources
 	memset(&g_Data, sizeof(DeepShadowData), 0);
@@ -145,7 +368,7 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 
 	
 	g_Data.FileName = strdup(filename);
-	g_Data.Channels = formatCount;
+	g_Data.Channels = formatCount; // From this field, the display knows how many floats per visibility node to expect from DspyImageDeepData
 
 	g_Data.dsmi.dsmiHeader.iSize        = sizeof(DSMINFOHEADER);
 	g_Data.dsmi.dsmiHeader.iWidth       = width;
@@ -160,15 +383,11 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	g_Data.dsmfh.fSize     = sizeof(DSMFILEHEADER) +
 	                         sizeof(DSMINFOHEADER);
 	g_Data.dsmfh.fOffBits  = sizeof(DSMFILEHEADER) + sizeof(DSMINFOHEADER);
+
+	g_Data.testDeepData = (float**)malloc(height*sizeof(float*));
+	g_Data.functionLengths = (int**)malloc(height*sizeof(int*));
 	
-	// We would pre-allocate the memory for the deep shadow map, but there
-	// is no way of knowing ahead of time how big it will be
-		
-	// More stuff to do here, but probably not worth writing out until we want to store the real
-	// DSM to file. But for now we want to store it as a sequence of bitmaps.	
-	
-// Note from the formatCount field we can decide if this will be a monochrome or color depth map,
-// and choose the storage type accordingly
+	memcpy((void*) pData, (void *) &g_Data, sizeof(DeepShadowData));
 
 	return rval;
 }
@@ -206,15 +425,33 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
                           int ymin,
                           int ymax_plusone,
                           int entrysize,
-                          const unsigned char *data)
+                          const float *data,
+                          int nodeCount,
+                          const int *functionLengths,
+                          int functionCount)
 {
 
+#if SHOW_CALLSTACK
+	fprintf(stderr, "DspyImageDeepData called.\n");
+#endif
+
+	if ( (ymin+1) != ymax_plusone )
+	{
+		fprintf(stderr, "DspyImageDeepData: Image data not in scanline format\n");
+		return PkDspyErrorBadParams;
+	}
+	
+	DeepShadowData *pData = (DeepShadowData *)image;
+	
+	pData->testDeepData[ymin] = (float*)malloc(nodeCount*sizeof(float));
+	memcpy(pData->testDeepData[ymin], data, nodeCount);
+	pData->functionLengths[ymin] = (int*)malloc((functionCount+1)*sizeof(int));
+	memcpy(pData->functionLengths[ymin], functionLengths, functionCount);
+	pData->functionLengths[ymin][functionCount] = ARRAY_TERMINATOR;
+	printf("DspyImageDeepData completed with nodeCount == %d and functionCount is %d.\n", nodeCount, functionCount);
+	
 	return PkDspyErrorNone;
 }
-
-// Write a DspyImageDeepData() function with an additional parameter: an array of integers specifying
-// the length of each visibility function, so we can break up the data correctly. This will replace DspyImageData 
-// for the dsm display device
 
 //******************************************************************************
 // DspyImageClose
@@ -224,13 +461,23 @@ extern "C" PtDspyError DspyImageClose(PtDspyImageHandle image)
 #if SHOW_CALLSTACK
 	fprintf(stderr, "d_dsm_DspyImageClose called.\n");
 #endif
+	
+	// First write out the images to disk
+	WriteDSMImageSequence(image);	
+	
+	DeepShadowData *pData = (DeepShadowData *)image;
+	int i;
+	
+	for (i = 0; i < pData->dsmi.dsmiHeader.iHeight; ++i)
+	{
+		free(pData->testDeepData[i]);
+		free(pData->functionLengths[i]);
+	}
+	free(pData->testDeepData);
+	free(pData->functionLengths);
 
-// This is where we will write to disk the DSM
-// When doing testing, write out a sequence of bitmaps for visualizing the deep data
 
 /*
-   AppData *pData = (AppData *)image;
-
 	if ( pData->fp )
 		fclose(pData->fp);
 	pData->fp = NULL;
@@ -246,4 +493,79 @@ extern "C" PtDspyError DspyImageClose(PtDspyImageHandle image)
    free(pData);
 */
 	return PkDspyErrorNone;
+}
+
+//******************************************************************************
+// DWORDALIGN
+//******************************************************************************
+static int DWORDALIGN(int bits)
+{
+	return int(((bits + 31) >> 5) << 2);
+}
+
+//******************************************************************************
+// Save an header for bitmap; must be save field by field since the sizeof is 14
+//******************************************************************************
+static bool bitmapfileheader(BITMAPFILEHEADER *bfh, FILE *fp)
+{
+bool retval = true;
+
+
+    retval = retval && (fwrite(&bfh->bfType, 1, 2, fp) == 2);
+    retval = retval && (fwrite(&bfh->bfSize, 1, 4, fp) == 4);
+    retval = retval && (fwrite(&bfh->bfReserved1, 1, 2, fp)== 2);
+    retval = retval && (fwrite(&bfh->bfReserved2, 1, 2, fp)== 2);
+    retval = retval && (fwrite(&bfh->bfOffBits, 1, 4, fp)== 4);
+   
+
+return retval;
+}
+
+
+//******************************************************************************
+// Swap a short if you are not on NT/Pentium you must swap
+//******************************************************************************
+static unsigned short swap2( unsigned short s )
+{
+        unsigned short n;
+        unsigned char *in, *out;
+
+        out = ( unsigned char* ) & n;
+        in = ( unsigned char* ) & s;
+
+        out[ 0 ] = in[ 1 ];
+        out[ 1 ] = in[ 0 ];
+        return n;
+
+}
+
+//******************************************************************************
+// Swap a long if you are not on NT/Pentium you must swap
+//******************************************************************************
+static unsigned long swap4(unsigned long l)
+{
+unsigned long n;
+unsigned char *c, *d;
+
+   c = (unsigned char*) &n;
+   d = (unsigned char*) &l;
+
+
+   c[0] = d[3];
+   c[1] = d[2];
+   c[2] = d[1];
+   c[3] = d[0];
+   return n;
+
+}
+
+//******************************************************************************
+// Determine if we are low endian or big endian
+//******************************************************************************
+static bool lowendian()
+{
+ unsigned short low = 0xFFFE;
+ unsigned char * pt = (unsigned char *) &low;
+
+ return  (*pt == 0xFF); 
 }

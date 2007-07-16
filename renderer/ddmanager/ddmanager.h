@@ -54,7 +54,7 @@ struct SqCompressedDeepData
 		horizontalBucketIndex( -1 )
 	{}
 	// Lengths (# nodes) in each visibility function in m_VisibilityDataRows
-	// This is important because these lengths are arbitrary, not uniform.
+	// This is important because these lengths are arbitrary, not uniform, across the image.
 	// Note: using C-type "float" because this data gets passed to the C API:
 	// The external vector is indexed by pixel row, and the second vector is indexed by pixel column,
 	// yielding the length of the visibility function (number of nodes) at pixel (x,y).
@@ -202,6 +202,7 @@ class CqDisplayRequest
 		DspyImageOpenMethod			m_OpenMethod;
 		DspyImageQueryMethod		m_QueryMethod;
 		DspyImageDataMethod			m_DataMethod;
+		DspyImageDeepDataMethod		m_DeepDataMethod;
 		DspyImageCloseMethod		m_CloseMethod;
 		DspyImageDelayCloseMethod	m_DelayCloseMethod;	
 		/// \todo Some of the instance data from SqDisplayRequest should be split out
