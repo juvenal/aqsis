@@ -210,7 +210,6 @@ int LengthOfLongestVisFunc(PtDspyImageHandle image)
 			++j;
 		}
 	}
-	
 	return longest;
 }
 
@@ -223,19 +222,24 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 {
 	DeepShadowData *pData = (DeepShadowData *)image;
 	static AppData g_Data;
-	// ATTENTION: THE LENGTH FUNCTION BELOW IS BROKEN, RETURING A VALUE IN THE BILLIONS - WAY TOO BIG
 	const int imageFileCount = LengthOfLongestVisFunc(image);; ///< Determine how many files are in the sequence
 	const int width = pData->dsmi.dsmiHeader.iWidth;
 	const int height = pData->dsmi.dsmiHeader.iHeight;
 	const int dataSizeInBytes = 3*width*height*sizeof(char);
-	const int nodeSize = pData->Channels+1*sizeof(float); // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
+	const int nodeSize = pData->Channels+1; // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
 	const int bucketWidth = 16; // \todo Somehow get the actual bucket width
-	int i, j;
+	int i, j, k;
+	int pnum;
 	int readPos = 0;
 	
-	printf("FYI: There will be %d images in the sequence.\n", imageFileCount);
+	// Create a buffer the size of a bitmap
+	char* imageBuffer = (char*)malloc(dataSizeInBytes);
+	//memset(imageBuffer, 0, dataSizeInBytes); // Black out the image
+	
+	printf("There will be %d images in the sequence.\n", imageFileCount);
 	printf("data size is %d.\n", dataSizeInBytes);
 	
+	//------------------------------------------------------------------------
 	// Prepare BMP file header (same header used for all files in the sequence)
 	memset(&g_Data, sizeof(AppData), 0);
 	g_Data.Channels = pData->Channels;
@@ -271,53 +275,15 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
    		g_Data.bmi.bmiHeader.biClrUsed= swap4(g_Data.bmi.bmiHeader.biClrUsed);
    		g_Data.bmi.bmiHeader.biClrImportant= swap4(g_Data.bmi.bmiHeader.biClrImportant);
 	}
+	//---------------------------------------------------------------------------------
 	
-	char* imageBuffer = (char*)malloc(dataSizeInBytes);
-	memset(imageBuffer, 0, dataSizeInBytes); // Black out the image
-
-	int k = 0;
-	for (i = 0; i < height; ++i)
-	{
-		readPos = 0;
-		k = 0;
-		for (j = 0; j < width; ++j)
-		{
-			if (pData->functionLengths[i][k] != -1)
-			{
-				printf("readPos is %d\n", readPos);
-				imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][readPos]*255);
-				imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][readPos+1]*255); //< Assuming a color image
-				imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][readPos+2]*255); //< Assuming a color image
-				readPos += nodeSize*pData->functionLengths[i][k];
-			}
-			else
-			{
-				printf("Function length is -1, so we hit empty bucket. K value is %d\n", k);
-				// Need to fill in white pixels and increment j because the next bucketWidth pixels are empty pixels
-				memset(imageBuffer+(3*((i*width)+j))*sizeof(char), 255, 3*bucketWidth*sizeof(char));
-				j += bucketWidth-1; // This is probably really bad to modify the loop variable outside the loop construct
-				readPos += nodeSize;
-			}
-			++k;
-		}
-	}
-	//-------------------------------
-	/*
-	pData->testDeepData[ymin] = (float*)malloc(nodeCount*sizeof(float));
-	memcpy(pData->testDeepData[ymin], data, nodeCount);
-	pData->functionLengths[ymin] = (int*)malloc((functionCount+1)*sizeof(int));
-	memcpy(pData->functionLengths[ymin], functionLengths, functionCount);
-	pData->functionLengths[ymin][functionCount] = ARRAY_TERMINATOR;
-	*/
-	//------------------------------
-	
-	// Open files
+	// Open files and write bitmap files
 	//pData->fileHandleArray = (FILE**)malloc(imageFileCount*sizeof(FILE*));
-	for (i = 0; i < 1; ++i)
+	for (pnum = 0; pnum < imageFileCount; ++pnum)
 	{
 		char fileName[40];
 		char sequenceNumber[10];
-		sprintf(sequenceNumber, "%d", i);
+		sprintf(sequenceNumber, "%d", pnum);
 		//strcpy(fileName, pData->FileName);
 		strcpy(fileName, "dsmTestSequenceImage_");
 		strcat(fileName, sequenceNumber);
@@ -339,8 +305,41 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 		{
 			fprintf(stderr, "WriteDSMImagequence: Error writing to [%s]\n", g_Data.FileName);
 		}
-		// Write data to files
-
+		// Build the bitmap data
+		for (i = 0; i < height; ++i)
+		{
+			readPos = 1+nodeSize*pnum*2; //< +1 to skip over the depth entry and get at the color/visibility part.
+										// *2 because there are 2 nodes per unique z-depth in a vis function
+			k = 0; // Keep this variable in parallel with j, but always increment k by 1
+			for (j = 0; j < width; ++j)
+			{
+				if (pData->functionLengths[i][k] == -1)
+				{
+					// Empty bucket encountered
+					// Need to fill in white pixels and increment j because the next bucketWidth pixels are empty pixels
+					memset(imageBuffer+(3*((i*width)+j))*sizeof(char), 255, 3*bucketWidth*sizeof(char));
+					j += bucketWidth-1; // This is probably really bad to modify the loop variable outside the loop construct
+					readPos += 1; //Increment by 1, not nodeSize, because DeepData keeps a single float w/ value == -1 to represent empty bucket
+				}
+				else if (pData->functionLengths[i][k] <= pnum)
+				{
+					// Passed the end of this pixel's visibility function: output the last value in the vis function
+					//imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][readPos-4]*255); 
+					//imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][readPos-3]*255); //< Assuming a color image
+					//imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][readPos-2]*255); //< Assuming a color image
+					
+					memset(imageBuffer+((3*((i*width)+j))*sizeof(char)), 0, 3*sizeof(char));
+				}
+				else
+				{	
+					imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][readPos]*255); 
+					imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][readPos+1]*255); //< Assuming a color image
+					imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][readPos+2]*255); //< Assuming a color image
+					readPos += nodeSize*pData->functionLengths[i][k];
+				}
+				++k;
+			}
+		}
 		// Write the whole bitmap at once
 		if ( ! fwrite(imageBuffer, dataSizeInBytes, 1, g_Data.fp) )
 		{
@@ -465,9 +464,9 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
                           int ymax_plusone,
                           int entrysize,
                           const unsigned char* data,
-                          int nodeCount,
+                          int nodeCount, //< number of floats in data
                           const unsigned char* functionLengths,
-                          int functionCount)
+                          int functionCount) //< number of vis functions in data, is == width iff there are no empty buckets, else is < width
 {
 
 #if SHOW_CALLSTACK
@@ -483,9 +482,9 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	DeepShadowData *pData = (DeepShadowData *)image;
 	
 	pData->testDeepData[ymin] = (float*)malloc(nodeCount*sizeof(float));
-	memcpy(pData->testDeepData[ymin], data, nodeCount);
+	memcpy(pData->testDeepData[ymin], data, nodeCount*sizeof(float));
 	pData->functionLengths[ymin] = (int*)malloc((functionCount+1)*sizeof(int));
-	memcpy(pData->functionLengths[ymin], functionLengths, functionCount);
+	memcpy(pData->functionLengths[ymin], functionLengths, functionCount*sizeof(int));
 	pData->functionLengths[ymin][functionCount] = ARRAY_TERMINATOR;
 	//printf("DspyImageDeepData completed with nodeCount == %d and functionCount is %d.\n", nodeCount, functionCount);
 	
