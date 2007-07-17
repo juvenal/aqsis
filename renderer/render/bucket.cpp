@@ -1068,10 +1068,11 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 	m_VisibilityFunctions.push_back(currentVisFunc);
 	// First, build and insert node 0, which has 100% visibility at depth z=0
 	// Note: Perhaps we don't want to do this. The first and last nodes can be implicit.
-	boost::shared_ptr<SqVisibilityNode> visibilityNode(new SqVisibilityNode);	
+	boost::shared_ptr<SqVisibilityNode> visibilityNode(new SqVisibilityNode);
 	visibilityNode->zdepth = 0;
 	visibilityNode->visibility.SetColorRGB(1,1,1);
 	currentVisFunc->push_back(visibilityNode);
+	m_VisibilityDataSize += 4;
 	
 	// Place the first hit from each sub-sample into the heap.	
 	for ( fy = -ymax; fy <= ymax; ++fy )
@@ -1160,14 +1161,13 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 				nextHitHeap.push(hitNode);						
 			}		
 		}
-		// Add next visibility node to the current visibility function	
-		ReconstructVisibilityNode( deltaNode, slopeAtJ, currentVisFunc );
+		// Add next visibility node to the current visibility function iff
+		// its hit depth is not the same as the top node (we can't accept multiple hits at the same depth).
+		if (deltaNode.zdepth != currentVisFunc->back()->zdepth)
+		{
+			ReconstructVisibilityNode( deltaNode, slopeAtJ, currentVisFunc );
+		}
 	}
-	// Insert node at the end: zdepth == infinity
-	boost::shared_ptr<SqVisibilityNode> visibilityEndNode(new SqVisibilityNode);	
-	visibilityEndNode->zdepth = FLT_MAX;
-	visibilityEndNode->visibility = currentVisFunc->back()->visibility;
-	currentVisFunc->push_back(visibilityEndNode);
 }
 
 //----------------------------------------------------------------------
@@ -1186,10 +1186,7 @@ void CqBucket::ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor&
 	// be added, except the one at (0,1), which does not use this function.
 	// However, x nodes are being added, all at (0,1) where x is the number of sample points.
 	// We do not want to add these. Or do we?
-	if (deltaNode.zdepth == currentVisFunc->back()->zdepth)
-	{
-		return;
-	}
+
 	
 	// \todo Performance tuning: Consider alternatives to shared_ptr here.
 	// Possibly intrusive_ptr, or holding the structures by value, with a memory pooling mechanism like SqImageSample

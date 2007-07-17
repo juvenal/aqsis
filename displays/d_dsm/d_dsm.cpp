@@ -223,11 +223,18 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 {
 	DeepShadowData *pData = (DeepShadowData *)image;
 	static AppData g_Data;
-	int imageFileCount;
-	int width = pData->dsmi.dsmiHeader.iWidth;
-	int height = pData->dsmi.dsmiHeader.iHeight;
-	int dataSizeInBytes = 3*width*height*sizeof(char);
-	int i;
+	// ATTENTION: THE LENGTH FUNCTION BELOW IS BROKEN, RETURING A VALUE IN THE BILLIONS - WAY TOO BIG
+	const int imageFileCount = LengthOfLongestVisFunc(image);; ///< Determine how many files are in the sequence
+	const int width = pData->dsmi.dsmiHeader.iWidth;
+	const int height = pData->dsmi.dsmiHeader.iHeight;
+	const int dataSizeInBytes = 3*width*height*sizeof(char);
+	const int nodeSize = pData->Channels+1*sizeof(float); // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
+	const int bucketWidth = 16; // \todo Somehow get the actual bucket width
+	int i, j;
+	int readPos = 0;
+	
+	printf("FYI: There will be %d images in the sequence.\n", imageFileCount);
+	printf("data size is %d.\n", dataSizeInBytes);
 	
 	// Prepare BMP file header (same header used for all files in the sequence)
 	memset(&g_Data, sizeof(AppData), 0);
@@ -264,17 +271,49 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
    		g_Data.bmi.bmiHeader.biClrUsed= swap4(g_Data.bmi.bmiHeader.biClrUsed);
    		g_Data.bmi.bmiHeader.biClrImportant= swap4(g_Data.bmi.bmiHeader.biClrImportant);
 	}
-   //memcpy((void*) pData, (void *) &g_Data, sizeof(AppData));
 	
-	// Determine how many files are in the sequence
-	imageFileCount = LengthOfLongestVisFunc(image);
-	
-	char* mybuff = (char*)malloc(dataSizeInBytes);
-	memset(mybuff, 255, dataSizeInBytes);
+	char* imageBuffer = (char*)malloc(dataSizeInBytes);
+	memset(imageBuffer, 0, dataSizeInBytes); // Black out the image
+
+	int k = 0;
+	for (i = 0; i < height; ++i)
+	{
+		readPos = 0;
+		k = 0;
+		for (j = 0; j < width; ++j)
+		{
+			if (pData->functionLengths[i][k] != -1)
+			{
+				printf("readPos is %d\n", readPos);
+				imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][readPos]*255);
+				imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][readPos+1]*255); //< Assuming a color image
+				imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][readPos+2]*255); //< Assuming a color image
+				readPos += nodeSize*pData->functionLengths[i][k];
+			}
+			else
+			{
+				printf("Function length is -1, so we hit empty bucket. K value is %d\n", k);
+				// Need to fill in white pixels and increment j because the next bucketWidth pixels are empty pixels
+				memset(imageBuffer+(3*((i*width)+j))*sizeof(char), 255, 3*bucketWidth*sizeof(char));
+				j += bucketWidth-1; // This is probably really bad to modify the loop variable outside the loop construct
+				readPos += nodeSize;
+			}
+			++k;
+		}
+	}
+	//-------------------------------
+	/*
+	pData->testDeepData[ymin] = (float*)malloc(nodeCount*sizeof(float));
+	memcpy(pData->testDeepData[ymin], data, nodeCount);
+	pData->functionLengths[ymin] = (int*)malloc((functionCount+1)*sizeof(int));
+	memcpy(pData->functionLengths[ymin], functionLengths, functionCount);
+	pData->functionLengths[ymin][functionCount] = ARRAY_TERMINATOR;
+	*/
+	//------------------------------
 	
 	// Open files
 	//pData->fileHandleArray = (FILE**)malloc(imageFileCount*sizeof(FILE*));
-	for (i = 0; i < imageFileCount; ++i)
+	for (i = 0; i < 1; ++i)
 	{
 		char fileName[40];
 		char sequenceNumber[10];
@@ -302,8 +341,8 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 		}
 		// Write data to files
 
-		// Write a row of pixels
-		if ( ! fwrite(mybuff, dataSizeInBytes, 1, g_Data.fp) )
+		// Write the whole bitmap at once
+		if ( ! fwrite(imageBuffer, dataSizeInBytes, 1, g_Data.fp) )
 		{
 			fprintf(stderr, "WriteDSMImagequence: Error writing file\n");
 		}
@@ -311,7 +350,7 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 		fclose(g_Data.fp);
 		g_Data.fp = NULL;		
 	}
-	free(mybuff);
+	free(imageBuffer);
 	
 	// Close files and free memory
 	/*
@@ -425,9 +464,9 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
                           int ymin,
                           int ymax_plusone,
                           int entrysize,
-                          const float *data,
+                          const unsigned char* data,
                           int nodeCount,
-                          const int *functionLengths,
+                          const unsigned char* functionLengths,
                           int functionCount)
 {
 
@@ -448,7 +487,7 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	pData->functionLengths[ymin] = (int*)malloc((functionCount+1)*sizeof(int));
 	memcpy(pData->functionLengths[ymin], functionLengths, functionCount);
 	pData->functionLengths[ymin][functionCount] = ARRAY_TERMINATOR;
-	printf("DspyImageDeepData completed with nodeCount == %d and functionCount is %d.\n", nodeCount, functionCount);
+	//printf("DspyImageDeepData completed with nodeCount == %d and functionCount is %d.\n", nodeCount, functionCount);
 	
 	return PkDspyErrorNone;
 }

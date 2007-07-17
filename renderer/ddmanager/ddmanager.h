@@ -137,11 +137,11 @@ class CqDisplayRequest
 		 * specified by the hash token.
 		 */
 		virtual bool ThisDisplayNeeds( const TqUlong& htoken, const TqUlong& rgb, const TqUlong& rgba,
-									const TqUlong& Ci, const TqUlong& Oi, const TqUlong& Cs, const TqUlong& Os );
+									const TqUlong& Ci, const TqUlong& Oi, const TqUlong& Cs, const TqUlong& Os ) const;
 		/* Determine all of the environment variables this display uses
 		 * by querying this display's mode hash.
 		 */
-		virtual	void ThisDisplayUses( TqInt& Uses );
+		virtual	void ThisDisplayUses( TqInt& Uses ) const;
 		
 		virtual void ClearDisplayParams();
 		void LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimplePlugin& dspyPlugin );
@@ -177,9 +177,9 @@ class CqDisplayRequest
 		      
 	protected:
 		bool		m_valid;
-		std::string m_name;
-		std::string m_type;
-		std::string m_mode;
+		CqString	m_name;
+		CqString	m_type;
+		CqString	m_mode;
 		TqUlong		m_modeHash;
 		TqInt		m_modeID;
 		TqInt		m_AOVOffset;
@@ -209,8 +209,8 @@ class CqDisplayRequest
 		//  into a new structure, SqFormattedBucketData.
 		//  Specifically, the stuff which deals with holding the data
 		//  which has been copied out of the bucket and quantized: 
-		unsigned char  *m_DataRow;    // A row of bucket's data
-		unsigned char  *m_DataBucket; // A bucket's data		
+		boost::shared_ptr<unsigned char> m_DataRow;    // A row of bucket's data
+		boost::shared_ptr<unsigned char> m_DataBucket; // A bucket's data
 };
 
 //---------------------------------------------------------------------
@@ -332,11 +332,11 @@ class CqDDManager : public IqDDManager
 		virtual	TqInt	Uses();
 
 	private:
-		std::string	GetStringField( const std::string& s, int idx );
-		void	InitialiseDisplayNameMap();
+		CqString GetStringField( const CqString& s, int idx );
+		void InitialiseDisplayNameMap();
 		std::vector< boost::shared_ptr<CqDisplayRequest> > m_displayRequests; ///< Array of requested display drivers. 
-		bool	m_fDisplayMapInitialised;
-		std::map<std::string, std::string>	m_mapDisplayNames;
+		bool m_fDisplayMapInitialised;
+		std::map<CqString, CqString> m_mapDisplayNames;
 		static SqDDMemberData m_MemberData;
 		CqSimplePlugin m_DspyPlugin;
 };

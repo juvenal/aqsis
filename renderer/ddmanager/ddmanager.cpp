@@ -71,33 +71,23 @@ SqDDMemberData CqDDManager::m_MemberData("DspyImageOpen", "DspyImageQuery",
 
 TqInt CqDDManager::AddDisplay( const TqChar* name, const TqChar* type, const TqChar* mode, TqInt modeID, TqInt dataOffset, TqInt dataSize, std::map<std::string, void*> mapOfArguments )
 {
-	/// \todo The shared_ptr should be declared before the if-else block and initialized inside,
-	// then the last 2 lines in the if-else blocks should follow afterward. I couldn't figure out
-	// how to declare the boost pointer separately from its initialization.
+	boost::shared_ptr<CqDisplayRequest> req;
+	
 	if (strcmp(type, "dsm") == 0)
 	{	
-		boost::shared_ptr<CqDisplayRequest> req(new CqDeepDisplayRequest(false, name, type, mode, CqString::hash( mode ), modeID,
+		req = boost::shared_ptr<CqDisplayRequest>(new CqDeepDisplayRequest(false, name, type, mode, CqString::hash( mode ), modeID,
 				dataOffset,	dataSize, 0.0f, 255.0f, 0.0f, 0.0f, 0.0f, false, false));
-		// Create the array of UserParameter structures for all the unrecognised extra parameters,
-		// while extracting information for the recognised ones.
-		req->PrepareCustomParameters(mapOfArguments);
-		m_displayRequests.push_back(req);
 	}
 	else
 	{
-		boost::shared_ptr<CqDisplayRequest> req(new CqShallowDisplayRequest(false, name, type, mode, CqString::hash( mode ), modeID,
+		req = boost::shared_ptr<CqDisplayRequest>(new CqShallowDisplayRequest(false, name, type, mode, CqString::hash( mode ), modeID,
 				dataOffset,	dataSize, 0.0f, 255.0f, 0.0f, 0.0f, 0.0f, false, false));
-		// Create the array of UserParameter structures for all the unrecognised extra parameters,
-		// while extracting information for the recognised ones.
-		req->PrepareCustomParameters(mapOfArguments);
-		m_displayRequests.push_back(req);
 	}
 
 	// Create the array of UserParameter structures for all the unrecognised extra parameters,
 	// while extracting information for the recognised ones.
-	//req->PrepareCustomParameters(mapOfArguments);
-
-	//m_displayRequestsNew.push_back(req);
+	req->PrepareCustomParameters(mapOfArguments);
+	m_displayRequests.push_back(req);
 
 	return ( 0 );
 }
@@ -293,10 +283,6 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 		m_DelayCloseMethod = ::DebugDspyDelayImageClose ;
 	}
 
-	// Nullified the data part
-	m_DataRow = 0;
-	m_DataBucket = 0;
-
 	if( NULL != m_OpenMethod )
 	{
 		// If the quantization options haven't been set in the RiDisplay call, get the appropriate values out
@@ -377,7 +363,7 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 			// Now create the channels formats.
 			PtDspyDevFormat fmt;
 			TqUint i;
-			for( i = 0; i < (TqUint) m_AOVSize; i++ )
+			for( i = 0; i < (TqUint) m_AOVSize; ++i )
 			{
 				if(componentNames.size()>i)
 				{
@@ -473,7 +459,7 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 
 		// Now scan the returned format list to make sure that we pass the data in the order the display wants it.
 		std::vector<PtDspyDevFormat>::iterator i;
-		for(i=m_formats.begin(); i!=m_formats.end(); i++)
+		for(i=m_formats.begin(); i!=m_formats.end(); ++i)
 		{
 			if(m_modeID & ( ModeRGB | ModeA | ModeZ) )
 			{
@@ -493,7 +479,7 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 				// Scan through the generated names to find the ones specified, and use the index
 				// of the found name as an offset into the data from the dataOffset passed in originally.
 				TqUint iname;
-				for(iname = 0; iname < m_AOVnames.size(); iname++)
+				for(iname = 0; iname < m_AOVnames.size(); ++iname)
 				{
 					if(i->name == m_AOVnames[iname])
 					{
@@ -513,7 +499,7 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 		// Determine how big each pixel is by summing the format type sizes.
 		m_elementSize = 0;
 		std::vector<PtDspyDevFormat>::iterator iformat;
-		for(iformat = m_formats.begin(); iformat != m_formats.end(); iformat++)
+		for(iformat = m_formats.begin(); iformat != m_formats.end(); ++iformat)
 		{
 			TqInt type = iformat->type & PkDspyMaskType;
 			switch( type )
@@ -557,17 +543,6 @@ void CqDisplayRequest::CloseDisplayLibrary()
 		(*m_DelayCloseMethod)(m_imageHandle);
 	else if( NULL != m_CloseMethod )
 		(*m_CloseMethod)(m_imageHandle);
-
-	if (m_DataBucket != 0)
-	{
-		delete m_DataBucket;
-		m_DataBucket = 0;
-	}
-	if (m_DataRow != 0)
-	{
-		delete m_DataRow;
-		m_DataRow = 0;
-	}
 
 	// Empty out the display request data
 	m_CloseMethod = NULL;
@@ -637,14 +612,14 @@ void CqDDManager::InitialiseDisplayNameMap()
   \param idx Index (0-based)
   \return Sub string with given index
 */
-std::string CqDDManager::GetStringField( const std::string& s, int idx )
+CqString CqDDManager::GetStringField( const CqString& s, int idx )
 {
 	int z = 1;   /* state variable  0=skip whitespace  1=skip chars  2=search end  3=end */
-	std::string::const_iterator it;
-	std::string::size_type start = 0;
-	std::string::size_type end = 0;
+	CqString::const_iterator it;
+	CqString::size_type start = 0;
+	CqString::size_type end = 0;
 
-	for ( it = s.begin(); it != s.end(); it++ )
+	for ( it = s.begin(); it != s.end(); ++it )
 	{
 		char c = *it;
 
@@ -688,7 +663,7 @@ std::string CqDDManager::GetStringField( const std::string& s, int idx )
 	if ( idx == 0 )
 		return s.substr( start, end - start );
 	else
-		return std::string( "" );
+		return CqString( "" );
 
 }
 
@@ -702,11 +677,11 @@ void CqDisplayRequest::ConstructMatrixParameter(const char* name, const CqMatrix
 	TqInt totallen = 16 * count * sizeof(RtFloat);
 	RtFloat* pfloats = reinterpret_cast<RtFloat*>(malloc(totallen));
 	TqInt i;
-	for( i=0; i<count; i++)
+	for( i=0; i<count; ++i)
 	{
 		const TqFloat* floats = mats[i].pElements();
 		TqInt m;
-		for(m=0; m<16; m++)
+		for(m=0; m<16; ++m)
 			pfloats[(i*16)+m]=floats[m];
 	}
 	parameter.value = reinterpret_cast<RtPointer>(pfloats);
@@ -759,11 +734,11 @@ void CqDisplayRequest::ConstructStringsParameter(const char* name, const char** 
 	// makes it easy to deallocate later.
 	TqInt totallen = count * sizeof(char*);
 	TqInt i;
-	for( i = 0; i < count; i++ )
+	for( i = 0; i < count; ++i )
 		totallen += (strlen(strings[i])+1) * sizeof(char);
 	char** pstringptrs = reinterpret_cast<char**>(malloc(totallen));
 	char* pstrings = reinterpret_cast<char*>(&pstringptrs[count]);
-	for( i = 0; i < count; i++ )
+	for( i = 0; i < count; ++i )
 	{
 		// Copy each string to the end of the block.
 		strcpy(pstrings, strings[i]);
@@ -780,7 +755,7 @@ void CqDisplayRequest::PrepareCustomParameters( std::map<std::string, void*>& ma
 {
 	// Scan the map of extra parameters
 	std::map<std::string, void*>::iterator param;
-	for ( param = mapParams.begin(); param != mapParams.end(); param++ )
+	for ( param = mapParams.begin(); param != mapParams.end(); ++param )
 	{
 		// First check if it is one of the recognised parameters that the renderer should handle.
 		if(param->first.compare("quantize")==0)
@@ -938,7 +913,7 @@ void CqDisplayRequest::DisplayBucket( IqBucket* pBucket )
 	// If the display is not validated, don't send it data.
 	// Or if a DspyImageData function was not found for
 	// this display request, then we cannot continue
-	if( (!m_valid || !m_DataMethod) && !m_DeepDataMethod )
+	if( !(m_valid && m_DataMethod) && !m_DeepDataMethod )
 		return;
 	
 	// Dispatch to display sub-type methods
@@ -952,112 +927,27 @@ void CqDisplayRequest::DisplayBucket( IqBucket* pBucket )
 	// until a scanline is complete. Send to display when complete.	
 }
 
-//----------------------------------------------------------------------
-/** \brief Build and send a full line of visibility data to a dsm diplay device
- *
- * This will accumulate an entire row of buckets
- * so that all the visibility data, which the display
- * device needs to receive in row-major order, can be sent properly. 
- *
- * \param iDisplayRequest - Display request structure
- * \param pBucket - The bucket to take the deep shadow data from
- */
-/*
-void CqDDManager::DSMDisplayDataLines(const SqDisplayRequest& iDisplayRequest, const IqBucket* pBucket)
-{
-	PtDspyError err;
-	TqUint x, y;
-	TqUint	xmin = pBucket->XOrigin();
-	TqUint	ymin = pBucket->YOrigin();
-	TqUint	xmaxplus1 = xmin + pBucket->Width();
-	TqUint	ymaxplus1 = ymin + pBucket->Height();
-	
-	// For displays that want scanline order 
-	// we need to gather line data across several buckets before sending
-	// Get a pointer to the beginning of the bucket
-	const std::vector< std::vector<float> >* visDataFunctionLengths = &(iDisplayRequest.m_VisibilityFunctionLengths);
-	const std::vector< std::vector<float> >* visData= &(iDisplayRequest.m_VisibilityDataRows);
-	TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
-	for (y = ymin; y < ymaxplus1; ++y)
-	{
-		for (x = xmin; x < xmaxplus1; ++x)
-		{ 
-			// Note: memcpy(dest, src, # bytes)
-			// Note: I do not have elementsize, and I won't have it in this special dsm case
-			// so we need a different way to copy data
-			//memcpy(&(iDisplayRequest.m_DataRow[width * elementsize * (y - ymin) + elementsize * x]), pdata, elementsize);
-			//pdata += elementsize; // Next element in the bucket
-		}
-	}
-	
-	// Is it time to send complete rows?
-	if (xmaxplus1 >= width)
-	{
-		// send to the display one line at a time
-		for (y = ymin; y < ymaxplus1; ++y)
-		{
-			// Need to figure out what to do about elementsize, below
-			//err = (iDisplayRequest.m_DataMethod)(iDisplayRequest.m_imageHandle, 0, width, y, y+1, elementsize, pdata);
-			//pdata += elementsize * width;
-		}
-	}
-}
-*/
-
-//----------------------------------------------------------------------
-/** \brief Copy by value the visibility data from a bucket into a buffer for this display request  
- *
- * \param iDisplayRequest - Tisplay request structure
- * \param IqBucket - Pointer to the source bucket from which we copy
- */	
-/*
-void CqDDManager::DSMVisibilityDataCopyIn(SqDisplayRequest& iDisplayRequest, const IqBucket* pBucket)
-{
-	TqInt i = 0;
-	TqUint	xmin = pBucket->XOrigin();
-	TqUint	ymin = pBucket->YOrigin();
-	TqUint	xmaxplus1 = xmin + pBucket->Width();
-	TqUint	ymaxplus1 = ymin + pBucket->Height();	
-	
-	// The following are the structures we want to populate
-	std::vector< std::vector<float> >* visDataFunctionLengths = &(iDisplayRequest.m_VisibilityFunctionLengths);
-	std::vector< std::vector<float> >* visDataCopyDest = &(iDisplayRequest.m_VisibilityDataRows);
-	TqUint y;
-	for ( y = ymin; y < ymaxplus1; ++y )
-	{
-		TqUint x;
-		for ( x = xmin; x < xmaxplus1; ++x )
-		{
-			TqInt index = 0;
-			const TqVisibilityFunction* visibilityDataSource = pBucket->DeepData( x, y );
-			// Copy into the iDisplayRequest::m_VisibilityDataRows the visibility data in this bucket,
-			// keeping track of the index of the last node in each visibility function
-		}
-	}
-}
-*/
-
 void CqShallowDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 {
 	static CqRandom random( 61 );
-	TqUint	xmin = pBucket->XOrigin();
-	TqUint	ymin = pBucket->YOrigin();
-	TqUint	xmaxplus1 = xmin + pBucket->Width();
-	TqUint	ymaxplus1 = ymin + pBucket->Height();
+	const TqUint xmin = pBucket->XOrigin();
+	const TqUint ymin = pBucket->YOrigin();
+	const TqUint xmaxplus1 = xmin + pBucket->Width();
+	const TqUint ymaxplus1 = ymin + pBucket->Height();
 	
 	// Allocate enough space to put the whole bucket data into
-	if (m_DataBucket == 0)
-		m_DataBucket = new unsigned char[m_elementSize * pBucket->Width() * pBucket->Height()];
-	if ((m_flags.flags & PkDspyFlagsWantsScanLineOrder) && m_DataRow == 0)
+	if (m_DataBucket.get() == 0)
+		m_DataBucket = boost::shared_ptr<unsigned char>(new unsigned char[m_elementSize*pBucket->Width()*pBucket->Height()]);
+	if ((m_flags.flags & PkDspyFlagsWantsScanLineOrder) && m_DataRow.get() == 0)
 	{
 		TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
 		TqUint height = pBucket->Height();
-		m_DataRow = new unsigned char[m_elementSize * width * height];
+		m_DataRow = boost::shared_ptr<unsigned char>(new unsigned char[m_elementSize*width*height]);
 	}
 	
 	SqImageSample val;
 	// Fill in the bucket data for each channel in each element, honoring the requested order and formats.
-	unsigned char* pdata = m_DataBucket;
+	unsigned char* pdata = m_DataBucket.get();
 	TqUint y;
 	
 	for ( y = ymin; y < ymaxplus1; ++y )
@@ -1069,7 +959,7 @@ void CqShallowDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 			const TqFloat* pSamples = pBucket->Data( x, y );
 			std::vector<PtDspyDevFormat>::iterator iformat;
 			double s = random.RandomFloat();
-			for(iformat = m_formats.begin(); iformat != m_formats.end(); iformat++)
+			for(iformat = m_formats.begin(); iformat != m_formats.end(); ++iformat)
 			{
 				TqFloat value = pSamples[m_dataOffsets[index]];
 				// If special quantization instructions have been given for this display, do it now.
@@ -1116,7 +1006,7 @@ void CqShallowDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 						pdata += sizeof(char);
 						break;
 				}
-				index++;
+				++index;
 			}
 		}
 	}
@@ -1125,11 +1015,11 @@ void CqShallowDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 {
 	static CqRandom random( 61 );
-	TqUint xmin = pBucket->XOrigin();
-	TqUint ymin = pBucket->YOrigin();
-	TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
-	TqUint bucketHeight = pBucket->Height();
-	TqUint bucketWidth = pBucket->Width();
+	const TqUint xmin = pBucket->XOrigin();
+	const TqUint ymin = pBucket->YOrigin();
+	const TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
+	const TqUint bucketHeight = pBucket->Height();
+	const TqUint bucketWidth = pBucket->Width();
 	TqUint x, y;
 	TqUint row = 0, funcLength = 0;
 	
@@ -1182,7 +1072,7 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 					tvisData[row].push_back((**visit).visibility.fRed());
 					tvisData[row].push_back((**visit).visibility.fGreen());
 					tvisData[row].push_back((**visit).visibility.fBlue());
-					funcLength++;
+					++funcLength;
 				}
 				tvisFuncLengths[row].push_back(funcLength);
 			}
@@ -1202,17 +1092,17 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 //-----------------------------------------------------------
 bool CqShallowDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 {
-	TqUint	xmin = pBucket->XOrigin();
-	TqUint	ymin = pBucket->YOrigin();
-	TqUint	xmaxplus1 = xmin + pBucket->Width();
-	TqUint	ymaxplus1 = ymin + pBucket->Height();
-	TqUint bucketsPerRow = QGetRenderContext()->pImage()->cXBuckets();
-	TqUint bucketDataSize = pBucket->Width() * pBucket->Height() * m_elementSize; 
+	const TqUint xmin = pBucket->XOrigin();
+	const TqUint ymin = pBucket->YOrigin();
+	const TqUint xmaxplus1 = xmin + pBucket->Width();
+	const TqUint ymaxplus1 = ymin + pBucket->Height();
+	const TqUint bucketsPerRow = QGetRenderContext()->pImage()->cXBuckets();
+	const TqUint bucketDataSize = pBucket->Width() * pBucket->Height() * m_elementSize; 
 	
 	// Accumulate the bucket information to full rows of buckets
 	// Copy the current bucket to the bucket data map
 	boost::shared_ptr<unsigned char> pdata(new unsigned char[bucketDataSize]);
-	memcpy(&(*pdata), m_DataBucket, bucketDataSize);
+	memcpy(&(*pdata), m_DataBucket.get(), bucketDataSize);
 	m_BucketDataMap[ymin].push_back(pdata);
 	// A problem with arbitrary bucket orders is that the row vectors of buckets are not sorted, but we need to
 	// send data to the display in sorted order. How can we reconstruct the sorted order?
@@ -1228,12 +1118,12 @@ bool CqShallowDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 
 bool CqDeepDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 {
-	TqUint xmin = pBucket->XOrigin();
-	TqUint ymin = pBucket->YOrigin();
-	TqUint xmaxplus1 = xmin + pBucket->Width();
-	TqUint ymaxplus1 = ymin + pBucket->Height();
-	TqUint bucketHeight = pBucket->Height();
-	TqUint bucketsPerRow = QGetRenderContext()->pImage()->cXBuckets();
+	const TqUint xmin = pBucket->XOrigin();
+	const TqUint ymin = pBucket->YOrigin();
+	const TqUint xmaxplus1 = xmin + pBucket->Width();
+	const TqUint ymaxplus1 = ymin + pBucket->Height();
+	const TqUint bucketHeight = pBucket->Height();
+	const TqUint bucketsPerRow = QGetRenderContext()->pImage()->cXBuckets();
 	TqUint y;
 	TqUint i;
 	
@@ -1275,14 +1165,14 @@ bool CqDeepDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 
 void CqShallowDisplayRequest::SendToDisplay(IqBucket* pBucket)
 {
+	const TqUint xmin = pBucket->XOrigin();
+	const TqUint ymin = pBucket->YOrigin();
+	const TqUint xmaxplus1 = xmin + pBucket->Width();
+	const TqUint ymaxplus1 = ymin + pBucket->Height();
 	TqUint y;
-	TqUint xmin = pBucket->XOrigin();
-	TqUint ymin = pBucket->YOrigin();
-	TqUint xmaxplus1 = xmin + pBucket->Width();
-	TqUint ymaxplus1 = ymin + pBucket->Height();
 	PtDspyError err;
-	// We will replace m_DataRow with m_BucketDataMap
-	unsigned char* pdata = m_DataRow;
+	/// \todo We will replace m_DataRow with m_BucketDataMap
+	unsigned char* pdata = m_DataRow.get();
 	TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
 	
 	if (m_flags.flags & PkDspyFlagsWantsScanLineOrder)
@@ -1301,20 +1191,20 @@ void CqShallowDisplayRequest::SendToDisplay(IqBucket* pBucket)
 	else
 	{
 		// Send the bucket information as they come in
-		err = (m_DataMethod)(m_imageHandle, xmin, xmaxplus1, ymin, ymaxplus1, m_elementSize, m_DataBucket);
+		err = (m_DataMethod)(m_imageHandle, xmin, xmaxplus1, ymin, ymaxplus1, m_elementSize, m_DataBucket.get());
 	}	
 }
 
 void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 {
+	const TqUint xmin = pBucket->XOrigin();
+	const TqUint ymin = pBucket->YOrigin();
+	const TqUint xmaxplus1 = xmin + pBucket->Width();
+	const TqUint ymaxplus1 = ymin + pBucket->Height();
+	const TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
 	TqUint i = 0;
 	TqUint y;
-	TqUint xmin = pBucket->XOrigin();
-	TqUint ymin = pBucket->YOrigin();
-	TqUint xmaxplus1 = xmin + pBucket->Width();
-	TqUint ymaxplus1 = ymin + pBucket->Height();
 	PtDspyError err;
-	TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
 	
 	if (m_flags.flags & PkDspyFlagsWantsScanLineOrder)
 	{
@@ -1325,9 +1215,9 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 			for (y = ymin; y < ymaxplus1; ++y)
 			{
 				err = (m_DeepDataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
-						reinterpret_cast<const float*>(&(m_CollapsedBucketRow->m_VisibilityDataRows[i].front())),
+						reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityDataRows[i].front())),
 						m_CollapsedBucketRow->m_VisibilityDataRows[i].size(),
-						reinterpret_cast<const int*>(&(m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].front())), 
+						reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].front())), 
 						m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].size());
 				++i;
 			}
@@ -1344,9 +1234,9 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 }
 
 bool CqDisplayRequest::ThisDisplayNeeds( const TqUlong& htoken, const TqUlong& rgb, const TqUlong& rgba,
-		const TqUlong& Ci, const TqUlong& Oi, const TqUlong& Cs, const TqUlong& Os )
+		const TqUlong& Ci, const TqUlong& Oi, const TqUlong& Cs, const TqUlong& Os ) const
 {
-	bool usage = ( ( m_modeHash == rgba ) || ( m_modeHash == rgb ) );
+	const bool usage = ( ( m_modeHash == rgba ) || ( m_modeHash == rgb ) );
 	
 	if ( (( htoken == Ci )|| ( htoken == Cs))&& usage )
 		return ( true );
@@ -1357,7 +1247,7 @@ bool CqDisplayRequest::ThisDisplayNeeds( const TqUlong& htoken, const TqUlong& r
 	return false;
 }
 
-void CqDisplayRequest::ThisDisplayUses( TqInt& Uses )
+void CqDisplayRequest::ThisDisplayUses( TqInt& Uses ) const
 {
 	TqInt ivar;
 	for( ivar = 0; ivar < EnvVars_Last; ++ivar )
