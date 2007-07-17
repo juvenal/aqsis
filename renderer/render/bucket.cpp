@@ -1050,8 +1050,8 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 	CqImagePixel* pie2;
 	TqInt fx, fy;
 	TqInt SampleCount = 0;
-	TqFloat xfwo2 = CEIL(FilterXWidth()) * 0.5f;
-	TqFloat yfwo2 = CEIL(FilterYWidth()) * 0.5f;
+	TqFloat xfwo2 = lceil(FilterXWidth()) * 0.5f;
+	TqFloat yfwo2 = lceil(FilterYWidth()) * 0.5f;
 	TqInt xmax = m_DiscreteShiftX;
 	TqInt ymax = m_DiscreteShiftY;
 	TqInt numsubpixels = ( PixelXSamples() * PixelYSamples() );
@@ -1080,7 +1080,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 		pie2 = pie;
 		for ( fx = -xmax; fx <= xmax; ++fx )
 		{
-			TqInt index = ( ( ( fy + ymax ) * CEIL(FilterXWidth()) ) + ( fx + xmax ) ) * numperpixel;
+			TqInt index = ( ( ( fy + ymax ) * lceil(FilterXWidth()) ) + ( fx + xmax ) ) * numperpixel;
 			// Now go over each subsample within the pixel
 			TqInt sx, sy;
 			TqInt sampleIndex = 0;
@@ -1194,9 +1194,9 @@ void CqBucket::ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor&
 	boost::shared_ptr<SqVisibilityNode> visibilityNodePostHit(new SqVisibilityNode);
 	
 	visibilityNodePreHit->zdepth = deltaNode.zdepth;
-	visibilityNodePreHit->visibility = MAX((currentVisFunc->back()->visibility + (visibilityNodePreHit->zdepth - currentVisFunc->back()->zdepth)*slopeAtJ), gColBlack);
+	visibilityNodePreHit->visibility = max((currentVisFunc->back()->visibility + (visibilityNodePreHit->zdepth - currentVisFunc->back()->zdepth)*slopeAtJ), gColBlack);
 	visibilityNodePostHit->zdepth = deltaNode.zdepth;
-	visibilityNodePostHit->visibility = MAX((visibilityNodePreHit->visibility + deltaNode.deltatransmittance), gColBlack); 
+	visibilityNodePostHit->visibility = max((visibilityNodePreHit->visibility + deltaNode.deltatransmittance), gColBlack); 
 	slopeAtJ += deltaNode.deltaslope;
 	currentVisFunc->push_back(visibilityNodePreHit);
 	currentVisFunc->push_back(visibilityNodePostHit);

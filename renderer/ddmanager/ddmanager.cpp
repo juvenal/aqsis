@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright � 1997 - 2001, Paul C. Gregory
+// Copyright (C) 1997 - 2001, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -142,10 +142,10 @@ TqInt CqDDManager::DisplayBucket( IqBucket* pBucket )
 
 	if( (pBucket->Width() == 0) || (pBucket->Height() == 0) )
 		return(0);
-	TqUint	xmin = pBucket->XOrigin();
-	TqUint	ymin = pBucket->YOrigin();
-	TqUint	xmaxplus1 = xmin + pBucket->Width();
-	TqUint	ymaxplus1 = ymin + pBucket->Height();
+	const TqUint xmin = pBucket->XOrigin();
+	const TqUint ymin = pBucket->YOrigin();
+	const TqUint xmaxplus1 = xmin + pBucket->Width();
+	const TqUint ymaxplus1 = ymin + pBucket->Height();
 
 	// If completely outside the crop rectangle, don't bother sending.
 	if( xmaxplus1 <= (TqUint) QGetRenderContext()->pImage()->CropWindowXMin() ||
@@ -412,10 +412,10 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 		// Call the DspyImageOpen method on the display to initialise things.
 		TqInt xres = QGetRenderContext() ->poptCurrent()->GetIntegerOption( "System", "Resolution" ) [ 0 ];
 		TqInt yres = QGetRenderContext() ->poptCurrent()->GetIntegerOption( "System", "Resolution" ) [ 1 ];
-		TqInt xmin = static_cast<TqInt>( CLAMP( CEIL( xres * QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "CropWindow" ) [ 0 ] ), 0, xres ) );
-		TqInt xmax = static_cast<TqInt>( CLAMP( CEIL( xres * QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "CropWindow" ) [ 1 ] ), 0, xres ) );
-		TqInt ymin = static_cast<TqInt>( CLAMP( CEIL( yres * QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "CropWindow" ) [ 2 ] ), 0, yres ) );
-		TqInt ymax = static_cast<TqInt>( CLAMP( CEIL( yres * QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "CropWindow" ) [ 3 ] ), 0, yres ) );
+		TqInt xmin = static_cast<TqInt>( clamp( lceil( xres * QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "CropWindow" ) [ 0 ] ), (TqLong)0, (TqLong)xres ) );
+		TqInt xmax = static_cast<TqInt>( clamp( lceil( xres * QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "CropWindow" ) [ 1 ] ), (TqLong)0, (TqLong)xres ) );
+		TqInt ymin = static_cast<TqInt>( clamp( lceil( yres * QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "CropWindow" ) [ 2 ] ), (TqLong)0, (TqLong)yres ) );
+		TqInt ymax = static_cast<TqInt>( clamp( lceil( yres * QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "CropWindow" ) [ 3 ] ), (TqLong)0, (TqLong)yres ) );
 		PtDspyError err = (*m_OpenMethod)(&m_imageHandle,
 		                                      m_type.c_str(), m_name.c_str(),
 		                                      xmax-xmin,
@@ -872,8 +872,8 @@ void CqDisplayRequest::PrepareSystemParameters()
 
 	// "origin"
 	TqInt origin[2];
-	origin[0] = static_cast<TqInt>( CLAMP( CEIL( OriginalSize[0] * QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "CropWindow" ) [ 0 ] ), 0, OriginalSize[0] ) );
-	origin[1] = static_cast<TqInt>( CLAMP( CEIL( OriginalSize[1] * QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "CropWindow" ) [ 2 ] ), 0, OriginalSize[1] ) );
+	origin[0] = static_cast<TqInt>( clamp( lceil( OriginalSize[0] * QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "CropWindow" ) [ 0 ] ), (TqLong)0, (TqLong)OriginalSize[0] ) );
+	origin[1] = static_cast<TqInt>( clamp( lceil( OriginalSize[1] * QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "CropWindow" ) [ 2 ] ), (TqLong)0, (TqLong)OriginalSize[1] ) );
 	ConstructIntsParameter("origin", origin, 2, parameter);
 	m_customParams.push_back(parameter);
 
@@ -968,8 +968,8 @@ void CqShallowDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 				        m_QuantizeMinVal  == 0.0f &&
 				        m_QuantizeMaxVal  == 0.0f ) )
 				{
-					value = ROUND(m_QuantizeZeroVal + value * (m_QuantizeOneVal - m_QuantizeZeroVal) + ( m_QuantizeDitherVal * s ) );
-					value = CLAMP(value, m_QuantizeMinVal, m_QuantizeMaxVal) ;
+					value = lround(m_QuantizeZeroVal + value * (m_QuantizeOneVal - m_QuantizeZeroVal) + ( m_QuantizeDitherVal * s ) );
+					value = clamp(value, m_QuantizeMinVal, m_QuantizeMaxVal) ;
 				}
 				TqInt type = iformat->type & PkDspyMaskType;
 				/// \todo Eventually, the switch statement below should go away in favour of making
