@@ -34,6 +34,7 @@
 #include <iomanip>
 #include <iosfwd>
 #include <vector>
+#include <list>
 
 struct tag
 {

@@ -1021,7 +1021,7 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	const TqUint bucketHeight = pBucket->Height();
 	const TqUint bucketWidth = pBucket->Width();
 	TqUint x, y;
-	TqUint row = 0, funcLength = 0;
+	TqUint row = 0;
 	
 	if ((m_flags.flags & PkDspyFlagsWantsScanLineOrder) && m_BucketDeepDataMap[ymin].empty())
 	{
@@ -1047,11 +1047,10 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	if ( pBucket->IsDeepEmpty() )
 	{
 		// Empty buckets should get some minimal visibility data to indicate emptiness
-		// Store a single visibility node with negative depth to indicate empty; do so once per row.
+		// Store a placeholder in the function lengths table to indicate empty
+		// There is no need to store anything in the visibility data, since it is cross-referenced in parallel with the function lengths
 		for ( y = 0; y < bucketHeight; ++y )
 		{
-			tvisData[y].push_back(-1);
-			// Keep a placeholder in the function lengths table too
 			tvisFuncLengths[y].push_back(-1);
 		}
 	}
@@ -1062,19 +1061,8 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 		{
 			for ( x = 0; x < bucketWidth; ++x )
 			{
-				funcLength = 0;
 				const TqVisibilityFunction* visibilityDataSource = pBucket->DeepData( x, y );
-				TqVisibilityFunction::const_iterator visit;
-				/// \todo Compression function will be invoked here
-				for( visit = visibilityDataSource->begin(); visit != visibilityDataSource->end(); ++visit)
-				{
-					tvisData[row].push_back((**visit).zdepth);
-					tvisData[row].push_back((**visit).visibility.fRed());
-					tvisData[row].push_back((**visit).visibility.fGreen());
-					tvisData[row].push_back((**visit).visibility.fBlue());
-					++funcLength;
-				}
-				tvisFuncLengths[row].push_back(funcLength);
+				tvisFuncLengths[row].push_back(CompressVisibilityFunction(visibilityDataSource, tvisData, row));
 			}
 			++row;
 		}
@@ -1214,11 +1202,12 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 			// send to the display one line at a time
 			for (y = ymin; y < ymaxplus1; ++y)
 			{
-				err = (m_DeepDataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
-						reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityDataRows[i].front())),
-						m_CollapsedBucketRow->m_VisibilityDataRows[i].size(),
-						reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].front())), 
-						m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].size());
+				printf("Should not be calling display\n");
+				//err = (m_DeepDataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
+				//		reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityDataRows[i].front())),
+				//		m_CollapsedBucketRow->m_VisibilityDataRows[i].size(),
+				//		reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].front())), 
+				//		m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].size());
 				++i;
 			}
 			// Delete row data
@@ -1255,6 +1244,97 @@ void CqDisplayRequest::ThisDisplayUses( TqInt& Uses ) const
 		if( m_modeHash == gVariableTokens[ ivar ] )
 			Uses |= 1 << ivar;
 	}	
+}
+
+TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunction* visibilityDataSource, std::vector< std::vector<float> >& tvisData, const TqUint row)
+{
+	// The algorithm should work as follows:
+	/*
+	* Given visibilty function and error tolerance epsilon, compress the function V
+	* to yield new function V' such that:
+	*
+	* |V'(z) - V(z)| <= epsilon for all z
+	* We reduce the set X of visibility function nodes to a set Y, where Y is a subset of X.
+	*
+	* Information we need to maintain:
+	* 1) the current node (z', V')
+	* 2) the range of permissible slopes [m_min, m_max]
+	* 3) the endNode at the end of the current line segment
+
+	* Increment endNode one at a time, updating [m_min, m_max] at each step. When
+	* The slope of the resulting line segment moves out of the range [m_min, m_max], stop,
+	* step back one, draw that segment, and repeat the process for the next segment.
+	* The slope of an output line segment should be [m_min+m_max]/2.
+
+	* The slope range [m_min, m_max] is udated by constraining it so that m_min is the slope of the line
+	* between (zi', Vi') and (zj',Vj'-epsilon) and m_max is the slope of the line between (zi',Vi') and (zj',Vj'+epsilon).
+
+	* Initialize [m_min, m_max] to [-infinity, infinity].
+	* The error tolerance, epsilon, should be a float value in the range (0,1). A good value is 0.02.
+	*/
+	const TqFloat epsilon = 0.02;
+	TqFloat m_min;
+	TqFloat m_max;;
+	TqFloat testSlopeMin;
+	TqFloat testSlopeMax;
+	TqFloat slopeNewLine;
+	TqFloat funcLength = 0;
+	TqVisibilityFunction::const_iterator visitCurrent = visibilityDataSource->begin();
+	TqVisibilityFunction::const_iterator visitNext;
+	int trimCount = 0;
+	
+	// Always use the first node
+	tvisData[row].push_back((**visitCurrent).zdepth);
+	tvisData[row].push_back((**visitCurrent).visibility.fRed());
+	tvisData[row].push_back((**visitCurrent).visibility.fGreen());
+	tvisData[row].push_back((**visitCurrent).visibility.fBlue());
+	++funcLength;
+	
+	for( visitCurrent = visibilityDataSource->begin(); visitCurrent != visibilityDataSource->end(); )
+	{	
+		m_min = -FLT_MAX;
+		m_max = FLT_MAX;
+		for( visitNext = visitCurrent+1; visitNext != visibilityDataSource->end(); ++visitNext)
+		{
+			// \todo We probably do not want to use an arbitrary color channel as the visibility, like I have done here with red. We should
+			// probably use an everage of the color channels, or use the least, or maybe the greatest, of the three channels. Ideas anyone?
+			testSlopeMin = (((**visitNext).visibility.fRed()-(**visitCurrent).visibility.fRed())-epsilon)/((**visitNext).zdepth-(**visitCurrent).zdepth);
+			testSlopeMax = (((**visitNext).visibility.fRed()-(**visitCurrent).visibility.fRed())+epsilon)/((**visitNext).zdepth-(**visitCurrent).zdepth);
+			if((testSlopeMin >= m_min) && (testSlopeMax <= m_max))
+			{
+				// Step forward
+				m_min = testSlopeMin;
+				m_max = testSlopeMax;
+				trimCount++;
+			}
+			else 
+			{
+				// Fall back a step
+				--visitNext;
+				// Stop
+				break;
+			}
+		}
+		if (visitNext == visibilityDataSource->end())
+		{
+			--visitNext;
+		}
+		tvisData[row].push_back((**visitNext).zdepth);
+		tvisData[row].push_back((**visitNext).visibility.fRed());
+		tvisData[row].push_back((**visitNext).visibility.fGreen());
+		tvisData[row].push_back((**visitNext).visibility.fBlue());
+		++funcLength;
+		if (visitNext != visitCurrent)
+		{
+			visitCurrent = visitNext;
+		}
+		else
+		{
+			break;
+		}
+	}
+	printf("trimmed $d nodes of the visibility function\n", trimCount);
+	return funcLength;
 }
 
 END_NAMESPACE( Aqsis )

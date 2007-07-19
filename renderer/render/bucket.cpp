@@ -1050,12 +1050,12 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 	CqImagePixel* pie2;
 	TqInt fx, fy;
 	TqInt SampleCount = 0;
-	TqFloat xfwo2 = lceil(FilterXWidth()) * 0.5f;
-	TqFloat yfwo2 = lceil(FilterYWidth()) * 0.5f;
-	TqInt xmax = m_DiscreteShiftX;
-	TqInt ymax = m_DiscreteShiftY;
-	TqInt numsubpixels = ( PixelXSamples() * PixelYSamples() );
-	TqInt numperpixel = numsubpixels * numsubpixels;
+	const TqFloat xfwo2 = lceil(FilterXWidth()) * 0.5f;
+	const TqFloat yfwo2 = lceil(FilterYWidth()) * 0.5f;
+	const TqInt xmax = m_DiscreteShiftX;
+	const TqInt ymax = m_DiscreteShiftY;
+	const TqInt numsubpixels = ( PixelXSamples() * PixelYSamples() );
+	const TqInt numperpixel = numsubpixels * numsubpixels;
 	TqInt xlen = RealWidth();
 	TqFloat sumFilterValues = 0; // For normalizing the filter values
 	TqFloat inverseSumFilterValues = 0; // so we can do multiplication instead of division (faster?)

@@ -294,6 +294,13 @@ class CqDeepDisplayRequest : virtual public CqDisplayRequest
 		 * Sends the data to the display.
 		 */
 		virtual void SendToDisplay(IqBucket* pBucket);
+		/* Compress the given visibility function using the "croquet" compression
+		 * algorithm described in the DSM Pixar paper by Lokovic and Veach.
+		 * 
+		 * Returns the length (number of nodes) of the resulting compressed visibility function.
+		 */
+		virtual TqInt CompressVisibilityFunction(const TqVisibilityFunction* visibilityDataSource, std::vector< std::vector<float> >& tvisData, const TqUint row);
+		
 		
 	private:
 		std::map<TqInt, std::vector<boost::shared_ptr<SqCompressedDeepData> > > m_BucketDeepDataMap;
