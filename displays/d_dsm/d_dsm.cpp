@@ -103,6 +103,8 @@ AppData;
 // -----------------------------------------------------------------------------
 // Function Prototypes
 // -----------------------------------------------------------------------------
+int CountFunctions(const int* functionLengths, int rowWidth);
+int CountNodes(const int* functionLengths, int rowWidth);
 static int  DWORDALIGN(int bits);
 static bool bitmapfileheader(BITMAPFILEHEADER *bfh, FILE *fp);
 static unsigned short swap2( unsigned short s );
@@ -175,6 +177,7 @@ typedef struct
 	char            *ImageData;
 	int             Channels;
 	long            TotalPixels;
+	int				flags;
 	// NOTE: members below are for the testing phase, writing out bitmap sequences
 	float** testDeepData; ///< Array of pointers to the row data
 	int** functionLengths; ///< Array of pointers to arrays (one per row, terminated with an ARRAY_TERMINATOR) of vis function lengths (# of nodes) of each visbility function in testDeepData
@@ -194,112 +197,40 @@ static const int	 ARRAY_TERMINATOR			= -9;
 // -----------------------------------------------------------------------------
 
 //******************************************************************************
-// LengthOfLongestVisFunc
+// GreatestNodeDepth
 //
-// For testing: find and return the length of the longest visibility function in the DSM
+// For testing: find and return the depth of the deepest visibility node in the DSM
 //******************************************************************************
-int LengthOfLongestVisFunc(PtDspyImageHandle image)
+float GreatestNodeDepth(const DeepShadowData* pData)
 {
-	DeepShadowData *pData = (DeepShadowData *)image;
-	int longest = 0;
-	int i, j;
-	
-	for(i = 0; i < pData->dsmi.dsmiHeader.iHeight; ++i)
-	{
-		j = 0;
-		while (pData->functionLengths[i][j] != ARRAY_TERMINATOR)
-		{
-			if (pData->functionLengths[i][j] > longest)
-			{
-				longest = pData->functionLengths[i][j];
-			}
-			++j;
-		}
-	}
-	return longest;
-}
-
-//******************************************************************************
-// CountUniqueZDepths
-//
-// For testing: find and return the number of unique z-depths in the DSM
-//******************************************************************************
-int CountUniqueZDepths(PtDspyImageHandle image)
-{
-	DeepShadowData *pData = (DeepShadowData *)image;
 	const int nodeSize = pData->Channels+1; // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
-	int count = 0;
-	int row, j;
-	int stopPoint;
+	const int rowWidth = pData->dsmi.dsmiHeader.iHeight;
+	int rowNodeCount;	
+	float greatestDepth = 0;
 	float sampleDepth;
-	//std::vector<float> uniqueVals;
-	//std::priority_queue<float, std::list<float> > uniqueVals;
-	std::vector<float> uniqueVals;
+	int row, j;
 	
-	for(row = 0; row < pData->dsmi.dsmiHeader.iHeight; ++row)
+	for(row = 0; row < rowWidth; ++row)
 	{
 		j = 0;
-		stopPoint = 0;
-		while (pData->functionLengths[row][j] != ARRAY_TERMINATOR)
-		{
-			if (pData->functionLengths[row][j] != -1)
-			{
-				stopPoint += pData->functionLengths[row][j];
-			}
-			++j;
-		}
-		for (j = 0; j < stopPoint; ++j)
+		rowNodeCount = CountNodes(pData->functionLengths[row], rowWidth);
+		for (j = 0; j < rowNodeCount; ++j)
 		{
 			sampleDepth = pData->testDeepData[row][j*nodeSize];
-			if (!std::binary_search(uniqueVals.begin(), uniqueVals.end(), sampleDepth))
+			if (sampleDepth > greatestDepth)
 			{
-				uniqueVals.push_back(sampleDepth);
-				std::sort(uniqueVals.begin(), uniqueVals.end());
-				count++;
+				greatestDepth = sampleDepth;
 			}
 		}
 	}
-	return count;
+	return greatestDepth;
 }
 
-//******************************************************************************
-// WriteDSMImageSequence
-//
-// For testing: output a sequence of image files for visualizing deep data.
-//******************************************************************************
-void WriteDSMImageSequence(PtDspyImageHandle image)
+void PrepareBitmapHeader(const DeepShadowData* pData, AppData& g_Data)
 {
-	DeepShadowData *pData = (DeepShadowData *)image;
-	static AppData g_Data;
-	// I guess what we really want is not the # of nodes in the longest function, but how many unique depths are there in the dsm
-	// The number of bitmaps in the sequence will equal the number of unique z-depths in the dsm: bit this might be a very big number?
-	int imageFileCount = 1;
-	//const int imageFileCount = LengthOfLongestVisFunc(image); ///< Determine how many files are in the sequence
-	// The CountUniqueZDepths function is terribly inefficient: I have a different strategy below.
-	//const int imageFileCount = CountUniqueZDepths(image); ///< Determine how many files are in the sequence
 	const int width = pData->dsmi.dsmiHeader.iWidth;
 	const int height = pData->dsmi.dsmiHeader.iHeight;
-	const int dataSizeInBytes = 3*width*height*sizeof(char); // size in bytes of the bitmap data
-	const int nodeSize = pData->Channels+1; // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
-	const int bucketWidth = 16; // \todo Somehow get the actual bucket width
-	int i, j, k;
-	float currentDepth = 0; // the z-slice we are currently writing to bitmap
-	std::vector<float> uniqueDepths;
-	uniqueDepths.reserve(100);
-	uniqueDepths.push_back(0);
-	float greatestDepth = 0; 
-	int pnum; // the number of the current bitmap image we are building in the sequence
-	int readPos = 0; // array index into the deep data: points to the beginning (z-depth) of a visibility node
 	
-	// Create a buffer the size of a bitmap
-	char* imageBuffer = (char*)malloc(dataSizeInBytes);
-	//memset(imageBuffer, 0, dataSizeInBytes); // Black out the image
-	
-	//printf("There will be %d images in the sequence.\n", imageFileCount);
-	printf("data size is %d.\n", dataSizeInBytes);
-	
-	//------------------------------------------------------------------------
-	// Prepare BMP file header (same header used for all files in the sequence)
 	memset(&g_Data, sizeof(AppData), 0);
 	g_Data.Channels = pData->Channels;
 	g_Data.PixelBytes = 3; // One byte for red, one for green, and one for blue.
@@ -333,11 +264,127 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
    		g_Data.bmi.bmiHeader.biYPelsPerMeter= swap4(g_Data.bmi.bmiHeader.biYPelsPerMeter); 
    		g_Data.bmi.bmiHeader.biClrUsed= swap4(g_Data.bmi.bmiHeader.biClrUsed);
    		g_Data.bmi.bmiHeader.biClrImportant= swap4(g_Data.bmi.bmiHeader.biClrImportant);
+	}	
+}
+
+/* BuildBitmapData:
+ * 
+ * Scrapping the old strategy, the new strategy is to output a rough picture of the
+ * DSM as a fixed number of bitmap images, where each bitmap is a "z-slice" of the dsm
+ * at a regular interval. Determine the depth of the deepest visibility node in the DSM,
+ * and divide by the fixed image count (say, 20 bitmaps) which yeilds the interval between bitmaps.
+ * 
+ * This is probably the most reasonable thing we can do: it lets you keep a tab on the number of bitmaps
+ * generated while still providing a good picture of the DSM, assuming an even distribution of function lengths.
+ * 
+ */
+void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pData)
+{
+	const int imageFileCount = 20; //< Number of bitmaps we want to output
+	const float sliceInterval = GreatestNodeDepth(pData)/imageFileCount; //< Depth delta: distance between DSM slices
+	const int width = pData->dsmi.dsmiHeader.iWidth;
+	const int height = pData->dsmi.dsmiHeader.iHeight;
+	const int nodeSize = pData->Channels+1; // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
+	const int bucketWidth = 16; // \todo Somehow get the actual bucket width
+	int i, j, k;
+	float currentDepth = 0; // the z-slice we are currently writing to bitmap
+	int readPos = 0; // array index into the deep data: points to the beginning (z-depth) of a visibility node
+	float nextNodeDepth;
+	float endNodeDepth;
+	int thisFunctionLength;
+	int endNodePos;
+	
+	for (i = 0; i < height; ++i)
+	{
+		currentDepth = pnum*sliceInterval;
+		readPos = 0;
+		k = 0; // Keep this variable in parallel with j, but always increment k by 1
+		for (j = 0; j < width; ++j)
+		{
+			thisFunctionLength = pData->functionLengths[i][k];
+			nextNodeDepth = (float)(pData->testDeepData[i][readPos]);
+			endNodePos = readPos+nodeSize*(thisFunctionLength-1);
+			endNodeDepth = (float)(pData->testDeepData[i][endNodePos]);
+			// Most common case first:
+			// If current function's endNodeDepth > currentDepth, find via interpolation the visibility at current zdepth in
+			// this visibility function: that is, find the two nodes that sandwhich the current z-depth, and linearly interpolate between them.
+			// For surface transmittance we can just use the first node's values because there is no slope change
+			if (endNodeDepth > currentDepth)
+			{
+				int node1Pos = readPos, node2Pos = readPos+nodeSize;
+				int c;
+				for (c = 0; c < thisFunctionLength; ++c)
+				{
+					if ((currentDepth >= (float)(pData->testDeepData[i][node1Pos])) && (currentDepth <= (float)(pData->testDeepData[i][node2Pos])))
+					{							
+						// I'm not quite sure how the linear interpolation should work. What should the interpolation parameter be?
+						//float lerpParam = (currentDepth-node1.zdepth)/(node2.zdepth-node1.zdepth);
+						//lerp(const T t, const V x0, const V x1)
+						// Just use the first node's values for now
+						imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][node1Pos+1]*255); 
+						imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][node1Pos+2]*255); //< Assuming a color image
+						imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][node1Pos+3]*255); //< Assuming a color image
+						readPos += nodeSize*thisFunctionLength;
+						break;
+					}
+					node1Pos += nodeSize;
+					node2Pos += nodeSize;
+				}
+				if (c == thisFunctionLength)
+				{
+					// This should never happen
+					printf("Error: could not find sandwich nodes in WriteDSMImageSequence()\n");
+				}
+			}		
+			// Else if current bucket is empty, write out white pixels, increment the column pointer, and increment readPos by 1 to 
+			// point to the beginning of the next visibility function.				
+			else if (thisFunctionLength == -1)
+			{
+				memset(imageBuffer+(3*((i*width)+j))*sizeof(char), 255, 3*bucketWidth*sizeof(char));
+				j += bucketWidth; // This is probably really bad to modify the loop variable outside the loop header
+				readPos += 1; 
+			}				
+			// Else If the current function's endNodeDepth < currentDepth,  write a pixel color equal to
+			// the last visibility node in this function.
+			else if (endNodeDepth <= currentDepth)
+			{	
+				imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][endNodePos+1]*255); 
+				imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][endNodePos+2]*255); //< Assuming a color image
+				imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][endNodePos+3]*255); //< Assuming a color image
+				readPos += nodeSize*thisFunctionLength;
+			}
+			else
+			{
+				printf("Problem: the case didn't get matched.\n This function length is %d, pnum is %d, currentDepth is %d", 
+						thisFunctionLength, pnum, currentDepth);
+			}
+			++k;
+		}
 	}
-	//---------------------------------------------------------------------------------
+}
+
+//******************************************************************************
+// WriteDSMImageSequence
+//
+// For testing: output a sequence of image files for visualizing deep data.
+//******************************************************************************
+void WriteDSMImageSequence(PtDspyImageHandle image)
+{
+	const DeepShadowData *pData = (DeepShadowData *)image;
+	static AppData g_Data;
+	const int imageFileCount = 20; //< Number of bitmaps we want to output
+	const int width = pData->dsmi.dsmiHeader.iWidth;
+	const int height = pData->dsmi.dsmiHeader.iHeight;
+	const int dataSizeInBytes = 3*width*height*sizeof(char); // size in bytes of the bitmap data
+	int pnum; // the number of the current bitmap image we are building in the sequence
+	
+	// Create a buffer the size of a bitmap
+	char* imageBuffer = (char*)malloc(dataSizeInBytes);
+	//memset(imageBuffer, 0, dataSizeInBytes); // Black out the image
+	
+	PrepareBitmapHeader(pData, g_Data);
 	
 	// Open files and write bitmap files
-	//pData->fileHandleArray = (FILE**)malloc(imageFileCount*sizeof(FILE*));
 	for (pnum = 0; pnum < imageFileCount; ++pnum)
 	{
 		char fileName[40];
@@ -366,139 +413,9 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 		{
 			fprintf(stderr, "WriteDSMImagequence: Error writing to [%s]\n", g_Data.FileName);
 		}
-		
-		/* Here is the new strategy for building these bitmaps:
-		 * The problem I perceive with this strategy is that if one visibility function's hits
-		 * are all nested inside of a range in the main (longest) visibility function, then
-		 * those changes will not be recorded in the bitmap sequence. Likewise, if one function's hits come after the end of 
-		 * the main function (the hits are at greater z-depths) they fail to be recorded. 
-		 * This is why I think we need a sorted list of all the unique z-depths in the DSM.
-		 * Unfortunately, that results in a huge number of depths, and the job of building the list
-		 * is computationally prohibitive.
-		 * 
-		 * 1) Iterate over the DSM data one z-slice at a time: maintain a variable indicating the current z-depth
-		 * 2) Always start at the beginning of each visibility function
-		 * 3) If the current function's length < current pnum, and its last zdepth < current zdepth, write a pixel color equal to
-		 * the last visibility node in this function.
-		 * Else if current function's length < current pnum, and last zdepth >= current zdepth, then find the last node in
-		 * this function whos zdepth is less than or equa to current zdepth and use its color.
-		 * Else if current function's length > current pnum, find via interpolation the visibility at current zdepth in
-		 * this visibility function: that is, find the two nodes that sandwhich the current z-depth, and linearly interpolate between them.
-		 * Else if current bucket is empty, write out white pixels, increment the column pointer, and increment readPos by 1 to 
-		 * point to the beginning of the next visibility function.
-		 * 4) Get to the next function by adding nodeSize*currentFunctionLength to readPos
-		 */
-		
-		/*
-		 * Possible efficient strategy for building a list of unique z-depths
-		*
-		* keep a single float variable to track the largest zDepth in a visibility function we have seen so far.
-		* Always compare it against the current node's zDepth and update if the current one is greater. 
-		* Every time you have to update the variable, add 1 to the imageFileCount, so that you will 
-		* output a bitmap corresponding to that depth. I still fear there will be way too many z-depths, however.
-		*
-		* Perhaps we should do compression on the visibility functions so there will be fewer bitmaps.
-		* 
-		* Ok. So this strategy also fails because depths are not necessary checked in least-to-greatest order,
-		* so we are bound to skip over some. What an issue!
-		*/
-		
-		// Note: We should probably make this a qeueue, and deque on the line below.
-		currentDepth = uniqueDepths[pnum];
-		printf("currentDepth is %f\n", currentDepth);
-		float nextNodeDepth;
-		int thisFunctionLength;
-		int endNodePos;
 		// Build the bitmap data
-		for (i = 0; i < height; ++i)
-		{
-			readPos = 0;
-			k = 0; // Keep this variable in parallel with j, but always increment k by 1
-			for (j = 0; j < width; ++j)
-			{
-				thisFunctionLength = pData->functionLengths[i][k];
-				nextNodeDepth = (float)(pData->testDeepData[i][readPos]);
-				if (nextNodeDepth > greatestDepth)
-				{
-					printf("Adding to uniqueDepths: %f\n", nextNodeDepth);
-					uniqueDepths.push_back(nextNodeDepth);
-					greatestDepth = nextNodeDepth;
-					++imageFileCount; // This modifys our sentinal variable. Bad idea?
-				}
-				endNodePos = readPos+nodeSize*(thisFunctionLength-1);
-				// Most common case first:
-				// If current function's length > current pnum, find via interpolation the visibility at current zdepth in
-				// this visibility function: that is, find the two nodes that sandwhich the current z-depth, and linearly interpolate between them.
-				// For surface transmittance we can just use the first node's values because there is no slope change
-				// ATTENTION: THE IS CLAUSE SHOULD ALSO CHECK THAT THE LAST NODE IS DEEPER THAN CURRENT DEPTH
-				if (thisFunctionLength > pnum)
-				{
-					int node1Pos = readPos, node2Pos = readPos+nodeSize;
-					int c;
-					for (c = 0; c < thisFunctionLength; ++c)
-					{
-						if ((currentDepth >= (float)(pData->testDeepData[i][node1Pos])) && (currentDepth <= (float)(pData->testDeepData[i][node2Pos])))
-						{							
-							// I'm not quite sure how the linear interpolation should work. What should the interpolation parameter be?
-							//float lerpParam = (currentDepth-node1.zdepth)/(node2.zdepth-node1.zdepth);
-							//lerp(const T t, const V x0, const V x1)
-							// Just use the first node's values for now
-							imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][node1Pos+1]*255); 
-							imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][node1Pos+2]*255); //< Assuming a color image
-							imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][node1Pos+3]*255); //< Assuming a color image
-							readPos += nodeSize*thisFunctionLength;
-							break;
-						}
-						node1Pos += nodeSize;
-						node2Pos += nodeSize;
-					}
-					if (c == thisFunctionLength)
-					{
-						//printf("Error: could not find sandwich nodes in WriteDSMImageSequence()\n");
-					}
-				}		
-				// Else if current bucket is empty, write out white pixels, increment the column pointer, and increment readPos by 1 to 
-				// point to the beginning of the next visibility function.				
-				else if (thisFunctionLength == -1)
-				{
-					memset(imageBuffer+(3*((i*width)+j))*sizeof(char), 255, 3*bucketWidth*sizeof(char));
-					j += bucketWidth; // This is probably really bad to modify the loop variable outside the loop header
-					readPos += 1; 
-				}				
-				// Else If the current function's length < current pnum, and its last zdepth < current zdepth, write a pixel color equal to
-				// the last visibility node in this function.
-				else if ((thisFunctionLength < pnum) && ((float)(pData->testDeepData[i][endNodePos]) < currentDepth))
-				{	
-					imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][endNodePos+1]*255); 
-					imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][endNodePos+2]*255); //< Assuming a color image
-					imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][endNodePos+3]*255); //< Assuming a color image
-					readPos += nodeSize*thisFunctionLength;
-				}
-				// Else if current function's length < current pnum, but last zdepth >= current zdepth, then find the last node in
-				// this function whose zdepth is less than or equal to current zdepth and use its color.
-				// This case should be default if none of the above cases pass
-				else if ((thisFunctionLength < pnum) && ((float)(pData->testDeepData[i][endNodePos]) >= currentDepth))
-				{
-					int tempNodePos = endNodePos;
-					while (pData->testDeepData[i][tempNodePos] > currentDepth)
-					{
-						tempNodePos -= nodeSize;
-					}
-					imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][tempNodePos+1]*255); 
-					imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][tempNodePos+2]*255); //< Assuming a color image
-					imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][tempNodePos+3]*255); //< Assuming a color image
-					readPos += nodeSize*thisFunctionLength;					
-				}
-				else
-				{
-					//printf("Problem: the case didn't get matched.\n This function length is %d, pnum is %d, currentDepth is %d", 
-					//		thisFunctionLength, pnum, currentDepth);
-				}
-				++k;
-			}
-		}
+		BuildBitmapData(imageBuffer, pnum, pData);
 		// Write the whole bitmap at once
-		
 		if ( ! fwrite(imageBuffer, dataSizeInBytes, 1, g_Data.fp) )
 		{
 			fprintf(stderr, "WriteDSMImagequence: Error writing file\n");
@@ -506,23 +423,9 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 		
 		// Close file
 		fclose(g_Data.fp);
-		g_Data.fp = NULL;
-				
+		g_Data.fp = NULL;		
 	}
 	free(imageBuffer);
-	
-	// Close files and free memory
-	/*
-	for (i = 0; i < imageFileCount; ++i)
-	{	
-		if ( pData->fileHandleArray[i] )
-		{
-			fclose(pData->fileHandleArray[i]);
-			pData->fileHandleArray[i] = NULL;
-		}
-	}
-	free(pData->fileHandleArray);
-	*/
 }
 
 //******************************************************************************
@@ -557,7 +460,9 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	// Initialize our global resources
 	memset(&g_Data, sizeof(DeepShadowData), 0);
 
+	// Note: flags can also be binary ANDed with PkDspyFlagsWantsEmptyBuckets and PkDspyFlagsWantsNullEmptyBuckets
 	flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
+	g_Data.flags = PkDspyFlagsWantsScanLineOrder;
 
 	if ( width <= 0 )
 		width = DEFAULT_IMAGEWIDTH;
@@ -624,29 +529,27 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
                           int ymax_plusone,
                           int entrysize,
                           const unsigned char* data,
-                          int nodeCount, //< number of floats in data
-                          const unsigned char* functionLengths,
-                          int functionCount) //< number of vis functions in data, is == width iff there are no empty buckets, else is < width
+                          const unsigned char* functionLengths)
 {
 
 #if SHOW_CALLSTACK
 	fprintf(stderr, "DspyImageDeepData called.\n");
 #endif
-
-	if ( (ymin+1) != ymax_plusone )
+	
+	DeepShadowData *pData = (DeepShadowData *)image;
+	if ( ((ymin+1) != ymax_plusone) && (pData->flags == PkDspyFlagsWantsScanLineOrder))
 	{
 		fprintf(stderr, "DspyImageDeepData: Image data not in scanline format\n");
 		return PkDspyErrorBadParams;
 	}
-	
-	DeepShadowData *pData = (DeepShadowData *)image;
+	const int functionCount = CountFunctions((const int*)functionLengths, xmax_plusone-xmin);
+	const int nodeCount = CountNodes((const int*)functionLengths, xmax_plusone-xmin);	
 	
 	pData->testDeepData[ymin] = (float*)malloc(nodeCount*sizeof(float));
 	memcpy(pData->testDeepData[ymin], data, nodeCount*sizeof(float));
 	pData->functionLengths[ymin] = (int*)malloc((functionCount+1)*sizeof(int));
 	memcpy(pData->functionLengths[ymin], functionLengths, functionCount*sizeof(int));
-	pData->functionLengths[ymin][functionCount] = ARRAY_TERMINATOR;
-	//printf("DspyImageDeepData completed with nodeCount == %d and functionCount is %d.\n", nodeCount, functionCount);
+	pData->functionLengths[ymin][functionCount] = ARRAY_TERMINATOR; //< Try to do without this
 	
 	return PkDspyErrorNone;
 }
@@ -660,7 +563,7 @@ extern "C" PtDspyError DspyImageClose(PtDspyImageHandle image)
 	fprintf(stderr, "d_dsm_DspyImageClose called.\n");
 #endif
 	
-	// First write out the images to disk
+	// First write out the images to disk (bitmaps for testing)
 	WriteDSMImageSequence(image);	
 	
 	DeepShadowData *pData = (DeepShadowData *)image;
@@ -693,6 +596,54 @@ extern "C" PtDspyError DspyImageClose(PtDspyImageHandle image)
 	return PkDspyErrorNone;
 }
 
+int CountFunctions(const int* fLengths, int rowWidth)
+{
+	const int bucketWidthMinusOne = 15; //< I really need to access the true bucket width somehow
+	int functionCount = 0;
+	int temp;
+	int i = 0;
+	
+	while( i < rowWidth )
+	{
+		temp = fLengths[i];
+		if (temp > -1)
+		{
+			functionCount++;
+		}
+		else 
+		{
+			rowWidth -= bucketWidthMinusOne; //< -1 because 1 space was used to hold a (-1) to indicate empty bucket
+		}
+		++i;
+	}
+	printf("FunctionCount is %d\n", functionCount);
+	return functionCount;
+}
+
+int CountNodes(const int* fLengths, int rowWidth)
+{
+	const int bucketWidthMinusOne = 15; //< I really need to access the true bucket width somehow
+	int nodeCount = 0;
+	int temp;
+	int i = 0;
+	
+	while( i < rowWidth )
+	{
+		temp = fLengths[i];
+		if (temp > -1)
+		{
+			nodeCount += temp;
+		}
+		else 
+		{
+			rowWidth -= bucketWidthMinusOne; //< -1 because 1 space was used to hold a (-1) to indicate empty bucket
+		}
+		++i;
+	}
+	printf("nodeCount is %d\n", nodeCount);
+	return nodeCount;	
+}
+
 //******************************************************************************
 // DWORDALIGN
 //******************************************************************************
@@ -706,17 +657,15 @@ static int DWORDALIGN(int bits)
 //******************************************************************************
 static bool bitmapfileheader(BITMAPFILEHEADER *bfh, FILE *fp)
 {
-bool retval = true;
-
-
+	bool retval = true;
+	
     retval = retval && (fwrite(&bfh->bfType, 1, 2, fp) == 2);
     retval = retval && (fwrite(&bfh->bfSize, 1, 4, fp) == 4);
     retval = retval && (fwrite(&bfh->bfReserved1, 1, 2, fp)== 2);
     retval = retval && (fwrite(&bfh->bfReserved2, 1, 2, fp)== 2);
     retval = retval && (fwrite(&bfh->bfOffBits, 1, 4, fp)== 4);
    
-
-return retval;
+    return retval;
 }
 
 

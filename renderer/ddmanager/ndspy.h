@@ -166,7 +166,11 @@ UserParameter;
 typedef PtDspyError (*DspyImageOpenMethod)(PtDspyImageHandle*,const char*,const char*,int,int,int,const UserParameter*,int,PtDspyDevFormat*,PtFlagStuff*);
 typedef PtDspyError (*DspyImageQueryMethod)(PtDspyImageHandle,PtDspyQueryType,size_t,void*);
 typedef PtDspyError (*DspyImageDataMethod)(PtDspyImageHandle,int,int,int,int,int,const unsigned char*);
-typedef PtDspyError (*DspyImageDeepDataMethod)(PtDspyImageHandle,int,int,int,int,int,const unsigned char*, int, const unsigned char*, int);
+// DspyImageDeepDataMethod is a special case of DspyImageDataMethod that handles displaying deep data such as deep shadow maps. This type of data is fundamentally different
+// than the data processed by DspyImageDataMethod, so its own function prototype is warranted. The first char pointer is a pointer to the (contiguous) data,
+// and the second char pointer is a pointer to an array of integers, each specifying the length (# of nodes) in the data belonging to a certain pixel. The ordering
+// is left-to-right and top-to-bottom.
+typedef PtDspyError (*DspyImageDeepDataMethod)(PtDspyImageHandle,int,int,int,int,int,const unsigned char*, const unsigned char*);
 typedef PtDspyError (*DspyImageCloseMethod)(PtDspyImageHandle);
 typedef PtDspyError (*DspyImageDelayCloseMethod)(PtDspyImageHandle);
 
@@ -201,7 +205,16 @@ extern "C"
 	                                   int ymaxplus1,
 	                                   int entrysize,
 	                                   const unsigned char *data);
-
+	
+	_qExport PtDspyError DspyImageDeepData(PtDspyImageHandle image,
+	                                   int xmin,
+	                                   int xmaxplus1,
+	                                   int ymin,
+	                                   int ymaxplus1,
+	                                   int entrysize,
+	                                   const unsigned char *data,
+	                                   const unsigned char *functionLengths);	
+	
 	_qExport PtDspyError DspyImageClose(PtDspyImageHandle);
 
 	_qExport PtDspyError DspyImageDelayClose(PtDspyImageHandle);

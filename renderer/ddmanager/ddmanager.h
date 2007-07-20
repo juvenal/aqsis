@@ -297,11 +297,10 @@ class CqDeepDisplayRequest : virtual public CqDisplayRequest
 		/* Compress the given visibility function using the "croquet" compression
 		 * algorithm described in the DSM Pixar paper by Lokovic and Veach.
 		 * 
-		 * Returns the length (number of nodes) of the resulting compressed visibility function.
+		 * \return The integer length (number of nodes) of the resulting compressed visibility function.
 		 */
-		virtual TqInt CompressVisibilityFunction(const TqVisibilityFunction* visibilityDataSource, std::vector< std::vector<float> >& tvisData, const TqUint row);
-		
-		
+		virtual TqInt CompressVisibilityFunction(const TqVisibilityFunction* visibilityDataSource, std::vector<float>& tvisDataRow);
+			
 	private:
 		std::map<TqInt, std::vector<boost::shared_ptr<SqCompressedDeepData> > > m_BucketDeepDataMap;
 		boost::shared_ptr<SqCompressedDeepData> m_CollapsedBucketRow;

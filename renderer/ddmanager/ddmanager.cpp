@@ -1062,7 +1062,7 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 			for ( x = 0; x < bucketWidth; ++x )
 			{
 				const TqVisibilityFunction* visibilityDataSource = pBucket->DeepData( x, y );
-				tvisFuncLengths[row].push_back(CompressVisibilityFunction(visibilityDataSource, tvisData, row));
+				tvisFuncLengths[row].push_back(CompressVisibilityFunction(visibilityDataSource, tvisData[row]));
 			}
 			++row;
 		}
@@ -1202,12 +1202,12 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 			// send to the display one line at a time
 			for (y = ymin; y < ymaxplus1; ++y)
 			{
-				printf("Should not be calling display\n");
-				//err = (m_DeepDataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
-				//		reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityDataRows[i].front())),
-				//		m_CollapsedBucketRow->m_VisibilityDataRows[i].size(),
-				//		reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].front())), 
-				//		m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].size());
+				err = (m_DeepDataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
+						reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityDataRows[i].front())),
+						reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].front())));
+				printf("nodeCount should be %d/4 and functionCount should be %d or less, by a factor os bucketWidth\n", 
+						m_CollapsedBucketRow->m_VisibilityDataRows[i].size(),
+						m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].size());
 				++i;
 			}
 			// Delete row data
@@ -1246,7 +1246,7 @@ void CqDisplayRequest::ThisDisplayUses( TqInt& Uses ) const
 	}	
 }
 
-TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunction* visibilityDataSource, std::vector< std::vector<float> >& tvisData, const TqUint row)
+TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunction* visibilityDataSource, std::vector<float>& tvisDataRow)
 {
 	// The algorithm should work as follows:
 	/*
@@ -1258,54 +1258,54 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 	*
 	* Information we need to maintain:
 	* 1) the current node (z', V')
-	* 2) the range of permissible slopes [m_min, m_max]
+	* 2) the range of permissible slopes [slopeMin, slopeMax]
 	* 3) the endNode at the end of the current line segment
 
-	* Increment endNode one at a time, updating [m_min, m_max] at each step. When
-	* The slope of the resulting line segment moves out of the range [m_min, m_max], stop,
+	* Increment endNode one at a time, updating [slopeMin, slopeMax] at each step. When
+	* the resulting slope range [slopeMin, slopeMax] becomes empty, stop,
 	* step back one, draw that segment, and repeat the process for the next segment.
-	* The slope of an output line segment should be [m_min+m_max]/2.
+	* The slope of an output line segment should be [slopeMin+slopeMax]/2.
 
-	* The slope range [m_min, m_max] is udated by constraining it so that m_min is the slope of the line
-	* between (zi', Vi') and (zj',Vj'-epsilon) and m_max is the slope of the line between (zi',Vi') and (zj',Vj'+epsilon).
+	* The slope range [slopeMin, slopeMax] is udated by constraining it so that slopeMin is the slope of the line
+	* between (zi', Vi') and (zj',Vj'-epsilon) and slopeMax is the slope of the line between (zi',Vi') and (zj',Vj'+epsilon).
 
-	* Initialize [m_min, m_max] to [-infinity, infinity].
+	* Initialize [slopeMin, slopeMax] to [-infinity, infinity].
 	* The error tolerance, epsilon, should be a float value in the range (0,1). A good value is 0.02.
 	*/
 	const TqFloat epsilon = 0.02;
-	TqFloat m_min;
-	TqFloat m_max;;
+	const TqInt colorChannels = 3; /// \todo Access the real number of color channels here
+	TqFloat slopeMin;
+	TqFloat slopeMax;
+	TqFloat slopeMinNew;
+	TqFloat slopeMaxNew;
 	TqFloat testSlopeMin;
 	TqFloat testSlopeMax;
 	TqFloat slopeNewLine;
 	TqFloat funcLength = 0;
 	TqVisibilityFunction::const_iterator visitCurrent = visibilityDataSource->begin();
 	TqVisibilityFunction::const_iterator visitNext;
-	int trimCount = 0;
 	
 	// Always use the first node
-	tvisData[row].push_back((**visitCurrent).zdepth);
-	tvisData[row].push_back((**visitCurrent).visibility.fRed());
-	tvisData[row].push_back((**visitCurrent).visibility.fGreen());
-	tvisData[row].push_back((**visitCurrent).visibility.fBlue());
+	tvisDataRow.push_back((**visitCurrent).zdepth);
+	tvisDataRow.push_back((**visitCurrent).visibility.fRed());
+	tvisDataRow.push_back((**visitCurrent).visibility.fGreen());
+	tvisDataRow.push_back((**visitCurrent).visibility.fBlue());
 	++funcLength;
 	
 	for( visitCurrent = visibilityDataSource->begin(); visitCurrent != visibilityDataSource->end(); )
 	{	
-		m_min = -FLT_MAX;
-		m_max = FLT_MAX;
+		slopeMin = -1*std::numeric_limits<TqFloat>::max();
+		slopeMax = std::numeric_limits<TqFloat>::max();
 		for( visitNext = visitCurrent+1; visitNext != visibilityDataSource->end(); ++visitNext)
 		{
-			// \todo We probably do not want to use an arbitrary color channel as the visibility, like I have done here with red. We should
-			// probably use an everage of the color channels, or use the least, or maybe the greatest, of the three channels. Ideas anyone?
+			// \todo We should handle each color channel individually
 			testSlopeMin = (((**visitNext).visibility.fRed()-(**visitCurrent).visibility.fRed())-epsilon)/((**visitNext).zdepth-(**visitCurrent).zdepth);
 			testSlopeMax = (((**visitNext).visibility.fRed()-(**visitCurrent).visibility.fRed())+epsilon)/((**visitNext).zdepth-(**visitCurrent).zdepth);
-			if((testSlopeMin >= m_min) && (testSlopeMax <= m_max))
+			if((testSlopeMin >= slopeMin) && (testSlopeMax <= slopeMax))
 			{
 				// Step forward
-				m_min = testSlopeMin;
-				m_max = testSlopeMax;
-				trimCount++;
+				slopeMin = testSlopeMin;
+				slopeMax = testSlopeMax;
 			}
 			else 
 			{
@@ -1319,10 +1319,10 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 		{
 			--visitNext;
 		}
-		tvisData[row].push_back((**visitNext).zdepth);
-		tvisData[row].push_back((**visitNext).visibility.fRed());
-		tvisData[row].push_back((**visitNext).visibility.fGreen());
-		tvisData[row].push_back((**visitNext).visibility.fBlue());
+		tvisDataRow.push_back((**visitNext).zdepth);
+		tvisDataRow.push_back((**visitNext).visibility.fRed());
+		tvisDataRow.push_back((**visitNext).visibility.fGreen());
+		tvisDataRow.push_back((**visitNext).visibility.fBlue());
 		++funcLength;
 		if (visitNext != visitCurrent)
 		{
@@ -1333,7 +1333,6 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 			break;
 		}
 	}
-	printf("trimmed $d nodes of the visibility function\n", trimCount);
 	return funcLength;
 }
 
