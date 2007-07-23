@@ -1163,6 +1163,13 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 		}
 		// Add next visibility node to the current visibility function iff
 		// its hit depth is not the same as the top node (we can't accept multiple hits at the same depth).
+		// Note: I am having to make the check below because
+		// too many nodes are added to the visibility function.
+		// For example: if this pixel is empty, no nodes should
+		// be added, except the one at (0,1), which does not use this function.
+		// However, x nodes are being added, all at (0,1) where x is the number of sample points.
+		// We do not want to add these. Actually, I should investigate why this is happening, because it was
+		// not expected.
 		if (deltaNode.zdepth != currentVisFunc->back()->zdepth)
 		{
 			ReconstructVisibilityNode( deltaNode, slopeAtJ, currentVisFunc );
@@ -1179,15 +1186,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
  * \param currentVisFunc a pointer to the visibility function for the current pixel 
  */
 void CqBucket::ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor& slopeAtJ, boost::shared_ptr<TqVisibilityFunction> currentVisFunc )
-{	
-	// Note: I am having to make the check below because
-	// too many nodes are added to the visibility function.
-	// For example: if this pixel is empty, no nodes should
-	// be added, except the one at (0,1), which does not use this function.
-	// However, x nodes are being added, all at (0,1) where x is the number of sample points.
-	// We do not want to add these. Or do we?
-
-	
+{		
 	// \todo Performance tuning: Consider alternatives to shared_ptr here.
 	// Possibly intrusive_ptr, or holding the structures by value, with a memory pooling mechanism like SqImageSample
 	boost::shared_ptr<SqVisibilityNode> visibilityNodePreHit(new SqVisibilityNode);

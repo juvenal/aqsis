@@ -1204,10 +1204,12 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 			{
 				err = (m_DeepDataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
 						reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityDataRows[i].front())),
-						reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].front())));
+				 		reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].front())));
+				
 				printf("nodeCount should be %d/4 and functionCount should be %d or less, by a factor os bucketWidth\n", 
 						m_CollapsedBucketRow->m_VisibilityDataRows[i].size(),
 						m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].size());
+				
 				++i;
 			}
 			// Delete row data
@@ -1280,7 +1282,9 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 	TqFloat slopeMaxNew;
 	TqFloat testSlopeMin;
 	TqFloat testSlopeMax;
-	TqFloat slopeNewLine;
+	TqFloat slopeRed;
+	TqFloat slopeGreen;
+	TqFloat slopeBlue;
 	TqFloat funcLength = 0;
 	TqVisibilityFunction::const_iterator visitCurrent = visibilityDataSource->begin();
 	TqVisibilityFunction::const_iterator visitNext;
@@ -1292,37 +1296,59 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 	tvisDataRow.push_back((**visitCurrent).visibility.fBlue());
 	++funcLength;
 	
-	for( visitCurrent = visibilityDataSource->begin(); visitCurrent != visibilityDataSource->end(); )
+	for( visitCurrent = visibilityDataSource->begin(); visitCurrent != visibilityDataSource->end(); ) //< Note no incrementer
 	{	
 		slopeMin = -1*std::numeric_limits<TqFloat>::max();
 		slopeMax = std::numeric_limits<TqFloat>::max();
 		for( visitNext = visitCurrent+1; visitNext != visibilityDataSource->end(); ++visitNext)
 		{
 			// \todo We should handle each color channel individually
-			testSlopeMin = (((**visitNext).visibility.fRed()-(**visitCurrent).visibility.fRed())-epsilon)/((**visitNext).zdepth-(**visitCurrent).zdepth);
-			testSlopeMax = (((**visitNext).visibility.fRed()-(**visitCurrent).visibility.fRed())+epsilon)/((**visitNext).zdepth-(**visitCurrent).zdepth);
-			if((testSlopeMin >= slopeMin) && (testSlopeMax <= slopeMax))
+			if ((**visitNext).zdepth == (**visitCurrent).zdepth) 
 			{
-				// Step forward
-				slopeMin = testSlopeMin;
-				slopeMax = testSlopeMax;
+				// This will occur frequently because every surface hit has 2 ndoes at the same depth
+				// We should proceed with the next node if the change in visibility is small, that is 
+				// ignore the node, otherwise we should stop
+				if (((**visitCurrent).visibility.fRed()-(**visitNext).visibility.fRed()) > epsilon)
+				{
+					// Stop
+					--visitNext;
+					break;
+				}
 			}
 			else 
 			{
-				// Fall back a step
-				--visitNext;
-				// Stop
-				break;
-			}
+				testSlopeMin = (((**visitNext).visibility.fRed()-(**visitCurrent).visibility.fRed())-epsilon)/((**visitNext).zdepth-(**visitCurrent).zdepth);
+				testSlopeMax = (((**visitNext).visibility.fRed()-(**visitCurrent).visibility.fRed())+epsilon)/((**visitNext).zdepth-(**visitCurrent).zdepth);
+				slopeMinNew = max(testSlopeMin, slopeMin);
+				slopeMaxNew = min(testSlopeMax, slopeMax);
+				if(slopeMaxNew < slopeMinNew)
+				{
+				  // Permissable window of slopes has closed; back up a step.
+				  --visitNext;
+				  break;
+				}
+				else
+				{
+				  slopeMin = slopeMinNew;
+				  slopeMax = slopeMaxNew;
+				}
+			}			
 		}
 		if (visitNext == visibilityDataSource->end())
 		{
-			--visitNext;
+			//printf("Case 3\n");
+			--visitNext; // This is necessary in case this line segment includes the end node:
+						// The for() loop pre-increments visitNext past the end node, so we set it back here.
 		}
+		// Draw a line segment
+		slopeRed = (slopeMax+slopeMin)/2; // Really need slopes m_maxRed and m_minRed corresponding to the red componenet here
+		slopeGreen = (slopeMax+slopeMin)/2;
+		slopeBlue = (slopeMax+slopeMin)/2;
+		//printf("depth value: %f\n", (**visitCurrent).zdepth);
 		tvisDataRow.push_back((**visitNext).zdepth);
-		tvisDataRow.push_back((**visitNext).visibility.fRed());
-		tvisDataRow.push_back((**visitNext).visibility.fGreen());
-		tvisDataRow.push_back((**visitNext).visibility.fBlue());
+		tvisDataRow.push_back((**visitCurrent).visibility.fRed() + slopeRed * ((**visitNext).zdepth - (**visitCurrent).zdepth) );
+		tvisDataRow.push_back((**visitCurrent).visibility.fGreen() + slopeRed * ((**visitNext).zdepth - (**visitCurrent).zdepth) );
+		tvisDataRow.push_back((**visitCurrent).visibility.fBlue() + slopeRed * ((**visitNext).zdepth - (**visitCurrent).zdepth) );
 		++funcLength;
 		if (visitNext != visitCurrent)
 		{
@@ -1331,7 +1357,7 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 		else
 		{
 			break;
-		}
+		}		
 	}
 	return funcLength;
 }

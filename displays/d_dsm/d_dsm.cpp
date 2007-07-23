@@ -204,18 +204,20 @@ static const int	 ARRAY_TERMINATOR			= -9;
 float GreatestNodeDepth(const DeepShadowData* pData)
 {
 	const int nodeSize = pData->Channels+1; // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
-	const int rowWidth = pData->dsmi.dsmiHeader.iHeight;
+	const int rowWidth = pData->dsmi.dsmiHeader.iWidth;
+	const int columnHeight = pData->dsmi.dsmiHeader.iHeight;
 	int rowNodeCount;	
 	float greatestDepth = 0;
 	float sampleDepth;
 	int row, j;
 	
-	for(row = 0; row < rowWidth; ++row)
+	for(row = 0; row < columnHeight; ++row)
 	{
 		j = 0;
 		rowNodeCount = CountNodes(pData->functionLengths[row], rowWidth);
 		for (j = 0; j < rowNodeCount; ++j)
 		{
+			// Segfault line below: rowNodeCount is too big
 			sampleDepth = pData->testDeepData[row][j*nodeSize];
 			if (sampleDepth > greatestDepth)
 			{
@@ -318,9 +320,11 @@ void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pD
 					if ((currentDepth >= (float)(pData->testDeepData[i][node1Pos])) && (currentDepth <= (float)(pData->testDeepData[i][node2Pos])))
 					{							
 						// I'm not quite sure how the linear interpolation should work. What should the interpolation parameter be?
-						//float lerpParam = (currentDepth-node1.zdepth)/(node2.zdepth-node1.zdepth);
+						// joeedh: interpolation: a = a + (b - a)*percentage
+						// joeedh: to get percentage, you use the formula (current_z-first_z) / (last_z-first_z)
+						//float lerpParam = (currentDepth-node1.zdepth)/(node2.zdepth-node1.zdepth); ///< this is percentage
 						//lerp(const T t, const V x0, const V x1)
-						// Just use the first node's values for now
+						// Just use the first node's values for now, but keep in mind once you start vis func compression that there may in fact be slope changes introduced.
 						imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][node1Pos+1]*255); 
 						imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][node1Pos+2]*255); //< Assuming a color image
 						imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][node1Pos+3]*255); //< Assuming a color image
@@ -545,11 +549,10 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	const int functionCount = CountFunctions((const int*)functionLengths, xmax_plusone-xmin);
 	const int nodeCount = CountNodes((const int*)functionLengths, xmax_plusone-xmin);	
 	
-	pData->testDeepData[ymin] = (float*)malloc(nodeCount*sizeof(float));
+	pData->testDeepData[ymin] = (float*)malloc(nodeCount*sizeof(float)); //< MIGHT NEED NODECOUNT*4*SIZEOF(FLOAT)
 	memcpy(pData->testDeepData[ymin], data, nodeCount*sizeof(float));
-	pData->functionLengths[ymin] = (int*)malloc((functionCount+1)*sizeof(int));
+	pData->functionLengths[ymin] = (int*)malloc(functionCount*sizeof(int));
 	memcpy(pData->functionLengths[ymin], functionLengths, functionCount*sizeof(int));
-	pData->functionLengths[ymin][functionCount] = ARRAY_TERMINATOR; //< Try to do without this
 	
 	return PkDspyErrorNone;
 }
@@ -601,22 +604,19 @@ int CountFunctions(const int* fLengths, int rowWidth)
 	const int bucketWidthMinusOne = 15; //< I really need to access the true bucket width somehow
 	int functionCount = 0;
 	int temp;
-	int i = 0;
+	int k = 0;
 	
-	while( i < rowWidth )
+	while( k < rowWidth )
 	{
-		temp = fLengths[i];
-		if (temp > -1)
+		temp = fLengths[functionCount];
+		if (temp == -1)
 		{
-			functionCount++;
+			k += bucketWidthMinusOne; //< -1 because 1 space was used to hold a (-1) to indicate empty bucket
 		}
-		else 
-		{
-			rowWidth -= bucketWidthMinusOne; //< -1 because 1 space was used to hold a (-1) to indicate empty bucket
-		}
-		++i;
+		++functionCount;
+		++k;
 	}
-	printf("FunctionCount is %d\n", functionCount);
+	printf("FunctionCount is %d\n",functionCount);
 	return functionCount;
 }
 
@@ -626,21 +626,30 @@ int CountNodes(const int* fLengths, int rowWidth)
 	int nodeCount = 0;
 	int temp;
 	int i = 0;
-	
-	while( i < rowWidth )
+	int k = 0;
+
+	while( k < rowWidth )
 	{
 		temp = fLengths[i];
 		if (temp > -1)
 		{
+			//printf("temp is %d and i is %d and rowWidth is %d and k is %d\n", temp, i, rowWidth, k);
 			nodeCount += temp;
+			++k;
 		}
 		else 
 		{
-			rowWidth -= bucketWidthMinusOne; //< -1 because 1 space was used to hold a (-1) to indicate empty bucket
+			k += bucketWidthMinusOne;
+			//rowWidth -= bucketWidthMinusOne; //< -1 because 1 space was used to hold a (-1) to indicate empty bucket
 		}
 		++i;
 	}
-	printf("nodeCount is %d\n", nodeCount);
+	//printf("nodeCount is %d and i is %d and temp is %d and rowWidth is %d\n", nodeCount, i, temp, rowWidth);
+	if (nodeCount > 10000)
+	{
+		int * foo = NULL;
+		*foo = 5;
+	}
 	return nodeCount;	
 }
 

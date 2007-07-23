@@ -100,6 +100,7 @@ struct SqDDMemberData
 	
 	//----------------------------------------------------------------
 	// Member Data
+	/// \todo Replace instances of CqString with std::string
 	CqString m_strOpenMethod;
 	CqString m_strQueryMethod;
 	CqString m_strDataMethod;
