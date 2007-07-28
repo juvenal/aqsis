@@ -42,6 +42,50 @@
 
 START_NAMESPACE( Aqsis )
 
+// Currently checks if every pixel in the bucket has its 
+// first visibility node at depth 0 and visibility 1.
+void CqDeepDisplayRequest::checkBucketDataMap(TqInt ymin, TqInt bucketWidth, TqInt bucketHeight)
+{
+	const std::vector< std::vector<float> >& tvisData = m_BucketDeepDataMap[ymin].back()->m_VisibilityDataRows;
+	const std::vector< std::vector<int> >& tvisFunctionLengths = m_BucketDeepDataMap[ymin].back()->m_VisibilityFunctionLengths; 
+	std::vector< std::vector<float> >::const_iterator myit1;
+	std::vector<float>::const_iterator myit2;
+	const std::vector< std::vector<float> >::const_iterator endit1 = tvisData.end();
+	std::vector<float>::const_iterator endit2;
+	const TqUint imageHeight = QGetRenderContext()->pImage()->CropWindowYMax() - QGetRenderContext()->pImage()->CropWindowYMin();
+	TqUint x, i, readPos;
+	
+	bucketHeight = min(bucketHeight, (TqInt)imageHeight-ymin);
+	
+	for (x = 0; x < bucketHeight; ++x)
+	{
+		readPos = 0;
+		for (i = 0; i < 1; ++i)
+		{
+			if (tvisFunctionLengths[x][i] == -1)
+			{
+				i += bucketWidth-1;
+				continue;	
+			}
+			//printf("depth is %f and vis is %f\n", tvisData[x][readPos], tvisData[x][readPos+1]);
+			readPos += 4*tvisFunctionLengths[x][i];
+		}
+	}	
+	
+	/*
+	for (myit1 = tvisData.begin(); myit1 != endit1; ++myit1)
+	{
+		endit2 = myit1->end();
+		for (myit2 = myit1->begin(); myit2 != endit2; ++myit2)
+		{
+			printf("depth is %f and vis is: %f\n", myit2[0], myit2[1]);
+			assert(myit2[0] == 0); // Assert depth is 0
+			assert(myit2[1] == 1); // Assert white
+		}
+	}
+	*/
+}
+
 // Not sure where is the best place to put this.
 // I tried making it a member function in CqDeepDisplayRequest, but
 // it is used as a template argument to std::sort(), which requires external linkage,
@@ -347,7 +391,7 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 			// Determine the type of the AOV data being displayed.
 			TqInt type;
 			type = QGetRenderContext()->OutputDataType(m_mode.c_str());
-			std::string componentNames = "";
+			CqString componentNames = "";
 			switch(type)
 			{
 					case type_point:
@@ -574,18 +618,18 @@ void CqDDManager::InitialiseDisplayNameMap()
 	if ( fileINI.IsValid() )
 	{
 		// On each line, read the first string, then the second and store them in the map.
-		std::string strLine;
+		CqString strLine;
 		std::istream& strmINI = static_cast<std::istream&>( fileINI );
 
 		while ( std::getline( strmINI, strLine ) )
 		{
-			std::string strName, strDriverName;
-			std::string::size_type iStartN = strLine.find_first_not_of( "\t " );
-			std::string::size_type iEndN = strLine.find_first_of( "\t ", iStartN );
-			std::string::size_type iStartD = strLine.find_first_not_of( "\t ", iEndN );
-			std::string::size_type iEndD = strLine.find_first_of( "\t ", iStartD );
-			if ( iStartN != std::string::npos && iEndN != std::string::npos &&
-			        iStartD != std::string::npos )
+			CqString strName, strDriverName;
+			CqString::size_type iStartN = strLine.find_first_not_of( "\t " );
+			CqString::size_type iEndN = strLine.find_first_of( "\t ", iStartN );
+			CqString::size_type iStartD = strLine.find_first_not_of( "\t ", iEndN );
+			CqString::size_type iEndD = strLine.find_first_of( "\t ", iStartD );
+			if ( iStartN != CqString::npos && iEndN != CqString::npos &&
+			        iStartD != CqString::npos )
 			{
 				strName = strLine.substr( iStartN, iEndN );
 				strDriverName = strLine.substr( iStartD, iEndD );
@@ -638,14 +682,14 @@ CqString CqDDManager::GetStringField( const CqString& s, int idx )
 					z = 1;
 				}
 				if ( idx > 0 )
-					start++;
+					++start;
 				break;
 				case 1:
 				if ( c == ' ' || c == '\t' )
 				{
 					z = 0;
 				}
-				start++;
+				++start;
 				break;
 				case 2:
 				if ( c == ' ' || c == '\t' )
@@ -654,7 +698,7 @@ CqString CqDDManager::GetStringField( const CqString& s, int idx )
 				}
 				else
 				{
-					end++;
+					++end;
 				}
 				break;
 		}
@@ -1035,7 +1079,6 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	std::vector< std::vector<int> >& tvisFuncLengths = inBucketDeepData->m_VisibilityFunctionLengths;
 	std::vector< std::vector<float> >& tvisData = inBucketDeepData->m_VisibilityDataRows;
 	tvisFuncLengths.resize(bucketHeight);
-	tvisData.resize(bucketHeight);
 	
 	// Copy data from the SqVisibilityNodes into std::vectors of Floats
 	// such that each consequtive pair, or tuple, of floats represents (depth, visibility)
@@ -1057,12 +1100,13 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	else 
 	{
 		// Non-empty buckets:
+		tvisData.resize(bucketHeight);
 		for ( y = 0; y < bucketHeight; ++y )
 		{
 			for ( x = 0; x < bucketWidth; ++x )
 			{
 				const TqVisibilityFunction* visibilityDataSource = pBucket->DeepData( x, y );
-				tvisFuncLengths[row].push_back(CompressVisibilityFunction(visibilityDataSource, tvisData[row]));
+				tvisFuncLengths[row].push_back(CopyVisibilityFunction(visibilityDataSource, tvisData[row]));
 			}
 			++row;
 		}
@@ -1071,8 +1115,9 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	// This lets us sort the buckets by row later when collapsing to scanlines:
 	// necessary if non-standard bucket ordering is ever supported.
 	(*inBucketDeepData).horizontalBucketIndex = xmin;
-	// Add bucket to the map.
+	// Add bucket to the map. Even if the bucket is empty, add an empty bucket so that this row of buckets will eventually be filled.
 	m_BucketDeepDataMap[ymin].push_back(inBucketDeepData);
+	checkBucketDataMap(ymin, bucketWidth, bucketHeight);
 }
 
 //-----------------------------------------------------------
@@ -1115,15 +1160,15 @@ bool CqDeepDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 	TqUint y;
 	TqUint i;
 	
-	// As per Chris: When the row of buckets is completed, you can copy all the buckets into a
+	// When the row of buckets is completed, you can copy all the buckets into a
 	// scanline at the same time, and immediately send it to the display. Then release the memory.
 	// We take the full row of buckets stored in m_BucketDeepDataMap and collapse into full rows
 	// of pixels in m_CollapsedBucketRow, which we send a line at a time to the display.
 	if (m_BucketDeepDataMap[ymin].size() == bucketsPerRow)
 	{
 		// First ensure the row of buckets is sorted
-		// Invoke Deep Data Map sort function
 		std::sort(m_BucketDeepDataMap[ymin].begin(), m_BucketDeepDataMap[ymin].end(), DeepDataMapRowSortPredicate);
+		// Initialize variables
 		boost::shared_ptr<SqCompressedDeepData> collapsedBucketRow(new SqCompressedDeepData);
 		m_CollapsedBucketRow = collapsedBucketRow;
 		std::vector< std::vector<int> >& tvisFuncLengths = (*m_CollapsedBucketRow).m_VisibilityFunctionLengths;
@@ -1133,17 +1178,21 @@ bool CqDeepDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 		
 		for (i = 0; i < bucketsPerRow; ++i)
 		{
+			// Copy a bucket's data, one row at a time
 			for ( y = 0; y < bucketHeight; ++y )
 			{
-				// Copy one row of bucket's pixels
-				// First copy the function lengths
+				// First copy the function lengths, always, even for empty buckets
 				tvisFuncLengths[y].insert(tvisFuncLengths[y].end(), 
 						m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].begin(), 
 						m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].end());
 				// Then copy the visibility data
-				tvisData[y].insert(tvisData[y].end(),
-						m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows[y].begin(), 
-						m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows[y].end());
+				// Make sure this bucket isn't empty before attempting to copy its data
+				if (m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows.size() > 0)
+				{
+					tvisData[y].insert(tvisData[y].end(),
+							m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows[y].begin(), 
+							m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows[y].end());
+				}				
 			}
 		}
 		return true;
@@ -1205,11 +1254,6 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 				err = (m_DeepDataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
 						reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityDataRows[i].front())),
 				 		reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].front())));
-				
-				printf("nodeCount should be %d/4 and functionCount should be %d or less, by a factor os bucketWidth\n", 
-						m_CollapsedBucketRow->m_VisibilityDataRows[i].size(),
-						m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].size());
-				
 				++i;
 			}
 			// Delete row data
@@ -1287,6 +1331,7 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 	TqFloat slopeBlue;
 	TqFloat funcLength = 0;
 	TqVisibilityFunction::const_iterator visitCurrent = visibilityDataSource->begin();
+	const TqVisibilityFunction::const_iterator visitEnd = visibilityDataSource->end();
 	TqVisibilityFunction::const_iterator visitNext;
 	
 	// Always use the first node
@@ -1295,19 +1340,18 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 	tvisDataRow.push_back((**visitCurrent).visibility.fGreen());
 	tvisDataRow.push_back((**visitCurrent).visibility.fBlue());
 	++funcLength;
-	
-	for( visitCurrent = visibilityDataSource->begin(); visitCurrent != visibilityDataSource->end(); ) //< Note no incrementer
+
+	while( visitCurrent != visitEnd )
 	{	
 		slopeMin = -1*std::numeric_limits<TqFloat>::max();
 		slopeMax = std::numeric_limits<TqFloat>::max();
-		for( visitNext = visitCurrent+1; visitNext != visibilityDataSource->end(); ++visitNext)
+		for( visitNext = visitCurrent+1; visitNext != visitEnd; ++visitNext)
 		{
 			// \todo We should handle each color channel individually
 			if ((**visitNext).zdepth == (**visitCurrent).zdepth) 
 			{
 				// This will occur frequently because every surface hit has 2 ndoes at the same depth
-				// We should proceed with the next node if the change in visibility is small, that is 
-				// ignore the node, otherwise we should stop
+				// We should proceed with the next node (ignore the current node) if the change in visibility is small, otherwise we should stop
 				if (((**visitCurrent).visibility.fRed()-(**visitNext).visibility.fRed()) > epsilon)
 				{
 					// Stop
@@ -1334,17 +1378,16 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 				}
 			}			
 		}
-		if (visitNext == visibilityDataSource->end())
+		if (visitNext == visitEnd)
 		{
-			//printf("Case 3\n");
-			--visitNext; // This is necessary in case this line segment includes the end node:
-						// The for() loop pre-increments visitNext past the end node, so we set it back here.
+			--visitNext; // This is the case where the last node has not been added because the current line segment ended with it,
+						// but we want to add the end node
 		}
 		// Draw a line segment
 		slopeRed = (slopeMax+slopeMin)/2; // Really need slopes m_maxRed and m_minRed corresponding to the red componenet here
 		slopeGreen = (slopeMax+slopeMin)/2;
 		slopeBlue = (slopeMax+slopeMin)/2;
-		//printf("depth value: %f\n", (**visitCurrent).zdepth);
+
 		tvisDataRow.push_back((**visitNext).zdepth);
 		tvisDataRow.push_back((**visitCurrent).visibility.fRed() + slopeRed * ((**visitNext).zdepth - (**visitCurrent).zdepth) );
 		tvisDataRow.push_back((**visitCurrent).visibility.fGreen() + slopeRed * ((**visitNext).zdepth - (**visitCurrent).zdepth) );
@@ -1358,6 +1401,32 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 		{
 			break;
 		}		
+	}
+	return funcLength;
+}
+
+TqInt CqDeepDisplayRequest::CopyVisibilityFunction(const TqVisibilityFunction* visibilityDataSource, std::vector<float>& tvisDataRow)
+{
+	 TqInt funcLength = 0;
+	 TqVisibilityFunction::const_iterator visit;
+	 const TqVisibilityFunction::const_iterator visend = visibilityDataSource->end();
+	
+	 for( visit = visibilityDataSource->begin(); visit != visend; ++visit)
+	 {
+		 //begin debugging
+		 if (visit == visibilityDataSource->begin())
+		 {
+			 if (((**visit).zdepth != 0) || ((**visit).visibility.fRed() != 1))
+			 {
+				printf("Error: first visibility node not as expeced\n"); 
+			 }
+		 }
+		 //end debugging
+		 tvisDataRow.push_back((**visit).zdepth);
+		 tvisDataRow.push_back((**visit).visibility.fRed());
+	  	 tvisDataRow.push_back((**visit).visibility.fGreen());
+	  	 tvisDataRow.push_back((**visit).visibility.fBlue());
+	  	 ++funcLength;
 	}
 	return funcLength;
 }

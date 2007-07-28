@@ -228,6 +228,60 @@ float GreatestNodeDepth(const DeepShadowData* pData)
 	return greatestDepth;
 }
 
+void checkData(PtDspyImageHandle image, int ymin, int ymaxplus1)
+{
+	const DeepShadowData *pData = (DeepShadowData *)image;
+	const int width = pData->dsmi.dsmiHeader.iWidth;
+	const int height = pData->dsmi.dsmiHeader.iHeight;
+	const int nodeSize = pData->Channels+1; // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
+	const int bucketWidth = 16; // \todo Somehow get the actual bucket width
+	int i, j, k, readPos, thisFunctionLength;
+
+	for (i = ymin; i < ymaxplus1; ++i)
+	{
+		readPos = 0;
+		k = 0; // Keep this variable in parallel with j, but always increment k by 1
+		for (j = 0; j < width; ++j)
+		{
+			thisFunctionLength = pData->functionLengths[i][k];
+			if( thisFunctionLength == -1)
+			{
+				j += bucketWidth-2; // This is probably really bad to modify the loop variable outside the loop header
+				++k;				
+				continue;
+			}
+			printf("Depth is %f and vis is %f\n", (float)(pData->testDeepData[i][readPos]), (float)(pData->testDeepData[i][readPos+1]));
+			++k;
+			readPos += nodeSize;
+		}
+	}	
+/*	
+	for (i = ymin; i < ymaxplus1; ++i)
+	{
+		readPos = 0;
+		k = 0; // Keep this variable in parallel with j, but always increment k by 1
+		for (j = 0; j < width; ++j)
+		{
+			thisFunctionLength = pData->functionLengths[i][k];
+			if( thisFunctionLength == -1)
+			{
+				j += bucketWidth-2; // This is probably really bad to modify the loop variable outside the loop header
+				++k;				
+				continue;
+			}
+			if((float)(pData->testDeepData[i][readPos]) != 0 || (float)(pData->testDeepData[i][readPos+1]) != 1)
+			{
+				printf("Error in d_dsm:checkData() first vis func node not as expected with depth %f and vis %f\n", (float)(pData->testDeepData[i][readPos]), (float)(pData->testDeepData[i][readPos+1]));
+			}
+			assert((float)(pData->testDeepData[i][readPos]) == 0); // Assert depth is 0
+			assert((float)(pData->testDeepData[i][readPos+1]) == 1); // Assert white
+			++k;
+			readPos += nodeSize*thisFunctionLength;
+		}
+	}
+	*/
+}
+
 void PrepareBitmapHeader(const DeepShadowData* pData, AppData& g_Data)
 {
 	const int width = pData->dsmi.dsmiHeader.iWidth;
@@ -288,25 +342,48 @@ void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pD
 	const int height = pData->dsmi.dsmiHeader.iHeight;
 	const int nodeSize = pData->Channels+1; // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
 	const int bucketWidth = 16; // \todo Somehow get the actual bucket width
+	const float currentDepth = pnum*sliceInterval; // the z-slice we are currently writing to bitmap
 	int i, j, k;
-	float currentDepth = 0; // the z-slice we are currently writing to bitmap
-	int readPos = 0; // array index into the deep data: points to the beginning (z-depth) of a visibility node
+	int readPos = 0; // array index into the deep data: points to the beginning (depth element) of a visibility node
 	float nextNodeDepth;
 	float endNodeDepth;
 	int thisFunctionLength;
 	int endNodePos;
-	
+
 	for (i = 0; i < height; ++i)
 	{
-		currentDepth = pnum*sliceInterval;
 		readPos = 0;
 		k = 0; // Keep this variable in parallel with j, but always increment k by 1
 		for (j = 0; j < width; ++j)
 		{
 			thisFunctionLength = pData->functionLengths[i][k];
+			// If current bucket is empty, write out white pixels, increment the column pointer, and increment readPos by 1 to 
+			// point to the beginning of the next visibility function.
+			
+			if (thisFunctionLength == -1)
+			{
+				// Choose the appropriate width of pixels to write: if near the edge, may be fewer than bucketWidth pixels
+				int writeWidth = bucketWidth;
+				if (j+bucketWidth > width)
+				{
+					writeWidth = width-j;
+				}
+				memset(imageBuffer+((3*((i*width)+j))*sizeof(char)), 255, 3*writeWidth*sizeof(char)); // Use white for 100% visibility (no shadow with this pixel)
+				j += bucketWidth-2; // This is probably really bad to modify the loop variable outside the loop header
+				++k;
+				continue;
+			}
 			nextNodeDepth = (float)(pData->testDeepData[i][readPos]);
 			endNodePos = readPos+nodeSize*(thisFunctionLength-1);
 			endNodeDepth = (float)(pData->testDeepData[i][endNodePos]);
+			// This stuff should be white (1) but it is black (0)
+			// At some point data is corrupted or copied incorrectly or otherwise out of range
+			// Write a checkData() function to assert that the first node in all the visibility functions is white (0,1)
+			imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][readPos+1]*255); 
+			imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][readPos+2]*255); //< Assuming a color image
+			imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][readPos+3]*255); //< Assuming a color image
+			readPos += nodeSize*thisFunctionLength;
+			continue;
 			// Most common case first:
 			// If current function's endNodeDepth > currentDepth, find via interpolation the visibility at current zdepth in
 			// this visibility function: that is, find the two nodes that sandwhich the current z-depth, and linearly interpolate between them.
@@ -329,6 +406,7 @@ void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pD
 						imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][node1Pos+2]*255); //< Assuming a color image
 						imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][node1Pos+3]*255); //< Assuming a color image
 						readPos += nodeSize*thisFunctionLength;
+						c = 0; // We can remove this later, when we remove the if(c == thisFunctionLength) block
 						break;
 					}
 					node1Pos += nodeSize;
@@ -339,22 +417,17 @@ void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pD
 					// This should never happen
 					printf("Error: could not find sandwich nodes in WriteDSMImageSequence()\n");
 				}
-			}		
-			// Else if current bucket is empty, write out white pixels, increment the column pointer, and increment readPos by 1 to 
-			// point to the beginning of the next visibility function.				
-			else if (thisFunctionLength == -1)
-			{
-				memset(imageBuffer+(3*((i*width)+j))*sizeof(char), 255, 3*bucketWidth*sizeof(char));
-				j += bucketWidth; // This is probably really bad to modify the loop variable outside the loop header
-				readPos += 1; 
-			}				
-			// Else If the current function's endNodeDepth < currentDepth,  write a pixel color equal to
+			}						
+			// Else If the current function's endNodeDepth <= currentDepth,  write a pixel color equal to
 			// the last visibility node in this function.
 			else if (endNodeDepth <= currentDepth)
 			{	
 				imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][endNodePos+1]*255); 
 				imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][endNodePos+2]*255); //< Assuming a color image
 				imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][endNodePos+3]*255); //< Assuming a color image
+				//printf("color R is %d\n", (int)(pData->testDeepData[i][endNodePos+1]*255));
+				//printf("color G is %d\n", (int)(pData->testDeepData[i][endNodePos+2]*255));
+				//printf("color B is %d\n", (int)(pData->testDeepData[i][endNodePos+3]*255));
 				readPos += nodeSize*thisFunctionLength;
 			}
 			else
@@ -383,13 +456,13 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 	int pnum; // the number of the current bitmap image we are building in the sequence
 	
 	// Create a buffer the size of a bitmap
-	char* imageBuffer = (char*)malloc(dataSizeInBytes);
+	char* imageBuffer = new char[dataSizeInBytes];
 	//memset(imageBuffer, 0, dataSizeInBytes); // Black out the image
 	
 	PrepareBitmapHeader(pData, g_Data);
 	
 	// Open files and write bitmap files
-	for (pnum = 0; pnum < imageFileCount; ++pnum)
+	for (pnum = 0; pnum < 1; ++pnum)
 	{
 		char fileName[40];
 		char sequenceNumber[10];
@@ -429,7 +502,7 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 		fclose(g_Data.fp);
 		g_Data.fp = NULL;		
 	}
-	free(imageBuffer);
+	delete imageBuffer;
 }
 
 //******************************************************************************
@@ -491,8 +564,8 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	                         sizeof(DSMINFOHEADER);
 	g_Data.dsmfh.fOffBits  = sizeof(DSMFILEHEADER) + sizeof(DSMINFOHEADER);
 
-	g_Data.testDeepData = (float**)malloc(height*sizeof(float*));
-	g_Data.functionLengths = (int**)malloc(height*sizeof(int*));
+	g_Data.testDeepData = new float*[height*sizeof(float*)];
+	g_Data.functionLengths = new int*[height*sizeof(int*)];
 	
 	memcpy((void*) pData, (void *) &g_Data, sizeof(DeepShadowData));
 
@@ -547,13 +620,17 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 		return PkDspyErrorBadParams;
 	}
 	const int functionCount = CountFunctions((const int*)functionLengths, xmax_plusone-xmin);
-	const int nodeCount = CountNodes((const int*)functionLengths, xmax_plusone-xmin);	
+	const int nodeCount = CountNodes((const int*)functionLengths, xmax_plusone-xmin);
 	
-	pData->testDeepData[ymin] = (float*)malloc(nodeCount*sizeof(float)); //< MIGHT NEED NODECOUNT*4*SIZEOF(FLOAT)
+	//printf("functionCount is %d\n", functionCount);
+	//printf("nodeCount is %d\n", nodeCount);
+	
+	pData->testDeepData[ymin] = new float[nodeCount*4*sizeof(float)];
 	memcpy(pData->testDeepData[ymin], data, nodeCount*sizeof(float));
-	pData->functionLengths[ymin] = (int*)malloc(functionCount*sizeof(int));
+	pData->functionLengths[ymin] = new int[functionCount*sizeof(int)];
 	memcpy(pData->functionLengths[ymin], functionLengths, functionCount*sizeof(int));
 	
+	checkData(image, ymin, ymax_plusone);
 	return PkDspyErrorNone;
 }
 
@@ -571,31 +648,10 @@ extern "C" PtDspyError DspyImageClose(PtDspyImageHandle image)
 	
 	DeepShadowData *pData = (DeepShadowData *)image;
 	int i;
+
+	delete[] pData->testDeepData;
+	delete[] pData->functionLengths;
 	
-	for (i = 0; i < pData->dsmi.dsmiHeader.iHeight; ++i)
-	{
-		free(pData->testDeepData[i]);
-		free(pData->functionLengths[i]);
-	}
-	free(pData->testDeepData);
-	free(pData->functionLengths);
-
-
-/*
-	if ( pData->fp )
-		fclose(pData->fp);
-	pData->fp = NULL;
-
-	if ( pData->FileName )
-		free(pData->FileName);
-	pData->FileName = NULL;
-
-	if ( pData->ImageData )
-		free(pData->ImageData);
-	pData->ImageData = NULL;
-
-   free(pData);
-*/
 	return PkDspyErrorNone;
 }
 
@@ -616,13 +672,12 @@ int CountFunctions(const int* fLengths, int rowWidth)
 		++functionCount;
 		++k;
 	}
-	printf("FunctionCount is %d\n",functionCount);
 	return functionCount;
 }
 
 int CountNodes(const int* fLengths, int rowWidth)
 {
-	const int bucketWidthMinusOne = 15; //< I really need to access the true bucket width somehow
+	const int bucketWidth = 16; //< I really need to access the true bucket width somehow
 	int nodeCount = 0;
 	int temp;
 	int i = 0;
@@ -633,22 +688,14 @@ int CountNodes(const int* fLengths, int rowWidth)
 		temp = fLengths[i];
 		if (temp > -1)
 		{
-			//printf("temp is %d and i is %d and rowWidth is %d and k is %d\n", temp, i, rowWidth, k);
 			nodeCount += temp;
 			++k;
 		}
 		else 
 		{
-			k += bucketWidthMinusOne;
-			//rowWidth -= bucketWidthMinusOne; //< -1 because 1 space was used to hold a (-1) to indicate empty bucket
+			k += bucketWidth;
 		}
 		++i;
-	}
-	//printf("nodeCount is %d and i is %d and temp is %d and rowWidth is %d\n", nodeCount, i, temp, rowWidth);
-	if (nodeCount > 10000)
-	{
-		int * foo = NULL;
-		*foo = 5;
 	}
 	return nodeCount;	
 }

@@ -50,7 +50,7 @@ struct SqCompressedDeepData
 {
 	SqCompressedDeepData():
 		m_VisibilityFunctionLengths( 1 ),
-		m_VisibilityDataRows( 1 ),
+		m_VisibilityDataRows( 0 ),
 		horizontalBucketIndex( -1 )
 	{}
 	// Lengths (# nodes) in each visibility function in m_VisibilityDataRows
@@ -58,6 +58,7 @@ struct SqCompressedDeepData
 	// Note: using C-type "float" because this data gets passed to the C API:
 	// The external vector is indexed by pixel row, and the second vector is indexed by pixel column,
 	// yielding the length of the visibility function (number of nodes) at pixel (x,y).
+	// A value of -1 indicates that the bucket whose top left pixel is at this location is an empty bucket.
 	std::vector< std::vector<int> > m_VisibilityFunctionLengths;
 	// A buckets's visibility data: 
 	// The external vector is indexed by pixel row, wrt the first row in the bucket (row 0)
@@ -65,6 +66,8 @@ struct SqCompressedDeepData
 	// the data in m_VisibilityFunctionLengths. 
 	// Note: The data is stored contiguously, and a node has length between 2 and 4 floats,
 	// depending on whether the visibility functions are grayscale of color.
+	// There is no data in m_VisibilityDataRows to represent empty buckets (it is skipped). Empty buckets are identified with
+	// a value of -1 in m_VisibilityFunctionLengths.
 	std::vector< std::vector<float> > m_VisibilityDataRows;
 	// CqDeepDisplayRequest::m_BucketDeepDataMap keeps an unsorted list of buckets
 	// which need to be sorted before collapsing to scanline.
@@ -100,7 +103,6 @@ struct SqDDMemberData
 	
 	//----------------------------------------------------------------
 	// Member Data
-	/// \todo Replace instances of CqString with std::string
 	CqString m_strOpenMethod;
 	CqString m_strQueryMethod;
 	CqString m_strDataMethod;
@@ -191,7 +193,7 @@ class CqDisplayRequest
 		PtFlagStuff	m_flags;
 		std::vector<PtDspyDevFormat> m_formats;
 		std::vector<TqInt>			m_dataOffsets;
-		std::vector<std::string>	m_AOVnames;
+		std::vector<CqString>	m_AOVnames;
 		TqInt		m_elementSize;
 		TqFloat		m_QuantizeZeroVal;
 		TqFloat		m_QuantizeOneVal;
@@ -301,6 +303,19 @@ class CqDeepDisplayRequest : virtual public CqDisplayRequest
 		 * \return The integer length (number of nodes) of the resulting compressed visibility function.
 		 */
 		virtual TqInt CompressVisibilityFunction(const TqVisibilityFunction* visibilityDataSource, std::vector<float>& tvisDataRow);
+		/* Copy the visibility function node data into the given vector of floats
+		 * 
+		 * \return The integer length (number of nodes) of the copied visibility function.
+		 */		
+		virtual TqInt CopyVisibilityFunction(const TqVisibilityFunction* visibilityDataSource, std::vector<float>& tvisDataRow);
+		
+		//-------------------------------------------------------------------------------------
+		// Debugging functions
+		/* Check that the first node in every visibility function in the bucket associated with ymin in the bucket map
+		 * is a node at depth 0 with visibility 100%.
+		 * 
+		 */			
+		void checkBucketDataMap(TqInt ymin, TqInt bucketWidth, TqInt bucketHeight);
 			
 	private:
 		std::map<TqInt, std::vector<boost::shared_ptr<SqCompressedDeepData> > > m_BucketDeepDataMap;
