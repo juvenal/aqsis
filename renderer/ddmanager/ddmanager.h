@@ -311,6 +311,12 @@ class CqDeepDisplayRequest : virtual public CqDisplayRequest
 		
 		//-------------------------------------------------------------------------------------
 		// Debugging functions
+		
+		/* Check that every pixel in the collapsed row of buckets has its first
+		 * visibility function node at depth 0 and 100% visibility.
+		 */
+		void checkCollapsedBucketRow();
+		
 		/* Check that the first node in every visibility function in the bucket associated with ymin in the bucket map
 		 * is a node at depth 0 with visibility 100%.
 		 * 

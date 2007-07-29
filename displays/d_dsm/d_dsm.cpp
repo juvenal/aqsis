@@ -246,40 +246,18 @@ void checkData(PtDspyImageHandle image, int ymin, int ymaxplus1)
 			thisFunctionLength = pData->functionLengths[i][k];
 			if( thisFunctionLength == -1)
 			{
-				j += bucketWidth-2; // This is probably really bad to modify the loop variable outside the loop header
+				j += bucketWidth-1; // This is probably really bad to modify the loop variable outside the loop header
 				++k;				
 				continue;
 			}
-			printf("Depth is %f and vis is %f\n", (float)(pData->testDeepData[i][readPos]), (float)(pData->testDeepData[i][readPos+1]));
-			++k;
-			readPos += nodeSize;
-		}
-	}	
-/*	
-	for (i = ymin; i < ymaxplus1; ++i)
-	{
-		readPos = 0;
-		k = 0; // Keep this variable in parallel with j, but always increment k by 1
-		for (j = 0; j < width; ++j)
-		{
-			thisFunctionLength = pData->functionLengths[i][k];
-			if( thisFunctionLength == -1)
+			if ((float)(pData->testDeepData[i][readPos]) != 0 || (float)(pData->testDeepData[i][readPos+1]) != 1)
 			{
-				j += bucketWidth-2; // This is probably really bad to modify the loop variable outside the loop header
-				++k;				
-				continue;
-			}
-			if((float)(pData->testDeepData[i][readPos]) != 0 || (float)(pData->testDeepData[i][readPos+1]) != 1)
-			{
-				printf("Error in d_dsm:checkData() first vis func node not as expected with depth %f and vis %f\n", (float)(pData->testDeepData[i][readPos]), (float)(pData->testDeepData[i][readPos+1]));
-			}
-			assert((float)(pData->testDeepData[i][readPos]) == 0); // Assert depth is 0
-			assert((float)(pData->testDeepData[i][readPos+1]) == 1); // Assert white
+				printf("Error in d_dsm:checkData():Depth is %f and vis is %f\n", (float)(pData->testDeepData[i][readPos]), (float)(pData->testDeepData[i][readPos+1]));	
+			}	
 			++k;
 			readPos += nodeSize*thisFunctionLength;
 		}
-	}
-	*/
+	}	
 }
 
 void PrepareBitmapHeader(const DeepShadowData* pData, AppData& g_Data)
@@ -369,7 +347,7 @@ void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pD
 					writeWidth = width-j;
 				}
 				memset(imageBuffer+((3*((i*width)+j))*sizeof(char)), 255, 3*writeWidth*sizeof(char)); // Use white for 100% visibility (no shadow with this pixel)
-				j += bucketWidth-2; // This is probably really bad to modify the loop variable outside the loop header
+				j += bucketWidth-1; // This is probably really bad to modify the loop variable outside the loop header
 				++k;
 				continue;
 			}
@@ -625,12 +603,40 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	//printf("functionCount is %d\n", functionCount);
 	//printf("nodeCount is %d\n", nodeCount);
 	
-	pData->testDeepData[ymin] = new float[nodeCount*4*sizeof(float)];
+	pData->testDeepData[ymin] = new float[nodeCount*4];
 	memcpy(pData->testDeepData[ymin], data, nodeCount*sizeof(float));
-	pData->functionLengths[ymin] = new int[functionCount*sizeof(int)];
+	pData->functionLengths[ymin] = new int[functionCount];
 	memcpy(pData->functionLengths[ymin], functionLengths, functionCount*sizeof(int));
 	
-	checkData(image, ymin, ymax_plusone);
+	// begin debug
+	
+	int readPos = 0;
+	int count  = 0;
+	for(int c = 0; c < functionCount; ++c)
+	{
+		if ((int)functionLengths[c] > -1)
+		{
+			//printf("DeepData: depth is %f and visibility is %f\n", (float)data[readPos], (float)data[readPos+1]);
+			++count;
+			readPos += 4*(int)functionLengths[c];
+		}
+	}
+	printf("From dsm display, count is %d\n", count);
+	//printf("DeepData: depth is %f and visibility is %f\n", pData->testDeepData[ymin][0], pData->testDeepData[ymin][1]);
+	/*
+	for(int c = 0; c < functionCount; ++c)
+	{
+		if (pData->functionLengths[ymin][c] > -1)
+		{
+			//printf("DeepData: depth is %f and visibility is %f\n", pData->testDeepData[ymin][readPos], pData->testDeepData[ymin][readPos+1]);
+			++count;
+			readPos += 4*pData->functionLengths[ymin][c];
+		}
+	}
+	*/
+	// end debug
+	
+	//checkData(image, ymin, ymax_plusone);
 	return PkDspyErrorNone;
 }
 
@@ -678,6 +684,11 @@ int CountFunctions(const int* fLengths, int rowWidth)
 int CountNodes(const int* fLengths, int rowWidth)
 {
 	const int bucketWidth = 16; //< I really need to access the true bucket width somehow
+								// Also, note that this number is not constant across the image:
+								// bucket width and height will be smaller than the common case
+								// when the bucket lies at a boundary position (bottom or far right)
+								// and the image pixel dimensions are not evenly divisible by the common
+								// bucket dimensions
 	int nodeCount = 0;
 	int temp;
 	int i = 0;
@@ -693,6 +704,9 @@ int CountNodes(const int* fLengths, int rowWidth)
 		}
 		else 
 		{
+			// Note: I may need to handle this case specially in the case of an end-bucket,
+			// but I thik that it won't matter because if the last bucket is empty, we do not 
+			// modify nodeCount
 			k += bucketWidth;
 		}
 		++i;
