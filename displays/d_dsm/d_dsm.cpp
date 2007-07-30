@@ -115,14 +115,6 @@ static bool lowendian();
 // End section from d_sdcBMP.cpp
 //***********************************************************************************
 
-struct FloatSort
-{
-     bool operator()(const float& a, const float& b)
-     {
-          return a < b;
-     }
-};
-
 typedef struct tagDSMFILEHEADER {	  
     short   fType; 
     int     fSize; 
@@ -217,7 +209,6 @@ float GreatestNodeDepth(const DeepShadowData* pData)
 		rowNodeCount = CountNodes(pData->functionLengths[row], rowWidth);
 		for (j = 0; j < rowNodeCount; ++j)
 		{
-			// Segfault line below: rowNodeCount is too big
 			sampleDepth = pData->testDeepData[row][j*nodeSize];
 			if (sampleDepth > greatestDepth)
 			{
@@ -250,9 +241,9 @@ void checkData(PtDspyImageHandle image, int ymin, int ymaxplus1)
 				++k;				
 				continue;
 			}
-			if ((float)(pData->testDeepData[i][readPos]) != 0 || (float)(pData->testDeepData[i][readPos+1]) != 1)
+			if ((pData->testDeepData[i][readPos] != 0) || (pData->testDeepData[i][readPos+1] != 1))
 			{
-				printf("Error in d_dsm:checkData():Depth is %f and vis is %f\n", (float)(pData->testDeepData[i][readPos]), (float)(pData->testDeepData[i][readPos+1]));	
+				printf("Error in d_dsm:checkData():Depth is %f and vis is %f\n", pData->testDeepData[i][readPos], pData->testDeepData[i][readPos+1]);	
 			}	
 			++k;
 			readPos += nodeSize*thisFunctionLength;
@@ -319,7 +310,7 @@ void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pD
 	const int width = pData->dsmi.dsmiHeader.iWidth;
 	const int height = pData->dsmi.dsmiHeader.iHeight;
 	const int nodeSize = pData->Channels+1; // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
-	const int bucketWidth = 16; // \todo Somehow get the actual bucket width
+	const int bucketWidth = 16; // \todo Somehow get the actual bucket width. We can use the "common" width, ignoring possible smaller buckets on the edges. Things will still work.
 	const float currentDepth = pnum*sliceInterval; // the z-slice we are currently writing to bitmap
 	int i, j, k;
 	int readPos = 0; // array index into the deep data: points to the beginning (depth element) of a visibility node
@@ -335,33 +326,35 @@ void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pD
 		for (j = 0; j < width; ++j)
 		{
 			thisFunctionLength = pData->functionLengths[i][k];
+			//printf("thisFunctionLength is %d\n", thisFunctionLength);
 			// If current bucket is empty, write out white pixels, increment the column pointer, and increment readPos by 1 to 
 			// point to the beginning of the next visibility function.
-			
 			if (thisFunctionLength == -1)
 			{
-				// Choose the appropriate width of pixels to write: if near the edge, may be fewer than bucketWidth pixels
-				int writeWidth = bucketWidth;
-				if (j+bucketWidth > width)
-				{
-					writeWidth = width-j;
-				}
+				// Choose the appropriate width of pixels to write: if near the edge, there may be fewer than bucketWidth pixels remaining to be written
+				const int writeWidth = (j+bucketWidth > width) ? width-j : bucketWidth;
 				memset(imageBuffer+((3*((i*width)+j))*sizeof(char)), 255, 3*writeWidth*sizeof(char)); // Use white for 100% visibility (no shadow with this pixel)
 				j += bucketWidth-1; // This is probably really bad to modify the loop variable outside the loop header
 				++k;
 				continue;
 			}
-			nextNodeDepth = (float)(pData->testDeepData[i][readPos]);
+			nextNodeDepth = pData->testDeepData[i][readPos];
 			endNodePos = readPos+nodeSize*(thisFunctionLength-1);
-			endNodeDepth = (float)(pData->testDeepData[i][endNodePos]);
-			// This stuff should be white (1) but it is black (0)
-			// At some point data is corrupted or copied incorrectly or otherwise out of range
-			// Write a checkData() function to assert that the first node in all the visibility functions is white (0,1)
+			endNodeDepth = pData->testDeepData[i][endNodePos];
+//Debug
+/*
+			if (pData->testDeepData[i][readPos] != 0 || pData->testDeepData[i][readPos+1] != 1)
+			{
+				printf("Depth is %f and visibility is %f where i is %d and readPos is %d\n", pData->testDeepData[i][readPos], pData->testDeepData[i][readPos+1], i, readPos );
+			}
 			imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][readPos+1]*255); 
 			imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][readPos+2]*255); //< Assuming a color image
 			imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][readPos+3]*255); //< Assuming a color image
 			readPos += nodeSize*thisFunctionLength;
+			++k;
 			continue;
+*/
+// End debug
 			// Most common case first:
 			// If current function's endNodeDepth > currentDepth, find via interpolation the visibility at current zdepth in
 			// this visibility function: that is, find the two nodes that sandwhich the current z-depth, and linearly interpolate between them.
@@ -403,9 +396,6 @@ void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pD
 				imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][endNodePos+1]*255); 
 				imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][endNodePos+2]*255); //< Assuming a color image
 				imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][endNodePos+3]*255); //< Assuming a color image
-				//printf("color R is %d\n", (int)(pData->testDeepData[i][endNodePos+1]*255));
-				//printf("color G is %d\n", (int)(pData->testDeepData[i][endNodePos+2]*255));
-				//printf("color B is %d\n", (int)(pData->testDeepData[i][endNodePos+3]*255));
 				readPos += nodeSize*thisFunctionLength;
 			}
 			else
@@ -440,7 +430,7 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 	PrepareBitmapHeader(pData, g_Data);
 	
 	// Open files and write bitmap files
-	for (pnum = 0; pnum < 1; ++pnum)
+	for (pnum = 0; pnum < imageFileCount; ++pnum)
 	{
 		char fileName[40];
 		char sequenceNumber[10];
@@ -584,7 +574,7 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
                           int ymax_plusone,
                           int entrysize,
                           const unsigned char* data,
-                          const unsigned char* functionLengths)
+                          const unsigned char* functionLengths) //< # of nodes in each non-empty visibility function in data
 {
 
 #if SHOW_CALLSTACK
@@ -597,46 +587,43 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 		fprintf(stderr, "DspyImageDeepData: Image data not in scanline format\n");
 		return PkDspyErrorBadParams;
 	}
-	const int functionCount = CountFunctions((const int*)functionLengths, xmax_plusone-xmin);
-	const int nodeCount = CountNodes((const int*)functionLengths, xmax_plusone-xmin);
 	
-	//printf("functionCount is %d\n", functionCount);
-	//printf("nodeCount is %d\n", nodeCount);
+	const float* visData = reinterpret_cast<const float*>(data);
+	const int* funLengths = reinterpret_cast<const int*>(functionLengths);
+	const int nodeSize = pData->Channels+1;
+	const int functionCount = CountFunctions(funLengths, xmax_plusone-xmin); //< # of visibility functions in the data
+	const int nodeCount = CountNodes(funLengths, xmax_plusone-xmin); //< Total # of visbility nodes in data
+	
+	//printf("d_dsm: total functionCount is %d\n", functionCount);
+	//printf("d_dsm: total nodeCount is %d\n", nodeCount);
 	
 	pData->testDeepData[ymin] = new float[nodeCount*4];
-	memcpy(pData->testDeepData[ymin], data, nodeCount*sizeof(float));
+	memcpy(pData->testDeepData[ymin], visData, nodeSize*nodeCount*sizeof(float));
 	pData->functionLengths[ymin] = new int[functionCount];
-	memcpy(pData->functionLengths[ymin], functionLengths, functionCount*sizeof(int));
+	memcpy(pData->functionLengths[ymin], funLengths, functionCount*sizeof(int));
 	
 	// begin debug
-	
+	/*
 	int readPos = 0;
 	int count  = 0;
 	for(int c = 0; c < functionCount; ++c)
 	{
-		if ((int)functionLengths[c] > -1)
+		//printf("function length is %d\n",funLengths[c]); // THEES FUNCTION LENGTHS ARE BOGUS
+		if (funLengths[c] > -1)
 		{
-			//printf("DeepData: depth is %f and visibility is %f\n", (float)data[readPos], (float)data[readPos+1]);
+			if (visData[readPos] != 0 || visData[readPos+1] != 1)
+			{
+				printf("Error in DspyImageDeepData: depth is %f and visibility is %f\n", visData[readPos], visData[readPos+1]);
+			}
 			++count;
-			readPos += 4*(int)functionLengths[c];
+			readPos += 4*funLengths[c];
 		}
 	}
-	printf("From dsm display, count is %d\n", count);
-	//printf("DeepData: depth is %f and visibility is %f\n", pData->testDeepData[ymin][0], pData->testDeepData[ymin][1]);
-	/*
-	for(int c = 0; c < functionCount; ++c)
-	{
-		if (pData->functionLengths[ymin][c] > -1)
-		{
-			//printf("DeepData: depth is %f and visibility is %f\n", pData->testDeepData[ymin][readPos], pData->testDeepData[ymin][readPos+1]);
-			++count;
-			readPos += 4*pData->functionLengths[ymin][c];
-		}
-	}
+	printf("d_dsm debug, primary node count is %d\n", count);
+	checkData(image, ymin, ymax_plusone);
 	*/
 	// end debug
 	
-	//checkData(image, ymin, ymax_plusone);
 	return PkDspyErrorNone;
 }
 

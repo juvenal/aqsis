@@ -1209,7 +1209,18 @@ bool CqDeepDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 			for ( y = 0; y < bucketHeight; ++y )
 			{
 				// First copy the function lengths, always, even for empty buckets
-				// Are we certain that the vector keeps its data in a contiguous block of memory? Only if you use push_back() excusively!
+				tvisFuncLengths[y].insert(tvisFuncLengths[y].end(), 
+						m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].begin(), 
+						m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].end());
+				// Then copy the visibility data
+				// Make sure this bucket isn't empty before attempting to copy its data
+				if (m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows.size() > 0)
+				{
+					tvisData[y].insert(tvisData[y].end(),
+							m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows[y].begin(), 
+							m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows[y].end());
+				}
+				/*
 				for(int c = 0; c < m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].size(); ++c)
 				{
 					//printf("length value is %d\n", m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y][c]);
@@ -1224,20 +1235,8 @@ bool CqDeepDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 						tvisData[y].push_back(m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows[y][c]);
 					}
 				}				
-				//printf("m_VisFuncLengths[y].size() is %d\n", m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].size());
-				//tvisFuncLengths[y].insert(tvisFuncLengths[y].end(), 
-				//		m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].begin(), 
-				//		m_BucketDeepDataMap[ymin][i]->m_VisibilityFunctionLengths[y].end());
-				// Then copy the visibility data
-				// Make sure this bucket isn't empty before attempting to copy its data
-				/*
-				if (m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows.size() > 0)
-				{
-					tvisData[y].insert(tvisData[y].end(),
-							m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows[y].begin(), 
-							m_BucketDeepDataMap[ymin][i]->m_VisibilityDataRows[y].end());
-				}
-				*/				
+
+				 */
 			}
 		}
 		return true;
@@ -1300,23 +1299,6 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 				err = (m_DeepDataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
 						reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityDataRows[i].front())),
 				 		reinterpret_cast<const unsigned char*>(&(m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].front())));
-				// DEBUG Check that the first node in every visibility function is (depth = 0, visibility = 1)
-				//printf("Row data at row %d has %d floats\n", y, m_CollapsedBucketRow->m_VisibilityDataRows[i].size());
-				TqInt x, count = 0;
-				TqInt readPos = 0;
-				TqInt thisFunctionLength;
-				for (x = 0; x < m_CollapsedBucketRow->m_VisibilityFunctionLengths[i].size(); ++x)
-				{
-					thisFunctionLength = m_CollapsedBucketRow->m_VisibilityFunctionLengths[i][x];
-					if (thisFunctionLength > -1)
-					{
-						printf("First element depth is %f and visibility is %f\n", m_CollapsedBucketRow->m_VisibilityDataRows[i][readPos], m_CollapsedBucketRow->m_VisibilityDataRows[i][readPos+1]);
-						readPos += 4*thisFunctionLength;
-						++count;
-					}
-				}
-				printf("From ddmanager, count is %d\n", count);
-				// END DEBUG
 				++i;
 			}
 			// Delete row data
