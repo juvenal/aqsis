@@ -40,6 +40,8 @@
 #include	"version.h"
 #include	"debugdd.h"
 
+#include <boost/format.hpp>
+
 START_NAMESPACE( Aqsis )
 
 // Check that every pixel in the collapsed row of buckets has its first
@@ -284,18 +286,21 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 		{
 			CqString strMapping = poptDisplayMapping[0];
 			strDriverFile.Format(strMapping.c_str(), displayType.c_str());
+			//strDriverFile << boost::format(strMapping.c_str()) % displayType.c_str();
 		}
 	}
 	Aqsis::log() << debug << "Attempting to load \"" << strDriverFile.c_str() << "\" for display type \""<< displayType.c_str() << "\"" << std::endl;
 	// Display type not found.
 	if ( strDriverFile.empty() )
 		throw( CqString( "Invalid display type \"" ) + CqString( m_type ) + CqString( "\"" ) + CqString(" (") + strDriverFile + CqString(")") );
+		//throw XqInternal("Invalid display type \"", displayType, __FILE__, __LINE__);
 	if( strDriverFile != "debugdd")
 	{
 		// Try to open the file to see if it's really there
 		CqRiFile fileDriver( strDriverFile.c_str(), "display" );
 		if ( !fileDriver.IsValid() )
 			throw( CqString( "Error loading display driver [ " ) + strDriverFile + CqString( " ]" ) );
+			//throw XqInternal("Invalid display type \"", __FILE__, __LINE__);
 		CqString strDriverPathAndFile = fileDriver.strRealName();
 		// Load the dynamic obejct and locate the relevant symbols.
 		m_DriverHandle = dspyPlugin.SimpleDLOpen( &strDriverPathAndFile );
@@ -1115,6 +1120,18 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	std::vector< std::vector<float> >& tvisData = inBucketDeepData->m_VisibilityDataRows;
 	tvisFuncLengths.resize(bucketHeight);
 	
+// debug
+/*
+	if (ymin == 0 && xmin == 0)
+	{
+		const TqVisibilityFunction* visibilityDataSource = pBucket->DeepData( 0, 0 );
+		TqVisibilityFunction::const_iterator visit = visibilityDataSource->end();
+		--visit;
+		printf("length of the visibility function is %d nodes where the last node is at depth %f with visibility %f\n", visibilityDataSource->size(), (**visit).zdepth, (**visit).visibility.fRed());
+	}
+*/
+// end debug
+	
 	// Copy data from the SqVisibilityNodes into std::vectors of Floats
 	// such that each consequtive pair, or tuple, of floats represents (depth, visibility)
 	// where depth is 1 float, and visibility is 1 or 3 floats depending on 
@@ -1371,7 +1388,7 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 	* Initialize [slopeMin, slopeMax] to [-infinity, infinity].
 	* The error tolerance, epsilon, should be a float value in the range (0,1). A good value is 0.02.
 	*/
-	const TqFloat epsilon = 0.02;
+	const TqFloat epsilon = 0.0;
 	const TqInt colorChannels = 3; /// \todo Access the real number of color channels here
 	TqFloat slopeMin;
 	TqFloat slopeMax;
@@ -1382,7 +1399,7 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 	TqFloat slopeRed;
 	TqFloat slopeGreen;
 	TqFloat slopeBlue;
-	TqFloat funcLength = 0;
+	TqInt funcLength = 0;
 	TqVisibilityFunction::const_iterator visitCurrent = visibilityDataSource->begin();
 	const TqVisibilityFunction::const_iterator visitEnd = visibilityDataSource->end();
 	TqVisibilityFunction::const_iterator visitNext;
@@ -1403,12 +1420,12 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 			// \todo We should handle each color channel individually
 			if ((**visitNext).zdepth == (**visitCurrent).zdepth) 
 			{
-				// This will occur frequently because every surface hit has 2 ndoes at the same depth
+				// This will occur frequently because every surface hit has 2 nodes at the same depth
 				// We should proceed with the next node (ignore the current node) if the change in visibility is small, otherwise we should stop
 				if (((**visitCurrent).visibility.fRed()-(**visitNext).visibility.fRed()) > epsilon)
 				{
 					// Stop
-					--visitNext;
+					//--visitNext;
 					break;
 				}
 			}
@@ -1418,33 +1435,46 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 				testSlopeMax = (((**visitNext).visibility.fRed()-(**visitCurrent).visibility.fRed())+epsilon)/((**visitNext).zdepth-(**visitCurrent).zdepth);
 				slopeMinNew = max(testSlopeMin, slopeMin);
 				slopeMaxNew = min(testSlopeMax, slopeMax);
-				if(slopeMaxNew < slopeMinNew)
+				//printf("slopeMaxNew is %f and slopeMinNew is %f\n", slopeMaxNew, slopeMinNew);
+				if(slopeMaxNew <= slopeMinNew)
 				{
-				  // Permissable window of slopes has closed; back up a step.
-				  --visitNext;
-				  break;
+					// Permissable window of slopes has closed; back up a step.
+					--visitNext;
+					break;
 				}
 				else
 				{
-				  slopeMin = slopeMinNew;
-				  slopeMax = slopeMaxNew;
+					printf("shouldn't see this\n");
+					slopeMin = slopeMinNew;
+					slopeMax = slopeMaxNew;
 				}
 			}			
 		}
-		if (visitNext == visitEnd)
-		{
-			--visitNext; // This is the case where the last node has not been added because the current line segment ended with it,
+		//if (visitNext == visitEnd)
+		//{
+		//	--visitNext; // This is the case where the last node has not been added because the current line segment ended with it,
 						// but we want to add the end node
-		}
+		//}
 		// Draw a line segment
 		slopeRed = (slopeMax+slopeMin)/2; // Really need slopes m_maxRed and m_minRed corresponding to the red componenet here
 		slopeGreen = (slopeMax+slopeMin)/2;
 		slopeBlue = (slopeMax+slopeMin)/2;
 
 		tvisDataRow.push_back((**visitNext).zdepth);
-		tvisDataRow.push_back((**visitCurrent).visibility.fRed() + slopeRed * ((**visitNext).zdepth - (**visitCurrent).zdepth) );
-		tvisDataRow.push_back((**visitCurrent).visibility.fGreen() + slopeRed * ((**visitNext).zdepth - (**visitCurrent).zdepth) );
-		tvisDataRow.push_back((**visitCurrent).visibility.fBlue() + slopeRed * ((**visitNext).zdepth - (**visitCurrent).zdepth) );
+		if ((**visitNext).zdepth == (**visitCurrent).zdepth) 
+		{
+			tvisDataRow.push_back((**visitNext).visibility.fRed());
+			tvisDataRow.push_back((**visitNext).visibility.fGreen());
+			tvisDataRow.push_back((**visitNext).visibility.fBlue());
+			printf("Added node (%f, %f)\n", (**visitNext).zdepth, (**visitNext).visibility.fRed());
+		}
+		else
+		{
+			tvisDataRow.push_back((**visitCurrent).visibility.fRed() + (slopeRed * ((**visitNext).zdepth - (**visitCurrent).zdepth)) );
+			tvisDataRow.push_back((**visitCurrent).visibility.fGreen() + (slopeGreen * ((**visitNext).zdepth - (**visitCurrent).zdepth)) );
+			tvisDataRow.push_back((**visitCurrent).visibility.fBlue() + (slopeBlue * ((**visitNext).zdepth - (**visitCurrent).zdepth)) );
+			printf("Added node (%f, %f)\n", (**visitNext).zdepth, (**visitCurrent).visibility.fRed() + slopeRed * ((**visitNext).zdepth - (**visitCurrent).zdepth));
+		}
 		++funcLength;
 		if (visitNext != visitCurrent)
 		{
@@ -1455,6 +1485,7 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 			break;
 		}		
 	}
+	//printf("Compression algorithm makes function of length %d\n", funcLength);
 	return funcLength;
 }
 
@@ -1466,15 +1497,6 @@ TqInt CqDeepDisplayRequest::CopyVisibilityFunction(const TqVisibilityFunction* v
 	
 	 for( visit = visibilityDataSource->begin(); visit != visend; ++visit)
 	 {
-		 //begin debugging
-		 if (visit == visibilityDataSource->begin())
-		 {
-			 if (((**visit).zdepth != 0) || ((**visit).visibility.fRed() != 1))
-			 {
-				printf("Error in CopyVisibilityFunction: first visibility node not as expeced\n"); 
-			 }
-		 }
-		 //end debugging
 		 tvisDataRow.push_back((**visit).zdepth);
 		 tvisDataRow.push_back((**visit).visibility.fRed());
 	  	 tvisDataRow.push_back((**visit).visibility.fGreen());

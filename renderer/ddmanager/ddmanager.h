@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright � 1997 - 2001, Paul C. Gregory
+// Copyright (C) 1997 - 2007, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -23,11 +23,8 @@
 		\author Paul C. Gregory (pgregory@aqsis.org)
 */
 
-//? Is .h included already?
 #ifndef ___ddmanager_Loaded___
 #define ___ddmanager_Loaded___
-
-#include	<vector>
 
 #include	"aqsis.h"
 #include	"matrix.h"
@@ -37,6 +34,9 @@
 #define		DSPY_INTERNAL
 #include	"ndspy.h"
 #undef		DSPY_INTERNAL
+
+#include	<vector>
+#include	<map>
 
 START_NAMESPACE( Aqsis )
 

@@ -31,12 +31,13 @@
  * This driver stores deep shadow map image data in a DTEX tiled image file. 
 */
 
+#include "d_dsm.h"
+#include "dtex.h"
+#include "ndspy.h"  // NOTE: Use Pixar's ndspy.h if you've got it.
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "d_dsm.h"
-#include "ndspy.h"  // NOTE: Use Pixar's ndspy.h if you've got it.
 
 //*****************************************************************************
 // The following is taken directoy from d_sdcBMP.cpp, temporarily, so that I may write BMP image sequences to disk during the testing phase.
@@ -61,14 +62,14 @@ typedef struct tagRGBQUAD { // rgbq
 
 typedef struct tagBITMAPINFOHEADER{ // bmih 
     int     biSize; 
-    long    biWidth; 
-    long    biHeight; 
+    int    biWidth; 
+    int    biHeight; 
     short   biPlanes; 
     short   biBitCount;
     int     biCompression; 
     int     biSizeImage; 
-    long    biXPelsPerMeter; 
-    long    biYPelsPerMeter; 
+    int    biXPelsPerMeter; 
+    int    biYPelsPerMeter; 
     int     biClrUsed; 
     int     biClrImportant; 
 } BITMAPINFOHEADER; 
@@ -96,7 +97,7 @@ typedef struct
 	int               Channels;
 	int               RowSize;
 	int               PixelBytes;
-	long              TotalPixels;
+	int              TotalPixels;
 }
 AppData;
 
@@ -108,7 +109,7 @@ int CountNodes(const int* functionLengths, int rowWidth);
 static int  DWORDALIGN(int bits);
 static bool bitmapfileheader(BITMAPFILEHEADER *bfh, FILE *fp);
 static unsigned short swap2( unsigned short s );
-static unsigned long  swap4( unsigned long l );
+static unsigned int  swap4( unsigned int l );
 static bool lowendian();
 
 
@@ -121,37 +122,17 @@ typedef struct tagDSMFILEHEADER {
     short   fReserved1; 
     short   fReserved2; 
     int     fOffBits;
-/*    
- * From Pseudonym's Aqsis file spec wiki page:
-    bits		Value			Comment
-0-39		"DSMFF"			String
-40-48		Uint8			Major_Version
-49-57		Uint8			Minor_Version
-58-66		Uint8			Patch_Version
-67-68		2-bit			Color (00=Monochrome, 11=Color, 10,01=reserved)
-69-85		Uint16			X_Resolution
-86-102		Uint16			Y_Resulution
-103		Boolean			Access_Mode(0=scanline, 1=tiled)
-104-112		Uint8			Tile_Size
-113-255		Zeros-padded		Reserved for future use
-256-		Variable-length chunk	data (Pixel Chunks)
-We should store pointers to the beginning of each tile.
-Each tile should in turn have pointers to the beginning of each pixel because pixel sizes are variable.
-If Tile_Size is 64, for 64x64 pixel tiles, you can index to the desired tile using X_res and Y_res.
-Hopefully all resolutions are power of 2.
--??		1111000011110000	End_flag
-*/ 
 } DSMFILEHEADER; 
 
 typedef struct tagDSMINFOHEADER{ // bmih 
     int     iSize; 
-    long    iWidth; 
-    long    iHeight; 
+    int    iWidth; 
+    int    iHeight; 
     short   iPlanes; 
     int     iCompression; 
     int     iSizeImage; 
-    long    iXPelsPerMeter; 
-    long    iYPelsPerMeter; 
+    int    iXPelsPerMeter; 
+    int    iYPelsPerMeter; 
     int     iClrUsed; 
     int     iClrImportant; 
 } DSMINFOHEADER; 
@@ -303,8 +284,9 @@ void PrepareBitmapHeader(const DeepShadowData* pData, AppData& g_Data)
  * generated while still providing a good picture of the DSM, assuming an even distribution of function lengths.
  * 
  */
-void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pData)
+void BuildBitmapData(char* imageBufferIn, const int pnum, const DeepShadowData* pData)
 {
+	unsigned char* imageBuffer = reinterpret_cast<unsigned char*>(imageBufferIn);
 	const int imageFileCount = 20; //< Number of bitmaps we want to output
 	const float sliceInterval = GreatestNodeDepth(pData)/imageFileCount; //< Depth delta: distance between DSM slices
 	const int width = pData->dsmi.dsmiHeader.iWidth;
@@ -333,13 +315,13 @@ void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pD
 			{
 				// Choose the appropriate width of pixels to write: if near the edge, there may be fewer than bucketWidth pixels remaining to be written
 				const int writeWidth = (j+bucketWidth > width) ? width-j : bucketWidth;
-				memset(imageBuffer+((3*((i*width)+j))*sizeof(char)), 255, 3*writeWidth*sizeof(char)); // Use white for 100% visibility (no shadow with this pixel)
+				memset(imageBuffer+((3*((i*width)+j))*sizeof(char)), 255, 3*writeWidth*sizeof(unsigned char)); // Use white for 100% visibility (no shadow with this pixel)
 				j += bucketWidth-1; // This is probably really bad to modify the loop variable outside the loop header
 				++k;
 				continue;
 			}
 			nextNodeDepth = pData->testDeepData[i][readPos];
-			endNodePos = readPos+nodeSize*(thisFunctionLength-1);
+			endNodePos = readPos+(nodeSize*(thisFunctionLength-1));
 			endNodeDepth = pData->testDeepData[i][endNodePos];
 //Debug
 /*
@@ -347,14 +329,14 @@ void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pD
 			{
 				printf("Depth is %f and visibility is %f where i is %d and readPos is %d\n", pData->testDeepData[i][readPos], pData->testDeepData[i][readPos+1], i, readPos );
 			}
-			imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][readPos+1]*255); 
-			imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][readPos+2]*255); //< Assuming a color image
-			imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][readPos+3]*255); //< Assuming a color image
+			imageBuffer[3*((i*width)+j)] = (unsigned char)(pData->testDeepData[i][readPos+1]*255); 
+			imageBuffer[3*((i*width)+j)+1] = (unsigned char)(pData->testDeepData[i][readPos+2]*255); //< Assuming a color image
+			imageBuffer[3*((i*width)+j)+2] = (unsigned char)(pData->testDeepData[i][readPos+3]*255); //< Assuming a color image
 			readPos += nodeSize*thisFunctionLength;
 			++k;
 			continue;
 */
-// End debug
+// End debug	
 			// Most common case first:
 			// If current function's endNodeDepth > currentDepth, find via interpolation the visibility at current zdepth in
 			// this visibility function: that is, find the two nodes that sandwhich the current z-depth, and linearly interpolate between them.
@@ -373,9 +355,9 @@ void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pD
 						//float lerpParam = (currentDepth-node1.zdepth)/(node2.zdepth-node1.zdepth); ///< this is percentage
 						//lerp(const T t, const V x0, const V x1)
 						// Just use the first node's values for now, but keep in mind once you start vis func compression that there may in fact be slope changes introduced.
-						imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][node1Pos+1]*255); 
-						imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][node1Pos+2]*255); //< Assuming a color image
-						imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][node1Pos+3]*255); //< Assuming a color image
+						imageBuffer[3*((i*width)+j)] = (unsigned char)(pData->testDeepData[i][node1Pos+1]*255); 
+						imageBuffer[3*((i*width)+j)+1] = (unsigned char)(pData->testDeepData[i][node1Pos+2]*255); //< Assuming a color image
+						imageBuffer[3*((i*width)+j)+2] = (unsigned char)(pData->testDeepData[i][node1Pos+3]*255); //< Assuming a color image
 						readPos += nodeSize*thisFunctionLength;
 						c = 0; // We can remove this later, when we remove the if(c == thisFunctionLength) block
 						break;
@@ -389,13 +371,13 @@ void BuildBitmapData(char* imageBuffer, const int pnum, const DeepShadowData* pD
 					printf("Error: could not find sandwich nodes in WriteDSMImageSequence()\n");
 				}
 			}						
-			// Else If the current function's endNodeDepth <= currentDepth,  write a pixel color equal to
+			// Else If the current function's endNodeDepth < currentDepth,  write a pixel color equal to
 			// the last visibility node in this function.
 			else if (endNodeDepth <= currentDepth)
 			{	
-				imageBuffer[3*((i*width)+j)] = (int)(pData->testDeepData[i][endNodePos+1]*255); 
-				imageBuffer[3*((i*width)+j)+1] = (int)(pData->testDeepData[i][endNodePos+2]*255); //< Assuming a color image
-				imageBuffer[3*((i*width)+j)+2] = (int)(pData->testDeepData[i][endNodePos+3]*255); //< Assuming a color image
+				imageBuffer[3*((i*width)+j)] = (unsigned char)(pData->testDeepData[i][endNodePos+1]*255); 
+				imageBuffer[3*((i*width)+j)+1] = (unsigned char)(pData->testDeepData[i][endNodePos+2]*255); //< Assuming a color image
+				imageBuffer[3*((i*width)+j)+2] = (unsigned char)(pData->testDeepData[i][endNodePos+3]*255); //< Assuming a color image
 				readPos += nodeSize*thisFunctionLength;
 			}
 			else
@@ -425,7 +407,7 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 	
 	// Create a buffer the size of a bitmap
 	char* imageBuffer = new char[dataSizeInBytes];
-	//memset(imageBuffer, 0, dataSizeInBytes); // Black out the image
+	//memset(imageBuffer, 128, dataSizeInBytes); // Black out the image
 	
 	PrepareBitmapHeader(pData, g_Data);
 	
@@ -459,6 +441,7 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 			fprintf(stderr, "WriteDSMImagequence: Error writing to [%s]\n", g_Data.FileName);
 		}
 		// Build the bitmap data
+		memset(imageBuffer, 128, dataSizeInBytes);
 		BuildBitmapData(imageBuffer, pnum, pData);
 		// Write the whole bitmap at once
 		if ( ! fwrite(imageBuffer, dataSizeInBytes, 1, g_Data.fp) )
@@ -744,11 +727,11 @@ static unsigned short swap2( unsigned short s )
 }
 
 //******************************************************************************
-// Swap a long if you are not on NT/Pentium you must swap
+// Swap a int if you are not on NT/Pentium you must swap
 //******************************************************************************
-static unsigned long swap4(unsigned long l)
+static unsigned int swap4(unsigned int l)
 {
-unsigned long n;
+unsigned int n;
 unsigned char *c, *d;
 
    c = (unsigned char*) &n;

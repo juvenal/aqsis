@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright � 1997 - 2001, Paul C. Gregory
+// Copyright (C) 1997 - 2007, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -23,13 +23,18 @@
 		\author Paul C. Gregory (pgregory@aqsis.org)
 */
 
-//? Is .h included already?
 #ifndef IDDMANAGER_H_INCLUDED
 #define IDDMANAGER_H_INCLUDED 1
 
+// Aqsis headers
 #include	"aqsis.h"
 #include	"color.h"
+
+// Standard libraries
+#include	<vector>
 #include	<map>
+
+// External library headers
 #include	<boost/shared_ptr.hpp>
 
 START_NAMESPACE( Aqsis )
