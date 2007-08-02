@@ -27,8 +27,7 @@
 #define DTEX_H_INCLUDED 1
 
 // Aqsis headers
-#include	"aqsis.h"
-#include	"file.h"
+#include "aqsis.h"
 
 // Standard libraries
 #include <string>
@@ -38,6 +37,8 @@
 
 // External libraries
 #include <boost/shared_ptr.hpp>
+
+#include "file.h"
 
 namespace Aqsis
 {
@@ -86,7 +87,8 @@ struct SqDtexFileHeader
 	// This is followed by a DOS end of file (control-Z) and another line feed.
 	// This sequence ensures that if the file is "typed" on a DOS shell or Windows command shell, the user will see "AqD" 
 	// on a single line, preceded by a strange character.
-	unsigned long long magicNumber;
+	//unsigned long long magicNumber; ///< This won't accept the 64-bit magic number due to compiler error, but why not?
+	unsigned int magicNumber[2];
 	/// Size of this file in bytes
 	unsigned long long fileSize;
 	// Number of horizontal pixels in the image

@@ -23,15 +23,10 @@
 		\author Paul C. Gregory (pgregory@aqsis.org)
 */
 
+#include <boost/format.hpp>
 
-#include	"aqsis.h"
-
-#ifdef	AQSIS_SYSTEM_WIN32
-#include	"winsock2.h"
-#endif
-
-#include	"sstring.h"
 #include	"ddmanager.h"
+#include	"sstring.h"
 #include	"rifile.h"
 #include	"imagebuffer.h"
 #include	"shaderexecenv.h"
@@ -39,8 +34,9 @@
 #include	"ndspy.h"
 #include	"version.h"
 #include	"debugdd.h"
-
-#include <boost/format.hpp>
+#ifdef	AQSIS_SYSTEM_WIN32
+#include	"winsock2.h"
+#endif
 
 START_NAMESPACE( Aqsis )
 
@@ -274,34 +270,34 @@ TqInt CqDDManager::Uses()
 void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimplePlugin& dspyPlugin )
 {
 	// Get the display mapping from the "display" options, if one exists.
-	CqString strDriverFile = "";
-	CqString displayType = m_type;
-	const CqString* poptDisplay = QGetRenderContext()->poptCurrent()->GetStringOption("display", displayType.c_str());
+	std::string strDriverFile = "";
+	std::string displayType = m_type;
+	const std::string* poptDisplay = QGetRenderContext()->poptCurrent()->GetStringOption("display", displayType.c_str());
 	if(0 != poptDisplay)
 		strDriverFile = poptDisplay[0];
 	else
 	{
-		const CqString* poptDisplayMapping = QGetRenderContext()->poptCurrent()->GetStringOption("display", "mapping");
+		const std::string* poptDisplayMapping = QGetRenderContext()->poptCurrent()->GetStringOption("display", "mapping");
 		if(0 != poptDisplayMapping)
 		{
-			CqString strMapping = poptDisplayMapping[0];
-			strDriverFile.Format(strMapping.c_str(), displayType.c_str());
-			//strDriverFile << boost::format(strMapping.c_str()) % displayType.c_str();
+			std::string strMapping = poptDisplayMapping[0];
+			//strDriverFile.Format(strMapping.c_str(), displayType.c_str());
+			strDriverFile = (boost::format(strMapping.c_str()) % displayType.c_str()).str();
 		}
 	}
 	Aqsis::log() << debug << "Attempting to load \"" << strDriverFile.c_str() << "\" for display type \""<< displayType.c_str() << "\"" << std::endl;
 	// Display type not found.
 	if ( strDriverFile.empty() )
-		throw( CqString( "Invalid display type \"" ) + CqString( m_type ) + CqString( "\"" ) + CqString(" (") + strDriverFile + CqString(")") );
-		//throw XqInternal("Invalid display type \"", displayType, __FILE__, __LINE__);
+		throw XqInternal(std::string("Invalid display type \"") + displayType + std::string( "\""), strDriverFile, __LINE__); // should __FILE__ be strDriverFile instead?
+		//throw( CqString( "Invalid display type \"" ) + CqString( m_type ) + CqString( "\"" ) + CqString(" (") + strDriverFile + CqString(")") );
 	if( strDriverFile != "debugdd")
 	{
 		// Try to open the file to see if it's really there
 		CqRiFile fileDriver( strDriverFile.c_str(), "display" );
 		if ( !fileDriver.IsValid() )
-			throw( CqString( "Error loading display driver [ " ) + strDriverFile + CqString( " ]" ) );
-			//throw XqInternal("Invalid display type \"", __FILE__, __LINE__);
-		CqString strDriverPathAndFile = fileDriver.strRealName();
+			throw XqInternal(std::string("Error loading display driver [ ") + strDriverFile + std::string( "]"), strDriverFile, __LINE__); // should strDriverFile be __FILE__ instead?
+			//throw( CqString( "Error loading display driver [ " ) + strDriverFile + CqString( " ]" ) );
+		CqString strDriverPathAndFile = fileDriver.strRealName(); // Note: I want totmake this a std::string rather than CqString, but dspyPlugin.SimpleDLOpen(), below, wants the address of a CqString  
 		// Load the dynamic obejct and locate the relevant symbols.
 		m_DriverHandle = dspyPlugin.SimpleDLOpen( &strDriverPathAndFile );
 		if( m_DriverHandle != NULL )
@@ -326,7 +322,7 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 			}
 			if (!m_DataMethod)
 			{
-				CqString strDeepDataMethod = "DspyImageDeepData";
+				CqString strDeepDataMethod = "DspyImageDeepData"; // Can't use std::string in place of CqString here until dspyPlugin.SimpleDLSym() is refactored
 				ddMemberData.m_strDataMethod = "_" + ddMemberData.m_strDataMethod;
 				m_DeepDataMethod = (DspyImageDeepDataMethod)dspyPlugin.SimpleDLSym( m_DriverHandle, &strDeepDataMethod );
 				if (!m_DeepDataMethod)
@@ -423,7 +419,7 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 			// Determine the type of the AOV data being displayed.
 			TqInt type;
 			type = QGetRenderContext()->OutputDataType(m_mode.c_str());
-			CqString componentNames = "";
+			std::string componentNames = "";
 			switch(type)
 			{
 					case type_point:
@@ -639,8 +635,8 @@ void CqDisplayRequest::CloseDisplayLibrary()
 	
 void CqDDManager::InitialiseDisplayNameMap()
 {
-	CqString strConfigFile("displays.ini");
-	const CqString* displays = QGetRenderContext()->poptCurrent()->GetStringOption( "searchpath", "display" );
+	std::string strConfigFile("displays.ini");
+	const std::string* displays = QGetRenderContext()->poptCurrent()->GetStringOption( "searchpath", "display" );
 	if( displays )
 		strConfigFile = displays[ 0 ] + "/" + strConfigFile;
 
@@ -688,12 +684,12 @@ void CqDDManager::InitialiseDisplayNameMap()
   \param idx Index (0-based)
   \return Sub string with given index
 */
-CqString CqDDManager::GetStringField( const CqString& s, int idx )
+std::string CqDDManager::GetStringField( const std::string& s, int idx )
 {
 	int z = 1;   /* state variable  0=skip whitespace  1=skip chars  2=search end  3=end */
-	CqString::const_iterator it;
-	CqString::size_type start = 0;
-	CqString::size_type end = 0;
+	std::string::const_iterator it;
+	std::string::size_type start = 0;
+	std::string::size_type end = 0;
 
 	for ( it = s.begin(); it != s.end(); ++it )
 	{
@@ -739,7 +735,7 @@ CqString CqDDManager::GetStringField( const CqString& s, int idx )
 	if ( idx == 0 )
 		return s.substr( start, end - start );
 	else
-		return CqString( "" );
+		return std::string( "" );
 
 }
 
@@ -1334,7 +1330,7 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 	{
 		// Send the bucket information as they come in.
 		// But will DSM displays ever do this? Yes. In fact it is the more likely case.
-		// Just grab the bucket m_BucketDeepDataMap[ymin][0] and send its data
+		// Just grab the bucket m_BucketDeepDataMap[ymin][0] and send its data, a row at a time
 	}
 }
 

@@ -27,6 +27,10 @@
 #define ___ddmanager_Loaded___
 
 #include	"aqsis.h"
+
+#include	<vector>
+#include	<map>
+
 #include	"matrix.h"
 #include	"ri.h"
 #include	"iddmanager.h"
@@ -34,9 +38,6 @@
 #define		DSPY_INTERNAL
 #include	"ndspy.h"
 #undef		DSPY_INTERNAL
-
-#include	<vector>
-#include	<map>
 
 START_NAMESPACE( Aqsis )
 
@@ -86,8 +87,8 @@ struct SqDDMemberData
 {	
 	/** Constructor: initialize an SqDDMemberData structure
 	 */ 
-	SqDDMemberData(CqString strOpenMethod, CqString strQueryMethod, CqString strDataMethod,
-			CqString strCloseMethod, CqString strDelayCloseMethod, char* redName, char* greenName,
+	SqDDMemberData(std::string strOpenMethod, std::string strQueryMethod, std::string strDataMethod,
+			std::string strCloseMethod, std::string strDelayCloseMethod, char* redName, char* greenName,
 			char* blueName, char* alphaName, char* zName) : 
 				m_strOpenMethod(strOpenMethod),
 				m_strQueryMethod(strQueryMethod),
@@ -180,9 +181,9 @@ class CqDisplayRequest
 		      
 	protected:
 		bool		m_valid;
-		CqString	m_name;
-		CqString	m_type;
-		CqString	m_mode;
+		std::string	m_name;
+		std::string	m_type;
+		std::string	m_mode;
 		TqUlong		m_modeHash;
 		TqInt		m_modeID;
 		TqInt		m_AOVOffset;
@@ -193,7 +194,7 @@ class CqDisplayRequest
 		PtFlagStuff	m_flags;
 		std::vector<PtDspyDevFormat> m_formats;
 		std::vector<TqInt>			m_dataOffsets;
-		std::vector<CqString>	m_AOVnames;
+		std::vector<std::string>	m_AOVnames;
 		TqInt		m_elementSize;
 		TqFloat		m_QuantizeZeroVal;
 		TqFloat		m_QuantizeOneVal;
@@ -360,11 +361,11 @@ class CqDDManager : public IqDDManager
 		virtual	TqInt	Uses();
 
 	private:
-		CqString GetStringField( const CqString& s, int idx );
+		std::string GetStringField( const std::string& s, int idx );
 		void InitialiseDisplayNameMap();
 		std::vector< boost::shared_ptr<CqDisplayRequest> > m_displayRequests; ///< Array of requested display drivers. 
 		bool m_fDisplayMapInitialised;
-		std::map<CqString, CqString> m_mapDisplayNames;
+		std::map<std::string, CqString> m_mapDisplayNames;
 		static SqDDMemberData m_MemberData;
 		CqSimplePlugin m_DspyPlugin;
 };

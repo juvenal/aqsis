@@ -33,7 +33,7 @@
 
 #include "d_dsm.h"
 #include "dtex.h"
-#include "ndspy.h"  // NOTE: Use Pixar's ndspy.h if you've got it.
+#include "ndspy.h"
 
 #include <string.h>
 #include <stdio.h>

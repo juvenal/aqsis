@@ -26,9 +26,8 @@
 #ifndef IDDMANAGER_H_INCLUDED
 #define IDDMANAGER_H_INCLUDED 1
 
-// Aqsis headers
+// Aqsis header
 #include	"aqsis.h"
-#include	"color.h"
 
 // Standard libraries
 #include	<vector>
@@ -36,6 +35,8 @@
 
 // External library headers
 #include	<boost/shared_ptr.hpp>
+
+#include	"color.h"
 
 START_NAMESPACE( Aqsis )
 

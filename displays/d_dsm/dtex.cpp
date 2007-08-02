@@ -35,7 +35,12 @@
 namespace Aqsis
 {
 
-const long long* magicNumber = (long long*)"\0x89AqD\0x0b\0x0a\0x16\0x0a";
+// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
+//const long long int magicNumber = 0x894171440b0a160a;
+const unsigned int magicNumber[2] = { 0x89417144, 0x0b0a160a }; //< break the magic number into 2 32-bit halves
+//const char magicNumberFieldOne = 0x89;
+//const char magicNumberName[4] = "AqD";
+//const unsigned int magicNumberSecondHalf = 0x0b0a160a;
 
 CqDeepTexture::CqDeepTexture(std::string filename, int imageWidth, int imageHeight, int tileWidth, int tileHeight, int numberOfChannels, int bytesPerChannel)
 {
@@ -43,7 +48,8 @@ CqDeepTexture::CqDeepTexture(std::string filename, int imageWidth, int imageHeig
 	const int tilesY = imageHeight/tileHeight;
 	const int numberOfTiles = tilesX*tilesY; 
 	
-	m_fileHeader.magicNumber = *magicNumber;
+	m_fileHeader.magicNumber[0] = magicNumber[0];
+	m_fileHeader.magicNumber[1] = magicNumber[1];
 	m_fileHeader.fileSize = 0; ///< We can't determine this until we receive all the data. We should write once, then seek back and re-write this field before file close
 	m_fileHeader.imageWidth = imageWidth;
 	m_fileHeader.imageHeight = imageHeight;
