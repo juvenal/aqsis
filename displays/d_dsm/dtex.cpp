@@ -17,12 +17,6 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-//
-// This is a Display Driver that was written to comply with the PhotoRealistic
-// RenderMan Display Driver Implementation Guide (on the web at:
-// www.pixar.com/products/rendermandocs/toolkit/Toolkit/dspy.html).
-//
-
 /** \file
  * 
  * \author Zachary L. Carter (zcarter@aqsis.org)
@@ -32,8 +26,8 @@
 
 #include "dtex.h"
 
-namespace Aqsis
-{
+//namespace Aqsis
+//{
 
 // Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
 //const long long int magicNumber = 0x894171440b0a160a;
@@ -42,7 +36,7 @@ const unsigned int magicNumber[2] = { 0x89417144, 0x0b0a160a }; //< break the ma
 //const char magicNumberName[4] = "AqD";
 //const unsigned int magicNumberSecondHalf = 0x0b0a160a;
 
-CqDeepTexture::CqDeepTexture(std::string filename, int imageWidth, int imageHeight, int tileWidth, int tileHeight, int numberOfChannels, int bytesPerChannel)
+CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, int imageWidth, int imageHeight, int tileWidth, int tileHeight, int numberOfChannels, int bytesPerChannel)
 {
 	const int tilesX = imageWidth/tileWidth;
 	const int tilesY = imageHeight/tileHeight;
@@ -64,14 +58,14 @@ CqDeepTexture::CqDeepTexture(std::string filename, int imageWidth, int imageHeig
 	m_tileTable.reserve(numberOfTiles);
 	
 	// Open a file in binary write mode
-	m_dtexFile.Open( filename.c_str(), "", std::ios::out );
+	m_dtexFile.open(filename.c_str(), std::ios::out | std::ios::app | std::ios::binary);
 	
 	// Write the file header
 	
 	//Seek forward to reserve space for writting the tile table later
 }
 
-void CqDeepTexture::setTileData( int xmin, int ymin, int xmax, int ymax, const unsigned char *data )
+void CqDeepTexOutputFile::setTileData( int xmin, int ymin, int xmax, int ymax, const unsigned char *data )
 {
 	// Identify what tiles the passed-in data covers
 	// If those tiles are not already in the tile map, add them
@@ -84,14 +78,14 @@ void CqDeepTexture::setTileData( int xmin, int ymin, int xmax, int ymax, const u
 	// Return
 }
 
-void CqDeepTexture::writeFileHeader()
+void CqDeepTexOutputFile::writeFileHeader()
 {
 
 }
 
-void CqDeepTexture::writeTile()
+void CqDeepTexOutputFile::writeTile()
 {
 	
 }
 
-} // namespace Aqsis
+//} // namespace Aqsis

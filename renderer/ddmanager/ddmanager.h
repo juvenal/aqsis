@@ -31,6 +31,8 @@
 #include	<vector>
 #include	<map>
 
+#include	<boost/shared_array.hpp>
+
 #include	"matrix.h"
 #include	"ri.h"
 #include	"iddmanager.h"
@@ -195,7 +197,7 @@ class CqDisplayRequest
 		std::vector<PtDspyDevFormat> m_formats;
 		std::vector<TqInt>			m_dataOffsets;
 		std::vector<std::string>	m_AOVnames;
-		TqInt		m_elementSize;
+		TqInt		m_elementSize; // Size in bytes of a pixel, or deep data node (without the depth field)
 		TqFloat		m_QuantizeZeroVal;
 		TqFloat		m_QuantizeOneVal;
 		TqFloat		m_QuantizeMinVal;
@@ -213,8 +215,8 @@ class CqDisplayRequest
 		//  into a new structure, SqFormattedBucketData.
 		//  Specifically, the stuff which deals with holding the data
 		//  which has been copied out of the bucket and quantized: 
-		boost::shared_ptr<unsigned char> m_DataRow;    // A row of bucket's data
-		boost::shared_ptr<unsigned char> m_DataBucket; // A bucket's data
+		boost::shared_array<unsigned char> m_DataRow;    // A row of bucket's data
+		boost::shared_array<unsigned char> m_DataBucket; // A bucket's data
 };
 
 //---------------------------------------------------------------------
@@ -263,7 +265,7 @@ class CqShallowDisplayRequest : virtual public CqDisplayRequest
 		// receive data in sorted order. We may need to store identifying info to re-determine order.
 		// Note: I want to use a boost:shared_array here, but my boost library does not have it,
 		// nor do I see it used anywhere else in the code.
-		std::map<TqInt, std::vector<boost::shared_ptr<unsigned char> > > m_BucketDataMap;
+		std::map<TqInt, std::vector<boost::shared_array<unsigned char> > > m_BucketDataMap;
 };
 
 //---------------------------------------------------------------------
@@ -325,8 +327,9 @@ class CqDeepDisplayRequest : virtual public CqDisplayRequest
 		void checkBucketDataMap(TqInt ymin, TqInt bucketWidth, TqInt bucketHeight);
 			
 	private:
-		std::map<TqInt, std::vector<boost::shared_ptr<SqCompressedDeepData> > > m_BucketDeepDataMap;
-		boost::shared_ptr<SqCompressedDeepData> m_CollapsedBucketRow;
+		std::map<TqInt, std::vector<boost::shared_ptr<SqCompressedDeepData> > > m_BucketDeepDataMap; ///< Used when the display device wants scanline order
+		boost::shared_ptr<SqCompressedDeepData> m_CollapsedBucketRow; ///< Used when the display device wants scanline order
+		boost::shared_ptr<SqCompressedDeepData> m_DeepDataBucket; ///< Used when the display wants bucket order
 };
 
 //---------------------------------------------------------------------

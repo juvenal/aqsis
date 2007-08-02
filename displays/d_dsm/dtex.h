@@ -27,24 +27,23 @@
 #define DTEX_H_INCLUDED 1
 
 // Aqsis headers
-#include "aqsis.h"
+//#include "aqsis.h"
 
 // Standard libraries
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <map>
 
 // External libraries
 #include <boost/shared_ptr.hpp>
 
-#include "file.h"
-
-namespace Aqsis
-{
+//namespace Aqsis
+//{
 
 //------------------------------------------------------------------------------
-/** \brief A structure to serve as a data type for entries in the tile table. 
+/** \brief A structure to store the tile header and data for a tile.  
  *
  */
 struct SqDeepDataTile
@@ -52,7 +51,7 @@ struct SqDeepDataTile
 	/// Total number of visibility nodes in this tile:
 	/// This is important so that the user may pre-determine how much memory is required to buffer the tile
 	unsigned int numberOfNodes;
-	/// The relative file file offsets (from the beginning of the tile header)
+	/// The relative file offsets (from the beginning of the tile header)
 	/// to thebeginning of each visibility function in the tile.
 	std::vector<int> functionOffsets;
 	/// data
@@ -60,7 +59,7 @@ struct SqDeepDataTile
 };
 
 //------------------------------------------------------------------------------
-/** \brief A structure to serve as a data type for entries in the tile table. 
+/** \brief A structure to serve as a data type for entries in the tile table (which follows immediately after the file header).
  *
  */
 struct SqTileTableEntry
@@ -124,13 +123,13 @@ struct SqDtexFileHeader
  * if any tiles are full, and if any are, it writes them to the file, then frees the memory. Any tiles that are
  * not full remain in memory until they are filled.
  * This way the display does not store the deep data itself, and it can easily handle multiple deep shadow maps simultaneously
- * simply by keeping mutiple instances of CqDeepTexture.
+ * simply by keeping mutiple instances of CqDeepTexOutputFile.
  */
-class CqDeepTexture
+class CqDeepTexOutputFile
 {
 	public:
-		CqDeepTexture(std::string filename, int imageWidth, int imageHeight, int tileWidth, int tileHeight, int numberOfChannels, int bytesPerChannel);
-		~CqDeepTexture();
+		CqDeepTexOutputFile(std::string filename, int imageWidth, int imageHeight, int tileWidth, int tileHeight, int numberOfChannels, int bytesPerChannel);
+		~CqDeepTexOutputFile();
 	  
 		void setTileData( int xmin, int ymin, int xmax, int ymax, const unsigned char *data );
 
@@ -142,7 +141,7 @@ class CqDeepTexture
 		//-----------------------------------------------------------------------------------
 		// Member Data
 		
-		CqFile m_dtexFile;
+		std::ofstream m_dtexFile;
 		
 		// File header stuff
 		SqDtexFileHeader m_fileHeader;
@@ -153,6 +152,6 @@ class CqDeepTexture
 		
 };
 
-} // namespace Aqsis
+//} // namespace Aqsis
 
 #endif // DTEX_H_INCLUDED

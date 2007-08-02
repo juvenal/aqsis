@@ -116,44 +116,31 @@ static bool lowendian();
 // End section from d_sdcBMP.cpp
 //***********************************************************************************
 
-typedef struct tagDSMFILEHEADER {	  
-    short   fType; 
-    int     fSize; 
-    short   fReserved1; 
-    short   fReserved2; 
-    int     fOffBits;
-} DSMFILEHEADER; 
-
-typedef struct tagDSMINFOHEADER{ // bmih 
-    int     iSize; 
-    int    iWidth; 
-    int    iHeight; 
-    short   iPlanes; 
-    int     iCompression; 
-    int     iSizeImage; 
-    int    iXPelsPerMeter; 
-    int    iYPelsPerMeter; 
-    int     iClrUsed; 
-    int     iClrImportant; 
-} DSMINFOHEADER; 
-
-typedef struct tagDSMINFO {
-    DSMINFOHEADER    	dsmiHeader;
+typedef struct {
+    int iSize; 
+    int iWidth; 
+    int iHeight; 
+    short iPlanes; 
+    int iCompression; 
+    int iSizeImage; 
+    int iXPelsPerMeter; 
+    int iYPelsPerMeter; 
+    int iClrUsed; 
+    int iClrImportant;
 } DSMINFO;
 
 typedef struct
 {
-	FILE			*fp;
-	DSMFILEHEADER	dsmfh;
 	char            *FileName;
 	DSMINFO			dsmi;
-	char            *ImageData;
+	CqDeepTexOutputFile *DtexFile;
 	int             Channels;
 	long            TotalPixels;
 	int				flags;
 	// NOTE: members below are for the testing phase, writing out bitmap sequences
+	FILE	fp;
 	float** testDeepData; ///< Array of pointers to the row data
-	int** functionLengths; ///< Array of pointers to arrays (one per row, terminated with an ARRAY_TERMINATOR) of vis function lengths (# of nodes) of each visbility function in testDeepData
+	int**	functionLengths; ///< Array of pointers to arrays (one per row) of vis function lengths (# of nodes) of each visbility function in testDeepData
 }
 DeepShadowData;
 
@@ -162,7 +149,6 @@ DeepShadowData;
 static const int     DEFAULT_IMAGEWIDTH         = 512;
 static const int     DEFAULT_IMAGEHEIGHT        = 512;
 static const float   DEFAULT_PIXELASPECTRATIO   = 1.0f;
-static const int	 ARRAY_TERMINATOR			= -9;
 // -----------------------------------------------------------------------------
 
 // -----------------------------------------------------------------------------
@@ -177,8 +163,8 @@ static const int	 ARRAY_TERMINATOR			= -9;
 float GreatestNodeDepth(const DeepShadowData* pData)
 {
 	const int nodeSize = pData->Channels+1; // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
-	const int rowWidth = pData->dsmi.dsmiHeader.iWidth;
-	const int columnHeight = pData->dsmi.dsmiHeader.iHeight;
+	const int rowWidth = pData->dsmi.iWidth;
+	const int columnHeight = pData->dsmi.iHeight;
 	int rowNodeCount;	
 	float greatestDepth = 0;
 	float sampleDepth;
@@ -203,8 +189,8 @@ float GreatestNodeDepth(const DeepShadowData* pData)
 void checkData(PtDspyImageHandle image, int ymin, int ymaxplus1)
 {
 	const DeepShadowData *pData = (DeepShadowData *)image;
-	const int width = pData->dsmi.dsmiHeader.iWidth;
-	const int height = pData->dsmi.dsmiHeader.iHeight;
+	const int width = pData->dsmi.iWidth;
+	const int height = pData->dsmi.iHeight;
 	const int nodeSize = pData->Channels+1; // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
 	const int bucketWidth = 16; // \todo Somehow get the actual bucket width
 	int i, j, k, readPos, thisFunctionLength;
@@ -234,8 +220,8 @@ void checkData(PtDspyImageHandle image, int ymin, int ymaxplus1)
 
 void PrepareBitmapHeader(const DeepShadowData* pData, AppData& g_Data)
 {
-	const int width = pData->dsmi.dsmiHeader.iWidth;
-	const int height = pData->dsmi.dsmiHeader.iHeight;
+	const int width = pData->dsmi.iWidth;
+	const int height = pData->dsmi.iHeight;
 	
 	memset(&g_Data, sizeof(AppData), 0);
 	g_Data.Channels = pData->Channels;
@@ -289,8 +275,8 @@ void BuildBitmapData(char* imageBufferIn, const int pnum, const DeepShadowData* 
 	unsigned char* imageBuffer = reinterpret_cast<unsigned char*>(imageBufferIn);
 	const int imageFileCount = 20; //< Number of bitmaps we want to output
 	const float sliceInterval = GreatestNodeDepth(pData)/imageFileCount; //< Depth delta: distance between DSM slices
-	const int width = pData->dsmi.dsmiHeader.iWidth;
-	const int height = pData->dsmi.dsmiHeader.iHeight;
+	const int width = pData->dsmi.iWidth;
+	const int height = pData->dsmi.iHeight;
 	const int nodeSize = pData->Channels+1; // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
 	const int bucketWidth = 16; // \todo Somehow get the actual bucket width. We can use the "common" width, ignoring possible smaller buckets on the edges. Things will still work.
 	const float currentDepth = pnum*sliceInterval; // the z-slice we are currently writing to bitmap
@@ -400,8 +386,8 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 	const DeepShadowData *pData = (DeepShadowData *)image;
 	static AppData g_Data;
 	const int imageFileCount = 20; //< Number of bitmaps we want to output
-	const int width = pData->dsmi.dsmiHeader.iWidth;
-	const int height = pData->dsmi.dsmiHeader.iHeight;
+	const int width = pData->dsmi.iWidth;
+	const int height = pData->dsmi.iHeight;
 	const int dataSizeInBytes = 3*width*height*sizeof(char); // size in bytes of the bitmap data
 	int pnum; // the number of the current bitmap image we are building in the sequence
 	
@@ -501,19 +487,14 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	g_Data.FileName = strdup(filename);
 	g_Data.Channels = formatCount; // From this field, the display knows how many floats per visibility node to expect from DspyImageDeepData
 
-	g_Data.dsmi.dsmiHeader.iSize        = sizeof(DSMINFOHEADER);
-	g_Data.dsmi.dsmiHeader.iWidth       = width;
-	g_Data.dsmi.dsmiHeader.iHeight      = height;
-	g_Data.dsmi.dsmiHeader.iPlanes      = 1;
-	g_Data.dsmi.dsmiHeader.iCompression = 0;
-
-	g_Data.TotalPixels     = width*height;
+	g_Data.dsmi.iSize        = sizeof(DSMINFO);
+	g_Data.dsmi.iWidth       = width;
+	g_Data.dsmi.iHeight      = height;
+	g_Data.dsmi.iPlanes      = 1;
+	g_Data.dsmi.iCompression = 0;
+	g_Data.TotalPixels = width*height;
 	
-	// Prepare the file header
-	g_Data.dsmfh.fType     = 0x4D42;    // ASCII "BM"
-	g_Data.dsmfh.fSize     = sizeof(DSMFILEHEADER) +
-	                         sizeof(DSMINFOHEADER);
-	g_Data.dsmfh.fOffBits  = sizeof(DSMFILEHEADER) + sizeof(DSMINFOHEADER);
+	// Stuff for testing/debugging
 
 	g_Data.testDeepData = new float*[height*sizeof(float*)];
 	g_Data.functionLengths = new int*[height*sizeof(int*)];
@@ -555,7 +536,7 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
                           int xmax_plusone,
                           int ymin,
                           int ymax_plusone,
-                          int entrysize,
+                          int entrysize, //< This tells you the number of color channels in a data element, (exludes the depth field)
                           const unsigned char* data,
                           const unsigned char* functionLengths) //< # of nodes in each non-empty visibility function in data
 {
@@ -569,6 +550,12 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	{
 		fprintf(stderr, "DspyImageDeepData: Image data not in scanline format\n");
 		return PkDspyErrorBadParams;
+	}
+	// Make certain that the deep data sent in from ddmanager has the expected number of color channels per node
+	if ( pData->Channels != entrysize )
+	{
+		fprintf(stderr, "DspyImageDeepData: Bad number of color channels in deep data. Expected %d channels, got %d\n", pData->Channels, entrysize);
+		return PkDspyErrorBadParams;		
 	}
 	
 	const float* visData = reinterpret_cast<const float*>(data);
@@ -623,7 +610,6 @@ extern "C" PtDspyError DspyImageClose(PtDspyImageHandle image)
 	WriteDSMImageSequence(image);	
 	
 	DeepShadowData *pData = (DeepShadowData *)image;
-	int i;
 
 	delete[] pData->testDeepData;
 	delete[] pData->functionLengths;

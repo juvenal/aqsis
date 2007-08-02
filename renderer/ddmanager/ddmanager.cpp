@@ -207,7 +207,6 @@ TqInt CqDDManager::CloseDisplays()
 
 TqInt CqDDManager::DisplayBucket( IqBucket* pBucket )
 {
-	static CqRandom random( 61 );
 
 	if( (pBucket->Width() == 0) || (pBucket->Height() == 0) )
 		return(0);
@@ -288,16 +287,16 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 	Aqsis::log() << debug << "Attempting to load \"" << strDriverFile.c_str() << "\" for display type \""<< displayType.c_str() << "\"" << std::endl;
 	// Display type not found.
 	if ( strDriverFile.empty() )
-		throw XqInternal(std::string("Invalid display type \"") + displayType + std::string( "\""), strDriverFile, __LINE__); // should __FILE__ be strDriverFile instead?
+		throw XqInternal(std::string("Invalid display type \"") + displayType + std::string( "\""), __FILE__, __LINE__); // should __FILE__ be strDriverFile instead?
 		//throw( CqString( "Invalid display type \"" ) + CqString( m_type ) + CqString( "\"" ) + CqString(" (") + strDriverFile + CqString(")") );
 	if( strDriverFile != "debugdd")
 	{
 		// Try to open the file to see if it's really there
 		CqRiFile fileDriver( strDriverFile.c_str(), "display" );
 		if ( !fileDriver.IsValid() )
-			throw XqInternal(std::string("Error loading display driver [ ") + strDriverFile + std::string( "]"), strDriverFile, __LINE__); // should strDriverFile be __FILE__ instead?
+			throw XqInternal(std::string("Error loading display driver [ ") + strDriverFile + std::string( "]"), __FILE__, __LINE__); // should __FILE__ be strDriverFile instead?
 			//throw( CqString( "Error loading display driver [ " ) + strDriverFile + CqString( " ]" ) );
-		CqString strDriverPathAndFile = fileDriver.strRealName(); // Note: I want totmake this a std::string rather than CqString, but dspyPlugin.SimpleDLOpen(), below, wants the address of a CqString  
+		CqString strDriverPathAndFile = fileDriver.strRealName(); // Note: I want to make this a std::string rather than CqString, but dspyPlugin.SimpleDLOpen(), below, wants the address of a CqString  
 		// Load the dynamic obejct and locate the relevant symbols.
 		m_DriverHandle = dspyPlugin.SimpleDLOpen( &strDriverPathAndFile );
 		if( m_DriverHandle != NULL )
@@ -1009,12 +1008,12 @@ void CqShallowDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	
 	// Allocate enough space to put the whole bucket data into
 	if (m_DataBucket.get() == 0)
-		m_DataBucket = boost::shared_ptr<unsigned char>(new unsigned char[m_elementSize*pBucket->Width()*pBucket->Height()]);
+		m_DataBucket = boost::shared_array<unsigned char>(new unsigned char[m_elementSize*pBucket->Width()*pBucket->Height()]);
 	if ((m_flags.flags & PkDspyFlagsWantsScanLineOrder) && m_DataRow.get() == 0)
 	{
 		TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
 		TqUint height = pBucket->Height();
-		m_DataRow = boost::shared_ptr<unsigned char>(new unsigned char[m_elementSize*width*height]);
+		m_DataRow = boost::shared_array<unsigned char>(new unsigned char[m_elementSize*width*height]);
 	}
 	
 	SqImageSample val;
@@ -1094,7 +1093,6 @@ void CqShallowDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 
 void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 {
-	static CqRandom random( 61 );
 	const TqUint xmin = pBucket->XOrigin();
 	const TqUint ymin = pBucket->YOrigin();
 	const TqUint width = QGetRenderContext()->pImage()->CropWindowXMax() - QGetRenderContext()->pImage()->CropWindowXMin();
@@ -1129,7 +1127,7 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 // end debug
 	
 	// Copy data from the SqVisibilityNodes into std::vectors of Floats
-	// such that each consequtive pair, or tuple, of floats represents (depth, visibility)
+	// such that each consecutive pair, or tuple, of floats represents (depth, visibility)
 	// where depth is 1 float, and visibility is 1 or 3 floats depending on 
 	// whether the deep shadow map is grayscale or color.
 	
@@ -1163,9 +1161,16 @@ void CqDeepDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )
 	// This lets us sort the buckets by row later when collapsing to scanlines:
 	// necessary if non-standard bucket ordering is ever supported.
 	(*inBucketDeepData).horizontalBucketIndex = xmin;
-	// Add bucket to the map. Even if the bucket is empty, add an empty bucket so that this row of buckets will eventually be filled.
-	m_BucketDeepDataMap[ymin].push_back(inBucketDeepData);
-	//checkBucketDataMap(ymin, bucketWidth, bucketHeight); //< This one passes good
+	if ((m_flags.flags & PkDspyFlagsWantsScanLineOrder))
+	{
+		// Add bucket to the map. Even if the bucket is empty, add an empty bucket so that this row of buckets will eventually be filled.
+		m_BucketDeepDataMap[ymin].push_back(inBucketDeepData);
+		//checkBucketDataMap(ymin, bucketWidth, bucketHeight); //< This one passes good
+	}
+	else
+	{
+		m_DeepDataBucket = inBucketDeepData;
+	}
 }
 
 //-----------------------------------------------------------
@@ -1182,8 +1187,8 @@ bool CqShallowDisplayRequest::CollapseBucketsToScanlines( IqBucket* pBucket )
 	
 	// Accumulate the bucket information to full rows of buckets
 	// Copy the current bucket to the bucket data map
-	boost::shared_ptr<unsigned char> pdata(new unsigned char[bucketDataSize]);
-	memcpy(&(*pdata), m_DataBucket.get(), bucketDataSize);
+	boost::shared_array<unsigned char> pdata(new unsigned char[bucketDataSize]);
+	memcpy(pdata.get(), m_DataBucket.get(), bucketDataSize);
 	m_BucketDataMap[ymin].push_back(pdata);
 	// A problem with arbitrary bucket orders is that the row vectors of buckets are not sorted, but we need to
 	// send data to the display in sorted order. How can we reconstruct the sorted order?
@@ -1312,7 +1317,6 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 	{
 		if (CollapseBucketsToScanlines( pBucket ))
 		{
-			checkCollapsedBucketRow();
 			// Filled a row of buckets
 			// send to the display one line at a time
 			for (y = ymin; y < ymaxplus1; ++y)
@@ -1324,13 +1328,19 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 			}
 			// Delete row data
 			m_BucketDeepDataMap[ymin].clear();
+			// We also want to reclaim m_CollapsedBucketRow's memory, but it is a boost::shared_ptr, so how do we do it?
 		}
 	}
 	else
 	{
-		// Send the bucket information as they come in.
-		// But will DSM displays ever do this? Yes. In fact it is the more likely case.
-		// Just grab the bucket m_BucketDeepDataMap[ymin][0] and send its data, a row at a time
+		// Send the bucket information as they come in. For now, sending a row at a time
+		for (y = ymin; y < ymaxplus1; ++y)
+		{
+			err = (m_DeepDataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
+					reinterpret_cast<const unsigned char*>(&(m_DeepDataBucket->m_VisibilityDataRows[i].front())),
+			 		reinterpret_cast<const unsigned char*>(&(m_DeepDataBucket->m_VisibilityFunctionLengths[i].front())));
+			++i;
+		}
 	}
 }
 
