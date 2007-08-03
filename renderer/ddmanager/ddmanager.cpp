@@ -281,7 +281,7 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 		{
 			std::string strMapping = poptDisplayMapping[0];
 			//strDriverFile.Format(strMapping.c_str(), displayType.c_str());
-			strDriverFile = (boost::format(strMapping.c_str()) % displayType.c_str()).str();
+			strDriverFile = (boost::format(strMapping.c_str()) % displayType).str();
 		}
 	}
 	Aqsis::log() << debug << "Attempting to load \"" << strDriverFile.c_str() << "\" for display type \""<< displayType.c_str() << "\"" << std::endl;
@@ -1336,7 +1336,7 @@ void CqDeepDisplayRequest::SendToDisplay(IqBucket* pBucket)
 		// Send the bucket information as they come in. For now, sending a row at a time
 		for (y = ymin; y < ymaxplus1; ++y)
 		{
-			err = (m_DeepDataMethod)(m_imageHandle, 0, width, y, y+1, m_elementSize, 
+			err = (m_DeepDataMethod)(m_imageHandle, xmin, xmaxplus1, y, y+1, m_elementSize, 
 					reinterpret_cast<const unsigned char*>(&(m_DeepDataBucket->m_VisibilityDataRows[i].front())),
 			 		reinterpret_cast<const unsigned char*>(&(m_DeepDataBucket->m_VisibilityFunctionLengths[i].front())));
 			++i;

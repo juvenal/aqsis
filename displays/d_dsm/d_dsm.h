@@ -21,8 +21,7 @@
  *
  * \author Zachary Carter (zcarter@aqsis.org)
  *
- * \brief Implementation of the deep shadow display driver which is
- * responsible for compression of deep shadow maps and output to file.
+ * \brief Implementation of the deep shadow display driver
  */
 
 #ifndef D_DSM_H_INCLUDED

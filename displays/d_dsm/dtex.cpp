@@ -25,57 +25,73 @@
 */
 
 #include "dtex.h"
-
-//namespace Aqsis
-//{
+#include "exception.h"
 
 // Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
-//const long long int magicNumber = 0x894171440b0a160a;
-const unsigned int magicNumber[2] = { 0x89417144, 0x0b0a160a }; //< break the magic number into 2 32-bit halves
-//const char magicNumberFieldOne = 0x89;
-//const char magicNumberName[4] = "AqD";
-//const unsigned int magicNumberSecondHalf = 0x0b0a160a;
+static const char magicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
 
-CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, int imageWidth, int imageHeight, int tileWidth, int tileHeight, int numberOfChannels, int bytesPerChannel)
+CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth, uint32 imageHeight, uint32 tileWidth, uint32 tileHeight, uint32 numberOfChannels, uint32 bytesPerChannel)
+	: m_dtexFile( filename.c_str(), std::ios::out | std::ios::binary ),
+	m_fileHeader( (uint32)0, (uint32)imageWidth, (uint32)imageHeight, (uint32)numberOfChannels, (uint32)bytesPerChannel, (uint32)0, (uint32)0, (uint32)tileWidth, (uint32)tileHeight, (uint32)0 ),
+	m_tileTable(),
+	m_deepDataTileMap()
 {
 	const int tilesX = imageWidth/tileWidth;
 	const int tilesY = imageHeight/tileHeight;
 	const int numberOfTiles = tilesX*tilesY; 
-	
-	m_fileHeader.magicNumber[0] = magicNumber[0];
-	m_fileHeader.magicNumber[1] = magicNumber[1];
-	m_fileHeader.fileSize = 0; ///< We can't determine this until we receive all the data. We should write once, then seek back and re-write this field before file close
-	m_fileHeader.imageWidth = imageWidth;
-	m_fileHeader.imageHeight = imageHeight;
-	m_fileHeader.numberOfChannels = numberOfChannels;
-	m_fileHeader.bytesPerChannel = bytesPerChannel;
+
+	// Note: The following are set outside of the initialization list because they depend on the calculated constants above
 	m_fileHeader.headerSize = sizeof(SqDtexFileHeader) + numberOfTiles*sizeof(SqTileTableEntry);
-	m_fileHeader.dataSize = 0; ///< Can't know this early
-	m_fileHeader.tileWidth = tileWidth;
-	m_fileHeader.tileHeight = tileHeight;
 	m_fileHeader.numberOfTiles = numberOfTiles;
-	
 	m_tileTable.reserve(numberOfTiles);
-	
-	// Open a file in binary write mode
-	m_dtexFile.open(filename.c_str(), std::ios::out | std::ios::app | std::ios::binary);
-	
+	// Note: fileSize and dataSize can't be  determine until we receive all the data,
+	// so we write 0 now, then seek back and re-write this field before file close
+
+	// If file open failed, throw an exception
+	if (!m_dtexFile.is_open())
+	{
+		throw Aqsis::XqInternal(std::string("Failed to open file \"") + filename + std::string( "\""), __FILE__, __LINE__);
+	}
+
 	// Write the file header
+	m_dtexFile.write(magicNumber, 8); // Would rather this be a part of the file header, but how?	
+	m_dtexFile.write((const char*)(&m_fileHeader), sizeof(m_fileHeader));
 	
-	//Seek forward to reserve space for writting the tile table later
+	// Seek forward in file to reserve space for writing the tile table later.
+	// Seek from the current positon. Alternatively, you could seek from the file's beginning with std::ios::beg
+	m_dtexFile.seekp(numberOfTiles*sizeof(SqTileTableEntry), std::ios::cur);
 }
 
-void CqDeepTexOutputFile::setTileData( int xmin, int ymin, int xmax, int ymax, const unsigned char *data )
+void CqDeepTexOutputFile::setTileData( int xmin, int ymin, int xmax, int ymax, const unsigned char *data, const unsigned char* metadata )
 {
+	const int imageHeight = m_fileHeader.imageHeight;
+	const int imageWidth = m_fileHeader.imageWidth;
+	const int tileHeight = m_fileHeader.tileHeight;
+	const int tileWidth = m_fileHeader.tileWidth;
 	// Identify what tiles the passed-in data covers
 	// If those tiles are not already in the tile map, add them
+	// Note: Ideally tile dimensions will be multiples or factors of bucket dimensions so that one
+	// may be completely contained within the other annd sorting does not become complicated.
+	// Find the tile that contains the top left corner of the goven data. Either all the data will go here,
+	// or else to this tiles (greater ID) neighbors.
+	int homeTileID = (int)(imageWidth/tileWidth)*ymin+(int)(xmin/tileWidth); // tilesPerRow*numberOfRows + xmin/tileWidth
 	
 	// Copy the data into their respective tiles
 	// If a tile is filled, write it to file, update the tileTable with a m_tileTable.push_back(), and reclaim its memory
 
 	// If all tiles have been written, write the tileTable, re-write the datasSize and fileSize fields in the file header, and close the image
-	
+	m_dtexFile.close();
 	// Return
+}
+
+void CqDeepTexOutputFile::TilesCovered( const int xmin, const int ymin, const int xmax, const int ymax, std::vector<int>& tileIDs) const
+{
+	const int imageHeight = m_fileHeader.imageHeight;
+	const int imageWidth = m_fileHeader.imageWidth;
+	const int tileHeight = m_fileHeader.tileHeight;
+	const int tileWidth = m_fileHeader.tileWidth;
+	
+	 
 }
 
 void CqDeepTexOutputFile::writeFileHeader()
@@ -87,5 +103,3 @@ void CqDeepTexOutputFile::writeTile()
 {
 	
 }
-
-//} // namespace Aqsis
