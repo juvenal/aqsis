@@ -35,16 +35,18 @@
 #include <fstream>
 #include <vector>
 #include <map>
-#include "/opt/local/include/tiff.h"
+#include <tiff.h> //< Including in order to get the typedefs like uint32
 
 // External libraries
 #include <boost/shared_ptr.hpp>
 
+//typedef std::vector<boost::shared_ptr<SqSubTileRegion> > TqSubTileRegionVector;
+
 //------------------------------------------------------------------------------
-/** \brief A structure to store the tile header and data for a tile.  
+/** \brief A structure to store sub-region (bucket) deep data.
  *
  */
-struct SqDeepDataTile
+struct SqSubTileRegion
 {
 	/// The length (in units of number of nodes)
 	/// of each visibility function in the tile. A particle function N may be indexed at position (sum of function lengths up to, but excluding N).
@@ -52,9 +54,25 @@ struct SqDeepDataTile
 	/// May be expressed as: std::accumulate(functionOffsets.begin(), functionOffsets.end(), 0);
 	/// The number of elements in this vector must be equal to (tileWidth*tileHeight),
 	/// so there is a length field for every pixel, empty or not.
-	std::vector<int> functionLengths;
+	std::vector<std::vector<int> > functionLengths;
 	/// data
-	std::vector<float> tileData;
+	std::vector<std::vector<float> > tileData;
+};
+
+//------------------------------------------------------------------------------
+/** \brief A structure to store the tile header and data for a tile.  
+ *
+ */
+struct SqDeepDataTile
+{
+	/// Organize tile data as a set of sub-regions each with the dimensions of a bucket.
+	/// Store an array or vector of pointers to bucket data. Store them in order so that the first pointer 
+	/// points to the top-left bucket, and the last one points to the bottom left bucket.
+	/// A problem with this is that  tile data will no longer be stored contiguously in memory,
+	/// so it will not be possible to write the entire tile to file in a single write without first doing a copy of all the data into a contiguous region in memory.
+	/// It is desirable to write once the whole tile in order to minimize disk accesses, which or slow.
+	/// Therefore I plan to use dataSubRegions to accumulate tile data, then copy everything into functionLengths and tileData to write to file.
+	std::vector<boost::shared_ptr<SqSubTileRegion> > subRegions;
 };
 
 //------------------------------------------------------------------------------
@@ -144,7 +162,8 @@ struct SqDtexFileHeader
 class CqDeepTexOutputFile
 {
 	public:
-		CqDeepTexOutputFile(std::string filename, uint32 imageWidth, uint32 imageHeight, uint32 tileWidth, uint32 tileHeight, uint32 numberOfChannels, uint32 bytesPerChannel);
+		CqDeepTexOutputFile(std::string filename, uint32 imageWidth, uint32 imageHeight, uint32 tileWidth, uint32 tileHeight, 
+				uint32 bucketWidth, uint32 bucketHeight, uint32 numberOfChannels, uint32 bytesPerChannel);
 		virtual ~CqDeepTexOutputFile(){}
 	  
 		/** \brief Copy the given data into the tile map
@@ -168,6 +187,8 @@ class CqDeepTexOutputFile
 		
 	private:
 		// Functions
+		void CopyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int xmin, const int ymin, const int xmax, const int ymax);
+		void CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const std::vector< std::vector<int> >& functionLengths, const int xmin, const int ymin, const int xmax, const int ymax);
 		void writeFileHeader();
 		void writeTile();
 		
@@ -184,6 +205,12 @@ class CqDeepTexOutputFile
 		// The map is indexed with a key: a tile ID, which is the number of the tile 
 		// assuming tiles are layed out in increasing order from left-to-right, top-to-bottom.
 		std::map<int, std::vector<boost::shared_ptr<SqDeepDataTile> > > m_deepDataTileMap;
+		
+		// Fields
+		int m_xBucketsPerTile;
+		int m_yBucketsPerTile;
+		int m_bucketWidth;
+		int m_bucketHeight;
 		
 };
 

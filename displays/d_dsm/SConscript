@@ -6,14 +6,15 @@ d_dsmenv.AppendUnique(CPPDEFINES=['d_dsm_EXPORTS'])
 d_dsm_sources = Split("""
 	d_dsm.cpp
 	dtex.cpp
-	""")
+	displayhelpers.c""")
 
 d_dsm_headers =  Split("""
 	d_dsm.h
 	dtex.h""")
 
 
-d_dsmenv.AppendUnique(LIBS = ['$tiff_lib', '$z_lib'])
+d_dsmenv.AppendUnique(LIBS = ['aqsistypes', '$tiff_lib'])
+d_dsmenv.AppendUnique(CPPPATH=['$tiff_include_path'])
 
 # Set any platform specific target options.
 d_dsmenv.UseTargetOptions('d_dsm')
@@ -29,4 +30,3 @@ Return('d_dsm')
 env.Distribute(d_dsm_sources)
 env.Distribute(d_dsm_headers)
 env.Distribute('SConscript')
-

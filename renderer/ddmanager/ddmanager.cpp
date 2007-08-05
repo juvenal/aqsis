@@ -977,6 +977,21 @@ void CqDisplayRequest::PrepareSystemParameters()
 
 	ConstructStringsParameter("HostComputer", &HostComputer, 1, parameter);
 	m_customParams.push_back(parameter);
+	
+	// Note: I (Zac) added the below because d_dsm needs to know the standard bucket dimensions
+	
+	// "BucketDimensions"
+	TqInt BucketDimensions[2];
+	BucketDimensions[0] = 16;
+	BucketDimensions[1] = 16;
+	const TqInt* poptBucketSize = QGetRenderContext() ->poptCurrent()->GetIntegerOption( "limits", "bucketsize" );
+	if ( poptBucketSize != 0 )
+	{
+		BucketDimensions[0] = poptBucketSize[ 0 ];
+		BucketDimensions[1] = poptBucketSize[ 1 ];
+	}
+	ConstructIntsParameter("BucketDimensions", BucketDimensions, 2, parameter);
+	m_customParams.push_back(parameter);
 }
 
 void CqDisplayRequest::DisplayBucket( IqBucket* pBucket )
