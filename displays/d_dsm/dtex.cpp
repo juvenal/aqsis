@@ -71,6 +71,9 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 	m_dtexFile.seekp(numberOfTiles*sizeof(SqTileTableEntry), std::ios::cur);
 }
 
+// Note: I have not been very consistent here in the naming of metadata, which I also call functionLengths, but have have the name metadata
+// to name whatever extra data the display device wants to store in the dtex file, along with the deep data. It just so happens that
+// the extra data we want to store for DSMs is the function lengths.
 void CqDeepTexOutputFile::setTileData( int xmin, int ymin, int xmax, int ymax, const unsigned char *data, const unsigned char* metadata )
 {
 	//If we want to enforce that data is received in a bucket at a time, then assert that xmax-xmin <= bucketWidth (may be '<' for edge buckets)
@@ -126,10 +129,10 @@ void CqDeepTexOutputFile::setTileData( int xmin, int ymin, int xmax, int ymax, c
 	tData.resize(m_bucketHeight);
 	// Copy data
 	CopyMetaData(tFunctionLengths, iMetaData, xmin, ymin, xmax, ymax);
-	CopyData(tData, iData, tFunctionLengths, xmin, ymin, xmax, ymax);
+	CopyData(tData, iData, iMetaData, xmin, ymin, xmax, ymax);
 	
 	// Check for full tile
-	
+	// If full tile, write tile to disk, update the tileTable, and reclaim the tile's memory
 	
 	// If all tiles have been written, write the tileTable, re-write the datasSize and fileSize fields in the file header, and close the image
 	m_dtexFile.close();
@@ -141,9 +144,27 @@ void CqDeepTexOutputFile::CopyMetaData(std::vector< std::vector<int> >& toMetaDa
 	
 }
 
-void CqDeepTexOutputFile::CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const std::vector< std::vector<int> >& functionLengths, const int xmin, const int ymin, const int xmax, const int ymax)
+void CqDeepTexOutputFile::CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int xmin, const int ymin, const int xmax, const int ymax)
 {
+	// Note: I assume that at least a full row of a bucket at a time is sent to the dislay, if not full buckets, but never partial rows.
+	//const int numberOfNodesToCopy = NodeCount(functionLengths, (xmax-xmin)*(ymax-ymin)); // Is it possible to use std::accumulate here (on an array)?
+	const int rowWidth = xmax-xmin;
+	const int colHeight = ymax-ymin;
+	const int nodeSize = (m_fileHeader.numberOfChannels+1);
 	
+	int row;
+	int col; 
+	
+	for(row = 0; row < rowWidth; ++row)
+	{
+		for (col = 0; col < colHeight; ++col)
+		{
+			toData[row].push_back(fromData[(row*rowWidth+col)*nodeSize]);
+			toData[row].push_back(fromData[(row*rowWidth+col)*nodeSize+1]);
+			toData[row].push_back(fromData[(row*rowWidth+col)*nodeSize+2]);
+			toData[row].push_back(fromData[(row*rowWidth+col)*nodeSize+3]);
+		}
+	}
 }
 
 void CqDeepTexOutputFile::TilesCovered( const int xmin, const int ymin, const int xmax, const int ymax, std::vector<int>& tileIDs) const

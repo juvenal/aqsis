@@ -188,7 +188,8 @@ class CqDeepTexOutputFile
 	private:
 		// Functions
 		void CopyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int xmin, const int ymin, const int xmax, const int ymax);
-		void CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const std::vector< std::vector<int> >& functionLengths, const int xmin, const int ymin, const int xmax, const int ymax);
+		void CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int xmin, const int ymin, const int xmax, const int ymax);
+		inline int NodeCount(const int* functionLengths, const int numberOfPixels) const;
 		void writeFileHeader();
 		void writeTile();
 		
@@ -213,5 +214,23 @@ class CqDeepTexOutputFile
 		int m_bucketHeight;
 		
 };
+
+//------------------------------------------------------------------------------
+// Inline function(s) for CqDeepTexOutputFile
+//------------------------------------------------------------------------------
+inline int CqDeepTexOutputFile::NodeCount(const int* functionLengths, const int numberOfPixels) const
+{
+	int count = 0;
+	int i;
+	
+	for(i = 0; i < numberOfPixels; ++i)
+	{
+		if (functionLengths[i] != -1)
+		{
+			count += functionLengths[i];
+		}
+	}
+	return count;
+}
 
 #endif // DTEX_H_INCLUDED
