@@ -595,7 +595,7 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	const int functionCount = CountFunctions(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< # of visibility functions in the data
 	const int nodeCount = CountNodes(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< Total # of visbility nodes in data
 	
-	pData->DtexFile->setTileData(xmin, ymin, xmax_plusone, ymax_plusone, data, functionLengths);
+	pData->DtexFile->SetTileData(xmin, ymin, xmax_plusone, ymax_plusone, data, functionLengths);
 	
 	// Everything below is for testing and debugging
 	

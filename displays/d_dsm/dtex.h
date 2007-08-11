@@ -35,12 +35,10 @@
 #include <fstream>
 #include <vector>
 #include <map>
-#include <tiff.h> //< Including in order to get the typedefs like uint32
+#include <tiff.h> //< temporary include to get the typedefs like uint32
 
 // External libraries
 #include <boost/shared_ptr.hpp>
-
-//typedef std::vector<boost::shared_ptr<SqSubTileRegion> > TqSubTileRegionVector;
 
 //------------------------------------------------------------------------------
 /** \brief A structure to store sub-region (bucket) deep data.
@@ -73,6 +71,8 @@ struct SqDeepDataTile
 	/// It is desirable to write once the whole tile in order to minimize disk accesses, which or slow.
 	/// Therefore I plan to use dataSubRegions to accumulate tile data, then copy everything into functionLengths and tileData to write to file.
 	std::vector<boost::shared_ptr<SqSubTileRegion> > subRegions;
+	unsigned int tileCoordX;
+	unsigned int tileCoordY;
 };
 
 //------------------------------------------------------------------------------
@@ -81,10 +81,18 @@ struct SqDeepDataTile
  */
 struct SqTileTableEntry
 {
-	unsigned int tileCoordX;
-	unsigned int tileCoordY;
+	/** Constructor
+	 */ 
+	SqTileTableEntry( uint32 x, uint32 y, uint32 fo )
+		: tileCoordX( x ),
+		tileCoordY( y ),
+		fileOffset( fo )
+	{
+	}
+	uint32 tileCoordX;
+	uint32 tileCoordY;
 	/// Absolute file offset to the beginning of a tile header (fileOffset == 0 if tile is empty)
-	unsigned int fileOffset;
+	uint32 fileOffset;
 };
 
 //------------------------------------------------------------------------------
@@ -174,24 +182,23 @@ class CqDeepTexOutputFile
 		 * 					of each visibility function. In the case of an empty bucket, the first value in
 		 * 					metadata is -1 and data is empty/invalid.
 		 */
-		virtual void setTileData( int xmin, int ymin, int xmax, int ymax, const unsigned char *data, const unsigned char* metadata );
+		virtual void SetTileData( const int xmin, const int ymin, const int xmax, const int ymax, const unsigned char *data, const unsigned char* metadata );
 		
-		/** \brief Identify all tiles covered by the given image space region
+		/** \brief Dtermine if all data has been received for a specific tile
 		 *
 		 *
-		 * \param tileIDs - A reference to a standard vector in which to store the tile IDs of all tiles
-		 * 					covered by the given region. A tile ID is an integer equal to the number of the tile
-		 * 					if the tiles are layed out in grid and counted in increasing order left-to-right, and top-to-bottom. 
-		 */		
-		void TilesCovered( const int xmin, const int ymin, const int xmax, const int ymax, std::vector<int>& tileIDs) const;
+		 * \param tile - The tile; we want to know if it is full
+		 */				
+		bool IsFullTile(const boost::shared_ptr<SqDeepDataTile> tile) const;
 		
 	private:
 		// Functions
 		void CopyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int xmin, const int ymin, const int xmax, const int ymax);
 		void CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int xmin, const int ymin, const int xmax, const int ymax);
 		inline int NodeCount(const int* functionLengths, const int numberOfPixels) const;
-		void writeFileHeader();
-		void writeTile();
+		void WriteTileTable();
+		void UpdateTileTable(const boost::shared_ptr<SqDeepDataTile> tile);
+		void WriteTile(const boost::shared_ptr<SqDeepDataTile> tile);
 		
 		//-----------------------------------------------------------------------------------
 		// Member Data
