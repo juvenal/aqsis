@@ -193,10 +193,21 @@ class CqDeepTexOutputFile
 		
 	private:
 		// Functions
+		void CreateNewSubTileRegion(boost::shared_ptr<SqDeepDataTile> currentTile, const int subRegionID, const int ymin);
+		void CreateNewTile(const int tileID);
 		void CopyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int xmin, const int ymin, const int xmax, const int ymax);
 		void CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int xmin, const int ymin, const int xmax, const int ymax);
+		void FillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int xmin, const int ymin, const int xmax, const int ymax);
+		void FillEmptyData(std::vector< std::vector<float> >& toData, const int xmin, const int ymin, const int xmax, const int ymax);
 		inline int NodeCount(const int* functionLengths, const int numberOfPixels) const;
 		void WriteTileTable();
+		/** \brief Determine if this tile is empty, that is, it covers no micropolygons or participating media in the DSM
+		 * and can therefore be left out of the DTEX file, and represented instead with a fileOffset of 0 in the tile table, signifying that any pixels
+		 * inside this tile have 100% visibility at all depths, and are therefore never in shadow.
+		 *
+		 * \param tile - The tile; we want to know if it has all of its sub-regions as empty sub-regions.
+		 */	
+		bool IsNeglectableTile(const boost::shared_ptr<SqDeepDataTile> tile);
 		void UpdateTileTable(const boost::shared_ptr<SqDeepDataTile> tile);
 		void WriteTile(const boost::shared_ptr<SqDeepDataTile> tile);
 		
@@ -212,7 +223,8 @@ class CqDeepTexOutputFile
 		// Data buffers
 		// The map is indexed with a key: a tile ID, which is the number of the tile 
 		// assuming tiles are layed out in increasing order from left-to-right, top-to-bottom.
-		std::map<int, std::vector<boost::shared_ptr<SqDeepDataTile> > > m_deepDataTileMap;
+		//std::map<int, std::vector<boost::shared_ptr<SqDeepDataTile> > > m_deepDataTileMap;
+		std::map<int, boost::shared_ptr<SqDeepDataTile> > m_deepDataTileMap;
 		
 		// Fields
 		int m_xBucketsPerTile;

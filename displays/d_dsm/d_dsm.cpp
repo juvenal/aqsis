@@ -205,7 +205,7 @@ void checkData(PtDspyImageHandle image, int ymin, int ymaxplus1)
 {
 	const SqDeepShadowData *pData = (SqDeepShadowData *)image;
 	const int width = pData->iWidth;
-	const int height = pData->iHeight;
+	//const int height = pData->iHeight;
 	const int nodeSize = pData->Channels+1; // The channels field gets you 1,2, or 3 for the rgb channels, plus 1 for depth
 	const int bucketWidth = pData->bucketDimensions[0];
 	int i, j, k, readPos, thisFunctionLength;
@@ -383,7 +383,7 @@ void BuildBitmapData(char* imageBufferIn, const int pnum, const SqDeepShadowData
 			}
 			else
 			{
-				printf("Problem: the case didn't get matched.\n This function length is %d, pnum is %d, currentDepth is %d", 
+				printf("Problem: the case didn't get matched.\n This function length is %d, pnum is %d, currentDepth is %f", 
 						thisFunctionLength, pnum, currentDepth);
 			}
 			++k;
@@ -508,9 +508,9 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	//memset(&g_Data, sizeof(SqDeepShadowData), 0);
 
 	// Note: flags can also be binary ANDed with PkDspyFlagsWantsEmptyBuckets and PkDspyFlagsWantsNullEmptyBuckets
-	flagstuff->flags = PkDspyFlagsWantsScanLineOrder; //< Let's try bucket order now
+	//flagstuff->flags = PkDspyFlagsWantsScanLineOrder; //< Let's try bucket order now
 	//g_Data.flags = PkDspyFlagsWantsScanLineOrder;
-	pData->flags = PkDspyFlagsWantsScanLineOrder;
+	//pData->flags = PkDspyFlagsWantsScanLineOrder;
 /*
 	g_Data.Channels = formatCount; // From this field, the display knows how many floats per visibility node to expect from DspyImageDeepData
 	g_Data.iWidth = width;
@@ -521,7 +521,7 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	pData->iHeight = height;
 	
 	pData->DtexFile = new CqDeepTexOutputFile(std::string(filename), width, height, 
-			tileWidth, tileHeight, pData->bucketDimensions[0], pData->bucketDimensions[1], formatCount, (1+formatCount)*sizeof(float));
+			tileWidth, tileHeight, pData->bucketDimensions[0], pData->bucketDimensions[1], formatCount, sizeof(float));
 	
 	// Stuff for testing/debugging
 /*
@@ -591,9 +591,9 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 
 	const float* visData = reinterpret_cast<const float*>(data);
 	const int* funLengths = reinterpret_cast<const int*>(functionLengths);
-	const int nodeSize = pData->Channels+1;
-	const int functionCount = CountFunctions(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< # of visibility functions in the data
-	const int nodeCount = CountNodes(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< Total # of visbility nodes in data
+	//const int nodeSize = pData->Channels+1;
+	//const int functionCount = CountFunctions(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< # of visibility functions in the data
+	//const int nodeCount = CountNodes(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< Total # of visbility nodes in data
 	
 	pData->DtexFile->SetTileData(xmin, ymin, xmax_plusone, ymax_plusone, data, functionLengths);
 	
@@ -601,12 +601,12 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	
 	//printf("d_dsm: total functionCount is %d\n", functionCount);
 	//printf("d_dsm: total nodeCount is %d\n", nodeCount);
-	
+/*	
 	pData->testDeepData[ymin] = new float[nodeCount*4];
 	memcpy(pData->testDeepData[ymin], visData, nodeSize*nodeCount*sizeof(float));
 	pData->functionLengths[ymin] = new int[functionCount];
 	memcpy(pData->functionLengths[ymin], funLengths, functionCount*sizeof(int));
-	
+*/	
 	// begin debug
 	/*
 	int readPos = 0;
@@ -642,7 +642,7 @@ extern "C" PtDspyError DspyImageClose(PtDspyImageHandle image)
 #endif
 	
 	// First write out the images to disk (bitmaps for testing)
-	WriteDSMImageSequence(image);	
+	//WriteDSMImageSequence(image);	
 	
 	SqDeepShadowData *pData = (SqDeepShadowData *)image;
 
