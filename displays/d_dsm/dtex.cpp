@@ -86,13 +86,14 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 	const int tileHeight = m_fileHeader.tileHeight;
 	const int tileWidth = m_fileHeader.tileWidth;
 	int paddedTileWidth = tileWidth;
-	// Find the tile that contains the top left corner of the goven data. Either all the data will go here,
-	// or else to this tiles (greater ID) neighbors. 
-	// Note: The ID is the number of the tile if you were to count them in increasing order from left-to-right, and top-to-bottom.
 	if (imageWidth-xmin < tileWidth)
 	{
-		paddedTileWidth += imageWidth-xmin; 
+		paddedTileWidth += imageWidth-xmin; //< This makes sure we identify padded tiles as the correct tileID in the homeTileID calculation below.
+											// Without this, the homeTileID will be at least 1 too big in the case of padded boundary tiles.
 	}
+	// Find the tile that contains the top left corner of the goven data. Either all the data will go here,
+	// or else to this tiles (greater ID) neighbors. 
+	// homeTileID is the number of the tile if you were to count them in increasing order from left-to-right, and top-to-bottom.
 	const int homeTileID = ((int)(imageWidth/tileWidth))*((int)(ymin/tileHeight))+((int)(xmin/paddedTileWidth)); //< tilesPerRow*numberOfRows + xmin/tileWidth
 	// Find the pixel coordinates of this tile's top-left pixel (its origin)
 	const int homeTileRow = homeTileID/(imageWidth/tileWidth);
@@ -105,8 +106,8 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 	// data is being sent as full buckets at a time, but not full image scanlines at a time. For the later case, we need to split data between various sub-regions.
 	const int subRegionID = m_xBucketsPerTile*((int)(relativeYmin/m_bucketHeight))+(relativeXmin/m_bucketWidth);
 	//const int subRegionID = (int)(tileWidth/m_bucketWidth)*relativeYmin+(int)(relativeXmin/m_bucketWidth);
-	printf("homeTileID is %d and subRegionID is %d and relativeYmin is %d and relativeXmin is %d"
-			" and xmin is %d and ymin is %d and homeTileRow is %d and homeTileCol is %d\n", homeTileID, subRegionID, relativeYmin, relativeXmin, xmin, ymin, homeTileRow, homeTileCol);	
+	//printf("homeTileID is %d and subRegionID is %d and relativeYmin is %d and relativeXmin is %d"
+	//		" and xmin is %d and ymin is %d and homeTileRow is %d and homeTileCol is %d\n", homeTileID, subRegionID, relativeYmin, relativeXmin, xmin, ymin, homeTileRow, homeTileCol);	
 	
 	// If the tile that should hold this data has not been created yet, create it.
 	if (m_deepDataTileMap.count(homeTileID) == 0)
@@ -124,7 +125,7 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 	// Check for and deal with the special case of empty buckets
 	if (iMetaData[0] == -1)
 	{
-		printf("Caught empty bucket\n");
+		//printf("Caught empty bucket\n");
 		// We should fill tFunctionLengths with all 1's
 		// and fill tData with visibility nodes (0,1), one per pixel.
 		FillEmptyMetaData(tFunctionLengths, xmin%m_bucketWidth, ymin%m_bucketHeight, xmax%m_bucketWidth, ymax%m_bucketHeight);
@@ -206,11 +207,11 @@ void CqDeepTexOutputFile::CreateNewTile(const int tileID)
 	
 	// If this is an end tile, and the image width or height is not divisible by tile width or height,
 	// Then perform padding on the tile: resize to a larger size to accomodate the extra data.
-	if((tileCol == xTilesPerImage) && (imageWidth%tileWidth != 0))
+	if((tileCol == (xTilesPerImage-1)) && (imageWidth%tileWidth != 0)) //< subtract 1 from xTilesPerImage since tileCol is zero-indexed (tileCol == 2 -> it is the 3rd tile from the left)
 	{
 		++xSize;
 	}
-	if((tileRow == yTilesPerImage) && (imageHeight%tileHeight != 0))
+	if((tileRow == (yTilesPerImage-1)) && (imageHeight%tileHeight != 0))
 	{
 		++ySize;
 	}	
@@ -234,7 +235,7 @@ void CqDeepTexOutputFile::CopyMetaData(std::vector< std::vector<int> >& toMetaDa
 	{
 		for (col = xmin; col < xmax; ++col)
 		{
-			printf("row is %d and readPos is %d\n", row, readPos);
+			//printf("row is %d and readPos is %d\n", row, readPos);
 			toMetaData[row].push_back(fromMetaData[readPos]);
 			++readPos;
 		}
@@ -257,7 +258,7 @@ void CqDeepTexOutputFile::CopyData(std::vector< std::vector<float> >& toData, co
 			i = 0;
 			while(i < numberOfElements)
 			{
-				printf("Row is %d and col is %d and xmax is %d and ymax is %d and i is %d\n", row, col, xmax, ymax, i);
+				//printf("Row is %d and col is %d and xmax is %d and ymax is %d and i is %d\n", row, col, xmax, ymax, i);
 				toData[row].push_back(fromData[readPos+i]);
 				++i;
 			}
