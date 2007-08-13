@@ -23,7 +23,6 @@
 		\author Paul C. Gregory (pgregory@aqsis.org)
 */
 
-#include	"MultiTimer.h"
 
 #include	"aqsis.h"
 
@@ -35,6 +34,7 @@
 #include	"surface.h"
 #include	"imagepixel.h"
 #include	"bucket.h"
+#include	"multitimer.h"
 
 #include	"imagers.h"
 
@@ -1269,4 +1269,5 @@ CqBucket::~CqBucket()
 }
 
 END_NAMESPACE( Aqsis )
+
 

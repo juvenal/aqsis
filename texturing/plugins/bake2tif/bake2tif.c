@@ -121,10 +121,11 @@ __export char *bake2tif( char *in )
  * linear interpretation between an sample at the left side and ride side of black pixel.
  */
 
-static int lerp(int maxy, int miny, int maxx, int minx, int x)
+static float lerp(float maxy, float miny, float maxx, float minx, int x)
 {
-	int result = minx;
+	float result = minx;
 	float ratio = 1.0;
+
 
 	if (x == maxx)
 		return maxy;
@@ -134,7 +135,7 @@ static int lerp(int maxy, int miny, int maxx, int minx, int x)
 		return miny;
 	else
 		ratio = 1.0f - (float) (maxx - x) / (float) (maxx - minx);
-	result = miny + (int) (ratio * (maxy - miny));
+	result = miny + (float) (ratio * (maxy - miny));
 
 
 	return result;

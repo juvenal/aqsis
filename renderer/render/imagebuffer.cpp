@@ -23,7 +23,7 @@
 		\author Paul C. Gregory (pgregory@aqsis.org)
 */
 
-#include	"MultiTimer.h"
+#include	"multitimer.h"
 
 #include	"aqsis.h"
 
@@ -297,9 +297,9 @@ bool CqImageBuffer::CullSurface( CqBound& Bound, const boost::shared_ptr<CqSurfa
 
 void CqImageBuffer::PostSurface( const boost::shared_ptr<CqSurface>& pSurface )
 {
+	TIME_SCOPE("Post Surface")
 	// Count the number of total gprims
 	STATS_INC( GPR_created_total );
-
 
 	// Bound the primitive in its current space (camera) space taking into account any motion specification.
 	CqBound Bound( pSurface->Bound() );
@@ -642,27 +642,30 @@ void CqImageBuffer::CacheGridInfo(CqMicroPolyGridBase* pGrid)
 
 void CqImageBuffer::RenderMPGs( long xmin, long xmax, long ymin, long ymax )
 {
-	// Render any waiting MPGs
-	std::vector<CqMicroPolygon*>::iterator lastmpg = CurrentBucket().aMPGs().end();
-	CqMicroPolyGridBase* pPrevGrid = NULL;
-	for ( std::vector<CqMicroPolygon*>::iterator impg = CurrentBucket().aMPGs().begin(); impg != lastmpg; impg++ )
 	{
-		CqMicroPolygon* pMpg = *impg;
-
-		if(pMpg->pGrid() != pPrevGrid)
+		TIME_SCOPE("Render MPGs")
+		// Render any waiting MPGs
+		std::vector<CqMicroPolygon*>::iterator lastmpg = CurrentBucket().aMPGs().end();
+		CqMicroPolyGridBase* pPrevGrid = NULL;
+		for ( std::vector<CqMicroPolygon*>::iterator impg = CurrentBucket().aMPGs().begin(); impg != lastmpg; impg++ )
 		{
-			pPrevGrid = pMpg->pGrid();
-			CacheGridInfo(pPrevGrid);
-		}
+			CqMicroPolygon* pMpg = *impg;
 
-		RenderMicroPoly( pMpg, xmin, xmax, ymin, ymax );
-		if ( PushMPGDown( ( pMpg ), CurrentBucketCol(), CurrentBucketRow() ) )
-			STATS_INC( MPG_pushed_down );
-		if ( PushMPGForward( ( pMpg ), CurrentBucketCol(), CurrentBucketRow() ) )
-			STATS_INC( MPG_pushed_forward );
-		RELEASEREF( ( pMpg ) );
+			if(pMpg->pGrid() != pPrevGrid)
+			{
+				pPrevGrid = pMpg->pGrid();
+				CacheGridInfo(pPrevGrid);
+			}
+
+			RenderMicroPoly( pMpg, xmin, xmax, ymin, ymax );
+			if ( PushMPGDown( ( pMpg ), CurrentBucketCol(), CurrentBucketRow() ) )
+				STATS_INC( MPG_pushed_down );
+			if ( PushMPGForward( ( pMpg ), CurrentBucketCol(), CurrentBucketRow() ) )
+				STATS_INC( MPG_pushed_forward );
+			RELEASEREF( ( pMpg ) );
+		}
+		CurrentBucket().aMPGs().clear();
 	}
-	CurrentBucket().aMPGs().clear();
 
 	// Split any grids in this bucket waiting to be processed.
 	if ( !CurrentBucket().aGrids().empty() )
@@ -1000,10 +1003,7 @@ void CqImageBuffer::RenderSurfaces( long xmin, long xmax, long ymin, long ymax, 
 	bool bIsEmpty = IsCurrentBucketEmpty();
 
 	// Render any waiting micro polygon grids.
-	{
-		TIME_SCOPE("Render MPGs")
-		RenderMPGs( xmin, xmax, ymin, ymax );
-	}
+	RenderMPGs( xmin, xmax, ymin, ymax );
 
 	CqBucket& Bucket = CurrentBucket();
 
@@ -1018,10 +1018,12 @@ void CqImageBuffer::RenderSurfaces( long xmin, long xmax, long ymin, long ymax, 
 		//Cull surface if it's hidden
 		if ( !( DisplayMode() & ModeZ ) && !pSurface->pCSGNode() )
 		{
-			TIME_SCOPE("Occlusion culling")
 			bool fCull = false;
 			if ( !bIsEmpty && pSurface->fCachedBound() )
+			{
+				TIME_SCOPE("Occlusion culling surfaces")
 				fCull = OcclusionCullSurface( pSurface );
+			}
 			if ( fCull )
 			{
 				Bucket.popSurface();
@@ -1060,10 +1062,7 @@ void CqImageBuffer::RenderSurfaces( long xmin, long xmax, long ymin, long ymax, 
 					// Only project micropolygon not culled
 					Bucket.AddGrid( pGrid );
 					// Render any waiting micro polygon grids.
-					{
-						TIME_SCOPE("Render MPGs")
-						RenderMPGs( xmin, xmax, ymin, ymax );
-					}
+					RenderMPGs( xmin, xmax, ymin, ymax );
 				}
 				RELEASEREF( pGrid );
 			}
@@ -1078,9 +1077,12 @@ void CqImageBuffer::RenderSurfaces( long xmin, long xmax, long ymin, long ymax, 
 
 			// Split it
 			{
-				TIME_SCOPE("Splits")
+				TqInt cSplits = 0;
 				std::vector<boost::shared_ptr<CqSurface> > aSplits;
-				TqInt cSplits = pSurface->Split( aSplits );
+				{
+					TIME_SCOPE("Splits")
+					cSplits = pSurface->Split( aSplits );
+				}
 				TqInt i;
 				for ( i = 0; i < cSplits; i++ )
 					PostSurface( aSplits[ i ] );
@@ -1108,10 +1110,7 @@ void CqImageBuffer::RenderSurfaces( long xmin, long xmax, long ymin, long ymax, 
 
 		pSurface = Bucket.pTopSurface();
 		// Render any waiting micro polygon grids.
-		{
-			TIME_SCOPE("Render MPGs")
-			RenderMPGs( xmin, xmax, ymin, ymax );
-		}
+		RenderMPGs( xmin, xmax, ymin, ymax );
 	}
 
 	// Now combine the colors at each pixel sample for any micropolygons rendered to that pixel.
@@ -1318,7 +1317,7 @@ void CqImageBuffer::RenderImage()
 
 		if ( !bIsEmpty )
 		{
-			TIME_SCOPE("Occlusion culling")
+			TIME_SCOPE("Occlusion culling initialisation")
 			CqOcclusionBox::SetupHierarchy( &CurrentBucket(), xmin, ymin, xmax, ymax );
 		}
 
@@ -1541,5 +1540,6 @@ bool CqImageBuffer::NextBucket(EqBucketOrder order)
 //---------------------------------------------------------------------
 
 END_NAMESPACE( Aqsis )
+
 
 

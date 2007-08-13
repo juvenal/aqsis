@@ -24,6 +24,7 @@ void save_tiff( char *filename,
 	struct tm  *ct;
 	int    year;
 	int   bake = 0;
+	int linewidth;
 
 	time_t long_time;
 
@@ -64,7 +65,7 @@ void save_tiff( char *filename,
 	TIFFSetField( ptex, TIFFTAG_ROWSPERSTRIP, 1 );
 	TIFFSetField( ptex, TIFFTAG_DATETIME, datetime);
 
-	int linewidth = width * samples;
+	linewidth = width * samples;
 	if (bake)
 		linewidth *= sizeof(float);
 	for ( i = 0; i < length; i++ )

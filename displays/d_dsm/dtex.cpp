@@ -389,6 +389,8 @@ void CqDeepTexOutputFile::WriteTileTable()
 
 void CqDeepTexOutputFile::WriteTile(const boost::shared_ptr<SqDeepDataTile> tile)
 {
+	/// \todo Currently I write to file one sub-region row at a time, which results in many calls to write(), and hence many disk acesses,
+	/// which are slow. I should instead rebuild the tile in a contiguous region in memory, then write it to disk all at once. 
 	int i, j;
 	int tileSizeInBytes = 0;
 	const std::vector<boost::shared_ptr<SqSubTileRegion> >& subRegions = tile->subRegions;
