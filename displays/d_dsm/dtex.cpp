@@ -24,6 +24,8 @@
  * \brief Implementation of a deep texture file writer to create tiled binary DTEX files.
 */
 
+#include <cmath>
+
 #include "dtex.h"
 #include "exception.h"
 
@@ -85,39 +87,53 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 	const int imageWidth = m_fileHeader.imageWidth;
 	const int tileHeight = m_fileHeader.tileHeight;
 	const int tileWidth = m_fileHeader.tileWidth;
-	int paddedTileWidth = tileWidth;
-	if (imageWidth-xmin < tileWidth)
+	const int tilesPerRow = imageWidth/tileWidth;
+	const int tilesPerCol = imageHeight/tileHeight;
+	int subRegionsPerRow = tileWidth/m_bucketWidth;
+	int homeTileRow = ymin/tileHeight;
+	if (homeTileRow >= tilesPerCol)
 	{
-		paddedTileWidth += imageWidth-xmin; //< This makes sure we identify padded tiles as the correct tileID in the homeTileID calculation below.
-											// Without this, the homeTileID will be at least 1 too big in the case of padded boundary tiles.
+		homeTileRow = tilesPerCol-1;
+	}
+	int homeTileCol = xmin/tileWidth;
+	if (homeTileCol >= tilesPerRow)
+	{
+		homeTileCol = tilesPerRow-1; 
 	}
 	// Find the tile that contains the top left corner of the goven data. Either all the data will go here,
 	// or else to this tiles (greater ID) neighbors. 
 	// homeTileID is the number of the tile if you were to count them in increasing order from left-to-right, and top-to-bottom.
-	const int homeTileID = ((int)(imageWidth/tileWidth))*((int)(ymin/tileHeight))+((int)(xmin/paddedTileWidth)); //< tilesPerRow*numberOfRows + xmin/tileWidth
-	// Find the pixel coordinates of this tile's top-left pixel (its origin)
-	const int homeTileRow = homeTileID/(imageWidth/tileWidth);
-	const int homeTileCol = homeTileID%(imageWidth/tileWidth);
-	const int homeTileXmin = homeTileCol*tileWidth;
-	const int homeTileYmin = homeTileRow*tileHeight;
-	const int relativeXmin = xmin-homeTileXmin; //< sub-region xmin relative to tile origin 
-	const int relativeYmin = ymin-homeTileYmin; //< sub-region ymin relative to tile origin
+	const int homeTileID = (homeTileRow*tilesPerRow)+homeTileCol;
+	const int homeTileXmin = homeTileCol*tileWidth;  //< x-pixel coordinate of home tile's top-left pixel (its origin)
+	const int homeTileYmin = homeTileRow*tileHeight; //< y-pixel coordinate of home tile's top-left pixel (its origin)
+	const int relativeXmin = xmin-homeTileXmin;      //< sub-region xmin relative to tile origin 
+	const int relativeYmin = ymin-homeTileYmin;      //< sub-region ymin relative to tile origin
 	// Note: for now I am proceeding as though all the passed-in data lives within the same sub-region, which is true if
 	// data is being sent as full buckets at a time, but not full image scanlines at a time. For the later case, we need to split data between various sub-regions.
-	const int subRegionID = m_xBucketsPerTile*((int)(relativeYmin/m_bucketHeight))+(relativeXmin/m_bucketWidth);
-	//const int subRegionID = (int)(tileWidth/m_bucketWidth)*relativeYmin+(int)(relativeXmin/m_bucketWidth);
-	//printf("homeTileID is %d and subRegionID is %d and relativeYmin is %d and relativeXmin is %d"
-	//		" and xmin is %d and ymin is %d and homeTileRow is %d and homeTileCol is %d\n", homeTileID, subRegionID, relativeYmin, relativeXmin, xmin, ymin, homeTileRow, homeTileCol);	
+	//if ((xmax == imageWidth) && (imageWidth-homeTileXmin > tileWidth))
+	if (homeTileCol+1 == tilesPerRow)
+	{
+		// This tile is a right-padded tile
+		subRegionsPerRow += (int)std::ceil((imageWidth-(homeTileXmin+tileWidth))/(float)m_bucketWidth);
+	}
+	const int subRegionRow = relativeYmin/m_bucketHeight;
+	const int subRegionCol = relativeXmin/m_bucketWidth;
+	const int subRegionID = (subRegionRow*subRegionsPerRow)+subRegionCol;
 	
+	//printf("subRegionsPerRow is %d\n", subRegionsPerRow);
+	//printf("homeTileCol is %d and HomeTileID is %d and SubRegionID is %d while xmin, xmax, ymin, ymax are (%d,%d,%d,%d) and relativeXmin is %d and relativeYmin is %d\n", homeTileCol, homeTileID, subRegionID, xmin, xmax, ymin, ymax, relativeXmin, relativeYmin);
+
 	// If the tile that should hold this data has not been created yet, create it.
 	if (m_deepDataTileMap.count(homeTileID) == 0)
 	{
-		CreateNewTile(homeTileID);
+		//printf("Creating new tile %d\n", homeTileID);
+		CreateNewTile(homeTileID, homeTileRow, homeTileCol);
 	}
 	boost::shared_ptr<SqDeepDataTile> currentTile = m_deepDataTileMap[homeTileID];
 	// If it does not already exist, create the sub-tile region to hold the current data
 	if (currentTile->subRegions[subRegionID].get() == NULL)
 	{
+		//printf("Create new subRegion %d under homeTileID %d\n", subRegionID, homeTileID);
 		CreateNewSubTileRegion(currentTile, subRegionID, ymin);
 	}
 	std::vector< std::vector<int> >& tFunctionLengths = currentTile->subRegions[subRegionID]->functionLengths;
@@ -125,22 +141,21 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 	// Check for and deal with the special case of empty buckets
 	if (iMetaData[0] == -1)
 	{
-		//printf("Caught empty bucket\n");
-		// We should fill tFunctionLengths with all 1's
+		// This is an empty sub-region: We should fill tFunctionLengths with all 1's
 		// and fill tData with visibility nodes (0,1), one per pixel.
-		FillEmptyMetaData(tFunctionLengths, xmin%m_bucketWidth, ymin%m_bucketHeight, xmax%m_bucketWidth, ymax%m_bucketHeight);
-		FillEmptyData(tData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmax%m_bucketWidth, ymax%m_bucketHeight);
-	}
+		FillEmptyMetaData(tFunctionLengths, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
+		FillEmptyData(tData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
+		//printf("tFunctionLengths's size is %d\n", tFunctionLengths[0].size());
+	}	
 	else
 	{
 		// Copy data
-		CopyMetaData(tFunctionLengths, iMetaData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmax%m_bucketWidth, ymax%m_bucketHeight);
-		CopyData(tData, iData, iMetaData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmax%m_bucketWidth, ymax%m_bucketHeight);
-	}
-	
+		CopyMetaData(tFunctionLengths, iMetaData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
+		CopyData(tData, iData, iMetaData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
+	}	
 	// Check for full tile
 	// If full tile, write tile to disk, update the tileTable, and reclaim the tile's memory
-	if(IsFullTile(currentTile))
+	if(IsFullTile(currentTile, homeTileID))
 	{
 		if (IsNeglectableTile(currentTile))
 		{
@@ -155,7 +170,6 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 		// How should the memory be reclaimed? Maybe like this:
 		m_deepDataTileMap.erase(homeTileID);
 	}
-	
 	// If all tiles have been written, write the tileTable, re-write the datasSize and fileSize fields in the file header, and close the image
 	// We know all tiles have been written if the tile table is full
 	if (m_tileTable.size() == m_fileHeader.numberOfTiles-1)
@@ -190,30 +204,28 @@ void CqDeepTexOutputFile::CreateNewSubTileRegion(boost::shared_ptr<SqDeepDataTil
 	currentTile->subRegions[subRegionID]->tileData.resize(subRegionHeight);
 }
 
-void CqDeepTexOutputFile::CreateNewTile(const int tileID)
+void CqDeepTexOutputFile::CreateNewTile(const int tileID, const int tileRow, const int tileCol)
 {
 	const int imageHeight = m_fileHeader.imageHeight;
 	const int imageWidth = m_fileHeader.imageWidth;
 	const int tileHeight = m_fileHeader.tileHeight;
 	const int tileWidth = m_fileHeader.tileWidth;
-	const int tileRow = tileID/(imageWidth/tileWidth);
-	const int tileCol = tileID%(imageWidth/tileWidth);
 	const int tileXmin = tileCol*tileWidth;
 	const int tileYmin = tileRow*tileHeight;
-	const int xTilesPerImage = imageWidth/tileWidth;
-	const int yTilesPerImage = imageHeight/tileHeight;
+	const int tilesPerRow = imageWidth/tileWidth;
+	const int tilePerCol = imageHeight/tileHeight;
 	int xSize = m_xBucketsPerTile;
 	int ySize = m_yBucketsPerTile;
-	
+
 	// If this is an end tile, and the image width or height is not divisible by tile width or height,
 	// Then perform padding on the tile: resize to a larger size to accomodate the extra data.
-	if((tileCol == (xTilesPerImage-1)) && (imageWidth%tileWidth != 0)) //< subtract 1 from xTilesPerImage since tileCol is zero-indexed (tileCol == 2 -> it is the 3rd tile from the left)
+	if (tileCol == (tilesPerRow-1)) //< subtract 1 from tilesPerRow since tileCol is zero-indexed (tileCol == 2 -> it is the 3rd tile from the left)
 	{
-		++xSize;
+		xSize += (int)std::ceil((imageWidth%tileWidth)/(float)m_bucketWidth);
 	}
-	if((tileRow == (yTilesPerImage-1)) && (imageHeight%tileHeight != 0))
+	if (tileRow == (tilePerCol-1))
 	{
-		++ySize;
+		ySize += (int)std::ceil((imageHeight%tileHeight)/(float)m_bucketHeight);
 	}	
 	boost::shared_ptr<SqDeepDataTile> newTile(new SqDeepDataTile);
 	newTile->subRegions.resize(xSize*ySize);		
@@ -222,37 +234,35 @@ void CqDeepTexOutputFile::CreateNewTile(const int tileID)
 	m_deepDataTileMap[tileID] = newTile;
 }
 
-void CqDeepTexOutputFile::CopyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int xmin, const int ymin, const int xmax, const int ymax)
+void CqDeepTexOutputFile::CopyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax)
 {
-	// Note: I assume that at least a full row of a bucket at a time is sent to the dislay, or even full buckets, but never partial rows.
-	const int rowWidth = xmax-xmin;
-	const int colHeight = ymax-ymin;
+	// Note: I assume that at least a full row of a bucket at a time is sent to the dislay, or even full buckets, but never partial rows. This code will break if partial rows are sent.
 	int row;
 	int col; 
 	int i, readPos = 0;
 	
-	for(row = ymin; row < ymax; ++row)
+	for(row = rymin; row < rymax; ++row)
 	{
-		for (col = xmin; col < xmax; ++col)
+		for (col = rxmin; col < rxmax; ++col)
 		{
-			//printf("row is %d and readPos is %d\n", row, readPos);
+			//printf("row is %d and readPos is %d and stored function length is %d\n", row, readPos, fromMetaData[readPos]);
 			toMetaData[row].push_back(fromMetaData[readPos]);
 			++readPos;
 		}
 	}	
 }
 
-void CqDeepTexOutputFile::CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int xmin, const int ymin, const int xmax, const int ymax)
+void CqDeepTexOutputFile::CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int rxmin, const int rymin, const int rxmax, const int rymax)
 {
-	// Note: I assume that at least a full row of a bucket at a time is sent to the dislay, if not full buckets, but never partial rows.
+	// Note: I assume that at least a full row of a bucket at a time is sent to the dislay, if not full buckets, but never partial rows. This code will break if partial rows are sent.
 	const int nodeSize = (m_fileHeader.numberOfChannels+1);
 	int row;
 	int col; 
 	int i, readPos = 0;
 	
-	for(row = ymin; row < ymax; ++row)
+	for(row = rymin; row < rymax; ++row)
 	{
-		for (col = xmin; col < xmax; ++col)
+		for (col = rxmin; col < rxmax; ++col)
 		{
 			const int numberOfElements = functionLengths[readPos]*nodeSize;
 			i = 0;
@@ -267,25 +277,23 @@ void CqDeepTexOutputFile::CopyData(std::vector< std::vector<float> >& toData, co
 	}
 }
 
-void CqDeepTexOutputFile::FillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int xmin, const int ymin, const int xmax, const int ymax)
+void CqDeepTexOutputFile::FillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax)
 {
 	// Note: I assume that at least a full row of a bucket at a time is sent to the dislay, or even full buckets, but never partial rows.
-	const int rowWidth = xmax-xmin;
-	const int colHeight = ymax-ymin;
 	int row;
 	int col; 
 	int i;
 	
-	for(row = ymin; row < ymax; ++row)
+	for(row = rymin; row < rymax; ++row)
 	{
-		for (col = xmin; col < xmax; ++col)
+		for (col = rxmin; col < rxmax; ++col)
 		{
 			toMetaData[row].push_back(1);
 		}
 	}	
 }
 
-void CqDeepTexOutputFile::FillEmptyData(std::vector< std::vector<float> >& toData, const int xmin, const int ymin, const int xmax, const int ymax)
+void CqDeepTexOutputFile::FillEmptyData(std::vector< std::vector<float> >& toData, const int rxmin, const int rymin, const int rxmax, const int rymax)
 {
 	// Note: I assume that at least a full row of a bucket at a time is sent to the dislay, if not full buckets, but never partial rows.
 	const int nodeSize = (m_fileHeader.numberOfChannels+1);
@@ -293,9 +301,9 @@ void CqDeepTexOutputFile::FillEmptyData(std::vector< std::vector<float> >& toDat
 	int col; 
 	int i;
 	
-	for(row = ymin; row < ymax; ++row)
+	for(row = rymin; row < rymax; ++row)
 	{
-		for (col = xmin; col < xmax; ++col)
+		for (col = rxmin; col < rxmax; ++col)
 		{
 			// First set the node depth to 0 
 			toData[row].push_back(0.0);
@@ -310,14 +318,38 @@ void CqDeepTexOutputFile::FillEmptyData(std::vector< std::vector<float> >& toDat
 	}
 }
 
-bool CqDeepTexOutputFile::IsFullTile(const boost::shared_ptr<SqDeepDataTile> tile) const
+bool CqDeepTexOutputFile::IsFullTile(const boost::shared_ptr<SqDeepDataTile> tile, const int tileID) const
 {
 	// A tile is known to be full if all of its sub-tile regions have function lengths for all of their pixels.
-	// Another way of saying this: there are a total of tileWidth*tileHeight function lengths.
+	// Another way of saying this: the tile is full if and only if there are a total of tileWidth*tileHeight function lengths, or in the case os padded tiles,
+	// ((tileWidth+padWidth)*(tileHeight+padHeight)) function length fields.
+	const int imageHeight = m_fileHeader.imageHeight;
+	const int imageWidth = m_fileHeader.imageWidth;
+	const int tileHeight = m_fileHeader.tileHeight;
+	const int tileWidth = m_fileHeader.tileWidth;
+	const int tileRow = tileID/(imageWidth/tileWidth);
+	const int tileCol = tileID%(imageWidth/tileWidth);
+	const int tileXmin = tileCol*tileWidth;
+	const int tileYmin = tileRow*tileHeight;
+	const int tilesPerRow = imageWidth/tileWidth;
+	const int tilePerCol = imageHeight/tileHeight;
 	int functionCount = 0;
+	int padWidth = 0;
+	int padHeight = 0;
 	int i, j;
-	const std::vector<boost::shared_ptr<SqSubTileRegion> >& subRegions = tile->subRegions;
 	
+	// If this is an end tile, and the image width or height is not divisible by tile width or height,
+	// Then this is a padded tile: resize to a larger size to accomodate the extra data.
+	if((tileCol == (tilesPerRow-1)) && (imageWidth%tileWidth != 0)) //< subtract 1 from tilesPerRow since tileCol is zero-indexed (tileCol == 2 -> it is the 3rd tile from the left)
+	{
+		padWidth = imageWidth%tileWidth;
+	}
+	if((tileRow == (tilePerCol-1)) && (imageHeight%tileHeight != 0))
+	{
+		padHeight = imageHeight%tileHeight;
+	}
+	
+	const std::vector<boost::shared_ptr<SqSubTileRegion> >& subRegions = tile->subRegions;
 	for(i = 0; i < subRegions.size(); ++i)
 	{	
 		if (subRegions[i].get() == NULL)
@@ -328,18 +360,17 @@ bool CqDeepTexOutputFile::IsFullTile(const boost::shared_ptr<SqDeepDataTile> til
 		const std::vector<std::vector<int> >& subRegionFunctionLengths = subRegions[i]->functionLengths;
 		for (j = 0; j < subRegionFunctionLengths.size(); ++j)
 		{
-			functionCount += subRegionFunctionLengths[j].size(); //< size() yeilds the count of all functions in a sub-region row
+			functionCount += subRegionFunctionLengths[j].size(); //< size() yeilds the count of all functions in a sub-region row 
 		}
 	}
-	
-	if (functionCount == m_fileHeader.tileWidth*m_fileHeader.tileHeight)
+	if (functionCount == (m_fileHeader.tileWidth+padWidth)*(m_fileHeader.tileHeight+padHeight))
 	{
 		return true;
 	}
 	return false;
 }
 
-bool CqDeepTexOutputFile::IsNeglectableTile(const boost::shared_ptr<SqDeepDataTile> tile)
+bool CqDeepTexOutputFile::IsNeglectableTile(const boost::shared_ptr<SqDeepDataTile> tile) const
 {
 	// If all function lengths in the tile have length 1, then the tile is empty, and we do not write it to disk, but instead signify an empty tile by writing a file offset
 	// of 0 in the tile table.
@@ -355,7 +386,7 @@ bool CqDeepTexOutputFile::IsNeglectableTile(const boost::shared_ptr<SqDeepDataTi
 			// IsFullTile() should be invoked immediately before any calls to IsNeglectableTile.
 			return false;
 		}
-		const std::vector<std::vector<int> > subRegionFunctionLengths = subRegions[i]->functionLengths;
+		const std::vector<std::vector<int> >& subRegionFunctionLengths = subRegions[i]->functionLengths;
 		for (j = 0; j < subRegionFunctionLengths.size(); ++j)
 		{
 			for (k = 0; k < subRegionFunctionLengths[j].size(); ++k)
@@ -399,7 +430,7 @@ void CqDeepTexOutputFile::WriteTile(const boost::shared_ptr<SqDeepDataTile> tile
 	// First write all the function lengths
 	for(i = 0; i < subRegions.size(); ++i)
 	{	
-		const std::vector<std::vector<int> > subRegionFunctionLengths = subRegions[i]->functionLengths;
+		const std::vector<std::vector<int> >& subRegionFunctionLengths = subRegions[i]->functionLengths;
 		for (j = 0; j < subRegionFunctionLengths.size(); ++j)
 		{
 			m_dtexFile.write(reinterpret_cast<const char*>(&(subRegionFunctionLengths[j].front())), subRegionFunctionLengths[j].size()*sizeof(uint32));
@@ -410,7 +441,7 @@ void CqDeepTexOutputFile::WriteTile(const boost::shared_ptr<SqDeepDataTile> tile
 	// Then write the data. Note we are not concerned that tiles are placed sequentially in the file, as long as the tile table is correct.
 	for(i = 0; i < subRegions.size(); ++i)
 	{	
-		const std::vector<std::vector<float> > subRegionData = subRegions[i]->tileData;
+		const std::vector<std::vector<float> >& subRegionData = subRegions[i]->tileData;
 		for (j = 0; j < subRegionData.size(); ++j)
 		{
 			m_dtexFile.write(reinterpret_cast<const char*>(&(subRegionData[j].front())), subRegionData[j].size()*sizeof(float));

@@ -181,34 +181,108 @@ class CqDeepTexOutputFile
 		 *					In this case, values specifying the length, in units of number of nodes,
 		 * 					of each visibility function. In the case of an empty bucket, the first value in
 		 * 					metadata is -1 and data is empty/invalid.
+		 * \param data - The deep data corresponding to the image region defined by (xmin,ymin) and (xmax,ymax)
 		 */
 		virtual void SetTileData( const int xmin, const int ymin, const int xmax, const int ymax, const unsigned char *data, const unsigned char* metadata );
 		
-		/** \brief Dtermine if all data has been received for a specific tile
-		 *
-		 *
-		 * \param tile - The tile; we want to know if it is full
-		 */				
-		bool IsFullTile(const boost::shared_ptr<SqDeepDataTile> tile) const;
-		
 	private:
 		// Functions
+		
+		/** \brief Create a new SqSubTileRegion and add it to the current tile's vector of sub-regions in the appropriate spot. 
+		 * Initialize the correct amount of storage for this particular sub-region.
+		 *
+		 * \param currentTile - The tile to which we will add the new sub-region
+		 * \param subRegionID - The number of the new sub-region with respect to the first one in the tile, counted left-to-right and top-to-bottom
+		 * \param ymin - The image space y-coordinate which will be this new sub-region's y-origin. It is important that this not be a larger coordinate
+		 * 			because this parameter is used to determine how much memory to allocate for the sub-region. Therefore the user who calls SetTileData must always send 
+		 * 			the first row of a bucket before sending any other row from within a bucket. 
+		 */		
 		void CreateNewSubTileRegion(boost::shared_ptr<SqDeepDataTile> currentTile, const int subRegionID, const int ymin);
-		void CreateNewTile(const int tileID);
-		void CopyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int xmin, const int ymin, const int xmax, const int ymax);
-		void CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int xmin, const int ymin, const int xmax, const int ymax);
-		void FillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int xmin, const int ymin, const int xmax, const int ymax);
-		void FillEmptyData(std::vector< std::vector<float> >& toData, const int xmin, const int ymin, const int xmax, const int ymax);
-		inline int NodeCount(const int* functionLengths, const int numberOfPixels) const;
-		void WriteTileTable();
-		/** \brief Determine if this tile is empty, that is, it covers no micropolygons or participating media in the DSM
+		
+		/** \brief Create a new tile and add it to m_DeepDataTileMap with the given key: tileID
+		 *
+		 * \param tileID - The tile's number, counting left-to-right, top-to-bottom. Used as its key in m_DeepDataTileMap.
+		 * \param tileRow - The index of the row of tiles this tile resides in.
+		 * \param tileCol - The index of the column if tiles this tile resides in. 
+		 */
+		void CreateNewTile(const int tileID, const int tileRow, const int tileCol);
+		
+		/** \brief Copy given metadata into the given std::vector.
+		 * 
+		 * \param toMetaData - The destination to which we want to copy metadata
+		 * \param fromMetaData - The source of the data we want to copy.
+		 * \param rxmin - The first x-coordinate, relative to the origin of the sub-region to which we are copying, from which copying should begin
+		 * \param rymin - The first y-coordinate, relative to the origin of the sub-region to which we are copying, and the index into toMetaData
+		 * \param rxmax - The x-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
+		 * \param rymax - The y-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
+		 */	
+		void CopyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax);
+		
+		/** \brief Copy given data into the given std::vector.
+		 * 
+		 * \param toData - The destination to which we want to copy data
+		 * \param fromData - The source of the data we want to copy.
+		 * \param rxmin - The first x-coordinate, relative to the origin of the sub-region to which we are copying, from which copying should begin
+		 * \param rymin - The first y-coordinate, relative to the origin of the sub-region to which we are copying, and the index into toMetaData
+		 * \param rxmax - The x-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
+		 * \param rymax - The y-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
+		 */	
+		void CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int rxmin, const int rymin, const int rxmax, const int rymax);
+		
+		/** \brief Fill the sub-region, as specified by (rxmin,rymin,rxmax,rymax), with default metadata. The sub-region may be part of a neglectable tile,
+		 * 		and therefore may never be written to disk, but we have to assume it might be part of a tile that will be written, and so we fill it with minimal data
+		 * 		to indicate that the pixels in this region have 100% visibility.
+		 * 
+		 * \param toMetaData - The destination we want to fill with default metadata
+		 * \param rxmin - The first x-coordinate, relative to the origin of the sub-region to which we are copying, from which copying should begin
+		 * \param rymin - The first y-coordinate, relative to the origin of the sub-region to which we are copying, and the index into toMetaData
+		 * \param rxmax - The x-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
+		 * \param rymax - The y-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
+		 */	
+		void FillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax);
+		
+		/** \brief Fill the sub-region, as specified by (rxmin,rymin,rxmax,rymax), with default metadata. The sub-region may be part of a neglectable tile,
+		 * 		and therefore may never be written to disk, but we have to assume it might be part of a tile that will be written, and so we fill it with minimal data
+		 * 		to indicate that the pixels in this region have 100% visibility.
+		 * 
+		 * \param toData - The destination we want to populate with default deep data.
+		 * \param rxmin - The first x-coordinate, relative to the origin of the sub-region to which we are copying, from which copying should begin
+		 * \param rymin - The first y-coordinate, relative to the origin of the sub-region to which we are copying, and the index into toMetaData
+		 * \param rxmax - The x-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
+		 * \param rymax - The y-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
+		 */
+		void FillEmptyData(std::vector< std::vector<float> >& toData, const int rxmin, const int rymin, const int rxmax, const int rymax);
+		
+		/** \brief Determine if all data has been received for a specific tile, meaning it is full and ready for output to dile.
+		 *
+		 * \param tile - The tile; we want to know if it is full
+		 * \param tileID - The tile's number, counting left-to-right, top-to-bottom
+		 */				
+		bool IsFullTile(const boost::shared_ptr<SqDeepDataTile> tile, const int tileID) const;
+		
+		/** \brief Determine if this tile is neglectable, that is, it covers no micropolygons or participating media in the DSM
 		 * and can therefore be left out of the DTEX file, and represented instead with a fileOffset of 0 in the tile table, signifying that any pixels
 		 * inside this tile have 100% visibility at all depths, and are therefore never in shadow.
 		 *
 		 * \param tile - The tile; we want to know if it has all of its sub-regions as empty sub-regions.
 		 */	
-		bool IsNeglectableTile(const boost::shared_ptr<SqDeepDataTile> tile);
+		bool IsNeglectableTile(const boost::shared_ptr<SqDeepDataTile> tile) const;
+		
+		/** \brief Create a new SqTileTableEntry for the given tile and add it to the back of m_tileTable
+		 *
+		 * \param tile - The tile; we want to create a new tile table entry for it.
+		 */		
 		void UpdateTileTable(const boost::shared_ptr<SqDeepDataTile> tile);
+		
+		/** \brief Seek to the appropriate position in m_dtexFile and write the tile table.
+		 *
+		 */	
+		void WriteTileTable();
+		
+		/** \brief Write to disk the metadata, followed by the deep data, for the given tile.
+		 *
+		 * \param tile - The tile; we want to write its data to m_dtexFile.
+		 */	
 		void WriteTile(const boost::shared_ptr<SqDeepDataTile> tile);
 		
 		//-----------------------------------------------------------------------------------
@@ -223,7 +297,6 @@ class CqDeepTexOutputFile
 		// Data buffers
 		// The map is indexed with a key: a tile ID, which is the number of the tile 
 		// assuming tiles are layed out in increasing order from left-to-right, top-to-bottom.
-		//std::map<int, std::vector<boost::shared_ptr<SqDeepDataTile> > > m_deepDataTileMap;
 		std::map<int, boost::shared_ptr<SqDeepDataTile> > m_deepDataTileMap;
 		
 		// Fields
@@ -237,19 +310,5 @@ class CqDeepTexOutputFile
 //------------------------------------------------------------------------------
 // Inline function(s) for CqDeepTexOutputFile
 //------------------------------------------------------------------------------
-inline int CqDeepTexOutputFile::NodeCount(const int* functionLengths, const int numberOfPixels) const
-{
-	int count = 0;
-	int i;
-	
-	for(i = 0; i < numberOfPixels; ++i)
-	{
-		if (functionLengths[i] != -1)
-		{
-			count += functionLengths[i];
-		}
-	}
-	return count;
-}
 
 #endif // DTEX_H_INCLUDED
