@@ -119,21 +119,16 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 	const int subRegionRow = relativeYmin/m_bucketHeight;
 	const int subRegionCol = relativeXmin/m_bucketWidth;
 	const int subRegionID = (subRegionRow*subRegionsPerRow)+subRegionCol;
-	
-	//printf("subRegionsPerRow is %d\n", subRegionsPerRow);
-	//printf("homeTileCol is %d and HomeTileID is %d and SubRegionID is %d while xmin, xmax, ymin, ymax are (%d,%d,%d,%d) and relativeXmin is %d and relativeYmin is %d\n", homeTileCol, homeTileID, subRegionID, xmin, xmax, ymin, ymax, relativeXmin, relativeYmin);
 
 	// If the tile that should hold this data has not been created yet, create it.
 	if (m_deepDataTileMap.count(homeTileID) == 0)
 	{
-		//printf("Creating new tile %d\n", homeTileID);
 		CreateNewTile(homeTileID, homeTileRow, homeTileCol);
 	}
 	boost::shared_ptr<SqDeepDataTile> currentTile = m_deepDataTileMap[homeTileID];
 	// If it does not already exist, create the sub-tile region to hold the current data
 	if (currentTile->subRegions[subRegionID].get() == NULL)
 	{
-		//printf("Create new subRegion %d under homeTileID %d\n", subRegionID, homeTileID);
 		CreateNewSubTileRegion(currentTile, subRegionID, ymin);
 	}
 	std::vector< std::vector<int> >& tFunctionLengths = currentTile->subRegions[subRegionID]->functionLengths;
@@ -145,7 +140,6 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 		// and fill tData with visibility nodes (0,1), one per pixel.
 		FillEmptyMetaData(tFunctionLengths, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
 		FillEmptyData(tData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
-		//printf("tFunctionLengths's size is %d\n", tFunctionLengths[0].size());
 	}	
 	else
 	{
@@ -159,7 +153,7 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 	{
 		if (IsNeglectableTile(currentTile))
 		{
-			SqTileTableEntry entry(currentTile->tileCoordX, currentTile->tileCoordY, 0);
+			SqTileTableEntry entry(currentTile->tileCol, currentTile->tileRow, 0);
 			m_tileTable.push_back(entry);
 		}
 		else
@@ -210,10 +204,10 @@ void CqDeepTexOutputFile::CreateNewTile(const int tileID, const int tileRow, con
 	const int imageWidth = m_fileHeader.imageWidth;
 	const int tileHeight = m_fileHeader.tileHeight;
 	const int tileWidth = m_fileHeader.tileWidth;
-	const int tileXmin = tileCol*tileWidth;
-	const int tileYmin = tileRow*tileHeight;
+//	const int tileXmin = tileCol*tileWidth;
+//	const int tileYmin = tileRow*tileHeight;
 	const int tilesPerRow = imageWidth/tileWidth;
-	const int tilePerCol = imageHeight/tileHeight;
+	const int tilesPerCol = imageHeight/tileHeight;
 	int xSize = m_xBucketsPerTile;
 	int ySize = m_yBucketsPerTile;
 
@@ -223,14 +217,14 @@ void CqDeepTexOutputFile::CreateNewTile(const int tileID, const int tileRow, con
 	{
 		xSize += (int)std::ceil((imageWidth%tileWidth)/(float)m_bucketWidth);
 	}
-	if (tileRow == (tilePerCol-1))
+	if (tileRow == (tilesPerCol-1))
 	{
 		ySize += (int)std::ceil((imageHeight%tileHeight)/(float)m_bucketHeight);
 	}	
 	boost::shared_ptr<SqDeepDataTile> newTile(new SqDeepDataTile);
 	newTile->subRegions.resize(xSize*ySize);		
-	newTile->tileCoordX = tileXmin;
-	newTile->tileCoordY = tileYmin;
+	newTile->tileCol = tileCol;
+	newTile->tileRow = tileRow;
 	m_deepDataTileMap[tileID] = newTile;
 }
 
@@ -245,7 +239,6 @@ void CqDeepTexOutputFile::CopyMetaData(std::vector< std::vector<int> >& toMetaDa
 	{
 		for (col = rxmin; col < rxmax; ++col)
 		{
-			//printf("row is %d and readPos is %d and stored function length is %d\n", row, readPos, fromMetaData[readPos]);
 			toMetaData[row].push_back(fromMetaData[readPos]);
 			++readPos;
 		}
@@ -268,7 +261,6 @@ void CqDeepTexOutputFile::CopyData(std::vector< std::vector<float> >& toData, co
 			i = 0;
 			while(i < numberOfElements)
 			{
-				//printf("Row is %d and col is %d and xmax is %d and ymax is %d and i is %d\n", row, col, xmax, ymax, i);
 				toData[row].push_back(fromData[readPos+i]);
 				++i;
 			}
@@ -403,8 +395,8 @@ bool CqDeepTexOutputFile::IsNeglectableTile(const boost::shared_ptr<SqDeepDataTi
 
 void CqDeepTexOutputFile::UpdateTileTable(const boost::shared_ptr<SqDeepDataTile> tile)
 {
-	// Set the file offset to the current write-file position.
-	SqTileTableEntry entry(tile->tileCoordX, tile->tileCoordY, m_dtexFile.tellp());
+	// Set the file offset to the current write-file position (given by tellp()).
+	SqTileTableEntry entry(tile->tileCol, tile->tileRow, m_dtexFile.tellp());
 	m_tileTable.push_back(entry);
 }
 

@@ -52,35 +52,107 @@ struct SqDeepDataTile
 	/// May be expressed as: std::accumulate(functionOffsets.begin(), functionOffsets.end(), 0);
 	/// The number of elements in this vector must be equal to (tileWidth*tileHeight),
 	/// so there is a length field for every pixel, empty or not.
-	<std::vector<int> functionLengths;
+	std::vector<uint32> functionLengths;
 	/// data
-	<std::vector<float> tileData;
+	std::vector<float> tileData;
 };
 
 //------------------------------------------------------------------------------
-/** \brief A deep texture class to load deep shadow map tiles from a DTEX file into memory.
+/** \brief A structure storing the constant/global DTEX file information
  *
+ * This file header represents the first bytes of data in the file.
+ * It is immediately followed by the tile table.
+ */
+/// \todo This structure should be stored in a shared location since it is used in this file and in dtex.cpp/dtex.h
+struct SqDtexFileHeader
+{
+	/** Trivial Constructor: initialize an SqDtexFileHeader structure
+	 */ 
+	SqDtexFileHeader( uint32 fs = 0, uint32 iw = 0, uint32 ih = 0, uint32 nc = 0, 
+			uint32 bpc = 0, uint32 hs = 0, uint32 ds = 0, uint32 tw = 0, uint32 th = 0, uint32 nt = 0)
+		: // magicNumber( mn ),
+		fileSize( fs ),
+		imageWidth( iw ),
+		imageHeight( ih ),
+		numberOfChannels( nc ),
+		bytesPerChannel( bpc ),
+		headerSize( hs ),
+		dataSize( ds ),
+		tileWidth( tw ),
+		tileHeight( th ),
+		numberOfTiles( nt )
+	{
+	}
+	/// The magic number field contains the following bytes: Ò\0x89AqD\0x0b\0x0a\0x16\0x0a"
+	// The first byte has the high-bit set to detect transmission over a 7-bit communications channel.
+	// This is highly unlikely, but it can't hurt to check. 
+	// The next three bytes are the ASCII string "AqD" (short for "Aqsis DTEX").
+	// The next two bytes are carriage return and line feed, which results in a "return" sequence on all major platforms (Windows, Unix and Macintosh).
+	// This is followed by a DOS end of file (control-Z) and another line feed.
+	// This sequence ensures that if the file is "typed" on a DOS shell or Windows command shell, the user will see "AqD" 
+	// on a single line, preceded by a strange character.
+	//char magicNumber[8]; // How can I store the magic number in such a way that its data, not the value of the
+		// address that points to it, is written to file when we call write(m_dtexFileHeader)?
+	/// Size of this file in bytes
+	uint32 fileSize;
+	// Number of horizontal pixels in the image
+	uint32 imageWidth;
+	// Number of vertical pixels
+	uint32 imageHeight;
+	/// Number if channels in a visibility node (1 for grayscale, 3 for full color)
+	uint32 numberOfChannels;
+	/// Depending on the precision, number of bytes per color channel
+	uint32 bytesPerChannel;
+	/// Number of bytes in this header (might not need this)
+	uint32 headerSize;
+	// Size of the deep data by itself, in bytes
+	uint32 dataSize;
+	// Width, in pixels, of a tile (unpadded, so edge tiles may be larger, but never smaller)
+	uint32 tileWidth;
+	// Height, in pixels, of a tile (unpadded)
+	uint32 tileHeight;
+	// Number of tiles in the image
+	uint32 numberOfTiles;
+};
+
+//------------------------------------------------------------------------------
+/** \brief A deep texture class to load deep shadow map tiles from a DTEX file into memory, but this class does not actually own said memory.
+ * 
+ * Usage works as follows: 
+ * This class acts as an interface allowing retrieval of on-disk tiles from tiled images, specifically dtex files.
+ * A single public member function called LoadTileForPixel() is responsible for locating the tile with the requested pixel from disk and
+ * copying it to the memory provided by the caller. 
  */
 class CqDeepTexInputFile
 {
 	public:
 		CqDeepTexInputFile(std::string filename); //< Should we have just filename, or filenameAndPath?
-		virtual ~CqDeepTexInputFile(){}
+		virtual ~CqDeepTexInputFile();
 	  
-		/** \brief Locate the tile containing the given pixel and read it into memory. 
-		 * Should this return either a pointer to the beginning of the memory, or an instance of a tile object? Probably the later.
+		/** \brief Locate the tile containing the given pixel and copy it into memory. 
 		 *
-		 * \param x - Image x-coordinate of the pixel desired. We load the entire enclosing tile to take advantage of the spatial locality heuristic.
-		 * \param y - Image x-coordinate of the pixel desired. We load the entire enclosing tile to take advantage of the spatial locality heuristic.
-		 * \param tile - Reference to an object to which we copy the tile.
+		 * \param x - Image x-coordinate of the pixel desired. We load the entire enclosing tile because of the spatial locality heuristic; it is likely to be needed again soon.
+		 * \param y - Image x-coordinate of the pixel desired. We load the entire enclosing tile because of the spatial locality heuristic; it is likely to be needed again soon.
+		 * \param tile - Pointer to an object to which we copy the tile.
 		 */
-		virtual void ReadTile( const int x, const int y, SqDeepDataTile& tile );
+		virtual void LoadTileForPixel( const int x, const int y, boost::shared_ptr<SqDeepDataTile> tile );
 		
 	private:
+		
+		// Functions
+		void LoadTileTable();
+		void CqDeepTexInputFile::LoadTileAtOffset(const int fileOffset, const int tileRow, const int tileCol, boost::shared_ptr<SqDeepDataTile> tile);
 
 		// File handle for the file we read from
 		std::ifstream m_dtexFile;
 		
+		// File header stuff
+		SqDtexFileHeader m_fileHeader;
+		std::vector< std::vector<uint32> > m_tileOffsets;
+		
+		// Other data
+		int m_tilesPerRow;
+		int m_tilesPerCol;
 };
 
 #endif // DTEXINPUT_H_INCLUDED

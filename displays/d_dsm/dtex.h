@@ -71,8 +71,8 @@ struct SqDeepDataTile
 	/// It is desirable to write once the whole tile in order to minimize disk accesses, which or slow.
 	/// Therefore I plan to use dataSubRegions to accumulate tile data, then copy everything into functionLengths and tileData to write to file.
 	std::vector<boost::shared_ptr<SqSubTileRegion> > subRegions;
-	unsigned int tileCoordX;
-	unsigned int tileCoordY;
+	unsigned int tileCol;
+	unsigned int tileRow;
 };
 
 //------------------------------------------------------------------------------
@@ -84,13 +84,13 @@ struct SqTileTableEntry
 	/** Constructor
 	 */ 
 	SqTileTableEntry( uint32 x, uint32 y, uint32 fo )
-		: tileCoordX( x ),
-		tileCoordY( y ),
+		: tileCol( x ),
+		tileRow( y ),
 		fileOffset( fo )
 	{
 	}
-	uint32 tileCoordX;
-	uint32 tileCoordY;
+	uint32 tileCol;
+	uint32 tileRow;
 	/// Absolute file offset to the beginning of a tile header (fileOffset == 0 if tile is empty)
 	uint32 fileOffset;
 };
@@ -101,6 +101,7 @@ struct SqTileTableEntry
  * This file header represents the first bytes of data in the file.
  * It is immediately followed by the tile table.
  */
+/// \todo This structure should be stored in a shared location since it is used in this file and in dtexinput.cpp/dtexinput.h
 struct SqDtexFileHeader
 {
 	/** Trivial Constructor: initialize an SqDtexFileHeader structure
@@ -120,7 +121,7 @@ struct SqDtexFileHeader
 		numberOfTiles( nt )
 	{
 	}
-	/// The magic field contains the following bytes: Ò\0x89AqD\0x0b\0x0a\0x16\0x0a"
+	/// The magic number field contains the following bytes: Ò\0x89AqD\0x0b\0x0a\0x16\0x0a"
 	// The first byte has the high-bit set to detect transmission over a 7-bit communications channel.
 	// This is highly unlikely, but it can't hurt to check. 
 	// The next three bytes are the ASCII string "AqD" (short for "Aqsis DTEX").
