@@ -508,9 +508,9 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	//memset(&g_Data, sizeof(SqDeepShadowData), 0);
 
 	// Note: flags can also be binary ANDed with PkDspyFlagsWantsEmptyBuckets and PkDspyFlagsWantsNullEmptyBuckets
-	//flagstuff->flags = PkDspyFlagsWantsScanLineOrder; //< Let's try bucket order now
+	flagstuff->flags = PkDspyFlagsWantsScanLineOrder; //< Let's try bucket order now
 	//g_Data.flags = PkDspyFlagsWantsScanLineOrder;
-	//pData->flags = PkDspyFlagsWantsScanLineOrder;
+	pData->flags = PkDspyFlagsWantsScanLineOrder;
 /*
 	g_Data.Channels = formatCount; // From this field, the display knows how many floats per visibility node to expect from DspyImageDeepData
 	g_Data.iWidth = width;
@@ -591,11 +591,21 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 
 	const float* visData = reinterpret_cast<const float*>(data);
 	const int* funLengths = reinterpret_cast<const int*>(functionLengths);
-	//const int nodeSize = pData->Channels+1;
-	//const int functionCount = CountFunctions(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< # of visibility functions in the data
-	//const int nodeCount = CountNodes(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< Total # of visbility nodes in data
-	
-	pData->DtexFile->SetTileData(xmin, ymin, xmax_plusone, ymax_plusone, data, functionLengths);
+
+	if ( pData->flags == PkDspyFlagsWantsScanLineOrder )
+	{
+		const int nodeSize = pData->Channels+1;
+		const int functionCount = CountFunctions(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< # of visibility functions in the data
+		const int nodeCount = CountNodes(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< Total # of visbility nodes in data
+		pData->testDeepData[ymin] = new float[nodeCount*4];
+		memcpy(pData->testDeepData[ymin], visData, nodeSize*nodeCount*sizeof(float));
+		pData->functionLengths[ymin] = new int[functionCount];
+		memcpy(pData->functionLengths[ymin], funLengths, functionCount*sizeof(int));
+	}
+	else
+	{
+		pData->DtexFile->SetTileData(xmin, ymin, xmax_plusone, ymax_plusone, data, functionLengths);
+	}
 	
 	// Everything below is for testing and debugging
 	
@@ -640,11 +650,12 @@ extern "C" PtDspyError DspyImageClose(PtDspyImageHandle image)
 #if SHOW_CALLSTACK
 	fprintf(stderr, "d_dsm_DspyImageClose called.\n");
 #endif
-	
-	// First write out the images to disk (bitmaps for testing)
-	//WriteDSMImageSequence(image);	
-	
 	SqDeepShadowData *pData = (SqDeepShadowData *)image;
+	// First write out the images to disk (bitmaps for testing)
+	if ( pData->flags == PkDspyFlagsWantsScanLineOrder )
+	{
+		WriteDSMImageSequence(image);
+	}
 
 	delete pData->DtexFile;
 	delete[] pData->testDeepData;

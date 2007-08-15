@@ -1074,7 +1074,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 	currentVisFunc->push_back(visibilityNode);
 	m_VisibilityDataSize += 4;
 	
-	// Place the first hit from each sub-sample into the heap.	
+	// Place the first hit (if there is one) from each sub-sample into the heap.	
 	for ( fy = -ymax; fy <= ymax; ++fy )
 	{	
 		pie2 = pie;
@@ -1093,20 +1093,22 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 					const CqVector2D vecS = currentSampleData.m_Position - CqVector2D( xcent, ycent );
 					if ( (vecS.x() >= -xfwo2) && (vecS.y() >= -yfwo2) && (vecS.x() <= xfwo2) && (vecS.y() <= yfwo2) )
 					{
-						const TqFloat filterValue = m_aFilterValues[ sindex + currentSampleData.m_SubCellIndex ];
-						//printf("Filter value: %f\n", m_aFilterValues[ cindex ] ); // Testing: to peek at values
-						if ( !currentSampleData.m_Data.empty() )
-						{ // This subpixel covers multiple samples, and the frontmost sample is not opaque 
-							SqHitHeapNode hitNode(&currentSampleData, 0, gColWhite, filterValue);
-							nextHitHeap.push(hitNode);
+						if ( pie2->OpaqueValues( sampleIndex ).m_flags & SqImageSample::Flag_Valid )
+						{
+							const TqFloat filterValue = m_aFilterValues[ sindex + currentSampleData.m_SubCellIndex ];
+							if ( !currentSampleData.m_Data.empty() )
+							{ // This subpixel covers multiple samples, and the frontmost sample is not opaque 
+								SqHitHeapNode hitNode(&currentSampleData, 0, gColWhite, filterValue);
+								nextHitHeap.push(hitNode);
+							}
+							else 
+							{ // This subpixel only had one hit (m_OpaqueSample), so construct its tuple, add it to the heap and we are done
+								SqHitHeapNode hitNode(&currentSampleData, -1, gColWhite, filterValue);
+								nextHitHeap.push(hitNode);
+							}
+							SampleCount++;
+							sumFilterValues += filterValue;
 						}
-						else 
-						{ // This subpixel only had one hit (m_OpaqueSample), so construct its tuple, add it to the heap and we are done
-							SqHitHeapNode hitNode(&currentSampleData, -1, gColWhite, filterValue);
-							nextHitHeap.push(hitNode);
-						}
-						SampleCount++;
-						sumFilterValues += filterValue;
 					}
 					sampleIndex++;
 				}
@@ -1116,7 +1118,8 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 		pie += xlen; // This is for filter widths larger than a single pixel
 	}
 	inverseSumFilterValues = 1.0/sumFilterValues;
-	// Check if the heap is sorted
+	
+	// Check if the heap is sorted (DEBUGGING)
 	//CheckHeapSorted(nextHitHeap);			
 	while ( (!nextHitHeap.empty()) && (currentVisFunc->back()->visibility > gColBlack) )
 	{
@@ -1161,7 +1164,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 				nextHitHeap.push(hitNode);						
 			}		
 		}
-		// Add next visibility node to the current visibility function iff
+		// Add next visibility node to the current visibility function if and only if
 		// its hit depth is not the same as the top node (we can't accept multiple hits at the same depth).
 		// Note: I am having to make the check below because
 		// too many nodes are added to the visibility function.
