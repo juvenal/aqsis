@@ -21,7 +21,7 @@
  * 
  * \author Zachary L. Carter (zcarter@aqsis.org)
  * 
- * \brief Implementation of a deep texture file reader to load deep data tile from file into memory.
+ * \brief Implementation of a deep texture file reader to load deep data tiles from file into memory.
  */
 
 #include <numeric>

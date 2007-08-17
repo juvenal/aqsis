@@ -53,7 +53,7 @@ struct SqDeltaNode
 {
 	TqFloat zdepth;
 	/// an [additive] change in light color associated with a transmittance function "hit" at this zdepth
-	CqColor deltatransmittance;
+	CqColor deltaTransmittance;
 	/// an [additive] change in transmittance function slope occuring at this node
 	CqColor deltaslope;
 };
@@ -71,12 +71,7 @@ struct SqHitHeapNode
 		queueIndex( qI ),
 		runningVisibility( rV ),
 		weight( w )
-	{
-		//samplePointer = sp;
-		//queueIndex = qI;
-		//runningVisibility = rV;
-		//weight = w;
-	}
+	{}
 	
 	/** Compare nodes for sorting in a priority queue
 	 * \param nodeComp the node compare against

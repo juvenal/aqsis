@@ -26,7 +26,7 @@
  * \author Zachary L Carter (zcarter@aqsis.org)
 */
 
-#include	"MultiTimer.h"
+#include	"multitimer.h"
 
 #include	"aqsis.h"
 

@@ -104,7 +104,14 @@ struct SqTileTableEntry
 /// \todo This structure should be stored in a shared location since it is used in this file and in dtexinput.cpp/dtexinput.h
 struct SqDtexFileHeader
 {
-	/** Trivial Constructor: initialize an SqDtexFileHeader structure
+	/** \brief Construct an SqDtexFileHeader structure
+	* \param fs - file size of the dtex file in bytes
+	* \param iw - image width; the width in pixels of the dtex image
+	* \param ih - image height; the hieght in pixels of the dtex image
+	* \param nc - number of channels; for example 'rgb' has 3 channels, but 'r' has only 1 channel 
+	* \param bpc - bytes per channel; the size in bytes used for each color channel. For example, float takes 4 bytes, but char takes only 1 byte
+	* \param hs - header size; the size in bytes of SqDtexFileHeader. We can probably get rid of this field.
+	* \param ds - data size; the size of only the data part of the dtex file
 	 */ 
 	SqDtexFileHeader( uint32 fs, uint32 iw, uint32 ih, uint32 nc, 
 			uint32 bpc, uint32 hs, uint32 ds, uint32 tw, uint32 th, uint32 nt)
@@ -171,6 +178,9 @@ struct SqDtexFileHeader
 class CqDeepTexOutputFile
 {
 	public:
+		/** \brief Construct an instance of CqDeepTexOutputFile
+		 *
+		 */
 		CqDeepTexOutputFile(std::string filename, uint32 imageWidth, uint32 imageHeight, uint32 tileWidth, uint32 tileHeight, 
 				uint32 bucketWidth, uint32 bucketHeight, uint32 numberOfChannels, uint32 bytesPerChannel);
 		virtual ~CqDeepTexOutputFile(){}

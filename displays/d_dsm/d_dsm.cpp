@@ -416,14 +416,10 @@ void WriteDSMImageSequence(PtDspyImageHandle image)
 	for (pnum = 0; pnum < imageFileCount; ++pnum)
 	{
 		char fileName[40];
-		char sequenceNumber[4];
-		sprintf(sequenceNumber, "%d", pnum);
 		// When we finally output dsm files, we will use the name below:
 		//strcpy(fileName, pData->FileName);
 		// But for now we output bitmap sequences
-		strcpy(fileName, "dsmTestSequenceImage_");
-		strcat(fileName, sequenceNumber);
-		strcat(fileName, ".bmp");
+		sprintf(fileName, "dsmTestSeqImage_%2.2d.bmp", pnum);
 		g_Data.FileName = strdup(fileName);
 		
 		g_Data.fp = fopen(fileName, "wb");

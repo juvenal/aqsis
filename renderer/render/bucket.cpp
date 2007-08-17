@@ -1072,9 +1072,11 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 	visibilityNode->zdepth = 0;
 	visibilityNode->visibility.SetColorRGB(1,1,1);
 	currentVisFunc->push_back(visibilityNode);
-	m_VisibilityDataSize += 4;
+	m_VisibilityDataSize += 4; //< This assumes 3 color channels
 	
-	// Place the first hit (if there is one) from each sub-sample into the heap.	
+	// Place the first hit (if there is one) from each sub-sample into the heap.
+	/// \todo Support other filtering algorithms, for example, separable filtering algorithms.
+	// Filter using a non-separable filter which is good, and fast, for filter widths smaller than or equal to 16
 	for ( fy = -ymax; fy <= ymax; ++fy )
 	{	
 		pie2 = pie;
@@ -1093,21 +1095,22 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 					const CqVector2D vecS = currentSampleData.m_Position - CqVector2D( xcent, ycent );
 					if ( (vecS.x() >= -xfwo2) && (vecS.y() >= -yfwo2) && (vecS.x() <= xfwo2) && (vecS.y() <= yfwo2) )
 					{
+						const TqFloat filterValue = m_aFilterValues[ sindex + currentSampleData.m_SubCellIndex ];
+						sumFilterValues += filterValue;
 						if ( pie2->OpaqueValues( sampleIndex ).m_flags & SqImageSample::Flag_Valid )
 						{
-							const TqFloat filterValue = m_aFilterValues[ sindex + currentSampleData.m_SubCellIndex ];
 							if ( !currentSampleData.m_Data.empty() )
-							{ // This subpixel covers multiple samples, and the frontmost sample is not opaque 
+							{ // This subpixel covers multiple samples, and the frontmost sample is not opaque
 								SqHitHeapNode hitNode(&currentSampleData, 0, gColWhite, filterValue);
 								nextHitHeap.push(hitNode);
 							}
 							else 
-							{ // This subpixel only had one hit (m_OpaqueSample), so construct its tuple, add it to the heap and we are done
+							{ 
+								// This subpixel only had one hit (m_OpaqueSample), so construct its tuple, add it to the heap and we are done
 								SqHitHeapNode hitNode(&currentSampleData, -1, gColWhite, filterValue);
 								nextHitHeap.push(hitNode);
 							}
 							SampleCount++;
-							sumFilterValues += filterValue;
 						}
 					}
 					sampleIndex++;
@@ -1130,13 +1133,36 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 		SqDeltaNode deltaNode;
 		// Construct a delta node from the dequeued item. Two cases:
 		if (nextHit.queueIndex == -1)
-		{ // special case: we only have the opaque entry
+		{ 
+			// Special case: we only have the opaque entry. Proceed as follows: 
+			// Compute the weighted delta transmittance based on the node we just popped from the heap.
+			// Then dequeue all of the remaining opaque sample hit nodes off the heap, and add together their weighted contributions
+			// along with the first node. This ensures that we get correctly filtered deep data when the pixel filters are larger than a 
+			// single pixel, and only opaque samples cover the current pixel.
 			deltaNode.zdepth = nextHit.samplePointer->m_OpaqueSample.Data()[Sample_Depth];
 			
-			deltaNode.deltatransmittance.SetColorRGB( nextHit.samplePointer->m_OpaqueSample.Data()[Sample_ORed],
+			deltaNode.deltaTransmittance.SetColorRGB( nextHit.samplePointer->m_OpaqueSample.Data()[Sample_ORed],
 												nextHit.samplePointer->m_OpaqueSample.Data()[Sample_OGreen],
-												nextHit.samplePointer->m_OpaqueSample.Data()[Sample_OBlue]);
-			deltaNode.deltatransmittance *= (-1)*nextHit.weight*inverseSumFilterValues; // apply filter weight and negate the delta  
+												nextHit.samplePointer->m_OpaqueSample.Data()[Sample_OBlue]);	
+			deltaNode.deltaTransmittance *= (-1)*nextHit.weight*inverseSumFilterValues; // apply filter weight and negate the delta
+			
+			while ( ! nextHitHeap.empty() )
+			{
+				SqHitHeapNode secondaryHit = nextHitHeap.top();
+				if (secondaryHit.queueIndex == -1)
+				{
+					nextHitHeap.pop();
+					CqColor shColor(secondaryHit.samplePointer->m_OpaqueSample.Data()[Sample_ORed],
+							secondaryHit.samplePointer->m_OpaqueSample.Data()[Sample_OGreen],
+							secondaryHit.samplePointer->m_OpaqueSample.Data()[Sample_OBlue]);
+					shColor *= (-1)*secondaryHit.weight*inverseSumFilterValues;
+					deltaNode.deltaTransmittance += shColor;
+				}
+				else
+				{
+					break;
+				}
+			}
 			deltaNode.deltaslope.SetColorRGB(0,0,0); // Normally no slope change, but if we have participating media? Might have slope change.
 		}
 		else
@@ -1144,10 +1170,16 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 			const TqFloat* sampleData = nextHit.samplePointer->m_Data[nextHit.queueIndex].Data(); 
 			deltaNode.zdepth = sampleData[Sample_Depth];
 			
-			deltaNode.deltatransmittance.SetColorRGB( sampleData[Sample_ORed],
+			deltaNode.deltaTransmittance.SetColorRGB( sampleData[Sample_ORed],
 												 sampleData[Sample_OGreen],
 												 sampleData[Sample_OBlue]);
-			deltaNode.deltatransmittance *= (-1)*nextHit.weight*inverseSumFilterValues; // apply filter weight and negate the delta  
+			deltaNode.deltaTransmittance *= (-1)*nextHit.weight*inverseSumFilterValues; // apply filter weight and negate the delta
+			
+			if ( (int)xcent == 291 && (int)ycent == 105)
+			{
+				//printf("Suspect pixel has delta transmittance %f and weight %f and depth %f\n", sampleData[Sample_ORed], nextHit.weight, sampleData[Sample_Depth]);
+			}
+			
 			// NOTE: We should compute the slope change here
 			deltaNode.deltaslope.SetColorRGB(0,0,0); // 0s for now, since slope change should only occur when rendering participating media
 			// Here we should also multiply the deltaslope with the filter weight
@@ -1159,7 +1191,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 			{ // Enqueue another node
 				SqHitHeapNode hitNode(nextHit.samplePointer,
 									nextHit.queueIndex+1,
-									nextHit.runningVisibility+deltaNode.deltatransmittance, // This needs to also include slope
+									nextHit.runningVisibility+deltaNode.deltaTransmittance, // This needs to also include slope
 									nextHit.weight);
 				nextHitHeap.push(hitNode);						
 			}		
@@ -1178,6 +1210,16 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 			ReconstructVisibilityNode( deltaNode, slopeAtJ, currentVisFunc );
 		}
 	}
+	/*
+	if ( (int)xcent == 291 && (int)ycent == 105)
+	{
+		printf("Suspect pixel has visibilities:\n");
+		for ( int i = 0; i < currentVisFunc->size(); ++i )
+		{
+			printf("%f\n", (*currentVisFunc)[i]->visibility.fRed());
+		}
+	}
+	*/
 }
 
 //----------------------------------------------------------------------
@@ -1198,7 +1240,7 @@ void CqBucket::ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor&
 	visibilityNodePreHit->zdepth = deltaNode.zdepth;
 	visibilityNodePreHit->visibility = max((currentVisFunc->back()->visibility + (visibilityNodePreHit->zdepth - currentVisFunc->back()->zdepth)*slopeAtJ), gColBlack);
 	visibilityNodePostHit->zdepth = deltaNode.zdepth;
-	visibilityNodePostHit->visibility = max((visibilityNodePreHit->visibility + deltaNode.deltatransmittance), gColBlack); 
+	visibilityNodePostHit->visibility = max((visibilityNodePreHit->visibility * (1+deltaNode.deltaTransmittance)), gColBlack);
 	slopeAtJ += deltaNode.deltaslope;
 	currentVisFunc->push_back(visibilityNodePreHit);
 	currentVisFunc->push_back(visibilityNodePostHit);
@@ -1238,12 +1280,22 @@ void CqBucket::CheckHeapSorted(std::priority_queue< SqHitHeapNode, std::vector<S
 			//std::cout << "Next depth: " << hitHeapNode.samplePointer->m_OpaqueSample.Data()[Sample_Depth] << std::endl;
 			assert(hitHeapNode.samplePointer->m_OpaqueSample.Data()[Sample_Depth] >= prevDepth);
 			prevDepth = hitHeapNode.samplePointer->m_OpaqueSample.Data()[Sample_Depth];
+			// in case assertions are turned off
+			if (hitHeapNode.samplePointer->m_OpaqueSample.Data()[Sample_Depth] < prevDepth)
+			{
+				printf("Error: CheckHeapSorted failed\n");
+			}
 		}
 		else
 		{
 			//std::cout << "Next depth: " << hitHeapNode.samplePointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth] << std::endl;
 			assert(hitHeapNode.samplePointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth] >= prevDepth);
-			prevDepth = hitHeapNode.samplePointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth];		
+			prevDepth = hitHeapNode.samplePointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth];
+			// in case assertions are turned off
+			if (hitHeapNode.samplePointer->m_Data[hitHeapNode.queueIndex].Data()[Sample_Depth] < prevDepth)
+			{
+				printf("Error: CheckHeapSorted failed\n");
+			}
 		}
 	}		
 }
