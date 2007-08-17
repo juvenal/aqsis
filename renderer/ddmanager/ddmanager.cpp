@@ -1409,7 +1409,7 @@ TqInt CqDeepDisplayRequest::CompressVisibilityFunction(const TqVisibilityFunctio
 	* Initialize [slopeMin, slopeMax] to [-infinity, infinity].
 	* The error tolerance, epsilon, should be a float value in the range (0,1). A good value is 0.02.
 	*/
-	const TqFloat epsilon = 0.0;
+	const TqFloat epsilon = 0.0; /// \todo We want to extract this user parameter from the RIB with a call like: QGetRenderContext() ->poptCurrent()->GetFloatOption( "error tolerance" )
 	const TqInt colorChannels = 3; /// \todo Access the real number of color channels here
 	TqFloat slopeMin;
 	TqFloat slopeMax;

@@ -66,7 +66,14 @@ struct SqDeepDataTile
 /// \todo This structure should be stored in a shared location since it is used in this file and in dtex.cpp/dtex.h
 struct SqDtexFileHeader
 {
-	/** Trivial Constructor: initialize an SqDtexFileHeader structure
+	/** \brief Construct an SqDtexFileHeader structure
+	* \param fs - file size of the dtex file in bytes
+	* \param iw - image width; the width in pixels of the dtex image
+	* \param ih - image height; the hieght in pixels of the dtex image
+	* \param nc - number of channels; for example 'rgb' has 3 channels, but 'r' has only 1 channel 
+	* \param bpc - bytes per channel; the size in bytes used for each color channel. For example, float takes 4 bytes, but char takes only 1 byte
+	* \param hs - header size; the size in bytes of SqDtexFileHeader. We can probably get rid of this field.
+	* \param ds - data size; the size of only the data part of the dtex file
 	 */ 
 	SqDtexFileHeader( uint32 fs = 0, uint32 iw = 0, uint32 ih = 0, uint32 nc = 0, 
 			uint32 bpc = 0, uint32 hs = 0, uint32 ds = 0, uint32 tw = 0, uint32 th = 0, uint32 nt = 0)
@@ -76,13 +83,12 @@ struct SqDtexFileHeader
 		imageHeight( ih ),
 		numberOfChannels( nc ),
 		bytesPerChannel( bpc ),
-		headerSize( hs ),
+		//headerSize( hs ),
 		dataSize( ds ),
 		tileWidth( tw ),
 		tileHeight( th ),
 		numberOfTiles( nt )
-	{
-	}
+	{}
 	/// The magic number field contains the following bytes: Ò\0x89AqD\0x0b\0x0a\0x16\0x0a"
 	// The first byte has the high-bit set to detect transmission over a 7-bit communications channel.
 	// This is highly unlikely, but it can't hurt to check. 
@@ -104,7 +110,7 @@ struct SqDtexFileHeader
 	/// Depending on the precision, number of bytes per color channel
 	uint32 bytesPerChannel;
 	/// Number of bytes in this header (might not need this)
-	uint32 headerSize;
+	//uint32 headerSize;
 	// Size of the deep data by itself, in bytes
 	uint32 dataSize;
 	// Width, in pixels, of a tile (unpadded, so edge tiles may be larger, but never smaller)
@@ -113,6 +119,10 @@ struct SqDtexFileHeader
 	uint32 tileHeight;
 	// Number of tiles in the image
 	uint32 numberOfTiles;
+	// World to Screen transformation matrix
+	float matWorldToScreen[4][4];
+	// World to Camera transformation matrix
+	float matWorldToCamera[4][4];
 };
 
 //------------------------------------------------------------------------------

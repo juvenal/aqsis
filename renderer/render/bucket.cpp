@@ -1123,7 +1123,8 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 	inverseSumFilterValues = 1.0/sumFilterValues;
 	
 	// Check if the heap is sorted (DEBUGGING)
-	//CheckHeapSorted(nextHitHeap);			
+	//CheckHeapSorted(nextHitHeap);	
+	/// \todo Move this code into its own function.
 	while ( (!nextHitHeap.empty()) && (currentVisFunc->back()->visibility > gColBlack) )
 	{
 		// NOTE: In here we will want to premultiply the volume 
@@ -1170,16 +1171,36 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 			const TqFloat* sampleData = nextHit.samplePointer->m_Data[nextHit.queueIndex].Data(); 
 			deltaNode.zdepth = sampleData[Sample_Depth];
 			
+			CqColor phColor( sampleData[Sample_ORed],
+					 sampleData[Sample_OGreen],
+					 sampleData[Sample_OBlue]);
 			deltaNode.deltaTransmittance.SetColorRGB( sampleData[Sample_ORed],
 												 sampleData[Sample_OGreen],
 												 sampleData[Sample_OBlue]);
 			deltaNode.deltaTransmittance *= (-1)*nextHit.weight*inverseSumFilterValues; // apply filter weight and negate the delta
 			
-			if ( (int)xcent == 291 && (int)ycent == 105)
+			// If we are dealing with an opaque sample hit node, we want to filter them all together into a single deltaNode 
+			if ( phColor == gColWhite)
 			{
-				//printf("Suspect pixel has delta transmittance %f and weight %f and depth %f\n", sampleData[Sample_ORed], nextHit.weight, sampleData[Sample_Depth]);
+				while ( ! nextHitHeap.empty() )
+				{
+					SqHitHeapNode secondaryHit = nextHitHeap.top();
+					const TqFloat* sampleData = nextHit.samplePointer->m_Data[nextHit.queueIndex].Data();
+					CqColor shColor(sampleData[Sample_ORed],
+							 sampleData[Sample_OGreen],
+							 sampleData[Sample_OBlue]);
+					if (shColor == gColWhite)
+					{
+						nextHitHeap.pop();
+						shColor *= (-1)*secondaryHit.weight*inverseSumFilterValues;
+						deltaNode.deltaTransmittance += shColor;
+					}
+					else
+					{
+						break;
+					}
+				}
 			}
-			
 			// NOTE: We should compute the slope change here
 			deltaNode.deltaslope.SetColorRGB(0,0,0); // 0s for now, since slope change should only occur when rendering participating media
 			// Here we should also multiply the deltaslope with the filter weight
@@ -1210,16 +1231,6 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 			ReconstructVisibilityNode( deltaNode, slopeAtJ, currentVisFunc );
 		}
 	}
-	/*
-	if ( (int)xcent == 291 && (int)ycent == 105)
-	{
-		printf("Suspect pixel has visibilities:\n");
-		for ( int i = 0; i < currentVisFunc->size(); ++i )
-		{
-			printf("%f\n", (*currentVisFunc)[i]->visibility.fRed());
-		}
-	}
-	*/
 }
 
 //----------------------------------------------------------------------

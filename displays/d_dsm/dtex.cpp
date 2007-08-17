@@ -33,7 +33,7 @@
 static const char magicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
 
 CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth, uint32 imageHeight, uint32 tileWidth, uint32 tileHeight,
-		uint32 bucketWidth, uint32 bucketHeight, uint32 numberOfChannels, uint32 bytesPerChannel)
+		uint32 bucketWidth, uint32 bucketHeight, uint32 numberOfChannels, uint32 bytesPerChannel, const float matWorldToScreen[4][4], const float matWorldToCamera[4][4])
 	: m_dtexFile( filename.c_str(), std::ios::out | std::ios::binary ),
 	m_fileHeader( (uint32)0, (uint32)imageWidth, (uint32)imageHeight, (uint32)numberOfChannels, (uint32)bytesPerChannel, (uint32)0, (uint32)0, (uint32)tileWidth, (uint32)tileHeight, (uint32)0 ),
 	m_tileTable(),
@@ -52,14 +52,15 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 		throw Aqsis::XqInternal(std::string("Tile dimensions not an integer multiple of bucket dimensions."), __FILE__, __LINE__);
 	}
 	// Note: The following are set outside of the initialization list because they depend on the calculated constants above
-	// Below: +8 for the magic number, which is currently removed from SqDtexFileHeader.
-	m_fileHeader.headerSize = sizeof(SqDtexFileHeader) + 8;
+	// Below: We do add +8 for the magic number, which is currently removed from SqDtexFileHeader.
+	//m_fileHeader.headerSize = sizeof(SqDtexFileHeader) + 8;
 	m_fileHeader.numberOfTiles = numberOfTiles;
 	m_tileTable.reserve(numberOfTiles);
 	m_xBucketsPerTile = tileWidth/bucketWidth;
 	m_yBucketsPerTile = tileHeight/bucketHeight;
 	m_fileHeader.fileSize = sizeof(SqDtexFileHeader) + numberOfTiles*sizeof(SqTileTableEntry) + 8; //< This is the first part of fileSize. Add the data size part later.
-
+	CopyMatricesToHeader(matWorldToScreen, matWorldToCamera);
+	
 	// If file open failed, throw an exception
 	if (!m_dtexFile.is_open())
 	{
@@ -110,7 +111,6 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 	const int relativeYmin = ymin-homeTileYmin;      //< sub-region ymin relative to tile origin
 	// Note: for now I am proceeding as though all the passed-in data lives within the same sub-region, which is true if
 	// data is being sent as full buckets at a time, but not full image scanlines at a time. For the later case, we need to split data between various sub-regions.
-	//if ((xmax == imageWidth) && (imageWidth-homeTileXmin > tileWidth))
 	if (homeTileCol+1 == tilesPerRow)
 	{
 		// This tile is a right-padded tile
@@ -204,8 +204,6 @@ void CqDeepTexOutputFile::CreateNewTile(const int tileID, const int tileRow, con
 	const int imageWidth = m_fileHeader.imageWidth;
 	const int tileHeight = m_fileHeader.tileHeight;
 	const int tileWidth = m_fileHeader.tileWidth;
-//	const int tileXmin = tileCol*tileWidth;
-//	const int tileYmin = tileRow*tileHeight;
 	const int tilesPerRow = imageWidth/tileWidth;
 	const int tilesPerCol = imageHeight/tileHeight;
 	int xSize = m_xBucketsPerTile;
@@ -402,8 +400,8 @@ void CqDeepTexOutputFile::UpdateTileTable(const boost::shared_ptr<SqDeepDataTile
 
 void CqDeepTexOutputFile::WriteTileTable()
 {
-	// Seek to the 65th byte position in the file and write the tile table
-	m_dtexFile.seekp(65, std::ios::beg);
+	// Seek to the correct byte position in the file, immediately following the file header, and write the tile table
+	m_dtexFile.seekp(8+sizeof(SqDtexFileHeader), std::ios::beg);
 
 	// I assume that the member data in a C struct is gauranteed to be contiguous and ordered in memory to reflect the order of declaration.
 	// This is very likely an incorrect assumption, but it might be true in the case of SqTileTableEntry, since it has simply 3 floats.

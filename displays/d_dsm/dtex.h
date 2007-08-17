@@ -113,21 +113,20 @@ struct SqDtexFileHeader
 	* \param hs - header size; the size in bytes of SqDtexFileHeader. We can probably get rid of this field.
 	* \param ds - data size; the size of only the data part of the dtex file
 	 */ 
-	SqDtexFileHeader( uint32 fs, uint32 iw, uint32 ih, uint32 nc, 
-			uint32 bpc, uint32 hs, uint32 ds, uint32 tw, uint32 th, uint32 nt)
+	SqDtexFileHeader( uint32 fs = 0, uint32 iw = 0, uint32 ih = 0, uint32 nc = 0, 
+			uint32 bpc = 0, uint32 hs = 0, uint32 ds = 0, uint32 tw = 0, uint32 th = 0, uint32 nt = 0)
 		: // magicNumber( mn ),
 		fileSize( fs ),
 		imageWidth( iw ),
 		imageHeight( ih ),
 		numberOfChannels( nc ),
 		bytesPerChannel( bpc ),
-		headerSize( hs ),
+		//headerSize( hs ),
 		dataSize( ds ),
 		tileWidth( tw ),
 		tileHeight( th ),
 		numberOfTiles( nt )
-	{
-	}
+	{}
 	/// The magic number field contains the following bytes: Ò\0x89AqD\0x0b\0x0a\0x16\0x0a"
 	// The first byte has the high-bit set to detect transmission over a 7-bit communications channel.
 	// This is highly unlikely, but it can't hurt to check. 
@@ -149,7 +148,7 @@ struct SqDtexFileHeader
 	/// Depending on the precision, number of bytes per color channel
 	uint32 bytesPerChannel;
 	/// Number of bytes in this header (might not need this)
-	uint32 headerSize;
+	//uint32 headerSize;
 	// Size of the deep data by itself, in bytes
 	uint32 dataSize;
 	// Width, in pixels, of a tile (unpadded, so edge tiles may be larger, but never smaller)
@@ -158,6 +157,10 @@ struct SqDtexFileHeader
 	uint32 tileHeight;
 	// Number of tiles in the image
 	uint32 numberOfTiles;
+	// World to Screen transformation matrix
+	float matWorldToScreen[4][4];
+	// World to Camera transformation matrix
+	float matWorldToCamera[4][4];
 };
 
 //------------------------------------------------------------------------------
@@ -182,7 +185,7 @@ class CqDeepTexOutputFile
 		 *
 		 */
 		CqDeepTexOutputFile(std::string filename, uint32 imageWidth, uint32 imageHeight, uint32 tileWidth, uint32 tileHeight, 
-				uint32 bucketWidth, uint32 bucketHeight, uint32 numberOfChannels, uint32 bytesPerChannel);
+				uint32 bucketWidth, uint32 bucketHeight, uint32 numberOfChannels, uint32 bytesPerChannel, const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]);
 		virtual ~CqDeepTexOutputFile(){}
 	  
 		/** \brief Copy the given data into the tile map
@@ -296,6 +299,8 @@ class CqDeepTexOutputFile
 		 */	
 		void WriteTile(const boost::shared_ptr<SqDeepDataTile> tile);
 		
+		inline void CopyMatricesToHeader(const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]);
+		
 		//-----------------------------------------------------------------------------------
 		// Member Data
 		
@@ -321,5 +326,18 @@ class CqDeepTexOutputFile
 //------------------------------------------------------------------------------
 // Inline function(s) for CqDeepTexOutputFile
 //------------------------------------------------------------------------------
+inline void CqDeepTexOutputFile::CopyMatricesToHeader(const float matWorldToScreen[4][4], const float matWorldToCamera[4][4])
+{
+	int x, y;
+	for (x = 0; x < 4; ++x)
+	{
+		for (y = 0; y < 4; ++y)
+		{
+			m_fileHeader.matWorldToScreen[x][y] = matWorldToScreen[x][y];
+			m_fileHeader.matWorldToCamera[x][y] = matWorldToCamera[x][y];
+		}
+	}
+}
+
 
 #endif // DTEX_H_INCLUDED

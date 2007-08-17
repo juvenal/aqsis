@@ -475,17 +475,16 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 #endif
 	
 	PtDspyError rval = PkDspyErrorNone;
-	const int tileWidth = 64; //< We will want to extract the real tile dimensions from parameters. Use 64 for now.
+	const int tileWidth = 64; //< We will want to extract the real tile dimensions from parameters. Use 64 as default.
 	const int tileHeight = 64;
-
+	float matWorldToCamera[ 4 ][ 4 ];
+	float matWorldToScreen[ 4 ][ 4 ];
 	if ( width <= 0 )
 		width = DEFAULT_IMAGEWIDTH;
 	if ( height <= 0 )
 		height = DEFAULT_IMAGEHEIGHT;
 	
-	//static SqDeepShadowData g_Data;
 	SqDeepShadowData *pData = new SqDeepShadowData();
-	//pData = (SqDeepShadowData *) calloc(1, sizeof(g_Data));
 	*image = pData; // This is how the caller gets a handle on this new image
 	
 	// Extract any important data from the user parameters.
@@ -499,34 +498,26 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	pData->bucketDimensions[1] = 16;
 	TqInt count = 2;
 	DspyFindIntsInParamList("BucketDimensions", &count, pData->bucketDimensions, paramCount, parameters);
-
-	// Initialize our global resources
-	//memset(&g_Data, sizeof(SqDeepShadowData), 0);
+	// Extract the transformation matrices if they are there.
+	DspyFindMatrixInParamList( "NP", reinterpret_cast<float*>(matWorldToScreen), paramCount, parameters );
+	DspyFindMatrixInParamList( "Nl", reinterpret_cast<float*>(matWorldToCamera), paramCount, parameters );
 
 	// Note: flags can also be binary ANDed with PkDspyFlagsWantsEmptyBuckets and PkDspyFlagsWantsNullEmptyBuckets
-	flagstuff->flags = PkDspyFlagsWantsScanLineOrder; //< Let's try bucket order now
-	//g_Data.flags = PkDspyFlagsWantsScanLineOrder;
-	pData->flags = PkDspyFlagsWantsScanLineOrder;
-/*
-	g_Data.Channels = formatCount; // From this field, the display knows how many floats per visibility node to expect from DspyImageDeepData
-	g_Data.iWidth = width;
-	g_Data.iHeight = height;
-*/	
+	//flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
+	//pData->flags = PkDspyFlagsWantsScanLineOrder;
+
 	pData->Channels = formatCount; // From this field, the display knows how many floats per visibility node to expect from DspyImageDeepData
 	pData->iWidth = width;
 	pData->iHeight = height;
 	
 	pData->DtexFile = new CqDeepTexOutputFile(std::string(filename), width, height, 
-			tileWidth, tileHeight, pData->bucketDimensions[0], pData->bucketDimensions[1], formatCount, sizeof(float));
-	
+			tileWidth, tileHeight, pData->bucketDimensions[0], pData->bucketDimensions[1], formatCount, sizeof(float), matWorldToScreen, matWorldToCamera);
+
+	//-----------------------------------------------------
 	// Stuff for testing/debugging
-/*
-	g_Data.testDeepData = new float*[height*sizeof(float*)];
-	g_Data.functionLengths = new int*[height*sizeof(int*)];
-*/	
+	
 	pData->testDeepData = new float*[height*sizeof(float*)];
 	pData->functionLengths = new int*[height*sizeof(int*)];
-	//memcpy((void*) pData, (void *) &g_Data, sizeof(SqDeepShadowData));
 
 	return rval;
 }

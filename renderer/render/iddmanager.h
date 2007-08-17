@@ -53,6 +53,7 @@ struct SqVisibilityNode
 {
 	TqFloat zdepth;
 	/// an [additive] change in light color associated with a transmittance function "hit" at this zdepth
+	/// \ todo Change type of visibility from CqColor to std::vector<TqFloat> so that we can have an arbitrary number of color channels
 	CqColor visibility;
 };
 
