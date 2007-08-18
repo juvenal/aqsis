@@ -81,7 +81,12 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 // the extra data we want to store for DSMs is the function lengths.
 void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int xmax, const int ymax, const unsigned char *data, const unsigned char* metadata )
 {
-	//If we want to enforce that data is received in a bucket at a time, then assert that xmax-xmin <= bucketWidth (may be '<' in the case of edge buckets)
+	//If we want to enforce that data is received a bucket at a time, then assert that xmax-xmin <= bucketWidth (may be '<' in the case of edge buckets)
+	if (xmax-xmin > m_bucketWidth)
+	{
+		throw Aqsis::XqInternal(std::string("Error is CqDeepTexOutputFile::setTileData(): the provided image region is too large. Data will not be copied. Returning prematurely."), __FILE__, __LINE__);
+		return;
+	}
 	const float* iData = reinterpret_cast<const float*>(data);
 	const int* iMetaData = reinterpret_cast<const int*>(metadata);
 	const int imageHeight = m_fileHeader.imageHeight;

@@ -48,7 +48,8 @@ aqsisdll_sources = Split("""
 	transform.cpp
 	blobby.cpp
 	marchingcubes.cpp
-	trimcurve.cpp""")
+	trimcurve.cpp
+	dtexinput.cpp""")
 
 
 aqsisdll_headers = Split("""
@@ -67,6 +68,7 @@ aqsisdll_headers = Split("""
 	csgtree.h               ishader.h               parameters.h            surface.h
 	curves.h                ishaderdata.h           patch.h                 symbols.h
 	deepshadow.h
+	dtexinput.h
 	focus.h                 ishaderexecenv.h        plane.h                 teapot.h
 	forwarddiff.h           isurface.h              points.h                texturemap.h
 	genpoly.h               itexturemap.h           polygon.h               transform.h

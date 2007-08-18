@@ -6,12 +6,10 @@ d_dsmenv.AppendUnique(CPPDEFINES=['d_dsm_EXPORTS'])
 d_dsm_sources = Split("""
 	d_dsm.cpp
 	dtex.cpp
-	dtexinput.cpp
 	displayhelpers.c""")
 
 d_dsm_headers =  Split("""
 	d_dsm.h
-	dtexinput.h
 	dtex.h""")
 
 
