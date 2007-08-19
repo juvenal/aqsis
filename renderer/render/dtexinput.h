@@ -80,7 +80,7 @@ class CqDeepTextureTile
 
 		/** \brief Destructor
 		 */
-		~CqDeepTextureTile();
+		virtual ~CqDeepTextureTile(){};
 
 		/** \brief Set the class data to the given data pointer
 		 *
