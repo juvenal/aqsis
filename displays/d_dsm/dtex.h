@@ -87,8 +87,7 @@ struct SqTileTableEntry
 		: tileCol( x ),
 		tileRow( y ),
 		fileOffset( fo )
-	{
-	}
+	{}
 	uint32 tileCol;
 	uint32 tileRow;
 	/// Absolute file offset to the beginning of a tile header (fileOffset == 0 if tile is empty)
@@ -105,6 +104,7 @@ struct SqTileTableEntry
 struct SqDtexFileHeader
 {
 	/** \brief Construct an SqDtexFileHeader structure
+	* \param mn - magic number
 	* \param fs - file size of the dtex file in bytes
 	* \param iw - image width; the width in pixels of the dtex image
 	* \param ih - image height; the hieght in pixels of the dtex image
@@ -113,20 +113,28 @@ struct SqDtexFileHeader
 	* \param hs - header size; the size in bytes of SqDtexFileHeader. We can probably get rid of this field.
 	* \param ds - data size; the size of only the data part of the dtex file
 	 */ 
-	SqDtexFileHeader( uint32 fs = 0, uint32 iw = 0, uint32 ih = 0, uint32 nc = 0, 
-			uint32 bpc = 0, uint32 hs = 0, uint32 ds = 0, uint32 tw = 0, uint32 th = 0, uint32 nt = 0)
-		: // magicNumber( mn ),
+	SqDtexFileHeader( const uint32 fs = 0, const uint32 iw = 0, const uint32 ih = 0, const uint32 nc = 0, 
+			const uint32 bpc = 0, const uint32 hs = 0, const uint32 ds = 0, const uint32 tw = 0, const uint32 th = 0, const uint32 nt = 0)
+		: //magicNumber( ),
 		fileSize( fs ),
 		imageWidth( iw ),
 		imageHeight( ih ),
 		numberOfChannels( nc ),
 		bytesPerChannel( bpc ),
-		//headerSize( hs ),
 		dataSize( ds ),
 		tileWidth( tw ),
 		tileHeight( th ),
-		numberOfTiles( nt )
+		numberOfTiles( nt ),
+		matWorldToScreen(),
+		matWorldToCamera()
 	{}
+	
+	/** \brief Seek to the appropriate position in m_dtexFile and write the dtex file header.
+	 *
+	 * \param file  - An open binary file with output stream already set to the correct position (beginnig of file) to write the header. 
+	 */	
+	inline void writeToFile( std::ofstream& file ) const;
+	
 	/// The magic number field contains the following bytes: Ò\0x89AqD\0x0b\0x0a\0x16\0x0a"
 	// The first byte has the high-bit set to detect transmission over a 7-bit communications channel.
 	// This is highly unlikely, but it can't hurt to check. 
@@ -135,8 +143,8 @@ struct SqDtexFileHeader
 	// This is followed by a DOS end of file (control-Z) and another line feed.
 	// This sequence ensures that if the file is "typed" on a DOS shell or Windows command shell, the user will see "AqD" 
 	// on a single line, preceded by a strange character.
-	//char magicNumber[8]; // How can I store the magic number in such a way that its data, not the value of the
-		// address that points to it, is written to file when we call write(m_dtexFileHeader)?
+	// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
+	static char magicNumber[8]; // = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
 	/// Size of this file in bytes
 	uint32 fileSize;
 	// Number of horizontal pixels in the image
@@ -147,8 +155,6 @@ struct SqDtexFileHeader
 	uint32 numberOfChannels;
 	/// Depending on the precision, number of bytes per color channel
 	uint32 bytesPerChannel;
-	/// Number of bytes in this header (might not need this)
-	//uint32 headerSize;
 	// Size of the deep data by itself, in bytes
 	uint32 dataSize;
 	// Width, in pixels, of a tile (unpadded, so edge tiles may be larger, but never smaller)
@@ -197,7 +203,7 @@ class CqDeepTexOutputFile
 		 * 					metadata is -1 and data is empty/invalid.
 		 * \param data - The deep data corresponding to the image region defined by (xmin,ymin) and (xmax,ymax)
 		 */
-		virtual void SetTileData( const int xmin, const int ymin, const int xmax, const int ymax, const unsigned char *data, const unsigned char* metadata );
+		virtual void setTileData( const int xmin, const int ymin, const int xmax, const int ymax, const unsigned char *data, const unsigned char* metadata );
 		
 	private:
 		// Functions
@@ -211,7 +217,7 @@ class CqDeepTexOutputFile
 		 * 			because this parameter is used to determine how much memory to allocate for the sub-region. Therefore the user who calls SetTileData must always send 
 		 * 			the first row of a bucket before sending any other row from within a bucket. 
 		 */		
-		void CreateNewSubTileRegion(boost::shared_ptr<SqDeepDataTile> currentTile, const int subRegionID, const int ymin);
+		void createNewSubTileRegion(boost::shared_ptr<SqDeepDataTile> currentTile, const int subRegionID, const int ymin);
 		
 		/** \brief Create a new tile and add it to m_DeepDataTileMap with the given key: tileID
 		 *
@@ -219,7 +225,7 @@ class CqDeepTexOutputFile
 		 * \param tileRow - The index of the row of tiles this tile resides in.
 		 * \param tileCol - The index of the column if tiles this tile resides in. 
 		 */
-		void CreateNewTile(const int tileID, const int tileRow, const int tileCol);
+		void createNewTile(const int tileID, const int tileRow, const int tileCol);
 		
 		/** \brief Copy given metadata into the given std::vector.
 		 * 
@@ -230,7 +236,7 @@ class CqDeepTexOutputFile
 		 * \param rxmax - The x-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
 		 * \param rymax - The y-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
 		 */	
-		void CopyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax);
+		void copyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax);
 		
 		/** \brief Copy given data into the given std::vector.
 		 * 
@@ -241,7 +247,7 @@ class CqDeepTexOutputFile
 		 * \param rxmax - The x-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
 		 * \param rymax - The y-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
 		 */	
-		void CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int rxmin, const int rymin, const int rxmax, const int rymax);
+		void copyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int rxmin, const int rymin, const int rxmax, const int rymax);
 		
 		/** \brief Fill the sub-region, as specified by (rxmin,rymin,rxmax,rymax), with default metadata. The sub-region may be part of a neglectable tile,
 		 * 		and therefore may never be written to disk, but we have to assume it might be part of a tile that will be written, and so we fill it with minimal data
@@ -253,7 +259,7 @@ class CqDeepTexOutputFile
 		 * \param rxmax - The x-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
 		 * \param rymax - The y-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
 		 */	
-		void FillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax);
+		void fillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax);
 		
 		/** \brief Fill the sub-region, as specified by (rxmin,rymin,rxmax,rymax), with default metadata. The sub-region may be part of a neglectable tile,
 		 * 		and therefore may never be written to disk, but we have to assume it might be part of a tile that will be written, and so we fill it with minimal data
@@ -265,14 +271,14 @@ class CqDeepTexOutputFile
 		 * \param rxmax - The x-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
 		 * \param rymax - The y-coordinate, relative to the origin of the sub-region to which we are copying, where copying should halt
 		 */
-		void FillEmptyData(std::vector< std::vector<float> >& toData, const int rxmin, const int rymin, const int rxmax, const int rymax);
+		void fillEmptyData(std::vector< std::vector<float> >& toData, const int rxmin, const int rymin, const int rxmax, const int rymax);
 		
 		/** \brief Determine if all data has been received for a specific tile, meaning it is full and ready for output to dile.
 		 *
 		 * \param tile - The tile; we want to know if it is full
 		 * \param tileID - The tile's number, counting left-to-right, top-to-bottom
 		 */				
-		bool IsFullTile(const boost::shared_ptr<SqDeepDataTile> tile, const int tileID) const;
+		bool isFullTile(const boost::shared_ptr<SqDeepDataTile> tile, const int tileID) const;
 		
 		/** \brief Determine if this tile is neglectable, that is, it covers no micropolygons or participating media in the DSM
 		 * and can therefore be left out of the DTEX file, and represented instead with a fileOffset of 0 in the tile table, signifying that any pixels
@@ -280,26 +286,26 @@ class CqDeepTexOutputFile
 		 *
 		 * \param tile - The tile; we want to know if it has all of its sub-regions as empty sub-regions.
 		 */	
-		bool IsNeglectableTile(const boost::shared_ptr<SqDeepDataTile> tile) const;
+		bool isNeglectableTile(const boost::shared_ptr<SqDeepDataTile> tile) const;
 		
 		/** \brief Create a new SqTileTableEntry for the given tile and add it to the back of m_tileTable
 		 *
 		 * \param tile - The tile; we want to create a new tile table entry for it.
 		 */		
-		void UpdateTileTable(const boost::shared_ptr<SqDeepDataTile> tile);
+		void updateTileTable(const boost::shared_ptr<SqDeepDataTile> tile);
 		
 		/** \brief Seek to the appropriate position in m_dtexFile and write the tile table.
 		 *
 		 */	
-		void WriteTileTable();
+		void writeTileTable();
 		
 		/** \brief Write to disk the metadata, followed by the deep data, for the given tile.
 		 *
 		 * \param tile - The tile; we want to write its data to m_dtexFile.
 		 */	
-		void WriteTile(const boost::shared_ptr<SqDeepDataTile> tile);
+		void writeTile(const boost::shared_ptr<SqDeepDataTile> tile);
 		
-		inline void CopyMatricesToHeader(const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]);
+		inline void copyMatricesToHeader(const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]);
 		
 		//-----------------------------------------------------------------------------------
 		// Member Data
@@ -316,6 +322,7 @@ class CqDeepTexOutputFile
 		std::map<int, boost::shared_ptr<SqDeepDataTile> > m_deepDataTileMap;
 		
 		// Fields
+		unsigned long m_tileTablePositon;
 		int m_xBucketsPerTile;
 		int m_yBucketsPerTile;
 		int m_bucketWidth;
@@ -326,7 +333,7 @@ class CqDeepTexOutputFile
 //------------------------------------------------------------------------------
 // Inline function(s) for CqDeepTexOutputFile
 //------------------------------------------------------------------------------
-inline void CqDeepTexOutputFile::CopyMatricesToHeader(const float matWorldToScreen[4][4], const float matWorldToCamera[4][4])
+inline void CqDeepTexOutputFile::copyMatricesToHeader(const float matWorldToScreen[4][4], const float matWorldToCamera[4][4])
 {
 	int x, y;
 	for (x = 0; x < 4; ++x)
@@ -339,5 +346,28 @@ inline void CqDeepTexOutputFile::CopyMatricesToHeader(const float matWorldToScre
 	}
 }
 
+//------------------------------------------------------------------------------
+// Inline function(s) for SqDtexFileHeader
+//------------------------------------------------------------------------------
+/** \brief Seek to the appropriate position in m_dtexFile and write the dtex file header.
+ *
+ * \param file  - An open binary file with output stream already set to the correct position (beginnig of file) to write the header. 
+ */	
+inline void SqDtexFileHeader::writeToFile( std::ofstream& file ) const
+{
+	// Write the magic number
+	file.write(magicNumber, 8);
+	file.write((const char*)(&fileSize), sizeof(uint32));
+	file.write((const char*)(&imageWidth), sizeof(uint32));
+	file.write((const char*)(&imageHeight), sizeof(uint32));
+	file.write((const char*)(&numberOfChannels), sizeof(uint32));
+	file.write((const char*)(&bytesPerChannel), sizeof(uint32));
+	file.write((const char*)(&dataSize), sizeof(uint32));
+	file.write((const char*)(&tileWidth), sizeof(uint32));
+	file.write((const char*)(&tileHeight), sizeof(uint32));
+	file.write((const char*)(&numberOfChannels), sizeof(uint32));
+	file.write((const char*)(&matWorldToScreen), 16*sizeof(float));
+	file.write((const char*)(&matWorldToCamera), 16*sizeof(float));
+}
 
 #endif // DTEX_H_INCLUDED

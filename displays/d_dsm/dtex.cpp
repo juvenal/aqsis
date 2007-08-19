@@ -30,12 +30,13 @@
 #include "exception.h"
 
 // Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
+// Note: I tried making this a static member of SqDtexFileHeader and initializing it therein, but that doesn't compile.
 static const char magicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
 
 CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth, uint32 imageHeight, uint32 tileWidth, uint32 tileHeight,
 		uint32 bucketWidth, uint32 bucketHeight, uint32 numberOfChannels, uint32 bytesPerChannel, const float matWorldToScreen[4][4], const float matWorldToCamera[4][4])
 	: m_dtexFile( filename.c_str(), std::ios::out | std::ios::binary ),
-	m_fileHeader( (uint32)0, (uint32)imageWidth, (uint32)imageHeight, (uint32)numberOfChannels, (uint32)bytesPerChannel, (uint32)0, (uint32)0, (uint32)tileWidth, (uint32)tileHeight, (uint32)0 ),
+	m_fileHeader( (uint32)0, (uint32)imageWidth, (uint32)imageHeight, (uint32)numberOfChannels, (uint32)bytesPerChannel, (uint32)0, (uint32)tileWidth, (uint32)tileHeight, (uint32)0 ),
 	m_tileTable(),
 	m_deepDataTileMap(),
 	m_bucketWidth(bucketWidth),
@@ -53,33 +54,33 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 	}
 	// Note: The following are set outside of the initialization list because they depend on the calculated constants above
 	// Below: We do add +8 for the magic number, which is currently removed from SqDtexFileHeader.
-	//m_fileHeader.headerSize = sizeof(SqDtexFileHeader) + 8;
+	strcpy(m_fileHeader.magicNumber, magicNumber); 
 	m_fileHeader.numberOfTiles = numberOfTiles;
 	m_tileTable.reserve(numberOfTiles);
 	m_xBucketsPerTile = tileWidth/bucketWidth;
 	m_yBucketsPerTile = tileHeight/bucketHeight;
 	m_fileHeader.fileSize = sizeof(SqDtexFileHeader) + numberOfTiles*sizeof(SqTileTableEntry) + 8; //< This is the first part of fileSize. Add the data size part later.
-	CopyMatricesToHeader(matWorldToScreen, matWorldToCamera);
+	copyMatricesToHeader(matWorldToScreen, matWorldToCamera);
 	
 	// If file open failed, throw an exception
 	if (!m_dtexFile.is_open())
 	{
 		throw Aqsis::XqInternal(std::string("Failed to open file \"") + filename + std::string( "\""), __FILE__, __LINE__);
 	}
-
+	
 	// Write the file header
-	m_dtexFile.write(magicNumber, 8); // Would rather this be a part of the file header, but how?	
-	m_dtexFile.write((const char*)(&m_fileHeader), sizeof(m_fileHeader));
+	m_fileHeader.writeToFile( m_dtexFile );
 	
 	// Seek forward in file to reserve space for writing the tile table later.
 	// Seek from the current positon. Alternatively, you could seek from the file's beginning with std::ios::beg
+	m_tileTablePositon = m_dtexFile.tellp();
 	m_dtexFile.seekp(numberOfTiles*sizeof(SqTileTableEntry), std::ios::cur);
 }
 
 // Note: I have not been consistent here in the naming of metadata, which I also call functionLengths. Metadata
 // is whatever extra data the display device wants to store in the dtex file, along with the deep data. It just so happens that
 // the extra data we want to store for DSMs is the function lengths.
-void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int xmax, const int ymax, const unsigned char *data, const unsigned char* metadata )
+void CqDeepTexOutputFile::setTileData( const int xmin, const int ymin, const int xmax, const int ymax, const unsigned char *data, const unsigned char* metadata )
 {
 	//If we want to enforce that data is received a bucket at a time, then assert that xmax-xmin <= bucketWidth (may be '<' in the case of edge buckets)
 	if (xmax-xmin > m_bucketWidth)
@@ -128,13 +129,13 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 	// If the tile that should hold this data has not been created yet, create it.
 	if (m_deepDataTileMap.count(homeTileID) == 0)
 	{
-		CreateNewTile(homeTileID, homeTileRow, homeTileCol);
+		createNewTile(homeTileID, homeTileRow, homeTileCol);
 	}
 	boost::shared_ptr<SqDeepDataTile> currentTile = m_deepDataTileMap[homeTileID];
 	// If it does not already exist, create the sub-tile region to hold the current data
 	if (currentTile->subRegions[subRegionID].get() == NULL)
 	{
-		CreateNewSubTileRegion(currentTile, subRegionID, ymin);
+		createNewSubTileRegion(currentTile, subRegionID, ymin);
 	}
 	std::vector< std::vector<int> >& tFunctionLengths = currentTile->subRegions[subRegionID]->functionLengths;
 	std::vector< std::vector<float> >& tData = currentTile->subRegions[subRegionID]->tileData;
@@ -143,28 +144,28 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 	{
 		// This is an empty sub-region: We should fill tFunctionLengths with all 1's
 		// and fill tData with visibility nodes (0,1), one per pixel.
-		FillEmptyMetaData(tFunctionLengths, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
-		FillEmptyData(tData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
+		fillEmptyMetaData(tFunctionLengths, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
+		fillEmptyData(tData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
 	}	
 	else
 	{
 		// Copy data
-		CopyMetaData(tFunctionLengths, iMetaData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
-		CopyData(tData, iData, iMetaData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
+		copyMetaData(tFunctionLengths, iMetaData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
+		copyData(tData, iData, iMetaData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
 	}	
 	// Check for full tile
 	// If full tile, write tile to disk, update the tileTable, and reclaim the tile's memory
-	if(IsFullTile(currentTile, homeTileID))
+	if(isFullTile(currentTile, homeTileID))
 	{
-		if (IsNeglectableTile(currentTile))
+		if (isNeglectableTile(currentTile))
 		{
 			SqTileTableEntry entry(currentTile->tileCol, currentTile->tileRow, 0);
 			m_tileTable.push_back(entry);
 		}
 		else
 		{
-			UpdateTileTable(currentTile);
-			WriteTile(currentTile);
+			updateTileTable(currentTile);
+			writeTile(currentTile);
 		}
 		// How should the memory be reclaimed? Maybe like this:
 		m_deepDataTileMap.erase(homeTileID);
@@ -173,22 +174,22 @@ void CqDeepTexOutputFile::SetTileData( const int xmin, const int ymin, const int
 	// We know all tiles have been written if the tile table is full
 	if (m_tileTable.size() == m_fileHeader.numberOfTiles-1)
 	{
-		WriteTileTable();
+		writeTileTable();
 		// Re-write the dataSize and fileSize fields which were not written properly in the constructor
 		// Seek to the 9th byte position in the file and write fileSize field
 		m_dtexFile.seekp(9, std::ios::beg);
 		m_fileHeader.fileSize += m_fileHeader.dataSize;
 		m_dtexFile.write((const char*)(&m_fileHeader.fileSize), sizeof(uint32));
 		
-		// Seek to the 29th byte position in the file and write dataSize.
-		m_dtexFile.seekp(29, std::ios::beg);
+		// Seek to the 25th byte position in the file and write dataSize.
+		m_dtexFile.seekp(25, std::ios::beg);
 		m_dtexFile.write((const char*)(&m_fileHeader.dataSize), sizeof(uint32));
 		
 		m_dtexFile.close();
 	}
 }
 
-void CqDeepTexOutputFile::CreateNewSubTileRegion(boost::shared_ptr<SqDeepDataTile> currentTile, const int subRegionID, const int ymin)
+void CqDeepTexOutputFile::createNewSubTileRegion(boost::shared_ptr<SqDeepDataTile> currentTile, const int subRegionID, const int ymin)
 {
 	// If this sub-region is at the bottom of the image, and the image is not evenly divisible by bucket height,
 	// then this sub-region is a (bottom) tile padding region, and its height should be less than the standard sub-region height.
@@ -203,7 +204,7 @@ void CqDeepTexOutputFile::CreateNewSubTileRegion(boost::shared_ptr<SqDeepDataTil
 	currentTile->subRegions[subRegionID]->tileData.resize(subRegionHeight);
 }
 
-void CqDeepTexOutputFile::CreateNewTile(const int tileID, const int tileRow, const int tileCol)
+void CqDeepTexOutputFile::createNewTile(const int tileID, const int tileRow, const int tileCol)
 {
 	const int imageHeight = m_fileHeader.imageHeight;
 	const int imageWidth = m_fileHeader.imageWidth;
@@ -231,7 +232,7 @@ void CqDeepTexOutputFile::CreateNewTile(const int tileID, const int tileRow, con
 	m_deepDataTileMap[tileID] = newTile;
 }
 
-void CqDeepTexOutputFile::CopyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax)
+void CqDeepTexOutputFile::copyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax)
 {
 	// Note: I assume that at least a full row of a bucket at a time is sent to the dislay, or even full buckets, but never partial rows. This code will break if partial rows are sent.
 	int row;
@@ -248,7 +249,7 @@ void CqDeepTexOutputFile::CopyMetaData(std::vector< std::vector<int> >& toMetaDa
 	}	
 }
 
-void CqDeepTexOutputFile::CopyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int rxmin, const int rymin, const int rxmax, const int rymax)
+void CqDeepTexOutputFile::copyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int rxmin, const int rymin, const int rxmax, const int rymax)
 {
 	// Note: I assume that at least a full row of a bucket at a time is sent to the dislay, if not full buckets, but never partial rows. This code will break if partial rows are sent.
 	const int nodeSize = (m_fileHeader.numberOfChannels+1);
@@ -272,7 +273,7 @@ void CqDeepTexOutputFile::CopyData(std::vector< std::vector<float> >& toData, co
 	}
 }
 
-void CqDeepTexOutputFile::FillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax)
+void CqDeepTexOutputFile::fillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax)
 {
 	// Note: I assume that at least a full row of a bucket at a time is sent to the dislay, or even full buckets, but never partial rows.
 	int row;
@@ -288,7 +289,7 @@ void CqDeepTexOutputFile::FillEmptyMetaData(std::vector< std::vector<int> >& toM
 	}	
 }
 
-void CqDeepTexOutputFile::FillEmptyData(std::vector< std::vector<float> >& toData, const int rxmin, const int rymin, const int rxmax, const int rymax)
+void CqDeepTexOutputFile::fillEmptyData(std::vector< std::vector<float> >& toData, const int rxmin, const int rymin, const int rxmax, const int rymax)
 {
 	// Note: I assume that at least a full row of a bucket at a time is sent to the dislay, if not full buckets, but never partial rows.
 	const int nodeSize = (m_fileHeader.numberOfChannels+1);
@@ -313,7 +314,7 @@ void CqDeepTexOutputFile::FillEmptyData(std::vector< std::vector<float> >& toDat
 	}
 }
 
-bool CqDeepTexOutputFile::IsFullTile(const boost::shared_ptr<SqDeepDataTile> tile, const int tileID) const
+bool CqDeepTexOutputFile::isFullTile(const boost::shared_ptr<SqDeepDataTile> tile, const int tileID) const
 {
 	// A tile is known to be full if all of its sub-tile regions have function lengths for all of their pixels.
 	// Another way of saying this: the tile is full if and only if there are a total of tileWidth*tileHeight function lengths, or in the case os padded tiles,
@@ -365,7 +366,7 @@ bool CqDeepTexOutputFile::IsFullTile(const boost::shared_ptr<SqDeepDataTile> til
 	return false;
 }
 
-bool CqDeepTexOutputFile::IsNeglectableTile(const boost::shared_ptr<SqDeepDataTile> tile) const
+bool CqDeepTexOutputFile::isNeglectableTile(const boost::shared_ptr<SqDeepDataTile> tile) const
 {
 	// If all function lengths in the tile have length 1, then the tile is empty, and we do not write it to disk, but instead signify an empty tile by writing a file offset
 	// of 0 in the tile table.
@@ -396,17 +397,17 @@ bool CqDeepTexOutputFile::IsNeglectableTile(const boost::shared_ptr<SqDeepDataTi
 	return true;
 }
 
-void CqDeepTexOutputFile::UpdateTileTable(const boost::shared_ptr<SqDeepDataTile> tile)
+void CqDeepTexOutputFile::updateTileTable(const boost::shared_ptr<SqDeepDataTile> tile)
 {
 	// Set the file offset to the current write-file position (given by tellp()).
 	SqTileTableEntry entry(tile->tileCol, tile->tileRow, m_dtexFile.tellp());
 	m_tileTable.push_back(entry);
 }
 
-void CqDeepTexOutputFile::WriteTileTable()
+void CqDeepTexOutputFile::writeTileTable()
 {
 	// Seek to the correct byte position in the file, immediately following the file header, and write the tile table
-	m_dtexFile.seekp(8+sizeof(SqDtexFileHeader), std::ios::beg);
+	m_dtexFile.seekp(m_tileTablePositon, std::ios::beg);
 
 	// I assume that the member data in a C struct is gauranteed to be contiguous and ordered in memory to reflect the order of declaration.
 	// This is very likely an incorrect assumption, but it might be true in the case of SqTileTableEntry, since it has simply 3 floats.
@@ -414,7 +415,7 @@ void CqDeepTexOutputFile::WriteTileTable()
 	m_dtexFile.write(reinterpret_cast<const char*>(&(m_tileTable.front())), m_tileTable.size()*sizeof(SqTileTableEntry));
 }
 
-void CqDeepTexOutputFile::WriteTile(const boost::shared_ptr<SqDeepDataTile> tile)
+void CqDeepTexOutputFile::writeTile(const boost::shared_ptr<SqDeepDataTile> tile)
 {
 	/// \todo Currently I write to file one sub-region row at a time, which results in many calls to write(), and hence many disk acesses,
 	/// which are slow. I should instead rebuild the tile in a contiguous region in memory, then write it to disk all at once. 

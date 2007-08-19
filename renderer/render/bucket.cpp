@@ -1100,7 +1100,8 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 						if ( pie2->OpaqueValues( sampleIndex ).m_flags & SqImageSample::Flag_Valid )
 						{
 							if ( !currentSampleData.m_Data.empty() )
-							{ // This subpixel covers multiple samples, and the frontmost sample is not opaque
+							{ 
+								// This subpixel covers multiple samples, and the frontmost sample is not opaque
 								SqHitHeapNode hitNode(&currentSampleData, 0, gColWhite, filterValue);
 								nextHitHeap.push(hitNode);
 							}

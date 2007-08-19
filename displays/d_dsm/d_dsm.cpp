@@ -503,8 +503,8 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	DspyFindMatrixInParamList( "Nl", reinterpret_cast<float*>(matWorldToCamera), paramCount, parameters );
 
 	// Note: flags can also be binary ANDed with PkDspyFlagsWantsEmptyBuckets and PkDspyFlagsWantsNullEmptyBuckets
-	flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
-	pData->flags = PkDspyFlagsWantsScanLineOrder;
+	//flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
+	//pData->flags = PkDspyFlagsWantsScanLineOrder;
 
 	pData->Channels = formatCount; // From this field, the display knows how many floats per visibility node to expect from DspyImageDeepData
 	pData->iWidth = width;
@@ -591,7 +591,7 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	}
 	else
 	{
-		pData->DtexFile->SetTileData(xmin, ymin, xmax_plusone, ymax_plusone, data, functionLengths);
+		pData->DtexFile->setTileData(xmin, ymin, xmax_plusone, ymax_plusone, data, functionLengths);
 	}
 	
 	// Everything below is for testing and debugging

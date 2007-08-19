@@ -95,7 +95,7 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::LoadTileForPixel( const
 void CqDeepTexInputFile::LoadTileTable()
 {
 	// Assuming the file get pointer is currently at the beginning of the tile table:
-	assert(m_dtexFile.tellg() == 8+sizeof(SqDtexFileHeader));
+	assert((TqUlong)m_dtexFile.tellg() == (TqUlong)(8+sizeof(SqDtexFileHeader)));
 	
 	TqUint tcol;
 	TqUint trow;
