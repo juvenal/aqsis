@@ -67,14 +67,15 @@ class CqDeepTextureTile
 		CqDeepTextureTile(boost::shared_array<TqFloat> data, boost::shared_array<TqUint> metaData,
 				const TqUint width, const TqUint height,
 				const TqUint topLeftX, const TqUint topLeftY,
-				const TqUint colorChannels) :
+				const TqUint colorChannels, const TqUint bytesPerChannel) :
 					m_data(data),
 					m_metaData(metaData),
 					m_width(width),
 					m_height(height),
 					m_topLeftX(topLeftX),
 					m_topLeftY(topLeftY),
-					m_colorChannels(colorChannels)
+					m_colorChannels(colorChannels),
+					m_bytesPerChannel(bytesPerChannel)
 		{}
 
 		/** \brief Destructor
@@ -92,6 +93,24 @@ class CqDeepTextureTile
 		 * \param data - A pointer to meta data which has already been allocated and initialized.
 		 */
 		inline void setMetaData(boost::shared_array<TqUint> metaData);		
+		
+		/** \brief Get a const pointer to the visibility function at the requested pixel in the tile. 
+		 *
+		 * Positions are in tile coordinates, not image coordinates, counting
+		 * from zero in the top-left.
+		 * 
+		 * \return a const pointer to the beginning of the visibility function.
+		 */
+		inline const TqFloat* visibilityFunctionAtPixel( const TqUint tileSpaceX, const TqUint tileSpaceY ) const;
+		
+		/** \brief Get the length of the visibility function at the requested pixel in the tile
+		 * 
+		 * Positions are in tile coordinates, not image coordinates, counting
+		 * from zero in the top-left.
+		 *
+		 * \return the length of the requested visibility function, measured in number of nodes.
+		 */
+		inline TqUint functionLengthOfPixel( const TqUint tileSpaceX, const TqUint tileSpaceY ) const;
 		
 		/** \brief Get tile width
 		 *
@@ -147,6 +166,7 @@ class CqDeepTextureTile
 		TqUint m_topLeftX;			///< Column index of the top left of the tile in the full array
 		TqUint m_topLeftY;			///< Row index of the top left of the tile in the full array
 		TqUint m_colorChannels;		///< Number of color channels per deep data node.
+		TqUint m_bytesPerChannel;	///< Number of bytes used in each color channel
 };
 
 //------------------------------------------------------------------------------
@@ -239,7 +259,48 @@ class CqDeepTexInputFile
 		 */
 		boost::shared_ptr<CqDeepTextureTile> LoadTileForPixel( const TqUint x, const TqUint y );
 		
-		inline void transformationMatrices( TqFloat matWorldToScreen[4][4], TqFloat matWorldToCamera[4][4] ); 
+		/** \brief Get the transformation matrices freom the deep shadow map
+		 *
+		 * \param matWorldToScreen - A preallocated 2-D array to hold the transformation matrix by the same name from the dsm.
+		 * \paran matWorldToCamera - A preallocated 2-D array to hold the transformation matrix by the same name from the dsm.
+		 */
+		inline void transformationMatrices( TqFloat matWorldToScreen[4][4], TqFloat matWorldToCamera[4][4] ) const;
+		
+		/** \brief Get the width of the deep texture map
+		 *
+		 * \return the width in pixels
+		 */
+		inline TqUint imageWidth() const;
+
+		/** \brief Get the height of the deep texture map
+		 *
+		 * \return the height in pixels
+		 */
+		inline TqUint imageHeight() const;
+		
+		/** \brief Get the width of a standard (unpadded) tile in the deep texture map
+		 *
+		 * \return the width in pixels
+		 */
+		inline TqUint standardTileWidth() const;
+		
+		/** \brief Get the height of a standard (unpadded) tile in the deep texture map
+		 *
+		 * \return the width in pixels
+		 */
+		inline TqUint standardTileHeight() const;
+		
+		/** \brief Get the number of color channels in a deep data node in the deep texture map.
+		 *
+		 * \return the number of color channels.
+		 */
+		inline TqUint numberOfColorChannels() const;
+	
+		/** \brief Get the number of bytes used in each color channel representation. For example, if the color channels are represented as floats, this number if 4.
+		 *
+		 * \return the number of bytes
+		 */
+		inline TqUint bytesPerColorChannel() const;
 		
 	private:
 		
@@ -262,14 +323,6 @@ class CqDeepTexInputFile
 //------------------------------------------------------------------------------
 // Implementation of inline functions for CqDeepTextureTile
 //------------------------------------------------------------------------------
-/*
-template<typename T>
-inline CqSampleVector<T> CqTextureTile<T>::value(const TqUint x, const TqUint y) const
-{
-	return CqSampleVector<T>(samplePtr(x,y),
-			boost::intrusive_ptr<const CqIntrusivePtrCounted>(this));
-}
-*/
 
 inline void CqDeepTextureTile::setData(boost::shared_array<TqFloat> data)
 {
@@ -306,22 +359,10 @@ inline TqUint CqDeepTextureTile::colorChannels() const
 	return m_colorChannels;
 }
 
-/*
-template<typename T>
-inline T* CqDeepTextureTile::samplePtr(TqUint x, TqUint y) const
-{
-	assert(x >= m_topLeftX);
-	assert(x < m_topLeftX+m_width);
-	assert(y >= m_topLeftY);
-	assert(y < m_topLeftY+m_height);
-	return m_data.get() + ((y-m_topLeftY)*m_width + (x-m_topLeftX))*m_samplesPerPixel;
-}
-*/
-
 //------------------------------------------------------------------------------
 // Implementation of inline functions for CqDeepTextureTile
 //------------------------------------------------------------------------------
-inline void CqDeepTexInputFile::transformationMatrices( TqFloat matWorldToScreen[4][4], TqFloat matWorldToCamera[4][4] )
+inline void CqDeepTexInputFile::transformationMatrices( TqFloat matWorldToScreen[4][4], TqFloat matWorldToCamera[4][4] ) const
 {
 	assert(matWorldToScreen != NULL);
 	assert(matWorldToCamera != NULL);
@@ -336,6 +377,48 @@ inline void CqDeepTexInputFile::transformationMatrices( TqFloat matWorldToScreen
 			matWorldToCamera[x][y] = m_fileHeader.matWorldToCamera[x][y];
 		}
 	}
+}
+
+inline const TqFloat* CqDeepTextureTile::visibilityFunctionAtPixel( const TqUint tileSpaceX, const TqUint tileSpaceY ) const
+{
+	const TqUint nodeSize = 1+m_colorChannels;
+	
+	return (m_data.get()+(tileSpaceX*tileSpaceY*nodeSize));
+}
+
+inline TqUint CqDeepTextureTile::functionLengthOfPixel( const TqUint tileSpaceX, const TqUint tileSpaceY ) const
+{
+	return m_metaData[tileSpaceX*tileSpaceY];
+}
+
+inline TqUint CqDeepTexInputFile::imageWidth() const
+{
+	return m_fileHeader.imageWidth;
+}
+
+inline TqUint CqDeepTexInputFile::imageHeight() const
+{
+	return m_fileHeader.imageHeight;
+}
+
+inline TqUint CqDeepTexInputFile::standardTileWidth() const
+{
+	return m_fileHeader.tileWidth;
+}
+
+inline TqUint CqDeepTexInputFile::standardTileHeight() const
+{
+	return m_fileHeader.tileHeight;	
+}
+
+inline TqUint CqDeepTexInputFile::numberOfColorChannels() const
+{
+	return m_fileHeader.numberOfChannels;
+}
+
+inline TqUint CqDeepTexInputFile::bytesPerColorChannel() const
+{
+	return m_fileHeader.bytesPerChannel;	
 }
 
 //------------------------------------------------------------------------------

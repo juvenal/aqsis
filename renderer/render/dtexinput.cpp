@@ -95,7 +95,7 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::LoadTileForPixel( const
 void CqDeepTexInputFile::LoadTileTable()
 {
 	// Assuming the file get pointer is currently at the beginning of the tile table:
-	assert(m_dtexFile.tellg() == 8+sizeOf(SqDtexFileHeader));
+	assert(m_dtexFile.tellg() == 8+sizeof(SqDtexFileHeader));
 	
 	TqUint tcol;
 	TqUint trow;
@@ -152,7 +152,7 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::LoadTileAtOffset(const 
 	//data.resize(numberOfNodes*nodeSize);
 	m_dtexFile.read((char*)(data.get()), (numberOfNodes*nodeSize*sizeof(TqFloat)));
 	boost::shared_ptr<CqDeepTextureTile> tile(new CqDeepTextureTile(data, functionLengths, tileWidth, tileHeight,
-												tileCol*m_fileHeader.tileWidth, tileRow*m_fileHeader.tileHeight, m_fileHeader.numberOfChannels));
+												tileCol*m_fileHeader.tileWidth, tileRow*m_fileHeader.tileHeight, m_fileHeader.numberOfChannels, m_fileHeader.bytesPerChannel));
 	
 	return tile;
 }
