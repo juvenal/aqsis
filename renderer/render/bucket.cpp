@@ -1004,7 +1004,7 @@ void CqBucket::ShutdownBucket()
  */
 void CqBucket::FilterTransmittance(bool empty)
 {
-	CqImagePixel* pie;
+	CqImagePixel* pixel;
 	TqInt xmax = m_DiscreteShiftX;
 	TqInt ymax = m_DiscreteShiftY;
 	TqInt x, y;
@@ -1028,8 +1028,8 @@ void CqBucket::FilterTransmittance(bool empty)
 			{	
 				TqFloat xcent = x + 0.5f;
 				// Get the pixel at the top left of the filter area
-				ImageElement( x-xmax, y-ymax, pie );
-				CalculateVisibility(xcent, ycent, pie);
+				ImageElement( x-xmax, y-ymax, pixel );
+				CalculateVisibility(xcent, ycent, pixel);
 			}
 		}
 		//CheckVisibilityFunction(1); // This checks the visibility function of the first pixel in this bucket
@@ -1042,12 +1042,12 @@ void CqBucket::FilterTransmittance(bool empty)
  * pixel (for rendering Deep Shadow maps).
  * \param xcent the x-coordinate of the current pixel's center, in raster space
  * \param ycent the y-coordinate of the current pixel's center, in raster space
- * \param pie a pointer to the current pixel
+ * \param pixel a pointer to the current pixel
  */
-void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* pie )
+void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* pixel )
 {
 	/// \todo Break up the code in this function into a few smaller functions
-	CqImagePixel* pie2;
+	CqImagePixel* pixel2;
 	TqInt fx, fy;
 	TqInt SampleCount = 0;
 	const TqFloat xfwo2 = lceil(FilterXWidth()) * 0.5f;
@@ -1079,7 +1079,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 	// Filter using a non-separable filter which is good, and fast, for filter widths smaller than or equal to 16
 	for ( fy = -ymax; fy <= ymax; ++fy )
 	{	
-		pie2 = pie;
+		pixel2 = pixel;
 		for ( fx = -xmax; fx <= xmax; ++fx )
 		{
 			TqInt index = ( ( ( fy + ymax ) * lceil(FilterXWidth()) ) + ( fx + xmax ) ) * numperpixel;
@@ -1091,13 +1091,13 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 				for ( sx = 0; sx < PixelXSamples(); ++sx )
 				{
 					TqInt sindex = index + ( ( ( sy * PixelXSamples() ) + sx ) * numsubpixels );
-					const SqSampleData& currentSampleData = pie2->SampleData(sampleIndex);
+					const SqSampleData& currentSampleData = pixel2->SampleData(sampleIndex);
 					const CqVector2D vecS = currentSampleData.m_Position - CqVector2D( xcent, ycent );
 					if ( (vecS.x() >= -xfwo2) && (vecS.y() >= -yfwo2) && (vecS.x() <= xfwo2) && (vecS.y() <= yfwo2) )
 					{
 						const TqFloat filterValue = m_aFilterValues[ sindex + currentSampleData.m_SubCellIndex ];
 						sumFilterValues += filterValue;
-						if ( pie2->OpaqueValues( sampleIndex ).m_flags & SqImageSample::Flag_Valid )
+						if ( pixel2->OpaqueValues( sampleIndex ).m_flags & SqImageSample::Flag_Valid )
 						{
 							if ( !currentSampleData.m_Data.empty() )
 							{ 
@@ -1117,9 +1117,9 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 					sampleIndex++;
 				}
 			}
-			pie2++;
+			pixel2++;
 		}
-		pie += xlen; // This is for filter widths larger than a single pixel
+		pixel += xlen; // This is for filter widths larger than a single pixel
 	}
 	inverseSumFilterValues = 1.0/sumFilterValues;
 	
@@ -1193,7 +1193,8 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 					if (shColor == gColWhite)
 					{
 						nextHitHeap.pop();
-						shColor *= (-1)*secondaryHit.weight*inverseSumFilterValues;
+						//shColor *= (-1)*secondaryHit.weight*inverseSumFilterValues;
+						//shColor *= (-1); //*inverseSumFilterValues;
 						deltaNode.deltaTransmittance += shColor;
 					}
 					else
@@ -1230,6 +1231,14 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 		if (deltaNode.zdepth != currentVisFunc->back()->zdepth)
 		{
 			ReconstructVisibilityNode( deltaNode, slopeAtJ, currentVisFunc );
+		}
+	}
+	if ( (int)xcent == 158 && (int)ycent == 210)
+	{
+		printf("Suspect pixel at (158,210) has nodes: \n");
+		for (int i = 0; i < currentVisFunc->size(); ++i)
+		{
+			printf("(%f, %f)\n", (*currentVisFunc)[i]->zdepth, (*currentVisFunc)[i]->visibility.fRed() );
 		}
 	}
 }

@@ -503,8 +503,8 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	DspyFindMatrixInParamList( "Nl", reinterpret_cast<float*>(matWorldToCamera), paramCount, parameters );
 
 	// Note: flags can also be binary ANDed with PkDspyFlagsWantsEmptyBuckets and PkDspyFlagsWantsNullEmptyBuckets
-	//flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
-	//pData->flags = PkDspyFlagsWantsScanLineOrder;
+	flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
+	pData->flags = PkDspyFlagsWantsScanLineOrder;
 
 	pData->Channels = formatCount; // From this field, the display knows how many floats per visibility node to expect from DspyImageDeepData
 	pData->iWidth = width;
@@ -575,12 +575,13 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 		fprintf(stderr, "DspyImageDeepData: Bad number of color channels in deep data. Expected %d channels, got %d\n", pData->Channels, entrysize);
 		return PkDspyErrorBadParams;		
 	}
-
+	printf("Hello 0\n");
 	const float* visData = reinterpret_cast<const float*>(data);
 	const int* funLengths = reinterpret_cast<const int*>(functionLengths);
 
 	if ( pData->flags == PkDspyFlagsWantsScanLineOrder )
 	{
+		printf("Hello 1\n");
 		const int nodeSize = pData->Channels+1;
 		const int functionCount = CountFunctions(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< # of visibility functions in the data
 		const int nodeCount = CountNodes(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< Total # of visbility nodes in data
@@ -591,6 +592,7 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	}
 	else
 	{
+		printf("Hello 2\n");
 		pData->DtexFile->setTileData(xmin, ymin, xmax_plusone, ymax_plusone, data, functionLengths);
 	}
 	

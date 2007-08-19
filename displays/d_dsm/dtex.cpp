@@ -73,7 +73,7 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 	
 	// Seek forward in file to reserve space for writing the tile table later.
 	// Seek from the current positon. Alternatively, you could seek from the file's beginning with std::ios::beg
-	m_tileTablePositon = m_dtexFile.tellp();
+	m_tileTablePositon = m_dtexFile.tellp(); //< Save the file position so that me may return to this spot later, to write the tile table.
 	m_dtexFile.seekp(numberOfTiles*sizeof(SqTileTableEntry), std::ios::cur);
 }
 
