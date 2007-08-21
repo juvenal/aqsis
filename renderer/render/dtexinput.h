@@ -80,7 +80,7 @@ class CqDeepTextureTile
 
 		/** \brief Destructor
 		 */
-		virtual ~CqDeepTextureTile(){};
+		virtual ~CqDeepTextureTile();
 
 		/** \brief Set the class data to the given data pointer
 		 *
@@ -143,21 +143,14 @@ class CqDeepTextureTile
 		inline TqUint colorChannels() const;
 		
 	private:
-		/** \brief Get a pointer to the sample at the given coordinates.
-		 *
-		 * Positions are in image coordinates, not tile coordinates, counting
-		 * from zero in the top-left
-		 *
-		 * \param x - pixel index in width direction (column index)
-		 * \param y - pixel index in height direction (row index)
-		 */
-		//inline T* samplePtr(TqUint x, TqUint y) const;
 
+		// Data members
 		boost::shared_array<TqFloat> m_data;	///< Pointer to the underlying data.
-		/// A standard use of meta data is to represent the length (in units of number of nodes)
-		/// of each visibility function in the tile. A particle function N may be indexed at position (sum of function lengths up to, but excluding N).
-		/// The sum of all elements can be used to determine the size in bytes of the tile data as follows: 
-		/// std::accumulate(m_metaData.get(), m_metaData.get()+m_width*m_height, 0).
+		/// A standard use of meta data is to represent the offset (in units of number of nodes)
+		/// of each visibility function from the start of the data block. A particle function N may be 
+		/// indexed at position metaData[N], and its length is metaData[N+1]-metaData[N].
+		/// The last element in metaData should therefor be the position of the end of the data, which
+		/// also represents the size, or number of nodes in the data.
 		/// The number of elements in this array must be equal to (tileWidth*tileHeight),
 		/// so there is a length field for every pixel, empty or not.
 		boost::shared_array<TqUint> m_metaData; ///< Pointer to the meta data, which describes the data.

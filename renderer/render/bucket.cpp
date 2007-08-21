@@ -1076,7 +1076,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 	
 	// Place the first hit (if there is one) from each sub-sample into the heap.
 	/// \todo Support other filtering algorithms, for example, separable filtering algorithms.
-	// Filter using a non-separable filter which is good, and fast, for filter widths smaller than or equal to 16
+	// Filter using a non-separable filter is good, and fast, for filter widths smaller than or equal to 16 pixels
 	for ( fy = -ymax; fy <= ymax; ++fy )
 	{	
 		pixel2 = pixel;
@@ -1231,14 +1231,6 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 		if (deltaNode.zdepth != currentVisFunc->back()->zdepth)
 		{
 			ReconstructVisibilityNode( deltaNode, slopeAtJ, currentVisFunc );
-		}
-	}
-	if ( (int)xcent == 158 && (int)ycent == 210)
-	{
-		printf("Suspect pixel at (158,210) has nodes: \n");
-		for (int i = 0; i < currentVisFunc->size(); ++i)
-		{
-			printf("(%f, %f)\n", (*currentVisFunc)[i]->zdepth, (*currentVisFunc)[i]->visibility.fRed() );
 		}
 	}
 }

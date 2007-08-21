@@ -35,6 +35,9 @@ namespace Aqsis
 // Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
 static const char magicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
 
+CqDeepTextureTile::~CqDeepTextureTile()
+{}
+
 CqDeepTexInputFile::CqDeepTexInputFile(std::string filename)
 	: m_dtexFile( filename.c_str(), std::ios::in | std::ios::binary ),
 	m_fileHeader(),

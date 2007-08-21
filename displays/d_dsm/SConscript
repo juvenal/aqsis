@@ -5,12 +5,14 @@ d_dsmenv.AppendUnique(CPPDEFINES=['d_dsm_EXPORTS'])
 
 d_dsm_sources = Split("""
 	d_dsm.cpp
-	dtex.cpp
+	dtexoutput.cpp
+	deeptileadaptor.cpp
 	displayhelpers.c""")
 
 d_dsm_headers =  Split("""
 	d_dsm.h
-	dtex.h""")
+	dtexoutput.h
+	deeptileadaptor.h""")
 
 
 d_dsmenv.AppendUnique(LIBS = ['aqsistypes', '$tiff_lib'])
