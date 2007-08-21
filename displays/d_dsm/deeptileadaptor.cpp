@@ -29,19 +29,21 @@
 #include "deeptilecache.h"
 #include "exception.h"
 
-CqDeepTileAdaptor::CqDeepTileAdaptor( TqUint32 imageWidth, TqUint32 imageHeight, TqUint32 tileWidth, TqUint32 tileHeight, 
-			TqUint32 bucketWidth, TqUint32 bucketHeight, TqUint32 numberOfChannels) :
-				m_imageWidth(imageWidth),
-				m_imageHeight(imageHeight),
-				m_tileWidth(tileWidth),
-				m_tileHeight(tileHeight),
-				m_bucketWidth(bucketWidth),
-				m_bucketHeight(bucketHeight),
-				m_tilesPerImageRow(Aqsis::lceil(imageWidth/tileWidth)),
-				m_tilesPerImageCol(Aqsis::lceil(imageHeight/tileHeight)),
-				m_bucketsPerTileRow(tileWidth/bucketWidth),
-				m_bucketsPerTileCol(tileHeight/bucketHeight),
-				m_numberOfChannels(numberOfChannels)		
+CqDeepTileAdaptor::CqDeepTileAdaptor( boost::shared_ptr<IqDeepTextrueOutput> outputObject, 
+		TqUint32 imageWidth, TqUint32 imageHeight, TqUint32 tileWidth, TqUint32 tileHeight, 
+		TqUint32 bucketWidth, TqUint32 bucketHeight, TqUint32 numberOfChannels) :
+			m_deepTexOutput( outputObject ),
+			m_imageWidth( imageWidth ),
+			m_imageHeight( imageHeight ),
+			m_tileWidth( tileWidth ),
+			m_tileHeight( tileHeight ),
+			m_bucketWidth( bucketWidth ),
+			m_bucketHeight( bucketHeight ),
+			m_tilesPerImageRow( Aqsis::lceil(imageWidth/tileWidth) ),
+			m_tilesPerImageCol (Aqsis::lceil(imageHeight/tileHeight) ),
+			m_bucketsPerTileRow( tileWidth/bucketWidth ),
+			m_bucketsPerTileCol( tileHeight/bucketHeight ),
+			m_numberOfChannels( numberOfChannels )		
 {}
 
 // Note: Metadata is whatever extra data the display device wants to store in the dtex file,

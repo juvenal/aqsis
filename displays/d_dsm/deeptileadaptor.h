@@ -45,7 +45,8 @@
 class CqDeepTileAdaptor
 {
 	public:
-		CqDeepTileAdaptor( TqUint32 imageWidth, TqUint32 imageHeight, TqUint32 tileWidth, TqUint32 tileHeight, 
+		CqDeepTileAdaptor( boost::shared_ptr<IqDeepTextrueOutput> outputObject, 
+				TqUint32 imageWidth, TqUint32 imageHeight, TqUint32 tileWidth, TqUint32 tileHeight, 
 				TqUint32 bucketWidth, TqUint32 bucketHeight, TqUint32 numberOfChannels);
 		virtual ~CqDeepTileAdaptor();
 		
@@ -60,11 +61,14 @@ class CqDeepTileAdaptor
 		virtual void setData( const int xmin, const int ymin, const int xmax, const int ymax, 
 				const unsigned char *data, const unsigned char* metadata );
 		
-		/** \brief 
+		virtual void addTile(boost::shared_ptr<CqDeepTextureTile> newTilePtr);
+		
+		/** \brief connect this tile adaptor to an output object to which we send tiles
+		 * once they are full.
 		 *
 		 * \param outputObject - The object that can accept full deep tiles for output via an outputTile() function.
 		 */
-		virtual void connectOutput( IqDeepTextureOutput& outputObject );
+		virtual void connectOutput( boost::shared_ptr<IqDeepTextureOutput> outputObject );
 		
 	private:
 		// Functions
@@ -162,7 +166,7 @@ class CqDeepTileAdaptor
 		// that can identify the region of the larger picture covered by a particular tile.
 		std::map<TqMapKey, boost::shared_ptr<SqDeepDataTile> > m_deepDataTileMap;
 		
-		IqDeepTextureOutput& m_deepTexOutput;
+		boost::shared_ptr<IqDeepTextureOutput> m_deepTexOutput;
 		
 		TqUint32 m_imageWidth;
 		TqUint32 m_imageHeight;

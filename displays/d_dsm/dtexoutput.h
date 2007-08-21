@@ -156,9 +156,10 @@ struct SqDtexFileHeader
 	* \param hs - header size; the size in bytes of SqDtexFileHeader. We can probably get rid of this field.
 	* \param ds - data size; the size of only the data part of the dtex file
 	 */ 
-	SqDtexFileHeader( const char* magicNumber, const uint32 fileSize = 0, const uint32 imageWidth = 0, 
+	SqDtexFileHeader( const char* magicNumber = NULL, const uint32 fileSize = 0, const uint32 imageWidth = 0, 
 			const uint32 imageHeight = 0, const uint32 numberOfChannels = 0, const uint32 dataSize = 0, 
-			const uint32 tileWidth = 0, const uint32 tileHeight = 0, const uint32 numberOfTiles = 0) :
+			const uint32 tileWidth = 0, const uint32 tileHeight = 0, const uint32 numberOfTiles = 0
+			const float matWorldToScreen[4][4] = NULL, const float matWorldToCamera[4][4] = NULL) :
 		magicNumber( magicNumber ),
 		fileSize( fileSize ),
 		imageWidth( imageWidth ),
@@ -200,7 +201,7 @@ struct SqDtexFileHeader
 	// This sequence ensures that if the file is "typed" on a DOS shell or Windows command shell, the user will see "AqD" 
 	// on a single line, preceded by a strange character.
 	// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
-	static const char* magicNumber; // = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
+	static char* magicNumber;
 	/// Size of this file in bytes
 	uint32 fileSize;
 	// Number of horizontal pixels in the image
@@ -243,9 +244,10 @@ class CqDeepTexOutputFile : public IqDeepTextureOutput
 	public:
 		/** \brief Construct an instance of CqDeepTexOutputFile
 		 *
+		 * \param filename - The full path and file name of the dtex file to create/open and write to.
 		 */
 		CqDeepTexOutputFile(std::string filename, uint32 imageWidth, uint32 imageHeight, uint32 tileWidth, uint32 tileHeight, 
-				uint32 bucketWidth, uint32 bucketHeight, uint32 numberOfChannels, uint32 bytesPerChannel,
+				uint32 bucketWidth, uint32 bucketHeight, uint32 numberOfChannels,
 				const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]);
 		virtual ~CqDeepTexOutputFile();
 		

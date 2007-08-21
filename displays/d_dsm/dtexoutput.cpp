@@ -32,10 +32,10 @@
 // Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
 static const char magicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
 
-SqDtexFileHeader( const char* magicNumber, const uint32 fileSize = 0, const uint32 imageWidth = 0, 
+SqDtexFileHeader( const char* magicNumber = NULL, const uint32 fileSize = 0, const uint32 imageWidth = 0, 
 		const uint32 imageHeight = 0, const uint32 numberOfChannels = 0, const uint32 dataSize = 0, 
 		const uint32 tileWidth = 0, const uint32 tileHeight = 0, const uint32 numberOfTiles = 0,
-		const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]) :
+		const float matWorldToScreen[4][4] = NULL, const float matWorldToCamera[4][4] = NULL) :
 	magicNumber( magicNumber ),
 	fileSize( fileSize ),
 	imageWidth( imageWidth ),
@@ -59,7 +59,6 @@ void SqDtexFileHeader::writeToFile( std::ofstream& file ) const
 	file.write((const char*)(&imageWidth), sizeof(uint32));
 	file.write((const char*)(&imageHeight), sizeof(uint32));
 	file.write((const char*)(&numberOfChannels), sizeof(uint32));
-	file.write((const char*)(&bytesPerChannel), sizeof(uint32));
 	file.write((const char*)(&dataSize), sizeof(uint32));
 	file.write((const char*)(&tileWidth), sizeof(uint32));
 	file.write((const char*)(&tileHeight), sizeof(uint32));
@@ -75,7 +74,6 @@ void SqDtexFileHeader::readFromFile( std::ifstream& file )
 	file.read((const char*)(&imageWidth), sizeof(uint32));
 	file.read((const char*)(&imageHeight), sizeof(uint32));
 	file.read((const char*)(&numberOfChannels), sizeof(uint32));
-	file.read((const char*)(&bytesPerChannel), sizeof(uint32));
 	file.read((const char*)(&dataSize), sizeof(uint32));
 	file.read((const char*)(&tileWidth), sizeof(uint32));
 	file.read((const char*)(&tileHeight), sizeof(uint32));
@@ -100,7 +98,7 @@ void SqDtexFileHeader::setTransformationMatrices(const float matWorldToScreen[4]
 
 CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth, uint32 imageHeight,
 		uint32 tileWidth, uint32 tileHeight, uint32 bucketWidth, uint32 bucketHeight, uint32 numberOfChannels,
-		uint32 bytesPerChannel, const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]) :
+		const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]) :
 			m_dtexFile( filename.c_str(), std::ios::out | std::ios::binary ),
 			m_fileHeader( magicNumber, (uint32)0, (uint32)imageWidth, (uint32)imageHeight, 
 						(uint32)numberOfChannels, (uint32)0, (uint32)tileWidth, (uint32)tileHeight, 
@@ -119,7 +117,8 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 	const int tilesY = imageHeight/tileHeight;
 	const int numberOfTiles = tilesX*tilesY; 
 
-	// If file open failed, throw an exception
+	// If file open failed, throw an exception. This happens for example, if the file already existed, or the destination directory 
+	// did not have write permission.
 	if (!m_dtexFile.is_open())
 	{
 		throw Aqsis::XqInternal(std::string("Failed to open file \"") + filename + std::string( "\""), __FILE__, __LINE__);

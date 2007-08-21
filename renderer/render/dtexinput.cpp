@@ -33,10 +33,71 @@ namespace Aqsis
 {
 
 // Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
-static const char magicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
+static const char correctMagicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
 
-CqDeepTextureTile::~CqDeepTextureTile()
-{}
+SqDtexFileHeader( const char* magicNumber = NULL, const uint32 fileSize = 0, const uint32 imageWidth = 0, 
+		const uint32 imageHeight = 0, const uint32 numberOfChannels = 0, const uint32 dataSize = 0, 
+		const uint32 tileWidth = 0, const uint32 tileHeight = 0, const uint32 numberOfTiles = 0,
+		const float matWorldToScreen[4][4] = NULL, const float matWorldToCamera[4][4] = NULL) :
+	magicNumber( magicNumber ),
+	fileSize( fileSize ),
+	imageWidth( imageWidth ),
+	imageHeight( imageHeight ),
+	numberOfChannels( numberOfChannels ),
+	dataSize( dataSize ),
+	tileWidth( tileWidth ),
+	tileHeight( tileHeight ),
+	numberOfTiles( numberOfTiles ),
+	matWorldToScreen(),
+	matWorldToCamera()
+{
+	setTransformationMatrices( matWorldToScreen, matWorldToCamera );
+}
+
+void SqDtexFileHeader::writeToFile( std::ofstream& file ) const
+{
+	// Write the magic number
+	file.write(magicNumber, 8);
+	file.write((const char*)(&fileSize), sizeof(uint32));
+	file.write((const char*)(&imageWidth), sizeof(uint32));
+	file.write((const char*)(&imageHeight), sizeof(uint32));
+	file.write((const char*)(&numberOfChannels), sizeof(uint32));
+	file.write((const char*)(&dataSize), sizeof(uint32));
+	file.write((const char*)(&tileWidth), sizeof(uint32));
+	file.write((const char*)(&tileHeight), sizeof(uint32));
+	file.write((const char*)(&numberOfChannels), sizeof(uint32));
+	file.write((const char*)(&matWorldToScreen), 16*sizeof(float));
+	file.write((const char*)(&matWorldToCamera), 16*sizeof(float));
+}
+
+void SqDtexFileHeader::readFromFile( std::ifstream& file )
+{
+	file.read(magicNumber, 8);
+	file.read((const char*)(&fileSize), sizeof(uint32));
+	file.read((const char*)(&imageWidth), sizeof(uint32));
+	file.read((const char*)(&imageHeight), sizeof(uint32));
+	file.read((const char*)(&numberOfChannels), sizeof(uint32));
+	file.read((const char*)(&dataSize), sizeof(uint32));
+	file.read((const char*)(&tileWidth), sizeof(uint32));
+	file.read((const char*)(&tileHeight), sizeof(uint32));
+	file.read((const char*)(&numberOfChannels), sizeof(uint32));
+	file.read((const char*)(&matWorldToScreen), 16*sizeof(float));
+	file.read((const char*)(&matWorldToCamera), 16*sizeof(float));	
+}
+
+void SqDtexFileHeader::setTransformationMatrices(const float matWorldToScreen[4][4], 
+												const float matWorldToCamera[4][4])
+{
+	int x, y;
+	for (x = 0; x < 4; ++x)
+	{
+		for (y = 0; y < 4; ++y)
+		{
+			m_fileHeader.matWorldToScreen[x][y] = matWorldToScreen[x][y];
+			m_fileHeader.matWorldToCamera[x][y] = matWorldToCamera[x][y];
+		}
+	}
+}
 
 CqDeepTexInputFile::CqDeepTexInputFile(std::string filename)
 	: m_dtexFile( filename.c_str(), std::ios::in | std::ios::binary ),
@@ -45,17 +106,21 @@ CqDeepTexInputFile::CqDeepTexInputFile(std::string filename)
 	m_tilesPerRow(0),
 	m_tilesPerCol(0)
 {
-	// Verify that the magic number is valid
-	std::string correctMN = magicNumber;
-	char buffer[8];
-	m_dtexFile.read(buffer, 8);
-	std::string fileMN = buffer;
-	if ( fileMN != correctMN )
+	// If file open failed, throw an exception.
+	if (!m_dtexFile.is_open())
 	{
-		throw XqInternal(std::string("Magic number for DTEX file: ") + filename + std::string(" is not valid."), __FILE__, __LINE__);
+		throw Aqsis::XqInternal(std::string("Failed to open file \"") + filename + std::string( "\""), __FILE__, __LINE__);
 	}
 	// Load the file header into memory
-	m_dtexFile.read((char*)(&m_fileHeader), sizeof(SqDtexFileHeader));
+	m_fileHeader.readFromFile(m_dtexFile);
+	// Verify that the magic number is valid
+	std::string correctMN = correctMagicNumber;
+	std::string testMN = m_fileHeader.magicNumber;
+	if ( testtMN != correctMN )
+	{
+		throw XqInternal(std::string("Magic number for DTEX file: ") + filename 
+				+ std::string(" is not valid."), __FILE__, __LINE__);
+	}
 	// Calculate some other variables
 	m_tilesPerRow = m_fileHeader.imageWidth/m_fileHeader.tileWidth;
 	m_tilesPerCol = m_fileHeader.imageHeight/m_fileHeader.tileHeight;
@@ -63,12 +128,7 @@ CqDeepTexInputFile::CqDeepTexInputFile(std::string filename)
 	LoadTileTable();
 }
 
-CqDeepTexInputFile::~CqDeepTexInputFile()
-{
-	m_dtexFile.close();
-}
-
-boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::LoadTileForPixel( const TqUint x, const TqUint y )
+boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::tileForPixel( const TqUint x, const TqUint y )
 {
 	assert( x < m_fileHeader.imageWidth );
 	assert( y < m_fileHeader.imageHeight );
@@ -85,21 +145,35 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::LoadTileForPixel( const
 	}
 	const int fileOffset = m_tileOffsets[tileRow][tileCol];
 	
-	// If fileOffset is 0 then there is no tile to load,
-	// so either leave it null, or change this function's signature to make it return a value to indicate whether or not a tile was found. Leaving it null for now.
+	// If fileOffset is 0 then there is no tile to load.
 	if (fileOffset > 0)
 	{
 		return LoadTileAtOffset(fileOffset, tileRow, tileCol);
 	}
 	boost::shared_ptr<CqDeepTextureTile> nullTile;
-	return nullTile; //< The requested tile is empty. Caller may assume visibility is 100% at all depths under this pixel
+	return nullTile; //< The requested tile is empty. Caller may assume visibility is 100%
 }
 
-void CqDeepTexInputFile::LoadTileTable()
+void CqDeepTexInputFile::transformationMatrices( TqFloat matWorldToScreen[4][4], 
+		TqFloat matWorldToCamera[4][4] ) const
 {
-	// Assuming the file get pointer is currently at the beginning of the tile table:
-	assert((TqUlong)m_dtexFile.tellg() == (TqUlong)(8+sizeof(SqDtexFileHeader)));
-	
+	assert(matWorldToScreen != NULL);
+	assert(matWorldToCamera != NULL);
+	TqUint x, y;
+	for (x = 0; x < 4; ++x)
+	{
+		for (y = 0; y < 4; ++y)
+		{
+			assert(matWorldToCamera[x] != NULL);
+			assert(matWorldToScreen[x] != NULL);
+			matWorldToScreen[x][y] = m_fileHeader.matWorldToScreen[x][y];
+			matWorldToCamera[x][y] = m_fileHeader.matWorldToCamera[x][y];
+		}
+	}
+}
+
+void CqDeepTexInputFile::loadTileTable()
+{	
 	TqUint tcol;
 	TqUint trow;
 	TqUint offset;
@@ -109,7 +183,7 @@ void CqDeepTexInputFile::LoadTileTable()
 	m_tileOffsets.resize(m_tilesPerCol);
 	for (i = 0; i < m_tilesPerCol; ++i)
 	{
-		m_tileOffsets[i].resize(m_tilesPerRow);
+		m_tileOffsets[i].resize(m_tilesPerRow, 0);
 	}
 	
 	// Read the tile table
@@ -122,12 +196,13 @@ void CqDeepTexInputFile::LoadTileTable()
 	}
 }
 
-boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::LoadTileAtOffset(const TqUint fileOffset, const TqUint tileRow, const TqUint tileCol)
+boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::loadTile(const TqUint tileRow, const TqUint tileCol)
 {
 	// Allocate sufficient memory to hold the tile
 	// Determine the pixel dimensions of this tile so we know how much space to allocate for the metadata
 	TqUint tileWidth = m_fileHeader.tileWidth;
 	TqUint tileHeight = m_fileHeader.tileHeight;
+	const TqUint fileOffset = m_tileOffsets[tileRow*m_fileHeader.tileHeight][tileCol*m_fileHeader.tileWidth];
 
 	// If this is an end tile, and the image width or height is not divisible by tile width or height,
 	// Then perform padding on the tile: resize to a larger size to accomodate the extra data.
@@ -149,7 +224,7 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::LoadTileAtOffset(const 
 	m_dtexFile.read((char*)(functionLengths.get()), (tileWidth*tileHeight*sizeof(uint32)));
 	
 	//std::vector<float>& data = tile->tileData;
-	const int numberOfNodes = std::accumulate(functionLengths.get(), functionLengths.get()+(tileWidth*tileHeight), 0); //< MIGHT NEED +1 ON SECOND ITERATOR
+	const int numberOfNodes = std::accumulate(functionLengths.get(), functionLengths.get()+(tileWidth*tileHeight), 0);
 	const int nodeSize = m_fileHeader.numberOfChannels+1;
 	boost::shared_array<TqFloat> data(new TqFloat[numberOfNodes*nodeSize]);
 	//data.resize(numberOfNodes*nodeSize);

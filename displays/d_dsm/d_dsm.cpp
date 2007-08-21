@@ -43,6 +43,7 @@
 
 #include "dtex.h"
 #include "ndspy.h"
+#include "deeptileadaptor.h"
 
 // From displayhelpers.c
 // Note: We should probably put these functions in a global library because they are used by this display as
@@ -133,7 +134,8 @@ static bool lowendian();
 
 typedef struct
 {
-	CqDeepTexOutputFile *DtexFile;
+	//CqDeepTexOutputFile* DtexFile;
+	CqDeepTileAdaptor* tileAdaptor;  
 	int				iWidth; //< Image width in pixels
 	int				iHeight;
 	int				bucketDimensions[2]; //< Bucket width, height in pixels
@@ -506,13 +508,15 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
 	pData->flags = PkDspyFlagsWantsScanLineOrder;
 
-	pData->Channels = formatCount; // From this field, the display knows how many floats per visibility node to expect from DspyImageDeepData
+	pData->Channels = formatCount; // Lets display know how many floats per visibility node to expect from DspyImageDeepData
 	pData->iWidth = width;
 	pData->iHeight = height;
 	
-	pData->DtexFile = new CqDeepTexOutputFile(std::string(filename), width, height, 
-			tileWidth, tileHeight, pData->bucketDimensions[0], pData->bucketDimensions[1], formatCount, sizeof(float), matWorldToScreen, matWorldToCamera);
-
+	boost::shared_ptr<CqDeepTexOutputFile> deepTexFile(new CqDeepTexOutputFile(std::string(filename), width, height, 
+							tileWidth, tileHeight, pData->bucketDimensions[0], pData->bucketDimensions[1],
+							formatCount, matWorldToScreen, matWorldToCamera));
+	pData->tileAdaptor = new CqDeepTileAdaptor(deepTexFile, width, height, tileWidth, tileHeight, 
+			pData->bucketDimensions[0], pData->bucketDimensions[1], formatCount);
 	//-----------------------------------------------------
 	// Stuff for testing/debugging
 	
@@ -575,13 +579,11 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 		fprintf(stderr, "DspyImageDeepData: Bad number of color channels in deep data. Expected %d channels, got %d\n", pData->Channels, entrysize);
 		return PkDspyErrorBadParams;		
 	}
-	printf("Hello 0\n");
 	const float* visData = reinterpret_cast<const float*>(data);
 	const int* funLengths = reinterpret_cast<const int*>(functionLengths);
 
 	if ( pData->flags == PkDspyFlagsWantsScanLineOrder )
 	{
-		printf("Hello 1\n");
 		const int nodeSize = pData->Channels+1;
 		const int functionCount = CountFunctions(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< # of visibility functions in the data
 		const int nodeCount = CountNodes(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< Total # of visbility nodes in data
@@ -592,8 +594,10 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	}
 	else
 	{
-		printf("Hello 2\n");
-		pData->DtexFile->setTileData(xmin, ymin, xmax_plusone, ymax_plusone, data, functionLengths);
+		boost::shared_ptr<CqDeepTextureTile> newTilePtr(new CqDeepTextureTile(data, fxnOffsets, width, height, ...));
+		pData->tileAdaptor->addTile(newTilePtr);
+		adaptor.addTile(newTile);
+		//pData->DtexFile->setTileData(xmin, ymin, xmax_plusone, ymax_plusone, data, functionLengths);
 	}
 	
 	// Everything below is for testing and debugging
@@ -646,9 +650,10 @@ extern "C" PtDspyError DspyImageClose(PtDspyImageHandle image)
 		WriteDSMImageSequence(image);
 	}
 
-	delete pData->DtexFile;
+	delete pData->tileAdaptor;
 	delete[] pData->testDeepData;
 	delete[] pData->functionLengths;
+	delete pData;
 	
 	return PkDspyErrorNone;
 }
