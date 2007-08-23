@@ -45,14 +45,19 @@
 namespace Aqsis
 {
 
+/** \brief A lightweight wrapper class for a visibility function.
+ *
+ */
 class CqVisibilityFunction
 {
 	public:
-		CqVisibilityFunction();
+		CqVisibilityFunction( const TqInt functionLength, const TqFloat* functionPtr);
 		
-	TqInt functionLength;
-	TqFloat* functionPtr;
+	const TqInt functionLength; //< number of nodes in function
+	const TqFloat* functionPtr; //< raw pointer to beginning of function
 };
+
+typedef boost::shared_ptr<CqVisibilityFunction> TqVisFuncPtr;
 
 /** \brief A class to store a single deep data tile and functions.
  *
@@ -71,7 +76,7 @@ class CqDeepTextureTile
 		 * \param topLeftY - top left pixel Y-position in the larger array
 		 * \param colorChannels - number of color channels per deep data node.
 		 */
-		CqDeepTextureTile(const boost::shared_array<TqFloat> data, const boost::shared_array<TqUint> funOffsets,
+		CqDeepTextureTile(const boost::shared_array<TqFloat> data, const boost::shared_array<TqUint> funcOffsets,
 				const TqUint width, const TqUint height, const TqUint topLeftX, const TqUint topLeftY,
 				const TqUint colorChannels);
 
@@ -94,7 +99,7 @@ class CqDeepTextureTile
 		 * 
 		 * \return a const pointer to a wrapper class for the requested visibility function.
 		 */
-		inline const VisibilityFunction visibilityFunctionAtPixel( const TqUint tileSpaceX, const TqUint tileSpaceY ) const;
+		inline const TqVisFuncPtr visibilityFunctionAtPixel( const TqUint tileSpaceX, const TqUint tileSpaceY ) const;
 		
 		/** \brief Get tile width
 		 *
@@ -143,21 +148,27 @@ class CqDeepTextureTile
 		TqUint m_topLeftX;			///< Column index of the top left of the tile in the full array
 		TqUint m_topLeftY;			///< Row index of the top left of the tile in the full array
 		TqUint m_colorChannels;		///< Number of color channels per deep data node.
-		TqUint m_bytesPerChannel;	///< Number of bytes used in each color channel
 };
 
 //------------------------------------------------------------------------------
 // Implementation of inline functions for CqDeepTextureTile
-//------------------------------------------------------------------------------
 
 inline void CqDeepTextureTile::setData(const boost::shared_array<TqFloat> data)
 {
 	m_data = data;
 }
 
-inline void CqDeepTextureTile::setFunOffsets( const boost::shared_array<TqUint> funcOffsets)
+inline void CqDeepTextureTile::setFuncOffsets( const boost::shared_array<TqUint> funcOffsets)
 {
-	m_funcOffsets = metaData;
+	m_funcOffsets = funcOffsets;
+}
+
+inline const TqVisFuncPtr CqDeepTextureTile::visibilityFunctionAtPixel( const TqUint tileSpaceX, const TqUint tileSpaceY ) const
+{
+	// Construct and return a pointer to new instance of CqVisibilityFunction(functionLength, dataPtr) 
+	return TqVisFuncPtr( new CqVisibilityFunction(
+			m_funcOffsets[tileSpaceX*tileSpaceY+1]-m_funcOffsets[tileSpaceX*tileSpaceY+1],
+			m_data.get()+(tileSpaceX*tileSpaceY*(1+m_colorChannels)))); 
 }
 
 inline TqUint CqDeepTextureTile::width() const

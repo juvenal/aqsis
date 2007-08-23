@@ -41,8 +41,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "dtex.h"
+#include "dtexoutput.h"
 #include "ndspy.h"
+#include "deeptexturetile.h"
 #include "deeptileadaptor.h"
 
 // From displayhelpers.c
@@ -135,7 +136,7 @@ static bool lowendian();
 typedef struct
 {
 	//CqDeepTexOutputFile* DtexFile;
-	CqDeepTileAdaptor* tileAdaptor;  
+	Aqsis::CqDeepTileAdaptor* tileAdaptor;  
 	int				iWidth; //< Image width in pixels
 	int				iHeight;
 	int				bucketDimensions[2]; //< Bucket width, height in pixels
@@ -512,10 +513,10 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	pData->iWidth = width;
 	pData->iHeight = height;
 	
-	boost::shared_ptr<CqDeepTexOutputFile> deepTexFile(new CqDeepTexOutputFile(std::string(filename), width, height, 
+	boost::shared_ptr<Aqsis::CqDeepTexOutputFile> deepTexFile(new Aqsis::CqDeepTexOutputFile(std::string(filename), width, height, 
 							tileWidth, tileHeight, pData->bucketDimensions[0], pData->bucketDimensions[1],
 							formatCount, matWorldToScreen, matWorldToCamera));
-	pData->tileAdaptor = new CqDeepTileAdaptor(deepTexFile, width, height, tileWidth, tileHeight, 
+	pData->tileAdaptor = new Aqsis::CqDeepTileAdaptor(deepTexFile, width, height, tileWidth, tileHeight, 
 			pData->bucketDimensions[0], pData->bucketDimensions[1], formatCount);
 	//-----------------------------------------------------
 	// Stuff for testing/debugging
@@ -576,7 +577,8 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	// Make sure that the deep data sent in from ddmanager has the expected number of color channels per node
 	if ( pData->Channels != entrysize )
 	{
-		fprintf(stderr, "DspyImageDeepData: Bad number of color channels in deep data. Expected %d channels, got %d\n", pData->Channels, entrysize);
+		fprintf(stderr, "DspyImageDeepData: Bad number of color channels in deep data. "
+				"Expected %d channels, got %d\n", pData->Channels, entrysize);
 		return PkDspyErrorBadParams;		
 	}
 	const float* visData = reinterpret_cast<const float*>(data);
@@ -594,9 +596,8 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	}
 	else
 	{
-		boost::shared_ptr<CqDeepTextureTile> newTilePtr(new CqDeepTextureTile(data, fxnOffsets, width, height, ...));
-		pData->tileAdaptor->addTile(newTilePtr);
-		adaptor.addTile(newTile);
+		//boost::shared_ptr<CqDeepTextureTile> newTilePtr(new CqDeepTextureTile());
+		//pData->tileAdaptor->addTile(newTilePtr);
 		//pData->DtexFile->setTileData(xmin, ymin, xmax_plusone, ymax_plusone, data, functionLengths);
 	}
 	

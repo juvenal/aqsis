@@ -38,7 +38,6 @@
 // Other Aqsis headers
 #include "tilearray.h"
 #include "color.h"
-#include "iddmanager.h" //< Include because I want access to the types, TqVisibilityFunction and SqVisibilityNode, defined therein
 
 // External libraries
 #include <boost/shared_ptr.hpp>
@@ -55,7 +54,11 @@ namespace Aqsis
 class CqDeepMipmapLevel
 {
 	public:
-		CqDeepMipmapLevel( std::string textureFileName );
+		/** \brief Construct an instance of CqDeepMipmapLevel
+		 *
+		 * \param filename - The full path and file name of the dtex file to open and read from.
+		 */
+		CqDeepMipmapLevel( std::string filename );
 		virtual ~CqDeepMipmapLevel(){};
 	  
 		/** \brief Identify the ID of the tile that contains the requested pixel. If the tile is already cached, return the visibility function
@@ -67,12 +70,12 @@ class CqDeepMipmapLevel
 		 * \param depth - Scene depth, measured from the shadow caster's position, of the point we seek shadow information for.
 		 * \return A color representing the visibility at the requested point. 
 		 */
-		virtual CqColor VisibilityAt( const int x, const int y, const float depth );
+		virtual CqColor visibilityAt( const int x, const int y, const float depth );
 		
 	private:
 		
 		// Functions
-		void filterFunction();
+		//void filterFunction();
 
 		// Data
 		CqDeepTileArray m_deepTileArray;
@@ -88,8 +91,11 @@ class CqDeepMipmapLevel
 class CqDeepTexture
 {
 	public:
-		
-		CqDeepTexture( std::string textureFileName );
+		/** \brief Construct an instance of CqDeepTexture
+		 *
+		 * \param filename - The full path and file name of the dtex file to open and read from.
+		 */
+		CqDeepTexture( std::string filename );
 		virtual ~CqDeepTexture(){};
 	
 	private:
@@ -97,7 +103,7 @@ class CqDeepTexture
 		// Functions
 		
 		// Data
-		std::vector<CqDeepMipmapLevel> m_MipmapSet;
+		std::vector<boost::shared_ptr<CqDeepMipmapLevel> > m_MipmapSet;
 };
 
 //------------------------------------------------------------------------------

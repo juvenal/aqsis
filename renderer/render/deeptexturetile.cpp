@@ -32,11 +32,16 @@
 namespace Aqsis
 {
 
+CqVisibilityFunction::CqVisibilityFunction( const TqInt functionLength, const TqFloat* functionPtr) :
+	functionLength( functionLength ),
+	functionPtr( functionPtr )
+{}
+
 CqDeepTextureTile::CqDeepTextureTile(const boost::shared_array<TqFloat> data, 
 		const boost::shared_array<TqUint> funcOffsets, const TqUint width, 
 		const TqUint height, const TqUint topLeftX, const TqUint topLeftY, const TqUint colorChannels ) :
 			m_data( data ),
-			m_funcOffsets( funcOffets ),
+			m_funcOffsets( funcOffsets ),
 			m_width( width ),
 			m_height( height ),
 			m_topLeftX( topLeftX ),

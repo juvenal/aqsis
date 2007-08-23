@@ -37,8 +37,14 @@
 #include <map>
 #include <tiff.h> //< temporary include to get the typedefs like uint32
 
+// Additional Aqsis headers
+#include "deeptexturetile.h"
+
 // External libraries
 #include <boost/shared_ptr.hpp>
+
+namespace Aqsis 
+{
 
 // To make eventual refactor to using Aqsis types nicer:
 typedef uint32 TqUint32;
@@ -47,10 +53,10 @@ typedef uint32 TqUint32;
 typedef std::pair<TqUint32, TqUint32> TqMapKey;
 
 //------------------------------------------------------------------------------
-/** \brief Interfaces for classes 
+/** \brief Interfaces for classes handling output of deep texture tiles.
  *
  */
-struct IqDeepTextureOutput
+typedef struct IqDeepTextureOutput
 {
 	virtual ~IqDeepTextureOutput()
 	{};
@@ -97,8 +103,8 @@ struct SqDeepDataTile
 						subRegionMap(),
 						col(col),
 						row(row),
-						width(width),
-						height(height)
+						width( width ),
+						height( height )
 	{}
 		
 	/// Organize tile data as a set of sub-regions each with the dimensions of a bucket.
@@ -111,8 +117,8 @@ struct SqDeepDataTile
 	TqSubRegionMap subRegionMap;
 	TqUint32 row;
 	TqUint32 col;
-	TqUint32 tileWidth;
-	TqUint32 tileHeight;
+	TqUint32 width;
+	TqUint32 height;
 	
 };
 
@@ -158,20 +164,8 @@ struct SqDtexFileHeader
 	 */ 
 	SqDtexFileHeader( const char* magicNumber = NULL, const uint32 fileSize = 0, const uint32 imageWidth = 0, 
 			const uint32 imageHeight = 0, const uint32 numberOfChannels = 0, const uint32 dataSize = 0, 
-			const uint32 tileWidth = 0, const uint32 tileHeight = 0, const uint32 numberOfTiles = 0
-			const float matWorldToScreen[4][4] = NULL, const float matWorldToCamera[4][4] = NULL) :
-		magicNumber( magicNumber ),
-		fileSize( fileSize ),
-		imageWidth( imageWidth ),
-		imageHeight( imageHeight ),
-		numberOfChannels( numberOfChannels ),
-		dataSize( dataSize ),
-		tileWidth( tileWidth ),
-		tileHeight( tileHeight ),
-		numberOfTiles( numberOfTiles ),
-		matWorldToScreen(),
-		matWorldToCamera()
-	{}
+			const uint32 tileWidth = 0, const uint32 tileHeight = 0, const uint32 numberOfTiles = 0,
+			const float matWorldToScreen[4][4] = NULL, const float matWorldToCamera[4][4] = NULL);
 	
 	/** \brief Write the dtex file header to open binary file.
 	 *
@@ -190,7 +184,7 @@ struct SqDtexFileHeader
 	/** \brief Copy the tranformation matrices to the local member data.
 	 * 
 	 */	
-	void setTransformationMatrices(const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]);
+	void setTransformationMatrices(const float imatWorldToScreen[4][4], const float imatWorldToCamera[4][4]);
 	
 	/// The magic number field contains the following bytes: Ò\0x89AqD\0x0b\0x0a\0x16\0x0a"
 	// The first byte has the high-bit set to detect transmission over a 7-bit communications channel.
@@ -201,7 +195,7 @@ struct SqDtexFileHeader
 	// This sequence ensures that if the file is "typed" on a DOS shell or Windows command shell, the user will see "AqD" 
 	// on a single line, preceded by a strange character.
 	// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
-	static char* magicNumber;
+	char* magicNumber;
 	/// Size of this file in bytes
 	uint32 fileSize;
 	// Number of horizontal pixels in the image
@@ -318,5 +312,7 @@ class CqDeepTexOutputFile : public IqDeepTextureOutput
 		
 };
 
+//------------------------------------------------------------------------------
+} // namespace Aqsis
 
 #endif // DTEXOUTPUT_H_INCLUDED

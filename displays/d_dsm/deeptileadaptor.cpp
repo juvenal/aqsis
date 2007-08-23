@@ -39,8 +39,8 @@ CqDeepTileAdaptor::CqDeepTileAdaptor( boost::shared_ptr<IqDeepTextrueOutput> out
 			m_tileHeight( tileHeight ),
 			m_bucketWidth( bucketWidth ),
 			m_bucketHeight( bucketHeight ),
-			m_tilesPerImageRow( Aqsis::lceil(imageWidth/tileWidth) ),
-			m_tilesPerImageCol (Aqsis::lceil(imageHeight/tileHeight) ),
+			m_tilesPerImageRow( Aqsis::lceil((float)imageWidth/tileWidth) ),
+			m_tilesPerImageCol (Aqsis::lceil((float)imageHeight/tileHeight) ),
 			m_bucketsPerTileRow( tileWidth/bucketWidth ),
 			m_bucketsPerTileCol( tileHeight/bucketHeight ),
 			m_numberOfChannels( numberOfChannels )		
@@ -269,8 +269,8 @@ bool CqDeepTileAdaptor::isFullTile(const TqMapKey tileKey) const
 	// function lengths.
 	int functionCount = 0;
 	const boost::shared_ptr<SqDeepDataTile> tile = m_deepDataTileMap[tileKey];
-	const int subRegionsPerRow = Aqsis::lceil(tile->height/m_bucketHeight); 
-	const int subRegionsPerCol = Aqsis::lceil(tile->width/m_bucketWidth);
+	const int subRegionsPerRow = Aqsis::lceil((float)tile->height/m_bucketHeight); 
+	const int subRegionsPerCol = Aqsis::lceil((float)tile->width/m_bucketWidth);
 	const int maxNumberOfSubRegions = subRegionsPerRow*subRegionsPerCol;
 	const TqSubRegionMap& subRegionMap = tile->subRegionMap;
 	
@@ -305,8 +305,8 @@ bool CqDeepTileAdaptor::isNeglectableTile(const TqMapKey tileKey) const
 	// of 0 in the tile table. 
 	int j, k;
 	const boost::shared_ptr<SqDeepDataTile> tile = m_deepDataTileMap[tileKey];
-	const int subRegionsPerRow = Aqsis::lceil(tile->height/m_bucketHeight); 
-	const int subRegionsPerCol = Aqsis::lceil(tile->width/m_bucketWidth);
+	const int subRegionsPerRow = Aqsis::lceil((float)tile->height/m_bucketHeight); 
+	const int subRegionsPerCol = Aqsis::lceil((float)tile->width/m_bucketWidth);
 	const int maxNumberOfSubRegions = subRegionsPerRow*subRegionsPerCol;
 	const TqSubRegionMap& subRegionMap = tile->subRegionMap;
 

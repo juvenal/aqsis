@@ -31,12 +31,13 @@ namespace Aqsis
 
 // Begin CqDeepMipmapLevel implementation
 
-CqDeepMipmapLevel::CqDeepMipmapLevel( std::string textureFileName )
+CqDeepMipmapLevel::CqDeepMipmapLevel( std::string filename ) :
+	m_deepTileArray( filename )
 {
 
 }
 
-CqColor CqDeepMipmapLevel::VisibilityAt( const int x, const int y, const float depth );
+CqColor CqDeepMipmapLevel::visibilityAt( const int x, const int y, const float depth )
 {
 	return gColWhite;
 }
@@ -44,14 +45,15 @@ CqColor CqDeepMipmapLevel::VisibilityAt( const int x, const int y, const float d
 //------------------------------------------------------------------------------
 // Begin CqDeepTexture implementation
 
-CqDeepTexture::CqDeepTexture()
+CqDeepTexture::CqDeepTexture( std::string filename )
 {
-	
-}
-
-CqDeepTexture::~CqDeepTexture()
-{
-	m_MipmapSet.clear();
+	/// \toDo Instantiate a set of CqDeepMipmapLevel objects, one for each mipmap level.
+	// Note: there needs to be a design change. Currently we create a instance of 
+	// CqDeepMipmapLevel, which creates a CqTileArray, which in turn create a 
+	// CqDeepDtexFileInput, which attemps to open a dsm file. This way we try to open the
+	// file several time, but we should only open it once.
+	boost::shared_ptr<CqDeepMipmapLevel> newMipmapLevel( new CqDeepMipmapLevel( filename ));
+	m_MipmapSet.push_back(newMipmapLevel);
 }
 
 //------------------------------------------------------------------------------

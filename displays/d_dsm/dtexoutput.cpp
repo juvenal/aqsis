@@ -29,14 +29,17 @@
 #include "dtexoutput.h"
 #include "exception.h"
 
-// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
-static const char magicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
+namespace Aqsis 
+{
 
-SqDtexFileHeader( const char* magicNumber = NULL, const uint32 fileSize = 0, const uint32 imageWidth = 0, 
-		const uint32 imageHeight = 0, const uint32 numberOfChannels = 0, const uint32 dataSize = 0, 
-		const uint32 tileWidth = 0, const uint32 tileHeight = 0, const uint32 numberOfTiles = 0,
-		const float matWorldToScreen[4][4] = NULL, const float matWorldToCamera[4][4] = NULL) :
-	magicNumber( magicNumber ),
+// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
+static const char dtexMagicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
+
+SqDtexFileHeader::SqDtexFileHeader( const char* imagicNumber, const uint32 fileSize, const uint32 imageWidth, 
+		const uint32 imageHeight, const uint32 numberOfChannels, const uint32 dataSize, 
+		const uint32 tileWidth, const uint32 tileHeight, const uint32 numberOfTiles,
+		const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]) :
+	magicNumber( strcpy( magicNumber, imagicNumber ) ),
 	fileSize( fileSize ),
 	imageWidth( imageWidth ),
 	imageHeight( imageHeight ),
@@ -62,7 +65,7 @@ void SqDtexFileHeader::writeToFile( std::ofstream& file ) const
 	file.write((const char*)(&dataSize), sizeof(uint32));
 	file.write((const char*)(&tileWidth), sizeof(uint32));
 	file.write((const char*)(&tileHeight), sizeof(uint32));
-	file.write((const char*)(&numberOfChannels), sizeof(uint32));
+	file.write((const char*)(&numberOfTiles), sizeof(uint32));
 	file.write((const char*)(&matWorldToScreen), 16*sizeof(float));
 	file.write((const char*)(&matWorldToCamera), 16*sizeof(float));
 }
@@ -70,28 +73,28 @@ void SqDtexFileHeader::writeToFile( std::ofstream& file ) const
 void SqDtexFileHeader::readFromFile( std::ifstream& file )
 {
 	file.read(magicNumber, 8);
-	file.read((const char*)(&fileSize), sizeof(uint32));
-	file.read((const char*)(&imageWidth), sizeof(uint32));
-	file.read((const char*)(&imageHeight), sizeof(uint32));
-	file.read((const char*)(&numberOfChannels), sizeof(uint32));
-	file.read((const char*)(&dataSize), sizeof(uint32));
-	file.read((const char*)(&tileWidth), sizeof(uint32));
-	file.read((const char*)(&tileHeight), sizeof(uint32));
-	file.read((const char*)(&numberOfChannels), sizeof(uint32));
-	file.read((const char*)(&matWorldToScreen), 16*sizeof(float));
-	file.read((const char*)(&matWorldToCamera), 16*sizeof(float));	
+	file.read((char*)(&fileSize), sizeof(uint32));
+	file.read((char*)(&imageWidth), sizeof(uint32));
+	file.read((char*)(&imageHeight), sizeof(uint32));
+	file.read((char*)(&numberOfChannels), sizeof(uint32));
+	file.read((char*)(&dataSize), sizeof(uint32));
+	file.read((char*)(&tileWidth), sizeof(uint32));
+	file.read((char*)(&tileHeight), sizeof(uint32));
+	file.read((char*)(&numberOfTiles), sizeof(uint32));
+	file.read((char*)(&matWorldToScreen), 16*sizeof(float));
+	file.read((char*)(&matWorldToCamera), 16*sizeof(float));	
 }
 
-void SqDtexFileHeader::setTransformationMatrices(const float matWorldToScreen[4][4], 
-												const float matWorldToCamera[4][4])
+void SqDtexFileHeader::setTransformationMatrices(const float imatWorldToScreen[4][4], 
+												const float imatWorldToCamera[4][4])
 {
 	int x, y;
 	for (x = 0; x < 4; ++x)
 	{
 		for (y = 0; y < 4; ++y)
 		{
-			m_fileHeader.matWorldToScreen[x][y] = matWorldToScreen[x][y];
-			m_fileHeader.matWorldToCamera[x][y] = matWorldToCamera[x][y];
+			matWorldToScreen[x][y] = matWorldToScreen[x][y];
+			matWorldToCamera[x][y] = matWorldToCamera[x][y];
 		}
 	}
 }
@@ -100,9 +103,9 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 		uint32 tileWidth, uint32 tileHeight, uint32 bucketWidth, uint32 bucketHeight, uint32 numberOfChannels,
 		const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]) :
 			m_dtexFile( filename.c_str(), std::ios::out | std::ios::binary ),
-			m_fileHeader( magicNumber, (uint32)0, (uint32)imageWidth, (uint32)imageHeight, 
+			m_fileHeader( dtexMagicNumber, (uint32)0, (uint32)imageWidth, (uint32)imageHeight, 
 						(uint32)numberOfChannels, (uint32)0, (uint32)tileWidth, (uint32)tileHeight, 
-						((imageWidth/tileWidth)*(imageHeight/tileHeight;)),matWorldToScreen, matWorldToCamera),
+						((imageWidth/tileWidth)*(imageHeight/tileHeight)), matWorldToScreen, matWorldToCamera),
 			m_tileTable(),
 			m_tileTablePositon(0),
 			m_xBucketsPerTile(tileWidth/bucketWidth),
@@ -147,7 +150,7 @@ CqDeepTexOutputFile::~CqDeepTexOutputFile()
 void CqDeepTexOutputFile::updateTileTable(const boost::shared_ptr<SqDeepDataTile> tile)
 {
 	// Set the file offset to the current write-file position (given by tellp()).
-	SqTileTableEntry entry(tile->tileCol, tile->tileRow, m_dtexFile.tellp());
+	SqTileTableEntry entry(tile->col, tile->row, m_dtexFile.tellp());
 	m_tileTable.push_back(entry);
 }
 
@@ -171,15 +174,15 @@ void CqDeepTexOutputFile::writeTile(const boost::shared_ptr<SqDeepDataTile> tile
 	int j, k;
 	int currentOffset = 0;
 	int tileSizeInBytes = 0;
-	const TqSubRegionMap& subRegions = tile->subRegionMap;
+	const TqSubRegionMap& subRegionMap = tile->subRegionMap;
 	TqSubRegionMap::const_iterator it;
 	
 	// Iterate over all the function lengths, converting them to offsets then writing to file
 	std::vector<TqUint32> offsets;
-	offsets.push(currentOffset);
+	offsets.push_back(currentOffset);
 	for (it = subRegionMap.begin(); it != subRegionMap.end(); ++it)
 	{	
-		const std::vector<std::vector<int> >& subRegionFunctionLengths = (*it)->functionLengths;
+		const std::vector<std::vector<int> >& subRegionFunctionLengths = it->functionLengths;
 		for (j = 0; j < subRegionFunctionLengths.size(); ++j)
 		{
 			for (k = 0; k < subRegionFunctionLengths[j].size(); ++k)
@@ -196,7 +199,7 @@ void CqDeepTexOutputFile::writeTile(const boost::shared_ptr<SqDeepDataTile> tile
 	// as long as the tile table is correct.
 	for (it = subRegionMap.begin(); it != subRegionMap.end(); ++it)
 	{	
-		const std::vector<std::vector<float> >& subRegionData = (*it)->tileData;
+		const std::vector<std::vector<float> >& subRegionData = it->tileData;
 		for (j = 0; j < subRegionData.size(); ++j)
 		{
 			m_dtexFile.write(reinterpret_cast<const char*>(&(subRegionData[j].front())), subRegionData[j].size()*sizeof(float));
@@ -205,3 +208,6 @@ void CqDeepTexOutputFile::writeTile(const boost::shared_ptr<SqDeepDataTile> tile
 	}
 	m_fileHeader.dataSize += tileSizeInBytes;
 }
+
+//------------------------------------------------------------------------------
+} // namespace Aqsis

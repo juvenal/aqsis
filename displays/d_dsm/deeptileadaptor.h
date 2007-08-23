@@ -24,8 +24,8 @@
  * \brief Facilities for constructing/caching tiles from smaller sets of deep data,
  * such as buckets a row or more from a single bucket.
  */
-#ifndef DEEPTILECACHE_H_INCLUDED
-#define DEEPTILECACHE_H_INCLUDED
+#ifndef DEEPTILEADAPTOR_H_INCLUDED
+#define DEEPTILEADAPTOR_H_INCLUDED
 
 //Aqsis primary header
 #include "aqsis.h"
@@ -38,14 +38,18 @@
 #include <tiff.h> //< temporary include to get the typedefs like uint32
 
 #include "dtexoutput.h"
+#include "deeptexturetile.h"
 
 // External libraries
 #include <boost/shared_ptr.hpp>
 
+namespace Aqsis 
+{
+
 class CqDeepTileAdaptor
 {
 	public:
-		CqDeepTileAdaptor( boost::shared_ptr<IqDeepTextrueOutput> outputObject, 
+		CqDeepTileAdaptor( boost::shared_ptr<IqDeepTextureOutput> outputObject, 
 				TqUint32 imageWidth, TqUint32 imageHeight, TqUint32 tileWidth, TqUint32 tileHeight, 
 				TqUint32 bucketWidth, TqUint32 bucketHeight, TqUint32 numberOfChannels);
 		virtual ~CqDeepTileAdaptor();
@@ -98,7 +102,7 @@ class CqDeepTileAdaptor
 		 * \param rymax - The y-coordinate, 
 		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
 		 */	
-		static void copyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
+		void copyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
 		
 		/** \brief Copy given data into the given std::vector.
 		 * 
@@ -126,7 +130,7 @@ class CqDeepTileAdaptor
 		 * \param rymax - The y-coordinate, 
 		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
 		 */	
-		static void fillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
+		void fillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
 		
 		/** \brief Fill the sub-region specified by (rxmin,rymin,rxmax,rymax), with default metadata. 
 		 * The sub-region may be part of a neglectable tile, and therefore may never be written to disk,
@@ -181,4 +185,7 @@ class CqDeepTileAdaptor
 		TqUint32 m_numberOfChannels;
 };
 
-#endif // DEEPTILECACHE_H_INCLUDED
+//------------------------------------------------------------------------------
+} // namespace Aqsis
+
+#endif // DEEPTILEADAPTOR_H_INCLUDED

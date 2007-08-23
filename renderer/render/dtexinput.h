@@ -70,22 +70,10 @@ struct SqDtexFileHeader
 	* \param hs - header size; the size in bytes of SqDtexFileHeader. We can probably get rid of this field.
 	* \param ds - data size; the size of only the data part of the dtex file
 	 */ 
-	SqDtexFileHeader( const char* magicNumber = NULL, const uint32 fileSize = 0, const uint32 imageWidth = 0, 
+	SqDtexFileHeader( char* magicNumber = NULL, const uint32 fileSize = 0, const uint32 imageWidth = 0, 
 			const uint32 imageHeight = 0, const uint32 numberOfChannels = 0, const uint32 dataSize = 0, 
-			const uint32 tileWidth = 0, const uint32 tileHeight = 0, const uint32 numberOfTiles = 0
-			const float matWorldToScreen[4][4] = NULL, const float matWorldToCamera[4][4] = NULL) :
-		magicNumber( magicNumber ),
-		fileSize( fileSize ),
-		imageWidth( imageWidth ),
-		imageHeight( imageHeight ),
-		numberOfChannels( numberOfChannels ),
-		dataSize( dataSize ),
-		tileWidth( tileWidth ),
-		tileHeight( tileHeight ),
-		numberOfTiles( numberOfTiles ),
-		matWorldToScreen(),
-		matWorldToCamera()
-	{}
+			const uint32 tileWidth = 0, const uint32 tileHeight = 0, const uint32 numberOfTiles = 0,
+			const float matWorldToScreen[4][4] = NULL, const float matWorldToCamera[4][4] = NULL);
 	
 	/** \brief Write the dtex file header to open binary file.
 	 *
@@ -104,7 +92,7 @@ struct SqDtexFileHeader
 	/** \brief Copy the tranformation matrices to the local member data.
 	 * 
 	 */	
-	void setTransformationMatrices(const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]);
+	void setTransformationMatrices(const float imatWorldToScreen[4][4], const float imatWorldToCamera[4][4]);
 	
 	/// The magic number field contains the following bytes: Ò\0x89AqD\0x0b\0x0a\0x16\0x0a"
 	// The first byte has the high-bit set to detect transmission over a 7-bit communications channel.
@@ -115,7 +103,7 @@ struct SqDtexFileHeader
 	// This sequence ensures that if the file is "typed" on a DOS shell or Windows command shell, the user will see "AqD" 
 	// on a single line, preceded by a strange character.
 	// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
-	static char* magicNumber; 
+	char* magicNumber; 
 	/// Size of this file in bytes
 	uint32 fileSize;
 	// Number of horizontal pixels in the image
@@ -189,6 +177,10 @@ class CqDeepTexInputFile
 		inline TqUint standardTileWidth() const;
 		
 		/** \brief Get the height of a standard (unpadded) tile in the deep texture map
+		 *	The distinction from non-standard (padded) tiles is that padded tiles
+		 *	only occur on the right and bottom image borders, when the image dimensions
+		 *	are not evenly divisible by the tile dimension. Such border tiles are smaller
+		 *	than standard tiles.
 		 *
 		 * \return the width in pixels
 		 */
@@ -222,18 +214,6 @@ class CqDeepTexInputFile
 
 //------------------------------------------------------------------------------
 // Implementation of inline functions for CqDeepTexInputFile
-//------------------------------------------------------------------------------
-inline const TqFloat* CqDeepTextureTile::visibilityFunctionAtPixel( const TqUint tileSpaceX, const TqUint tileSpaceY ) const
-{
-	const TqUint nodeSize = 1+m_colorChannels;
-	
-	return (m_data.get()+(tileSpaceX*tileSpaceY*nodeSize));
-}
-
-inline TqUint CqDeepTextureTile::functionLengthOfPixel( const TqUint tileSpaceX, const TqUint tileSpaceY ) const
-{
-	return m_metaData[tileSpaceX*tileSpaceY];
-}
 
 inline TqUint CqDeepTexInputFile::imageWidth() const
 {

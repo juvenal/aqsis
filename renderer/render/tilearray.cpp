@@ -21,7 +21,8 @@
  * 
  * \author Zachary L. Carter (zcarter@aqsis.org)
  * 
- * \brief Implementation of a deep texture file reader to load deep data tiles from file into memory.
+ * \brief Implementation of a deep texture tile array for caching and providing access to a set
+ * of deep texture tiles.
  */
 
 #include <numeric>
@@ -31,31 +32,29 @@
 namespace Aqsis
 {
 
-CqDeepTileArray::CqDeepTileArray( std::string textureFileName ) :
+CqDeepTileArray::CqDeepTileArray( std::string filename ) :
 	m_hotTileMap(),
-	m_deepTextureInputFile(textureFileName)
+	m_deepTextureInputFile( filename )
 {}
 
-//boost::shared_ptr<TqVisibilityFunction> CqDeepTileArray::VisibilityFunctionAtPixel( const TqUint x, const TqUint y )
-const TqFloat* VisibilityFunctionAtPixel( const TqUint x, const TqUint y, TqUint& functionLength );
+const TqVisFuncPtr CqDeepTileArray::visibilityFunctionAtPixel( const TqUint x, const TqUint y )
 {
 	// Identify the tile the requested pixel belongs to
-	const TqUint homeTileCol = x/m_deepTextureInputFile.imageWidth();
-	const TqUint homeTileRow = y/m_deepTextureInputFile.imageHeight();
+	const TqUint homeTileCol = x/m_deepTextureInputFile.standardTileWidth();
+	const TqUint homeTileRow = y/m_deepTextureInputFile.standardTileHeight();
 	const TqUint homeTileXmin = homeTileCol*m_deepTextureInputFile.standardTileWidth(); 
 	const TqUint homeTileYmin = homeTileRow*m_deepTextureInputFile.standardTileHeight();
-	const TileKey homeTileKey(homeTileXmin, homeTileYmin);
-	const TqUint homeTileX = x-homeTileXmin;
-	const TqUint homeTileY = y-tomeTileYmin;
+	const TileKey homeTileKey(homeTileYmin, homeTileXmin);
+	const TqUint homeTileX = x-homeTileXmin; // pixel x-ccordinate, relative to bucket origin
+	const TqUint homeTileY = y-homeTileYmin; // pixel y-ccordinate, relative to bucket origin
 	
 	// Check if the tile is cached. If so, use it, otherwise first load it, then use it.
 	if (m_hotTileMap.count(homeTileKey) == 0)
 	{
 		// Tile is not cached, so load it.
-		m_hotTileMap[hoemTileKey] = m_deepTextureInputFile.LoadTileForPixel( x, y );
+		m_hotTileMap[homeTileKey] = m_deepTextureInputFile.tileForPixel( x, y );
 	}
-	functionLength = m_hotTileMap[hoemTileKey]->functionLengthOfPixel( homeTileX, homeTileY );
-	return m_hotTileMap[hoemTileKey]->visibilityFunctionAtPixel( homeTileX, homeTileY );
+	return m_hotTileMap[homeTileKey]->visibilityFunctionAtPixel( homeTileX, homeTileY );
 }
 
 //------------------------------------------------------------------------------
