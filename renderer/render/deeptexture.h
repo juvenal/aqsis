@@ -36,6 +36,9 @@
 #include <tiff.h> //< Including (temporarily) in order to get the typedefs like uint32
 
 // Other Aqsis headers
+#include "sstring.h"
+#include "vector3d.h"
+#include "matrix.h"
 #include "itexturemap.h" 
 #include "tilearray.h"
 #include "color.h"
@@ -137,13 +140,16 @@ class CqDeepTexture : public IqTextureMap
 
 		virtual void PrepareSampleOptions(std::map<std::string, IqShaderData*>& paramMap );
 
-		virtual	void SampleMap( TqFloat s1, TqFloat t1, TqFloat swidth, TqFloat twidth, std::valarray<TqFloat>& val);
-		virtual	void SampleMap( TqFloat s1, TqFloat t1, TqFloat s2, TqFloat t2, TqFloat s3, TqFloat t3, TqFloat s4, TqFloat t4,
-		                        std::valarray<TqFloat>& val );
+		virtual	void SampleMap( TqFloat s1, TqFloat t1, TqFloat swidth, TqFloat twidth,
+								std::valarray<TqFloat>& val);
+		virtual	void SampleMap( TqFloat s1, TqFloat t1, TqFloat s2, TqFloat t2, TqFloat s3,
+								TqFloat t3, TqFloat s4, TqFloat t4, std::valarray<TqFloat>& val );
 		virtual	void SampleMap( CqVector3D& R, CqVector3D& swidth, CqVector3D& twidth,
-		                        std::valarray<TqFloat>& val, TqInt index = 0, TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL );
+		                        std::valarray<TqFloat>& val, TqInt index = 0, 
+		                        TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL );
 		virtual	void SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, CqVector3D& R4,
-		                        std::valarray<TqFloat>& val, TqInt index = 0, TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL );
+		                        std::valarray<TqFloat>& val, TqInt index = 0, 
+		                        TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL );
 		virtual CqMatrix& GetMatrix( TqInt which, TqInt index = 0 );
 
 		virtual	TqInt NumPages() const;

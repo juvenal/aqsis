@@ -39,6 +39,7 @@ SqDtexFileHeader::SqDtexFileHeader( const uint32 fileSize, const uint32 imageWid
 		const uint32 imageHeight, const uint32 numberOfChannels, const uint32 dataSize, 
 		const uint32 tileWidth, const uint32 tileHeight, const uint32 numberOfTiles,
 		const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]) :
+	//magicNumber( magicNumber ),
 	fileSize( fileSize ),
 	imageWidth( imageWidth ),
 	imageHeight( imageHeight ),
@@ -55,8 +56,7 @@ SqDtexFileHeader::SqDtexFileHeader( const uint32 fileSize, const uint32 imageWid
 
 void SqDtexFileHeader::writeToFile( std::ofstream& file ) const
 {
-	// Write the magic number
-	file.write(magicNumber, 8);
+	file.write((const char*)magicNumber, 8);
 	file.write((const char*)(&fileSize), sizeof(uint32));
 	file.write((const char*)(&imageWidth), sizeof(uint32));
 	file.write((const char*)(&imageHeight), sizeof(uint32));
@@ -71,12 +71,7 @@ void SqDtexFileHeader::writeToFile( std::ofstream& file ) const
 
 void SqDtexFileHeader::readFromFile( std::ifstream& file )
 {
-	char buffer[8];
-	file.read(buffer, 8);
-	if ( strcmp(buffer, magicNumber) != 0 )
-	{
-		// Throw exception
-	}
+	file.read(magicNumber, 8);
 	file.read((char*)(&fileSize), sizeof(uint32));
 	file.read((char*)(&imageWidth), sizeof(uint32));
 	file.read((char*)(&imageHeight), sizeof(uint32));
@@ -86,7 +81,7 @@ void SqDtexFileHeader::readFromFile( std::ifstream& file )
 	file.read((char*)(&tileHeight), sizeof(uint32));
 	file.read((char*)(&numberOfTiles), sizeof(uint32));
 	file.read((char*)(&matWorldToScreen), 16*sizeof(float));
-	file.read((char*)(&matWorldToCamera), 16*sizeof(float));	
+	file.read((char*)(&matWorldToCamera), 16*sizeof(float));
 }
 
 void SqDtexFileHeader::setTransformationMatrices(const float imatWorldToScreen[4][4], 
@@ -124,15 +119,17 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 	const int tilesY = imageHeight/tileHeight;
 	const int numberOfTiles = tilesX*tilesY; 
 
-	// If file open failed, throw an exception. This happens for example, if the file already existed, or the destination directory 
-	// did not have write permission.
+	// If file open failed, throw an exception. This happens for example, if the file already existed,
+	// or the destination directory did not have write permission.
 	if (!m_dtexFile.is_open())
 	{
-		throw Aqsis::XqInternal(std::string("Failed to open file \"") + filename + std::string( "\""), __FILE__, __LINE__);
+		throw Aqsis::XqInternal(std::string("Failed to open file \"") + filename +
+				std::string( "\""), __FILE__, __LINE__);
 	}
 	if ((tileWidth % bucketWidth) != 0 || (tileHeight % bucketHeight) != 0)
 	{
-		throw Aqsis::XqInternal(std::string("Tile dimensions not an integer multiple of bucket dimensions."), __FILE__, __LINE__);
+		throw Aqsis::XqInternal(std::string("User specified tile dimensions are not an integer multiple "
+				"of bucket dimensions."), __FILE__, __LINE__);
 	}
 	m_tileTable.reserve(numberOfTiles); 
 	
@@ -144,17 +141,37 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 	// This is the first part of fileSize. Add the data size part later.
 	m_fileHeader.fileSize = m_tileTablePositon + numberOfTiles*sizeof(SqTileTableEntry);
 	// Seek forward in file to reserve space for writing the tile table later.
-	// Seek from the current positon. Alternatively, you could seek from the file's beginning with std::ios::beg
+	// Seek from the current positon. 
+	// Alternatively, you could seek from the file's beginning with std::ios::beg
 	m_dtexFile.seekp(numberOfTiles*sizeof(SqTileTableEntry), std::ios::cur);
 }
 
 CqDeepTexOutputFile::~CqDeepTexOutputFile()
-{}
+{
+	// Finish by writing the tile table to file.
+	writeTileTable();
+	// re-write the datasSize and fileSize fields in the file header, then we are done.
+	// Re-write the dataSize and fileSize fields which were not written properly in the constructor
+	// Seek to the 9th byte position in the file and write fileSize field
+	m_dtexFile.seekp(9, std::ios::beg);
+	m_fileHeader.fileSize += m_fileHeader.dataSize;
+	m_dtexFile.write((const char*)(&m_fileHeader.fileSize), sizeof(TqUint32));
+	
+	// Seek to the 25th byte position in the file and write dataSize.
+	m_dtexFile.seekp(25, std::ios::beg);
+	m_dtexFile.write((const char*)(&m_fileHeader.dataSize), sizeof(TqUint32));
+}
 
-void CqDeepTexOutputFile::updateTileTable(const boost::shared_ptr<SqDeepDataTile> tile)
+void CqDeepTexOutputFile::updateTileTable(const boost::shared_ptr<CqDeepTextureTile> tile)
 {
 	// Set the file offset to the current write-file position (given by tellp()).
-	SqTileTableEntry entry(tile->col, tile->row, m_dtexFile.tellp());
+	// If the tile is empty, then it will not be written to disk, so use an offset of 0;
+	TqUlong offset = m_dtexFile.tellp();
+	if (isNeglectable(tile))
+	{
+		offset = 0;
+	}
+	SqTileTableEntry entry(tile->col, tile->row, offset);
 	m_tileTable.push_back(entry);
 }
 
@@ -169,48 +186,45 @@ void CqDeepTexOutputFile::writeTileTable()
 	m_dtexFile.write(reinterpret_cast<const char*>(&(m_tileTable.front())), m_tileTable.size()*sizeof(SqTileTableEntry));
 }
 
-void CqDeepTexOutputFile::writeTile(const boost::shared_ptr<SqDeepDataTile> tile)
+void CqDeepTexOutputFile::outputTile( const boost::shared_ptr<CqDeepTextureTile> tile )
 {
-	/// \todo Currently I write to file one sub-region row at a time, which results in many calls to 
-	/// write(), and hence many disk acesses, which are slow. 
-	// I should instead rebuild the tile in a contiguous region in memory, then write it to disk all at once.
-	// On second thought, the file stream does some buffering of its own, so maybe we don't have to.
-	int j, k;
-	int currentOffset = 0;
-	int tileSizeInBytes = 0;
-	const TqSubRegionMap& subRegionMap = tile->subRegionMap;
-	TqSubRegionMap::const_iterator it;
+	// Update the tile table with this tile.
+	updateTileTable(tile);
 	
-	// Iterate over all the function lengths, converting them to offsets then writing to file
-	std::vector<TqUint32> offsets;
-	offsets.push_back(currentOffset);
-	for (it = subRegionMap.begin(); it != subRegionMap.end(); ++it)
-	{	
-		const std::vector<std::vector<int> >& subRegionFunctionLengths = it->second->functionLengths;
-		for (j = 0; j < subRegionFunctionLengths.size(); ++j)
-		{
-			for (k = 0; k < subRegionFunctionLengths[j].size(); ++k)
-			{
-				currentOffset += subRegionFunctionLengths[j][k];
-				offsets.push_back(currentOffset);
-			}
-		}
+	// Check to see if this tile is "neglectable" in the dtex file,
+	// that is, see if it is an empty tile. If it is, we do not write it to disc. Return now.
+	if (isNeglectable(tile))
+	{
+		return;
 	}
-	m_dtexFile.write(reinterpret_cast<const char*>(&(offsets.front())), offsets.size()*sizeof(TqUint32));	
-	tileSizeInBytes += offsets.size()*sizeof(float);
+	// Otherwise, write tile to disc.
+	writeTile(tile_ptr);
+}
+
+void CqDeepTexOutputFile::writeTile(const boost::shared_ptr<CqDeepTextureTile> tile)
+{
+	const TqUint metaDataSizeInBytes = tile->width()*tile->height()+1*sizeof(TqUint32);
+	const TqUint dataSizeInBytes = tile->funcOffsets()[tile->width()*tile->height()+1]*sizeof(TqFloat);
+	m_fileHeader.dataSize += metaDataSizeInBytes + dataSizeInBytes;
 	
-	// Then write the data. Note we are not concerned that tiles are placed sequentially in the file,
-	// as long as the tile table is correct.
-	for (it = subRegionMap.begin(); it != subRegionMap.end(); ++it)
-	{	
-		const std::vector<std::vector<float> >& subRegionData = it->second->tileData;
-		for (j = 0; j < subRegionData.size(); ++j)
-		{
-			m_dtexFile.write(reinterpret_cast<const char*>(&(subRegionData[j].front())), subRegionData[j].size()*sizeof(float));
-			tileSizeInBytes += subRegionData[j].size()*sizeof(float);
-		}
+	// Write the function offsets
+	m_dtexFile.write(reinterpret_cast<const char*>(tile->funcOffsets()), metaDataSizeInBytes);
+	
+	// Write the deep data
+	m_dtexFile.write(reinterpret_cast<const char*>(tile->data()), dataSizeInBytes);
+}
+
+bool CqDeepTexOutputFile::isNeglectableTile(const boost::shared_ptr<CqDeepTextureTile> tile) const
+{
+	// If all visibility functions in this tile have only 1 node
+	// then the tile is empty (visibility is 100% everywhere in the tile).
+	// We can test if this is so simply by checking if the last offset in the 
+	// tile's function offsets is equal to the number of pixels in the tile.
+	if ( tile->funcOffsets()[tile->width()*tile->height()+1] == (tile->width()*tile->height()) )
+	{
+		return true;	
 	}
-	m_fileHeader.dataSize += tileSizeInBytes;
+	return false;
 }
 
 //------------------------------------------------------------------------------

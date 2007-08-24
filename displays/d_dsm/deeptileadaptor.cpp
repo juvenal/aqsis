@@ -50,13 +50,15 @@ CqDeepTileAdaptor::CqDeepTileAdaptor( boost::shared_ptr<IqDeepTextureOutput> out
 			m_numberOfChannels( numberOfChannels )		
 {}
 
-void CqDeepTileAdaptor::setData( const int xmin, const int ymin, const int xmax, const int ymax,
-		const unsigned char *data, const unsigned char* metadata )
+void CqDeepTileAdaptor::addTile(boost::shared_ptr<CqDeepTextureTile> newTile)
 {
-	//If we want to enforce that data is received a bucket at a time, then assert that xmax-xmin <= bucketWidth (may be '<' in the case of edge buckets)
+	// If we want to enforce that data is received a bucket at a time, 
+	// then assert xmax-xmin <= bucketWidth (may be '<' in the case of edge buckets)
 	if (xmax-xmin > m_bucketWidth)
 	{
-		throw Aqsis::XqInternal(std::string("Error is CqDeepTexOutputFile::setTileData(): the provided image region is too large. Data will not be copied. Returning prematurely."), __FILE__, __LINE__);
+		throw Aqsis::XqInternal(std::string("Error is CqDeepTexOutputFile::setTileData():"
+				" the provided image region is too large. Data will not be copied. Returning"
+				" prematurely."), __FILE__, __LINE__);
 		return;
 	}
 	const float* iData = reinterpret_cast<const float*>(data);
@@ -69,11 +71,11 @@ void CqDeepTileAdaptor::setData( const int xmin, const int ymin, const int xmax,
 	const TqMapKey subRegionKey(subRegionTopLeftX, subRegionTopLeftY);
 
 	// If the tile that should hold this sebRegion has not been created yet, create it.
-	if (m_deepDataTileMap.count(homeTileKey) == 0)
+	if (m_deepTileMap.count(homeTileKey) == 0)
 	{
 		createNewTile(homeTileKey);
 	}
-	boost::shared_ptr<SqDeepDataTile> currentTile = m_deepDataTileMap[homeTileKey];
+	boost::shared_ptr<SqDeepDataTile> currentTile = m_deepTileMap[homeTileKey];
 	// If it does not already exist, create the sub-tile region to hold the current data
 	if (currentTile->subRegionMap.count(subRegionKey) == 0)
 	{
@@ -96,42 +98,13 @@ void CqDeepTileAdaptor::setData( const int xmin, const int ymin, const int xmax,
 		copyData(tData, iData, iMetaData, xmin%m_bucketWidth, ymin%m_bucketHeight, xmin%m_bucketWidth+xmax-xmin, ymin%m_bucketHeight+ymax-ymin);
 	}	
 	// Check for full tile
-	// If full tile, write tile to disk, update the tileTable, and reclaim the tile's memory
+	// If full tile, send to output and reclaim the tile's memory
 	if(isFullTile(homeTileKey))
 	{
 		// Add this full tile to the deep texture output file
-		m_deepTexOutput.addTile(currentTile);
-		/*
-		if (isNeglectableTile(homeTileKey))
-			SqTileTableEntry entry(currentTile->col, currentTile->row, 0);
-		{
-			m_tileTable.push_back(entry);
-		}
-		else
-		{
-			updateTileTable(currentTile);
-			writeTile(currentTile);
-		}
-		*/
+		m_deepTexOutput.outputTile( currentTile );
 		// Reclaim tile memory no longer needed
-		m_deepDataTileMap.erase(homeTileKey);
-	}
-	// If all tiles have been written, write the tileTable, re-write the datasSize and fileSize fields in the file header, and close the image
-	// We know all tiles have been written if the tile table is full.
-	if (m_tileTable.size() == m_fileHeader.numberOfTiles-1)
-	{
-		writeTileTable();
-		// Re-write the dataSize and fileSize fields which were not written properly in the constructor
-		// Seek to the 9th byte position in the file and write fileSize field
-		m_dtexFile.seekp(9, std::ios::beg);
-		m_fileHeader.fileSize += m_fileHeader.dataSize;
-		m_dtexFile.write((const char*)(&m_fileHeader.fileSize), sizeof(TqUint32));
-		
-		// Seek to the 25th byte position in the file and write dataSize.
-		m_dtexFile.seekp(25, std::ios::beg);
-		m_dtexFile.write((const char*)(&m_fileHeader.dataSize), sizeof(TqUint32));
-		
-		m_dtexFile.close();
+		m_deepTileMap.erase(homeTileKey);
 	}
 }
 
@@ -169,7 +142,7 @@ void CqDeepTileAdaptor::createNewTile(const TqMapKey tileKey)
 	
 	boost::shared_ptr<SqDeepDataTile> newTile(new SqDeepDataTile(tileKey[0]/m_tileWidth, 
 										tileKey[1]/m_tileHeight, newTileWidth, newTileHeight));	
-	m_deepDataTileMap[tileKey] = newTile;
+	m_deepTileMap[tileKey] = newTile;
 }
 
 void CqDeepTileAdaptor::copyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData,
@@ -269,7 +242,7 @@ bool CqDeepTileAdaptor::isFullTile(const TqMapKey tileKey) const
 	// Another way of saying this: the tile is full if and only if there are a total of tileWidth*tileHeight
 	// function lengths.
 	int functionCount = 0;
-	const boost::shared_ptr<SqDeepDataTile> tile = m_deepDataTileMap[tileKey];
+	const boost::shared_ptr<SqDeepDataTile> tile = m_deepTileMap[tileKey];
 	const int subRegionsPerRow = Aqsis::lceil((float)tile->height/m_bucketHeight); 
 	const int subRegionsPerCol = Aqsis::lceil((float)tile->width/m_bucketWidth);
 	const int maxNumberOfSubRegions = subRegionsPerRow*subRegionsPerCol;
@@ -296,45 +269,6 @@ bool CqDeepTileAdaptor::isFullTile(const TqMapKey tileKey) const
 		return true;
 	}
 	return false;
-}
-
-bool CqDeepTileAdaptor::isNeglectableTile(const TqMapKey tileKey) const
-{
-	// If all function lengths in the tile have length 1, 
-	// then the tile is empty (visibility is 100% everywhere in the tile), 
-	// and we do not write it to disk, but instead signify an empty tile by writing a file offset
-	// of 0 in the tile table. 
-	int j, k;
-	const boost::shared_ptr<SqDeepDataTile> tile = m_deepDataTileMap[tileKey];
-	const int subRegionsPerRow = Aqsis::lceil((float)tile->height/m_bucketHeight); 
-	const int subRegionsPerCol = Aqsis::lceil((float)tile->width/m_bucketWidth);
-	const int maxNumberOfSubRegions = subRegionsPerRow*subRegionsPerCol;
-	const TqSubRegionMap& subRegionMap = tile->subRegionMap;
-
-	if (subRegionMap.size() < maxNumberOfSubRegions)
-	{
-		// All subregions have not yet been created, so we know the tile is not full.
-		// Note: A tile must be full in order for us to determine whether or not it is neglectable.
-		// IsFullTile() should be invoked immediately before any calls to IsNeglectableTile.
-		// Therefore execution should never get here.
-		return false;
-	}
-	const TqSubRegionMap::const_iterator it;
-	for(it = subRegionMap.begin(); it != subRegionMap.end(); ++it)
-	{
-		const std::vector<std::vector<int> >& subRegionFunctionLengths = (*it)->functionLengths;
-		for (j = 0; j < subRegionFunctionLengths.size(); ++j)
-		{
-			for (k = 0; k < subRegionFunctionLengths[j].size(); ++k)
-			{
-				if (subRegionFunctionLengths[j][k] != 1)
-				{
-					return false;
-				}
-			}
-		}
-	}
-	return true;
 }
 
 //------------------------------------------------------------------------------

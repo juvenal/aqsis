@@ -65,6 +65,44 @@ typedef struct IqDeepTextureInput
 	 * \return a shared pointer to an object to the requested tile in memory.
 	 */
 	virtual boost::shared_ptr<CqDeepTextureTile> tileForPixel( const TqUint x, const TqUint y ) = 0;
+
+	virtual void transformationMatrices( TqFloat matWorldToScreen[4][4], TqFloat matWorldToCamera[4][4] ) const = 0;
+	
+	/** \brief Get the width of the deep texture map
+	 *
+	 * \return the width in pixels
+	 */
+	virtual TqUint imageWidth() const = 0;
+
+	/** \brief Get the height of the deep texture map
+	 *
+	 * \return the height in pixels
+	 */
+	virtual TqUint imageHeight() const = 0;
+	
+	/** \brief Get the (standard, unpadded tile) width of a tile from the current texture file. 
+	 *
+	 * \return the width in pixels of a tile.
+	 */
+	virtual TqUint standardTileWidth() const = 0;
+	
+	/** \brief Get the (standard, unpadded tile) height of a tile from the current texture file. 
+	 *
+	 * \return the height in pixels of a tile.
+	 */
+	virtual TqUint standardTileHeight() const = 0;
+	
+	/** \brief Get the number of color channels in a deep data node in the deep texture map.
+	 *
+	 * \return the number of color channels.
+	 */
+	virtual TqUint numberOfColorChannels() const = 0;
+
+	/** \brief Get the status of the texture file. Is it open and valid?
+	 *
+	 * \return true if the input file is open and valid, false otherwise.
+	 */
+	virtual bool isValid() const = 0;	
 };
 
 //------------------------------------------------------------------------------
@@ -87,7 +125,7 @@ struct SqDtexFileHeader
 	* \param hs - header size; the size in bytes of SqDtexFileHeader. We can probably get rid of this field.
 	* \param ds - data size; the size of only the data part of the dtex file
 	 */ 
-	SqDtexFileHeader( char* magicNumber = NULL, const uint32 fileSize = 0, const uint32 imageWidth = 0, 
+	SqDtexFileHeader( const uint32 fileSize = 0, const uint32 imageWidth = 0, 
 			const uint32 imageHeight = 0, const uint32 numberOfChannels = 0, const uint32 dataSize = 0, 
 			const uint32 tileWidth = 0, const uint32 tileHeight = 0, const uint32 numberOfTiles = 0,
 			const float matWorldToScreen[4][4] = NULL, const float matWorldToCamera[4][4] = NULL);
@@ -120,7 +158,7 @@ struct SqDtexFileHeader
 	// This sequence ensures that if the file is "typed" on a DOS shell or Windows command shell, the user will see "AqD" 
 	// on a single line, preceded by a strange character.
 	// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
-	char* magicNumber; 
+	static char magicNumber[8]; 
 	/// Size of this file in bytes
 	uint32 fileSize;
 	// Number of horizontal pixels in the image
@@ -158,13 +196,20 @@ class CqDeepTexInputFile : public IqDeepTextureInput
 		 *
 		 * \param filename - The full path and file name of the dtex file to open and read from.
 		 */
-		CqDeepTexInputFile( const std::string filename ); //< Should we have just filename, or filenameAndPath?
+		CqDeepTexInputFile( const std::string filename ); 
 	  
+		
+		//-----------------------------------------------------------------
+		// Override pure virtual function inherited from IqDeepTextureInput
+		
 		/** \brief Locate the tile containing the given pixel and copy it into memory. 
 		 *
-		 * \param x - Image x-coordinate of the pixel desired. We load the entire enclosing tile because of the spatial locality heuristic; it is likely to be needed again soon.
-		 * \param y - Image y-coordinate of the pixel desired. We load the entire enclosing tile because of the spatial locality heuristic; it is likely to be needed again soon.
-		 * \return a shared pointer to an object to the requested tile in memory.
+		 * \param x - Image x-coordinate of the pixel desired. 
+		 * We load the entire enclosing tile because of 
+		 * the spatial locality heuristic: it is likely to be needed again soon.
+		 * 
+		 * \param y - Image y-coordinate of the pixel desired.
+		 * \return a shared pointer to an object holding the requested tile in memory.
 		 */
 		boost::shared_ptr<CqDeepTextureTile> tileForPixel( const TqUint x, const TqUint y );
 		
@@ -214,6 +259,12 @@ class CqDeepTexInputFile : public IqDeepTextureInput
 		 * \return true if the input file is open and valid, false otherwise.
 		 */
 		inline bool isValid() const;
+		
+		/** \brief Get he file name of the deep texture file from which we read.
+		 *
+		 * \return a std::string with the file name
+		 */
+		inline const std::string& fileName() const;
 		
 	private:
 		
@@ -268,6 +319,11 @@ inline TqUint CqDeepTexInputFile::numberOfColorChannels() const
 inline bool CqDeepTexInputFile::isValid() const
 {
 	return m_isValid;
+}
+
+inline const std::string& CqDeepTexInputFile::fileName() const
+{
+	return m_filename;
 }
 
 //------------------------------------------------------------------------------

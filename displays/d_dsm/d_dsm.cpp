@@ -599,9 +599,10 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	}
 	else
 	{
-		boost::shared_ptr<CqDeepTextureTile> newTilePtr(new CqDeepTextureTile(xmin, ymin, xmax_plusone, 
-																ymax_plusone, data, functionLengths));
-		pData->tileAdaptor->addTile(newTilePtr);
+		boost::shared_ptr<Aqsis::CqDeepTextureTile> newTile(
+				new Aqsis::CqDeepTextureTile(visData, funLengths, xmin, ymin, xmax_plusone, 
+				ymax_plusone, entrysize));
+		pData->tileAdaptor->addTile(newTile);
 	}
 	
 	// Everything below is for testing and debugging

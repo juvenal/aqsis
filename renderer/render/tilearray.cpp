@@ -40,10 +40,10 @@ CqDeepTileArray::CqDeepTileArray( IqDeepTextureInput& tileSource ) :
 const TqVisFuncPtr CqDeepTileArray::visibilityFunctionAtPixel( const TqUint x, const TqUint y )
 {
 	// Identify the tile the requested pixel belongs to
-	const TqUint homeTileCol = x/m_deepTextureInputFile.standardTileWidth();
-	const TqUint homeTileRow = y/m_deepTextureInputFile.standardTileHeight();
-	const TqUint homeTileXmin = homeTileCol*m_deepTextureInputFile.standardTileWidth(); 
-	const TqUint homeTileYmin = homeTileRow*m_deepTextureInputFile.standardTileHeight();
+	const TqUint homeTileCol = x/m_deepTextureInputSource.standardTileWidth();
+	const TqUint homeTileRow = y/m_deepTextureInputSource.standardTileHeight();
+	const TqUint homeTileXmin = homeTileCol*m_deepTextureInputSource.standardTileWidth(); 
+	const TqUint homeTileYmin = homeTileRow*m_deepTextureInputSource.standardTileHeight();
 	const TileKey homeTileKey(homeTileYmin, homeTileXmin);
 	const TqUint homeTileX = x-homeTileXmin; // pixel x-ccordinate, relative to bucket origin
 	const TqUint homeTileY = y-homeTileYmin; // pixel y-ccordinate, relative to bucket origin
@@ -52,7 +52,7 @@ const TqVisFuncPtr CqDeepTileArray::visibilityFunctionAtPixel( const TqUint x, c
 	if (m_hotTileMap.count(homeTileKey) == 0)
 	{
 		// Tile is not cached, so load it.
-		m_hotTileMap[homeTileKey] = m_deepTextureInputFile.tileForPixel( x, y );
+		m_hotTileMap[homeTileKey] = m_deepTextureInputSource.tileForPixel( x, y );
 	}
 	return m_hotTileMap[homeTileKey]->visibilityFunctionAtPixel( homeTileX, homeTileY );
 }

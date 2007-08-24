@@ -46,6 +46,12 @@
 namespace Aqsis 
 {
 
+// To make eventual refactor to using Aqsis types nicer:
+typedef uint32 TqUint32;
+
+// Key to use when finding elements in std::maps.
+typedef std::pair<TqUint32, TqUint32> TqMapKey;
+
 class CqDeepTileAdaptor
 {
 	public:
@@ -54,18 +60,14 @@ class CqDeepTileAdaptor
 				TqUint32 bucketWidth, TqUint32 bucketHeight, TqUint32 numberOfChannels);
 		virtual ~CqDeepTileAdaptor();
 		
-		/** \brief Copy the given data into the tile map
-		 *
-		 * \param metadata - Data describing important attributes about the deep data.
-		 *					In this case, values specifying the length, in units of number of nodes,
-		 * 					of each visibility function. In the case of an empty bucket, the first value in
-		 * 					metadata is -1 and data is empty/invalid.
-		 * \param data - The deep data corresponding to the image region defined by (xmin,ymin) and (xmax,ymax)
-		 */
-		virtual void setData( const int xmin, const int ymin, const int xmax, const int ymax, 
-				const unsigned char *data, const unsigned char* metadata );
 		
-		virtual void addTile(boost::shared_ptr<CqDeepTextureTile> newTilePtr);
+		/** \brief Accept a new pointer to a new tile and store it in tile map. If it is full, 
+		 * send it to the output,  otherwise make it part of a bigger tile and wait for the rest
+		 * of the data to come in.
+		 *
+		 * \param newTile - A pointer to a new tile. It may or may not be full. 
+		 */
+		virtual void addTile(boost::shared_ptr<CqDeepTextureTile> newTile);
 		
 		/** \brief connect this tile adaptor to an output object to which we send tiles
 		 * once they are full.
@@ -85,9 +87,9 @@ class CqDeepTileAdaptor
 		 */		
 		void createNewSubTileRegion(boost::shared_ptr<SqDeepDataTile> currentTile, const TqMapKey subRegionKey);
 		
-		/** \brief Create a new tile and add it to m_DeepDataTileMap with the given key: tileID
+		/** \brief Create a new tile and add it to m_deepTileMap with the given key: tileID
 		 *
-		 * \param tileKey - The new tile's map key into m_DeepDataTileMap. 
+		 * \param tileKey - The new tile's map key into m_deepTileMap. 
 		 */
 		void createNewTile(const TqMapKey tileKey);
 		
@@ -153,22 +155,12 @@ class CqDeepTileAdaptor
 		 */				
 		bool isFullTile(const TqMapKey tileKey) const;
 		
-		/** \brief Determine if this tile is neglectable, that is, it covers no micropolygons 
-		 * or participating media in the DSM and can therefore be left out of the DTEX file,
-		 * and represented instead with a fileOffset of 0 in the tile table, signifying that any pixels
-		 * inside this tile have 100% visibility at all depths, and are therefore never in shadow.
-		 *
-		 * \param tileKey - Use to access the tile in m_deepDataTileMap;
-		 * 		 we want to know if the tile has all of its sub-regions as empty sub-regions.
-		 */	
-		bool isNeglectableTile(const TqMapKey tileKey) const;
-		
 		//-----------------------------------------------------------------------------------------
 		// Data
 		
 		// The map is indexed with a TileKey: a tile ID, which is a pair (topLeftX, topLeftY) 
 		// that can identify the region of the larger picture covered by a particular tile.
-		std::map<TqMapKey, boost::shared_ptr<SqDeepDataTile> > m_deepDataTileMap;
+		std::map<TqMapKey, boost::shared_ptr<SqDeepDataTile> > m_deepTileMap;
 		
 		boost::shared_ptr<IqDeepTextureOutput> m_deepTexOutput;
 		

@@ -42,8 +42,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/intrusive_ptr.hpp>
 
-// Where is this header supposed to come from?
-//#include "smartptr.h"
+#include "smartptr.h"
 #include "color.h"
 
 namespace Aqsis
@@ -55,7 +54,7 @@ namespace Aqsis
 class CqVisibilityFunction
 {
 	public:
-		inline CqVisibilityFunction( const TqInt functionLength, const TqFloat* functionPtr);
+		inline CqVisibilityFunction( const TqInt functionLength, const TqFloat* functionPtr );
 		
 	const TqInt functionLength; //< number of nodes in function
 	const TqFloat* functionPtr; //< raw pointer to beginning of function
@@ -123,8 +122,23 @@ class CqDeepTextureTile : public CqIntrusivePtrCounted
 		CqDeepTextureTile(const boost::shared_array<TqFloat> data, const boost::shared_array<TqUint> funcOffsets,
 				const TqUint width, const TqUint height, const TqUint topLeftX, const TqUint topLeftY,
 				const TqUint colorChannels);
-		
-		CqDeepTextureTile( data, funcOffsets, xmin, ymin, xmax_plusone, ymax_plusone );
+
+		/** \brief Overloaded constructor for a deep texture tile.
+		 * Use this as a wrapper for data that may represent a region of image
+		 * with dimensions not exactly the same as a tile. For example, use this to 
+		 * wrap tile sub-regions, or buckets.
+		 *
+		 * \param data - raw tile data.
+		 * \param funcOffsets - Function offsets indicating the start position (node #) 
+		 * 						of each visibility function in the tile
+		 * \param xmin - Image space top left x-coordinate of the region covered by this tile.
+		 * \param ymin - Image space top left y-coordinate of the region covered by this tile.
+		 * \param xmaxplus1 - Image space bottom right x-coordinate of the region covered by this tile.
+		 * \param ymaxplus1 - Image space bottom right y-coordinate of the region covered by this tile.
+		 * \param colorChannels - number of color channels per deep data node.
+		 */
+		CqDeepTextureTile( const TqFloat* data, const TqInt* funcOffsets, TqUint xmin, TqUint ymin,
+				TqUint xmaxplus1, TqUint ymaxplus1, TqUint colorChannels );
 
 		/** \brief Set the class data to the given data pointer
 		 *
@@ -137,6 +151,18 @@ class CqDeepTextureTile : public CqIntrusivePtrCounted
 		 * \param data - A pointer to meta data which has already been allocated and initialized.
 		 */
 		inline void setFuncOffsets(const boost::shared_array<TqUint> funcOffsets);		
+
+		/** \brief Get a const raw pointer to the tile data. 
+		 *
+		 * \return - A const pointer to dep data which has already been allocated and initialized.
+		 */
+		inline const TqFloat* data() const;
+
+		/** \brief Get a const raw pointer to the function offsets.
+		 *
+		 * \return - A const pointer to meta data which has already been allocated and initialized.
+		 */
+		inline const TqUint* funcOffsets() const;			
 		
 		/** \brief Get a const pointer to the visibility function at the requested pixel in the tile. 
 		 *
@@ -186,8 +212,9 @@ class CqDeepTextureTile : public CqIntrusivePtrCounted
 		/// indexed at position metaData[N], and its length is metaData[N+1]-metaData[N].
 		/// The last element in metaData should therefore be the position of the end of the data, which
 		/// also represents the size, or number of nodes in the data.
-		/// The number of elements in this array must be equal to (tileWidth*tileHeight),
-		/// so there is a length field for every pixel, empty or not.
+		/// The number of elements in this array must be equal to (tileWidth*tileHeight+1),
+		/// so there is a length field for every pixel, empty or not, and a final element 
+		/// which is used to ascertain the number of nodes in the last visibility function.
 		boost::shared_array<TqUint> m_funcOffsets; ///< visibility function offsets (w.r.t tile start)
 		TqUint m_width;				///< Width of the tile
 		TqUint m_height;			///< Height of the tile
@@ -195,6 +222,15 @@ class CqDeepTextureTile : public CqIntrusivePtrCounted
 		TqUint m_topLeftY;			///< Row index of the top left of the tile in the full array
 		TqUint m_colorChannels;		///< Number of color channels per deep data node.
 };
+
+//------------------------------------------------------------------------------
+// Implementation of inline functions for CqVisibilityFunction
+
+// Inline constructor:
+inline CqVisibilityFunction::CqVisibilityFunction( const TqInt functionLength, const TqFloat* functionPtr ) :
+	functionLength( functionLength ),
+	functionPtr( functionPtr )
+{}
 
 //------------------------------------------------------------------------------
 // Implementation of inline functions for CqDeepTextureTile
@@ -207,6 +243,16 @@ inline void CqDeepTextureTile::setData(const boost::shared_array<TqFloat> data)
 inline void CqDeepTextureTile::setFuncOffsets( const boost::shared_array<TqUint> funcOffsets)
 {
 	m_funcOffsets = funcOffsets;
+}
+
+inline const TqFloat* CqDeepTextureTile::data() const
+{
+	return m_data.get();
+}
+
+inline const TqUint* CqDeepTextureTile::funcOffsets() const
+{
+	return m_funcOffsets.get();
 }
 
 inline const TqVisFuncPtr CqDeepTextureTile::visibilityFunctionAtPixel( const TqUint tileSpaceX, const TqUint tileSpaceY ) const

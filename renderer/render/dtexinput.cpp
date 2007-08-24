@@ -34,11 +34,11 @@ namespace Aqsis
 // Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
 static const char dtexMagicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
 
-SqDtexFileHeader::SqDtexFileHeader( char* magicNumber, const uint32 fileSize, 
+SqDtexFileHeader::SqDtexFileHeader( const uint32 fileSize, 
 		const uint32 imageWidth, const uint32 imageHeight, const uint32 numberOfChannels, const uint32 dataSize, 
 		const uint32 tileWidth, const uint32 tileHeight, const uint32 numberOfTiles,
 		const float matWorldToScreen[4][4], const float matWorldToCamera[4][4] ) :
-	magicNumber( magicNumber ),
+	//magicNumber( magicNumber ),
 	fileSize( fileSize ),
 	imageWidth( imageWidth ),
 	imageHeight( imageHeight ),
@@ -55,8 +55,7 @@ SqDtexFileHeader::SqDtexFileHeader( char* magicNumber, const uint32 fileSize,
 
 void SqDtexFileHeader::writeToFile( std::ofstream& file ) const
 {
-	// Write the magic number
-	file.write(magicNumber, 8);
+	file.write((const char*)magicNumber, 8);
 	file.write((const char*)(&fileSize), sizeof(uint32));
 	file.write((const char*)(&imageWidth), sizeof(uint32));
 	file.write((const char*)(&imageHeight), sizeof(uint32));
@@ -140,7 +139,7 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::tileForPixel( const TqU
 	const TqUint fileOffset = m_tileOffsets[tileRow][tileCol];
 	
 	// If fileOffset is 0 then there is no tile to load.
-	if (fileOffset > 0)
+	if (fileOffset != 0)
 	{
 		return loadTile(tileRow, tileCol);
 	}
