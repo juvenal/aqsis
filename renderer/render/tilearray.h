@@ -60,7 +60,7 @@ class CqDeepTileArray
 		 *
 		 * \param filename - The full path and file name of the dtex file to open and read from.
 		 */
-		CqDeepTileArray( std::string filename );
+		CqDeepTileArray( IqDeepTextureInput& tileSource );
 		virtual ~CqDeepTileArray(){};
 	  
 		/** \brief (This is just a thought) Identify the tile that contains the requested pixel. 
@@ -91,7 +91,7 @@ class CqDeepTileArray
 		std::map<TileKey, boost::shared_ptr<CqDeepTextureTile> > m_hotTileMap;
 		
 		// The source from which we load tiles as they are needed
-		CqDeepTexInputFile m_deepTextureInputFile;
+		IqDeepTextureInput& m_deepTextureInputSource;
 };
 
 //------------------------------------------------------------------------------

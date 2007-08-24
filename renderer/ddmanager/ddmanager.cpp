@@ -998,7 +998,7 @@ void CqDisplayRequest::DisplayBucket( IqBucket* pBucket )
 {
 	// If the display is not validated, don't send it data.
 	// Or if a DspyImageData function was not found for
-	// this display request, then we cannot continue
+	// this display request, then we cannot continue.
 	if( !(m_valid && m_DataMethod) && !m_DeepDataMethod )
 		return;
 	
@@ -1009,8 +1009,6 @@ void CqDisplayRequest::DisplayBucket( IqBucket* pBucket )
 	// Now that the bucket data has been constructed, send it to the display
 	// either lines by lines or bucket by bucket.
 	SendToDisplay( pBucket );
-	// Check if the display needs scanlines, and if so, accumulate bucket data
-	// until a scanline is complete. Send to display when complete.	
 }
 
 void CqShallowDisplayRequest::FormatBucketForDisplay( IqBucket* pBucket )

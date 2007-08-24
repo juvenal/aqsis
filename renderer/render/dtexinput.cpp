@@ -98,9 +98,11 @@ void SqDtexFileHeader::setTransformationMatrices(const float imatWorldToScreen[4
 	}
 }
 
-CqDeepTexInputFile::CqDeepTexInputFile(std::string filename)
+CqDeepTexInputFile::CqDeepTexInputFile( const std::string filename )
 	: m_dtexFile( filename.c_str(), std::ios::in | std::ios::binary ),
 	m_fileHeader(),
+	m_isValid( true ),
+	m_filename( filename ),
 	m_tileOffsets(),
 	m_tilesPerRow(0),
 	m_tilesPerCol(0)
@@ -109,6 +111,7 @@ CqDeepTexInputFile::CqDeepTexInputFile(std::string filename)
 	if (!m_dtexFile.is_open())
 	{
 		throw Aqsis::XqInternal(std::string("Failed to open file \"") + filename + std::string( "\""), __FILE__, __LINE__);
+		m_isValid = false;
 	}
 	// Load the file header into memory
 	m_fileHeader.readFromFile(m_dtexFile);
@@ -117,8 +120,9 @@ CqDeepTexInputFile::CqDeepTexInputFile(std::string filename)
 	std::string testMN = m_fileHeader.magicNumber;
 	if ( testMN != correctMN )
 	{
-		throw XqInternal(std::string("Magic number for DTEX file: ") + filename 
+		throw XqInternal(std::string("Magic number in DTEX file: ") + filename 
 				+ std::string(" is not valid."), __FILE__, __LINE__);
+		m_isValid = false;
 	}
 	// Calculate some other variables
 	m_tilesPerRow = m_fileHeader.imageWidth/m_fileHeader.tileWidth;

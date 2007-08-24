@@ -26,10 +26,14 @@
 
 #include <cmath>
 
-#include "deeptilecache.h"
+#include "deeptileadaptor.h"
 #include "exception.h"
+#include "aqsismath.h"
 
-CqDeepTileAdaptor::CqDeepTileAdaptor( boost::shared_ptr<IqDeepTextrueOutput> outputObject, 
+namespace Aqsis
+{
+
+CqDeepTileAdaptor::CqDeepTileAdaptor( boost::shared_ptr<IqDeepTextureOutput> outputObject, 
 		TqUint32 imageWidth, TqUint32 imageHeight, TqUint32 tileWidth, TqUint32 tileHeight, 
 		TqUint32 bucketWidth, TqUint32 bucketHeight, TqUint32 numberOfChannels) :
 			m_deepTexOutput( outputObject ),
@@ -39,16 +43,13 @@ CqDeepTileAdaptor::CqDeepTileAdaptor( boost::shared_ptr<IqDeepTextrueOutput> out
 			m_tileHeight( tileHeight ),
 			m_bucketWidth( bucketWidth ),
 			m_bucketHeight( bucketHeight ),
-			m_tilesPerImageRow( Aqsis::lceil((float)imageWidth/tileWidth) ),
-			m_tilesPerImageCol (Aqsis::lceil((float)imageHeight/tileHeight) ),
+			m_tilesPerImageRow( lceil((float)imageWidth/tileWidth) ),
+			m_tilesPerImageCol (lceil((float)imageHeight/tileHeight) ),
 			m_bucketsPerTileRow( tileWidth/bucketWidth ),
 			m_bucketsPerTileCol( tileHeight/bucketHeight ),
 			m_numberOfChannels( numberOfChannels )		
 {}
 
-// Note: Metadata is whatever extra data the display device wants to store in the dtex file,
-// along with the deep data. It just so happens that the extra data we want to store for 
-// DSMs is the function lengths.
 void CqDeepTileAdaptor::setData( const int xmin, const int ymin, const int xmax, const int ymax,
 		const unsigned char *data, const unsigned char* metadata )
 {
@@ -78,8 +79,8 @@ void CqDeepTileAdaptor::setData( const int xmin, const int ymin, const int xmax,
 	{
 		createNewSubTileRegion(currentTile, subRegionKey);
 	}
-	std::vector< std::vector<int> >& tFunctionLengths = currentTile->subRegions[subRegionKey]->functionLengths;
-	std::vector< std::vector<float> >& tData = currentTile->subRegions[subRegionKey]->tileData;
+	std::vector< std::vector<int> >& tFunctionLengths = currentTile->subRegionMap[subRegionKey]->functionLengths;
+	std::vector< std::vector<float> >& tData = currentTile->subRegionMap[subRegionKey]->tileData;
 	// Check for and deal with the special case of empty buckets
 	if (iMetaData[0] == -1)
 	{
@@ -335,3 +336,6 @@ bool CqDeepTileAdaptor::isNeglectableTile(const TqMapKey tileKey) const
 	}
 	return true;
 }
+
+//------------------------------------------------------------------------------
+} // namespace Aqsis

@@ -32,9 +32,9 @@
 namespace Aqsis
 {
 
-CqDeepTileArray::CqDeepTileArray( std::string filename ) :
+CqDeepTileArray::CqDeepTileArray( IqDeepTextureInput& tileSource ) :
 	m_hotTileMap(),
-	m_deepTextureInputFile( filename )
+	m_deepTextureInputSource( tileSource )
 {}
 
 const TqVisFuncPtr CqDeepTileArray::visibilityFunctionAtPixel( const TqUint x, const TqUint y )

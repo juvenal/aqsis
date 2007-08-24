@@ -40,7 +40,11 @@
 // External libraries
 #include <boost/shared_array.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/intrusive_ptr.hpp>
 
+// Where is this header supposed to come from?
+//#include "smartptr.h"
+#include "color.h"
 
 namespace Aqsis
 {
@@ -51,7 +55,7 @@ namespace Aqsis
 class CqVisibilityFunction
 {
 	public:
-		CqVisibilityFunction( const TqInt functionLength, const TqFloat* functionPtr);
+		inline CqVisibilityFunction( const TqInt functionLength, const TqFloat* functionPtr);
 		
 	const TqInt functionLength; //< number of nodes in function
 	const TqFloat* functionPtr; //< raw pointer to beginning of function
@@ -59,10 +63,50 @@ class CqVisibilityFunction
 
 typedef boost::shared_ptr<CqVisibilityFunction> TqVisFuncPtr;
 
-/** \brief A class to store a single deep data tile and functions.
+//------------------------------------------------------------------------------
+/** \brief A minimal vector interface to the visibility functions held by another object.
+ *
+ * The idea of this class is to provide the absolute minimal interface to array
+ * data managed by another object, but in a way which ensures that the data
+ * which this class points to (but does not own) is not deallocated by another
+ * thread.
+ */
+class CqDeepSampleVector
+{
+	public:
+		/** \brief Construct a sample vector.
+		 *
+		 * \param data - the raw vector sample data.
+		 * \param parentTile - the array tile which the sample data belongs to.
+		 */
+		inline CqDeepSampleVector(const TqVisFuncPtr visFunc, 
+								const boost::intrusive_ptr<CqIntrusivePtrCounted>& parentTile);
+		/** \brief Indexing operator for this vector of data.
+		 *
+		 * Two ideas on what this could do:
+		 * 1) treat the index as a visibility function index and return the color at that node,
+		 * 		 or change the function prototype to return a visibility node wrapper so that we may
+		 * 		return the (depth, visibility pair).
+		 * 2) treat the index as a depth and return the visibility at that depth.
+		 * Option (1) seems like the right thing to do, and use the node wrapper idea.
+		 * 
+		 * \param index - the index at which to obtain a sample.
+		 */
+		inline CqColor operator[](TqUint index) const;
+		
+	private:
+		/// Shared pointer to the visibility function held by this vector
+		const TqVisFuncPtr m_visibilityFunction;
+		/** A pointer to the parent tile; this is simply to protect the tile
+		 *  data from deallocation in the multithreaded case.
+		 */
+		const boost::intrusive_ptr<const CqIntrusivePtrCounted> m_parentTile;
+};
+
+/** \brief A class to store a single deep data tile, and functions to access the data therein.
  *
  */
-class CqDeepTextureTile
+class CqDeepTextureTile : public CqIntrusivePtrCounted
 {
 	public:
 		/** \brief Construct a deep texture tile
@@ -79,6 +123,8 @@ class CqDeepTextureTile
 		CqDeepTextureTile(const boost::shared_array<TqFloat> data, const boost::shared_array<TqUint> funcOffsets,
 				const TqUint width, const TqUint height, const TqUint topLeftX, const TqUint topLeftY,
 				const TqUint colorChannels);
+		
+		CqDeepTextureTile( data, funcOffsets, xmin, ymin, xmax_plusone, ymax_plusone );
 
 		/** \brief Set the class data to the given data pointer
 		 *
@@ -165,7 +211,8 @@ inline void CqDeepTextureTile::setFuncOffsets( const boost::shared_array<TqUint>
 
 inline const TqVisFuncPtr CqDeepTextureTile::visibilityFunctionAtPixel( const TqUint tileSpaceX, const TqUint tileSpaceY ) const
 {
-	// Construct and return a pointer to new instance of CqVisibilityFunction(functionLength, dataPtr) 
+	// Construct and return a pointer to new instance of CqVisibilityFunction,
+	// with fields functionLength and data pointer 
 	return TqVisFuncPtr( new CqVisibilityFunction(
 			m_funcOffsets[tileSpaceX*tileSpaceY+1]-m_funcOffsets[tileSpaceX*tileSpaceY+1],
 			m_data.get()+(tileSpaceX*tileSpaceY*(1+m_colorChannels)))); 

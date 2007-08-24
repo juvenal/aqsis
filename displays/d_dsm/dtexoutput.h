@@ -162,7 +162,7 @@ struct SqDtexFileHeader
 	* \param hs - header size; the size in bytes of SqDtexFileHeader. We can probably get rid of this field.
 	* \param ds - data size; the size of only the data part of the dtex file
 	 */ 
-	SqDtexFileHeader( const char* magicNumber = NULL, const uint32 fileSize = 0, const uint32 imageWidth = 0, 
+	SqDtexFileHeader( const uint32 fileSize = 0, const uint32 imageWidth = 0, 
 			const uint32 imageHeight = 0, const uint32 numberOfChannels = 0, const uint32 dataSize = 0, 
 			const uint32 tileWidth = 0, const uint32 tileHeight = 0, const uint32 numberOfTiles = 0,
 			const float matWorldToScreen[4][4] = NULL, const float matWorldToCamera[4][4] = NULL);
@@ -195,7 +195,7 @@ struct SqDtexFileHeader
 	// This sequence ensures that if the file is "typed" on a DOS shell or Windows command shell, the user will see "AqD" 
 	// on a single line, preceded by a strange character.
 	// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
-	char* magicNumber;
+	static const char magicNumber[8];
 	/// Size of this file in bytes
 	uint32 fileSize;
 	// Number of horizontal pixels in the image
@@ -217,6 +217,9 @@ struct SqDtexFileHeader
 	// World to Camera transformation matrix
 	float matWorldToCamera[4][4];
 };
+
+// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
+const char SqDtexFileHeader::magicNumber[8] =  {0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
 
 //------------------------------------------------------------------------------
 /** \brief A deep texture class to receive deep data from a deep display device, manage the DTEX file and tile

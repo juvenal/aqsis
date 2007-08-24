@@ -51,6 +51,23 @@ namespace Aqsis
 {
 
 //------------------------------------------------------------------------------
+/** \brief Interfaces for classes handling input (loading) of deep texture tiles.
+ *
+ */
+typedef struct IqDeepTextureInput
+{
+	virtual ~IqDeepTextureInput(){};
+	
+	/** \brief Locate the tile containing the given pixel coordinate, load it and return a pointer.
+	 *
+	 * \param x - Image x-coordinate of the pixel desired. 
+	 * \param y - Image y-coordinate of the pixel desired.
+	 * \return a shared pointer to an object to the requested tile in memory.
+	 */
+	virtual boost::shared_ptr<CqDeepTextureTile> tileForPixel( const TqUint x, const TqUint y ) = 0;
+};
+
+//------------------------------------------------------------------------------
 /** \brief A structure storing the constant/global DTEX file information
  *
  * This file header represents the first bytes of data in the file.
@@ -134,14 +151,14 @@ struct SqDtexFileHeader
  * A single public member function called LoadTileForPixel() is responsible for locating the tile with the requested pixel from disk and
  * copying it to the memory provided by the caller. 
  */
-class CqDeepTexInputFile
+class CqDeepTexInputFile : public IqDeepTextureInput
 {
 	public:
 		/** \brief Construct an instance of CqDeepTexOutputFile
 		 *
 		 * \param filename - The full path and file name of the dtex file to open and read from.
 		 */
-		CqDeepTexInputFile(std::string filename); //< Should we have just filename, or filenameAndPath?
+		CqDeepTexInputFile( const std::string filename ); //< Should we have just filename, or filenameAndPath?
 	  
 		/** \brief Locate the tile containing the given pixel and copy it into memory. 
 		 *
@@ -191,6 +208,12 @@ class CqDeepTexInputFile
 		 * \return the number of color channels.
 		 */
 		inline TqUint numberOfColorChannels() const;
+
+		/** \brief Get the status of the texture file. Is it open and valid?
+		 *
+		 * \return true if the input file is open and valid, false otherwise.
+		 */
+		inline bool isValid() const;
 		
 	private:
 		
@@ -203,6 +226,8 @@ class CqDeepTexInputFile
 		
 		// File header stuff
 		SqDtexFileHeader m_fileHeader;
+		bool m_isValid; 				///< Is this input file open and valid (is it a deep texture file?)
+		std::string m_filename;
 		// m_tileOffsets serves as the tile table, indexed by [tileTopLeftY][tileTopLeftX],
 		// returns the file byte position of the start of the tile.
 		std::vector< std::vector<TqUint> > m_tileOffsets;
@@ -238,6 +263,11 @@ inline TqUint CqDeepTexInputFile::standardTileHeight() const
 inline TqUint CqDeepTexInputFile::numberOfColorChannels() const
 {
 	return m_fileHeader.numberOfChannels;
+}
+
+inline bool CqDeepTexInputFile::isValid() const
+{
+	return m_isValid;
 }
 
 //------------------------------------------------------------------------------

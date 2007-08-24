@@ -48,7 +48,7 @@
 
 // From displayhelpers.c
 // Note: We should probably put these functions in a global library because they are used by this display as
-// well as d_exr and the main display. Currently each subdirectory has its own copy of the functions.
+// well as d_exr and the main display. Currently each subdirectory has its own copy of these functions.
 #ifdef __cplusplus
 extern "C"
 {
@@ -478,7 +478,8 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 #endif
 	
 	PtDspyError rval = PkDspyErrorNone;
-	const int tileWidth = 64; //< We will want to extract the real tile dimensions from parameters. Use 64 as default.
+	/// \toDo We will want to extract the real tile dimensions from parameters. Use 64 as default.
+	const int tileWidth = 64; 
 	const int tileHeight = 64;
 	float matWorldToCamera[ 4 ][ 4 ];
 	float matWorldToScreen[ 4 ][ 4 ];
@@ -559,9 +560,9 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
                           int xmax_plusone,
                           int ymin,
                           int ymax_plusone,
-                          int entrysize, //< This tells you the number of color channels in a data element, (exludes the depth field)
+                          int entrysize, //< This tells you the number of color channels in a data element
                           const unsigned char* data,
-                          const unsigned char* functionLengths) //< # of nodes in each non-empty visibility function in data
+                          const unsigned char* functionLengths) //< # of nodes in each non-empty visibility function
 {
 
 #if SHOW_CALLSTACK
@@ -587,8 +588,10 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	if ( pData->flags == PkDspyFlagsWantsScanLineOrder )
 	{
 		const int nodeSize = pData->Channels+1;
-		const int functionCount = CountFunctions(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< # of visibility functions in the data
-		const int nodeCount = CountNodes(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]); //< Total # of visbility nodes in data
+		// # of visibility functions in the data
+		const int functionCount = CountFunctions(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]);
+		 // total # of visbility nodes in data
+		const int nodeCount = CountNodes(funLengths, xmax_plusone-xmin, pData->bucketDimensions[0]);
 		pData->testDeepData[ymin] = new float[nodeCount*4];
 		memcpy(pData->testDeepData[ymin], visData, nodeSize*nodeCount*sizeof(float));
 		pData->functionLengths[ymin] = new int[functionCount];
@@ -596,9 +599,9 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	}
 	else
 	{
-		//boost::shared_ptr<CqDeepTextureTile> newTilePtr(new CqDeepTextureTile());
-		//pData->tileAdaptor->addTile(newTilePtr);
-		//pData->DtexFile->setTileData(xmin, ymin, xmax_plusone, ymax_plusone, data, functionLengths);
+		boost::shared_ptr<CqDeepTextureTile> newTilePtr(new CqDeepTextureTile(xmin, ymin, xmax_plusone, 
+																ymax_plusone, data, functionLengths));
+		pData->tileAdaptor->addTile(newTilePtr);
 	}
 	
 	// Everything below is for testing and debugging
