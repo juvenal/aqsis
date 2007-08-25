@@ -147,13 +147,13 @@ class CqDeepTextureTile : public CqIntrusivePtrCounted
 		 *
 		 * \param data - A pointer to data which has already been allocated and initialized.
 		 */
-		inline void setData(const boost::shared_array<TqFloat> data);
+		inline void setData(boost::shared_array<TqFloat> data);
 
 		/** \brief Set the class meta data to the given meta data pointer
 		 *
 		 * \param data - A pointer to meta data which has already been allocated and initialized.
 		 */
-		inline void setFuncOffsets(const boost::shared_array<TqUint> funcOffsets);		
+		inline void setFuncOffsets(boost::shared_array<TqInt> funcOffsets);		
 
 		/** \brief Get a const raw pointer to the tile data. 
 		 *
@@ -165,7 +165,7 @@ class CqDeepTextureTile : public CqIntrusivePtrCounted
 		 *
 		 * \return - A const pointer to meta data which has already been allocated and initialized.
 		 */
-		inline const TqUint* funcOffsets() const;			
+		inline const TqInt* funcOffsets() const;			
 		
 		/** \brief Get a const pointer to the visibility function at the requested pixel in the tile. 
 		 *
@@ -245,12 +245,12 @@ inline CqVisibilityFunction::CqVisibilityFunction( const TqInt functionLength, c
 //------------------------------------------------------------------------------
 // Implementation of inline functions for CqDeepTextureTile
 
-inline void CqDeepTextureTile::setData(const boost::shared_array<TqFloat> data)
+inline void CqDeepTextureTile::setData(boost::shared_array<TqFloat> data)
 {
 	m_data = data;
 }
 
-inline void CqDeepTextureTile::setFuncOffsets( const boost::shared_array<TqUint> funcOffsets)
+inline void CqDeepTextureTile::setFuncOffsets(boost::shared_array<TqInt> funcOffsets)
 {
 	m_funcOffsets = funcOffsets;
 }
@@ -260,7 +260,7 @@ inline const TqFloat* CqDeepTextureTile::data() const
 	return m_data.get();
 }
 
-inline const TqUint* CqDeepTextureTile::funcOffsets() const
+inline const TqInt* CqDeepTextureTile::funcOffsets() const
 {
 	return m_funcOffsets.get();
 }
@@ -275,7 +275,7 @@ inline const TqVisFuncPtr CqDeepTextureTile::visibilityFunctionAtPixel( const Tq
 			m_funcOffsets[tileSpaceX*tileSpaceY+1]-m_funcOffsets[tileSpaceX*tileSpaceY+1],
 			m_data.get()+(tileSpaceX*tileSpaceY*(1+m_colorChannels))));
 	}
-	return TqVisFuncPtr( new CqVisibilityFunction( 0, NULL );
+	return TqVisFuncPtr( new CqVisibilityFunction( 0, NULL ));
 }
 
 inline TqUint CqDeepTextureTile::width() const

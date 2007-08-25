@@ -141,6 +141,24 @@ class CqDeepTileAdaptor
 		 */
 		void createNewTile(const TqMapKey tileKey);
 		
+		/** \brief Recalculate the visibility function offsets for this tile by
+		 * iterating over the sub-regions, and filling in and empty regions with default data.
+		 * 
+		 * \param funcOffsets - A pointer to pre-alloacted storage where we should store the function offsets
+		 * \param tileKey - The tile's key into m_deepTileMap.
+		 * \return the value of the largest function offset, which represents the
+		 * number of visibility nodes in the tile.   
+		 */		
+		TqUint rebuildFunctionOffsets(boost::shared_array<TqInt> funcOffsets, const TqMapKey tileKey);
+
+		/** \brief Rebuild the visibility functions for this tile by
+		 * iterating over the sub-regions, and filling in and empty regions with default data.
+		 * 
+		 * \param data - A pointer to pre-alloacted storage where we should store the data
+		 * \param tileKey - The tile's key into m_deepTileMap.
+		 */
+		void rebuildVisibilityFunctions(boost::shared_array<TqFloat> data, const TqMapKey tileKey);
+		
 		/** \brief Copy given metadata into the given std::vector.
 		 * 
 		 * \param toMetaData - The destination to which we want to copy metadata

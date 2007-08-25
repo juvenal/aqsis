@@ -108,31 +108,10 @@ void CqDeepTileAdaptor::rebuildAndOutputTile(const TqMapKey tileKey)
 	// Otherwise construct a full tile, filling in any empty regions with default data
 	const boost::shared_ptr<SqDeepDataTile> sourceTile = m_deepTileMap[tileKey];
 	const TqSubRegionMap& subRegionMap = sourceTile->subRegionMap;
-	boost::shared_ptr<CqDeepTextureTile> subTile;
 	boost::shared_ptr<CqDeepTextureTile> completeTile;
 	boost::shared_array<TqFloat> data;
 	boost::shared_array<TqInt> funcOffsets;
-	TqUint pixel;
-	TqUint i;
-	//TqUint tileCol;
-	//TqUint subRegionCol;
-	TqUint rowIndex;
-	TqUint subRowIndex;
-	TqUint colIndex;
-	TqUint subRegionWidth;
-	TqUint subRegionHeight;
-	TqUint rowNodeCount;
-	TqUint rowDataSource;
-	//TqUint subRegionRow;
-	TqUint currentOffset = 0;
-	TqMapKey mapKey(0,0);
-	TqUint funcOffsetsArrayPos = 0;
-	TqUint dataArrayPos = 0;
-	TqUint subTileWidth = subRegionMap[mapKey]->textureTile->width();
-	TqUint subTileHeight = subRegionMap[mapKey]->textureTile->height();
-	const TqUint tilesPerCol = lceil((float)sourceTile->tileHeight/subTileHeight);
-	const TqUint tilesPerRow = lceil((float)sourceTile->tileWidth/subTileWidth);
-	const TqUint nodeSize = subRegionMap[mapKey]->textureTile->colorChannels()+1;
+	TqUint nodeCount;
 	
 	if ( allSubRegionsEmpty(tileKey) )
 	{
@@ -146,83 +125,11 @@ void CqDeepTileAdaptor::rebuildAndOutputTile(const TqMapKey tileKey)
 		funcOffsets = boost::shared_array<TqInt>(new TqInt[sourceTile->tileWidth*sourceTile->tileHeight+1]);	
 		// Now we need to actually recalculate function offsets. We cannot copy the exisiting offsets
 		// because they are all relative to their own sub-regions. We want offsets relative to the larger tile.
-		//nodeCount = rebuildFunctionOffsets();
-		
-		for ( rowIndex = 0; rowIndex < tilesPerCol; ++rowIndex )
-		{
-			mapKey.first = rowIndex*subTileHeight; mapKey.second = 0;
-			subTileHeight = subRegionMap[mapKey]->second->textureTile->height();
-			for (subRowIndex = 0; subRowIndex < subTileHeight; ++subRowIndex)
-			{
-				for (colIndex = 0; colIndex < tilesPerRow; ++colIndex)
-				{
-					mapKey.first = rowIndex*subTileHeight; mapKey.second = colIndex*subTileWidth;
-					subTile = subRegionMap[mapKey]->second->textureTile;
-					subRegionWidth = subTile->width();
-					if (subTile->isEmpty())
-					{
-						// Fill default values: offset increases by 1 (function lengths == 1)
-						for (pixel = 0; pixel < subRegionWidth; ++pixel)
-						{
-							funcOffsets[currentOffsetArrayPos] = currentOffset;
-							currentOffsetArrayPos++;
-							currentOffset++;
-						}
-					}
-					else
-					{
-						const TqInt* sourceFuncOffsets = subTile->funcOffsets()+(subRowIndex*subRegionWidth);
-						for (pixel = 0; pixel < subRegionWidth; ++pixel)
-						{
-							funcOffsets[currentOffsetArrayPos] = currentOffset;
-							currentOffsetArrayPos++;
-							currentOffset += sourceFuncOffsets[pixel+1]-sourceFuncOffsets[pixel];
-						}
-					}
-				}
-			}
-		}
+		nodeCount = rebuildFunctionOffsets(funcOffsets, tileKey);
 		// Now we know how much data to allocate, so do it
-		data = boost::shared_array<TqFloat>(new TqFloat[currentOffset*nodeSize]);
+		data = boost::shared_array<TqFloat>(new TqFloat[nodeCount*nodeSize]);
 		// And now for another round of data copy
-		for ( rowIndex = 0; rowIndex < tilesPerCol; ++rowIndex )
-		{
-			mapKey.first = rowIndex*subTileHeight; mapKey.second = 0;
-			subTileHeight = subRegionMap[mapKey]->second->textureTile->height();
-			for (subRowIndex = 0; subRowIndex < subTileHeight; ++subRowIndex)
-			{
-				for (colIndex = 0; colIndex < tilesPerRow; ++colIndex)
-				{
-					mapKey.first = rowIndex*subTileHeight; mapKey.second = colIndex*subTileWidth;
-					subTile = subRegionMap[mapKey]->second->textureTile;
-					subRegionWidth = subTile->width();
-					if (subTile->isEmpty())
-					{
-						// Fill default values: a single 100% visibility node per pixel
-						for (pixel = 0; pixel < subRegionWidth; ++pixel)
-						{
-							const TqUint arrayIndex = dataArrayPos*nodeSize 
-							data[arrayIndex] = 0;
-							for (i = 1 ; i <= subTile->colorChannels; ++i)
-							{
-								data[arrayIndex+i] = 1; 
-							}
-						}
-						dataArrayPos += subRegionWidth;
-					}
-					else
-					{
-						const TqInt* sourceFuncOffsets = subTile->funcOffsets()+(subRowIndex*subRegionWidth);
-						rowDataStart = sourceFuncOffsets[0];
-						rowNodeCount = sourceFuncOffsets[subRegionWidth+1]-rowDataStartIndex;
-						const TqFloat* sourceData = subTile->data()+rowDataStart;
-						memcpy(data+(dataArrayPos*nodeSize*sizeof(TqFloat)), sourceData,
-								rowNodeCount*nodeSize*sizeof(TqFloat));
-						dataArrayPos += rowNodeCount;
-					}
-				}
-			}
-		}
+		rebuildVisibilityFunctions(data, tileKey);
 	}
 	
 	completeTile = boost::shared_ptr<CqDeepTextureTile>( newCqDeepTextureTile(data, funcOffsets,
@@ -230,7 +137,124 @@ void CqDeepTileAdaptor::rebuildAndOutputTile(const TqMapKey tileKey)
 	// Add this full tile to the deep texture output file
 	m_deepTexOutput.outputTile( completeTile );
 	// Reclaim tile memory no longer needed
-	m_deepTileMap.erase(homeTileKey);
+	m_deepTileMap.erase(tileKey);
+}
+
+TqUint CqDeepTileAdaptor::rebuildFunctionOffsets(boost::shared_array<TqInt> funcOffsets, const TqMapKey tileKey)
+{
+	const boost::shared_ptr<SqDeepDataTile> sourceTile = m_deepTileMap[tileKey];
+	const TqSubRegionMap& subRegionMap = sourceTile->subRegionMap;
+	boost::shared_ptr<CqDeepTextureTile> subTile;
+	TqUint pixel;
+	TqUint rowIndex;
+	TqUint subRowIndex;
+	TqUint colIndex;
+	TqUint subRegionWidth;
+	TqUint currentOffset = 0;
+	TqMapKey mapKey(0,0);
+	TqUint funcOffsetsArrayPos = 0;
+	TqUint subTileWidth = subRegionMap[mapKey]->textureTile->width();
+	TqUint subTileHeight = subRegionMap[mapKey]->textureTile->height();
+	const TqUint tilesPerCol = lceil((float)sourceTile->tileHeight/subTileHeight);
+	const TqUint tilesPerRow = lceil((float)sourceTile->tileWidth/subTileWidth);
+	
+	for ( rowIndex = 0; rowIndex < tilesPerCol; ++rowIndex )
+	{
+		mapKey.first = rowIndex*subTileHeight; mapKey.second = 0;
+		subTileHeight = subRegionMap[mapKey]->second->textureTile->height();
+		for (subRowIndex = 0; subRowIndex < subTileHeight; ++subRowIndex)
+		{
+			for (colIndex = 0; colIndex < tilesPerRow; ++colIndex)
+			{
+				mapKey.first = rowIndex*subTileHeight; mapKey.second = colIndex*subTileWidth;
+				subTile = subRegionMap[mapKey]->second->textureTile;
+				subRegionWidth = subTile->width();
+				if (subTile->isEmpty())
+				{
+					// Fill default values: offset increases by 1 (function lengths == 1)
+					for (pixel = 0; pixel < subRegionWidth; ++pixel)
+					{
+						funcOffsets[currentOffsetArrayPos] = currentOffset;
+						currentOffsetArrayPos++;
+						currentOffset++;
+					}
+				}
+				else
+				{
+					const TqInt* sourceFuncOffsets = subTile->funcOffsets()+(subRowIndex*subRegionWidth);
+					for (pixel = 0; pixel < subRegionWidth; ++pixel)
+					{
+						funcOffsets[currentOffsetArrayPos] = currentOffset;
+						currentOffsetArrayPos++;
+						currentOffset += sourceFuncOffsets[pixel+1]-sourceFuncOffsets[pixel];
+					}
+				}
+			}
+		}
+	}
+	return currentOffset;
+}
+
+void CqDeepTileAdaptor::rebuildVisibilityFunctions(boost::shared_array<TqFloat> data, const TqMapKey tileKey)
+{
+	const boost::shared_ptr<SqDeepDataTile> sourceTile = m_deepTileMap[tileKey];
+	const TqSubRegionMap& subRegionMap = sourceTile->subRegionMap;
+	boost::shared_ptr<CqDeepTextureTile> subTile;
+	TqUint nodeCount;
+	TqUint pixel;
+	TqUint i;
+	TqUint rowIndex;
+	TqUint subRowIndex;
+	TqUint colIndex;
+	TqUint subRegionWidth;
+	TqUint rowNodeCount;
+	TqUint rowDataSource;
+	TqMapKey mapKey(0,0);
+	TqUint dataArrayPos = 0;
+	TqUint subTileWidth = subRegionMap[mapKey]->textureTile->width();
+	TqUint subTileHeight = subRegionMap[mapKey]->textureTile->height();
+	const TqUint tilesPerCol = lceil((float)sourceTile->tileHeight/subTileHeight);
+	const TqUint tilesPerRow = lceil((float)sourceTile->tileWidth/subTileWidth);
+	const TqUint nodeSize = subRegionMap[mapKey]->textureTile->colorChannels()+1;
+	
+	for ( rowIndex = 0; rowIndex < tilesPerCol; ++rowIndex )
+	{
+		mapKey.first = rowIndex*subTileHeight; mapKey.second = 0;
+		subTileHeight = subRegionMap[mapKey]->second->textureTile->height();
+		for (subRowIndex = 0; subRowIndex < subTileHeight; ++subRowIndex)
+		{
+			for (colIndex = 0; colIndex < tilesPerRow; ++colIndex)
+			{
+				mapKey.first = rowIndex*subTileHeight; mapKey.second = colIndex*subTileWidth;
+				subTile = subRegionMap[mapKey]->second->textureTile;
+				subRegionWidth = subTile->width();
+				if (subTile->isEmpty())
+				{
+					// Fill default values: a single 100% visibility node per pixel
+					for (pixel = 0; pixel < subRegionWidth; ++pixel)
+					{
+						const TqUint arrayIndex = dataArrayPos*nodeSize 
+						data[arrayIndex] = 0;
+						for (i = 1 ; i <= subTile->colorChannels; ++i)
+						{
+							data[arrayIndex+i] = 1; 
+						}
+					}
+					dataArrayPos += subRegionWidth;
+				}
+				else
+				{
+					const TqInt* sourceFuncOffsets = subTile->funcOffsets()+(subRowIndex*subRegionWidth);
+					rowDataStart = sourceFuncOffsets[0];
+					rowNodeCount = sourceFuncOffsets[subRegionWidth+1]-rowDataStartIndex;
+					const TqFloat* sourceData = subTile->data()+rowDataStart;
+					memcpy(data+(dataArrayPos*nodeSize*sizeof(TqFloat)), sourceData,
+							rowNodeCount*nodeSize*sizeof(TqFloat));
+					dataArrayPos += rowNodeCount;
+				}
+			}
+		}
+	}	
 }
 
 bool CqDeepTileAdaptor::allSubRegionsEmpty(const TqMapKey tileKey)
@@ -269,7 +293,7 @@ void CqDeepTileAdaptor::createNewTile(const TqMapKey tileKey)
 										tileKey.first/m_tileHeight, newTileWidth, newTileHeight));	
 	m_deepTileMap[tileKey] = newTile;
 }
-
+/*
 void CqDeepTileAdaptor::copyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData,
 									const int rxmin, const int rymin, const int rxmax, const int rymax) const
 {
@@ -360,6 +384,7 @@ void CqDeepTileAdaptor::fillEmptyData(std::vector< std::vector<float> >& toData,
 		}
 	}
 }
+*/
 
 bool CqDeepTileAdaptor::isFullTile(const TqMapKey tileKey) const
 {
