@@ -167,7 +167,7 @@ void CqDeepTexOutputFile::updateTileTable(const boost::shared_ptr<CqDeepTextureT
 	// Set the file offset to the current write-file position (given by tellp()).
 	// If the tile is empty, then it will not be written to disk, so use an offset of 0;
 	TqUlong offset = m_dtexFile.tellp();
-	if (isNeglectable(tile))
+	if (tile->isEmpty())
 	{
 		offset = 0;
 	}
@@ -193,7 +193,7 @@ void CqDeepTexOutputFile::outputTile( const boost::shared_ptr<CqDeepTextureTile>
 	
 	// Check to see if this tile is "neglectable" in the dtex file,
 	// that is, see if it is an empty tile. If it is, we do not write it to disc. Return now.
-	if (isNeglectable(tile))
+	if (tile->isEmpty())
 	{
 		return;
 	}
@@ -204,7 +204,8 @@ void CqDeepTexOutputFile::outputTile( const boost::shared_ptr<CqDeepTextureTile>
 void CqDeepTexOutputFile::writeTile(const boost::shared_ptr<CqDeepTextureTile> tile)
 {
 	const TqUint metaDataSizeInBytes = tile->width()*tile->height()+1*sizeof(TqUint32);
-	const TqUint dataSizeInBytes = tile->funcOffsets()[tile->width()*tile->height()+1]*sizeof(TqFloat);
+	const TqUint dataSizeInBytes = (tile->funcOffsets()[tile->width()*tile->height()+1])*
+									(tile->colorChannels()+1)*sizeof(TqFloat);
 	m_fileHeader.dataSize += metaDataSizeInBytes + dataSizeInBytes;
 	
 	// Write the function offsets

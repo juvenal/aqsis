@@ -52,6 +52,45 @@ typedef uint32 TqUint32;
 // Key to use when finding elements in std::maps.
 typedef std::pair<TqUint32, TqUint32> TqMapKey;
 
+//------------------------------------------------------------------------------
+/** \brief A structure to store sub-region (bucket) deep data.
+ *
+ */
+struct SqSubTileRegion
+{	
+	boost::shared_ptr<CqDeepTextureTile> textureTile;
+	TqUint subRegionTopLeftX; //< top-left horizontal pixel coordinate relative to this sub-region's home tile
+	TqUint subRegionTopLeftY; //< top-left veritcal pixel coordinate relative to this sub-region's home tile
+};
+
+typedef std::map<TqMapKey, boost::shared_ptr<SqSubTileRegion> > TqSubRegionMap;
+
+//------------------------------------------------------------------------------
+/** \brief A structure to organize tile data as a set of sub-regions,
+ * until all sub-regions are full and we have a full tile, at which time
+ * a single CqDeepTextureTile can be created from the sub-regions.
+ *
+ */
+struct SqDeepDataTile
+{
+	SqDeepDataTile( const TqUint32 col, const TqUint32 row,
+					const TqUint32 width, const TqUint32 height );
+	
+	/** \brief Add small tile pointer to subRegionMap.
+	 *
+	 * \param tile - A pointer to a small tile.
+	 * \param subRegionKey - key specifies where in the subRegionMap to place the tile pointer. 
+	 */
+	void addSubRegion( boost::shared_ptr<CqDeepTextureTile> tile, TqMapKey subRegionKey );
+
+	// A map of sub-regions indexable by TqMapKeys
+	TqSubRegionMap subRegionMap;
+	TqUint32 col; //< this tile's column in the image
+	TqUint32 row; //< this tile's row in the image
+	TqUint32 tileWidth; //< width of this tile in pixels
+	TqUint32 tileHeight; //< height of this tile in pixels
+};
+
 class CqDeepTileAdaptor
 {
 	public:
@@ -60,14 +99,13 @@ class CqDeepTileAdaptor
 				TqUint32 bucketWidth, TqUint32 bucketHeight, TqUint32 numberOfChannels);
 		virtual ~CqDeepTileAdaptor();
 		
-		
 		/** \brief Accept a new pointer to a new tile and store it in tile map. If it is full, 
 		 * send it to the output,  otherwise make it part of a bigger tile and wait for the rest
 		 * of the data to come in.
 		 *
 		 * \param newTile - A pointer to a new tile. It may or may not be full. 
 		 */
-		virtual void addTile(boost::shared_ptr<CqDeepTextureTile> newTile);
+		virtual void addTile( const boost::shared_ptr<CqDeepTextureTile> tile );
 		
 		/** \brief connect this tile adaptor to an output object to which we send tiles
 		 * once they are full.
@@ -79,14 +117,24 @@ class CqDeepTileAdaptor
 	private:
 		// Functions
 		
-		/** \brief Create a new SqSubTileRegion and add it to the current tile's vector of sub-regions in the appropriate spot. 
-		 * Allocate the correct storage space for this particular sub-region.
+		/** \brief Create a full sized CqDeepTextureTile from the subregions
+		 * in the SqDeepDataTile designated by tileKey. Send this tile to output
+		 * then release its memory.
 		 *
-		 * \param currentTile - The tile to which we will add the new sub-region
-		 * \param subRegionKey - The key into the subRegionMap for the current tile 
-		 */		
-		void createNewSubTileRegion(boost::shared_ptr<SqDeepDataTile> currentTile, const TqMapKey subRegionKey);
-		
+		 * \param tileKey - the key into m_deepTileMap to retrieve the SqDeepDataTile we want to rebuild
+		 */
+		void rebuildAndOutputTile(const TqMapKey tileKey);
+
+		/** \brief Get a boolean flag indicating whether of not the specified SqDeepDataTile
+		 * is empty. 
+		 *
+		 * \param tileKey - the key into m_deepTileMap to retrieve the SqDeepDataTile;
+		 *  we want to check is it is empty.
+		 * 
+		 * \return True is all reb-regions are empty in the SqDeepDataTile specified by tileKey.
+		 */
+		bool CqDeepTileAdaptor::allSubRegionsEmpty(const TqMapKey tileKey);
+	
 		/** \brief Create a new tile and add it to m_deepTileMap with the given key: tileID
 		 *
 		 * \param tileKey - The new tile's map key into m_deepTileMap. 
@@ -104,7 +152,7 @@ class CqDeepTileAdaptor
 		 * \param rymax - The y-coordinate, 
 		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
 		 */	
-		void copyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
+		//void copyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
 		
 		/** \brief Copy given data into the given std::vector.
 		 * 
@@ -117,7 +165,7 @@ class CqDeepTileAdaptor
 		 * \param rymax - The y-coordinate, 
 		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
 		 */	
-		void copyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
+		//void copyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
 		
 		/** \brief Fill the sub-region specified by (rxmin,rymin,rxmax,rymax), with default metadata. 
 		 * The sub-region may be part of a neglectable tile, and therefore may never be written to disk,
@@ -132,7 +180,7 @@ class CqDeepTileAdaptor
 		 * \param rymax - The y-coordinate, 
 		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
 		 */	
-		void fillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
+		//void fillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
 		
 		/** \brief Fill the sub-region specified by (rxmin,rymin,rxmax,rymax), with default metadata. 
 		 * The sub-region may be part of a neglectable tile, and therefore may never be written to disk,
@@ -146,7 +194,7 @@ class CqDeepTileAdaptor
 		 * \param rymax - The y-coordinate, 
 		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
 		 */	
-		void fillEmptyData(std::vector< std::vector<float> >& toData, const int rxmin, const int rymin, const int rxmax, const int rymax);
+		//void fillEmptyData(std::vector< std::vector<float> >& toData, const int rxmin, const int rymin, const int rxmax, const int rymax);
 		
 		/** \brief Determine if all data has been received for a specific tile,
 		 *  meaning it is full and ready for output to file.

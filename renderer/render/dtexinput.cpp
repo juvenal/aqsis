@@ -219,8 +219,9 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::loadTile(const TqUint t
 	m_dtexFile.read((char*)(data.get()), (totalNumberOfNodes*nodeSize*sizeof(TqFloat)));
 	
 	// Create a new tile from the data we just read
-	boost::shared_ptr<CqDeepTextureTile> tile(new CqDeepTextureTile(data, functionOffsets, tileWidth, tileHeight,
-										tileCol*m_fileHeader.tileWidth, tileRow*m_fileHeader.tileHeight, m_fileHeader.numberOfChannels));
+	boost::shared_ptr<CqDeepTextureTile> tile(new CqDeepTextureTile(data, functionOffsets,
+			tileWidth, tileHeight, tileCol*m_fileHeader.tileWidth, tileRow*m_fileHeader.tileHeight,
+			m_fileHeader.numberOfChannels));
 	
 	return tile;
 }

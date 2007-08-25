@@ -119,7 +119,7 @@ class CqDeepTextureTile : public CqIntrusivePtrCounted
 		 * \param topLeftY - top left pixel Y-position in the larger array
 		 * \param colorChannels - number of color channels per deep data node.
 		 */
-		CqDeepTextureTile(const boost::shared_array<TqFloat> data, const boost::shared_array<TqUint> funcOffsets,
+		CqDeepTextureTile(const boost::shared_array<TqFloat> data, const boost::shared_array<TqInt> funcOffsets,
 				const TqUint width, const TqUint height, const TqUint topLeftX, const TqUint topLeftY,
 				const TqUint colorChannels);
 
@@ -127,6 +127,9 @@ class CqDeepTextureTile : public CqIntrusivePtrCounted
 		 * Use this as a wrapper for data that may represent a region of image
 		 * with dimensions not exactly the same as a tile. For example, use this to 
 		 * wrap tile sub-regions, or buckets.
+		 * 
+		 * This constructor should copy the data passed to it, whereas the other
+		 * constructor only keeps a shared pointer to the data without copying.
 		 *
 		 * \param data - raw tile data.
 		 * \param funcOffsets - Function offsets indicating the start position (node #) 
@@ -202,6 +205,12 @@ class CqDeepTextureTile : public CqIntrusivePtrCounted
 		 * \return number of color channels per visibility node
 		 */
 		inline TqUint colorChannels() const;
+
+		/** \brief Check if this is an empty tile
+		 *
+		 * \return True is the tile is empty, false otherwise.
+		 */
+		inline bool isEmpty() const;
 		
 	private:
 
@@ -215,12 +224,13 @@ class CqDeepTextureTile : public CqIntrusivePtrCounted
 		/// The number of elements in this array must be equal to (tileWidth*tileHeight+1),
 		/// so there is a length field for every pixel, empty or not, and a final element 
 		/// which is used to ascertain the number of nodes in the last visibility function.
-		boost::shared_array<TqUint> m_funcOffsets; ///< visibility function offsets (w.r.t tile start)
+		boost::shared_array<TqInt> m_funcOffsets; ///< visibility function offsets (w.r.t tile start)
 		TqUint m_width;				///< Width of the tile
 		TqUint m_height;			///< Height of the tile
 		TqUint m_topLeftX;			///< Column index of the top left of the tile in the full array
 		TqUint m_topLeftY;			///< Row index of the top left of the tile in the full array
 		TqUint m_colorChannels;		///< Number of color channels per deep data node.
+		bool m_flagEmpty;			///< A flag set to true if this tile is empty
 };
 
 //------------------------------------------------------------------------------
@@ -259,9 +269,13 @@ inline const TqVisFuncPtr CqDeepTextureTile::visibilityFunctionAtPixel( const Tq
 {
 	// Construct and return a pointer to new instance of CqVisibilityFunction,
 	// with fields functionLength and data pointer 
-	return TqVisFuncPtr( new CqVisibilityFunction(
+	if ( !m_flagEmpty )
+	{
+		return TqVisFuncPtr( new CqVisibilityFunction(
 			m_funcOffsets[tileSpaceX*tileSpaceY+1]-m_funcOffsets[tileSpaceX*tileSpaceY+1],
-			m_data.get()+(tileSpaceX*tileSpaceY*(1+m_colorChannels)))); 
+			m_data.get()+(tileSpaceX*tileSpaceY*(1+m_colorChannels))));
+	}
+	return TqVisFuncPtr( new CqVisibilityFunction( 0, NULL );
 }
 
 inline TqUint CqDeepTextureTile::width() const
@@ -287,6 +301,11 @@ inline TqUint CqDeepTextureTile::topLeftY() const
 inline TqUint CqDeepTextureTile::colorChannels() const
 {
 	return m_colorChannels;
+}
+
+inline bool CqDeepTextureTile::isEmpty() const
+{
+	return m_flagEmpty;
 }
 
 //------------------------------------------------------------------------------

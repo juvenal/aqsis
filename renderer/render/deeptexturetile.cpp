@@ -24,8 +24,6 @@
  * \brief Implementation of deep texture tile class.
  */
 
-#include <numeric>
-
 #include "deeptexturetile.h"
 #include "exception.h"
 
@@ -33,7 +31,7 @@ namespace Aqsis
 {
 
 CqDeepTextureTile::CqDeepTextureTile(const boost::shared_array<TqFloat> data, 
-		const boost::shared_array<TqUint> funcOffsets, const TqUint width, 
+		const boost::shared_array<TqInt> funcOffsets, const TqUint width, 
 		const TqUint height, const TqUint topLeftX, const TqUint topLeftY, const TqUint colorChannels ) :
 			m_data( data ),
 			m_funcOffsets( funcOffsets ),
@@ -41,8 +39,34 @@ CqDeepTextureTile::CqDeepTextureTile(const boost::shared_array<TqFloat> data,
 			m_height( height ),
 			m_topLeftX( topLeftX ),
 			m_topLeftY( topLeftY ),
-			m_colorChannels( colorChannels )
+			m_colorChannels( colorChannels ),
+			m_flagEmpty( (funcOffsets[0] == -1 ? true : false) )
 {}
+
+CqDeepTextureTile::CqDeepTextureTile( const TqFloat* data, const TqInt* funcOffsets, TqUint xmin, TqUint ymin,
+		TqUint xmaxplus1, TqUint ymaxplus1, TqUint colorChannels ) :
+			m_data( data ),
+			m_funcOffsets( funcOffsets ),
+			m_width( xmaxplus1-xmin ),
+			m_height( ymaxplus1-ymin ),
+			m_topLeftX( xmin ),
+			m_topLeftY( ymin ),
+			m_colorChannels( colorChannels ),
+			m_flagEmpty( (funcOffsets[0] == -1 ? true : false) )			
+{
+	// If the tile is not empty, copy the data. Otherwise do nothing.
+	if ( !m_flagEmpty )
+	{
+		// Allocate memory for function offsets
+		m_funcOffsets = boost::shared_array<TqUint>(new TqUint[m_width*m_height+1]);
+		// Copy function offsets
+		memcpy( m_funcOffsets.get(), funcOffsets, (m_width*m_height+1)*sizeof(TqUint32) );
+		// Allocate memory for data
+		m_data = boost::shared_array<TqFloat>(new TqUint[m_funcOffsets[m_width*m_height+1]*(colorChannels+1)]);
+		// Copy data
+		memcpy( m_data.get(), data, m_funcOffsets[m_width*m_height+1]*(colorChannels+1)*sizeof(TqFloat));
+	}
+}
 
 //------------------------------------------------------------------------------
 } // namespace Aqsis
