@@ -215,7 +215,7 @@ class CqDeepTextureTile : public CqIntrusivePtrCounted
 	private:
 
 		// Data members
-		boost::shared_array<TqFloat> m_data;	///< Pointer to the underlying data.
+		boost::shared_array<TqFloat> m_data; ///< Pointer to the underlying data.
 		/// m_funcOffsets below is meta data to represent the offset (in units of number of nodes)
 		/// of each visibility function from the start of the data block. A particular function N may be 
 		/// indexed at position metaData[N], and its length is metaData[N+1]-metaData[N].

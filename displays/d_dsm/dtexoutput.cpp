@@ -34,6 +34,7 @@ namespace Aqsis
 
 // Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
 static const char dtexMagicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
+char SqDtexFileHeader::magicNumber[8] =  { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
 
 SqDtexFileHeader::SqDtexFileHeader( const uint32 fileSize, const uint32 imageWidth, 
 		const uint32 imageHeight, const uint32 numberOfChannels, const uint32 dataSize, 
@@ -106,11 +107,7 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 						(uint32)numberOfChannels, (uint32)0, (uint32)tileWidth, (uint32)tileHeight, 
 						((imageWidth/tileWidth)*(imageHeight/tileHeight)), matWorldToScreen, matWorldToCamera),
 			m_tileTable(),
-			m_tileTablePositon( 0 ),
-			m_xBucketsPerTile( tileWidth/bucketWidth ),
-			m_yBucketsPerTile( tileHeight/bucketHeight ),
-			m_bucketWidth( bucketWidth ),
-			m_bucketHeight( bucketHeight )
+			m_tileTablePositon( 0 )
 {
 	// Note: in the file header initialization above, fileSize and dataSize can't be determined 
 	// until we receive all the data so we write 0 now, then seek back and re-write these fields 
@@ -171,7 +168,7 @@ void CqDeepTexOutputFile::updateTileTable(const boost::shared_ptr<CqDeepTextureT
 	{
 		offset = 0;
 	}
-	SqTileTableEntry entry(tile->col, tile->row, offset);
+	SqTileTableEntry entry(tile->topLeftY(), tile->topLeftX(), offset);
 	m_tileTable.push_back(entry);
 }
 
@@ -198,7 +195,7 @@ void CqDeepTexOutputFile::outputTile( const boost::shared_ptr<CqDeepTextureTile>
 		return;
 	}
 	// Otherwise, write tile to disc.
-	writeTile(tile_ptr);
+	writeTile(tile);
 }
 
 void CqDeepTexOutputFile::writeTile(const boost::shared_ptr<CqDeepTextureTile> tile)

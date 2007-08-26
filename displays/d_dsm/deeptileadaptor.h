@@ -52,18 +52,7 @@ typedef uint32 TqUint32;
 // Key to use when finding elements in std::maps.
 typedef std::pair<TqUint32, TqUint32> TqMapKey;
 
-//------------------------------------------------------------------------------
-/** \brief A structure to store sub-region (bucket) deep data.
- *
- */
-struct SqSubTileRegion
-{	
-	boost::shared_ptr<CqDeepTextureTile> textureTile;
-	TqUint subRegionTopLeftX; //< top-left horizontal pixel coordinate relative to this sub-region's home tile
-	TqUint subRegionTopLeftY; //< top-left veritcal pixel coordinate relative to this sub-region's home tile
-};
-
-typedef std::map<TqMapKey, boost::shared_ptr<SqSubTileRegion> > TqSubRegionMap;
+typedef std::map<TqMapKey, boost::shared_ptr<CqDeepTextureTile> > TqSubRegionMap;
 
 //------------------------------------------------------------------------------
 /** \brief A structure to organize tile data as a set of sub-regions,
@@ -87,8 +76,8 @@ struct SqDeepDataTile
 	TqSubRegionMap subRegionMap;
 	TqUint32 col; //< this tile's column in the image
 	TqUint32 row; //< this tile's row in the image
-	TqUint32 tileWidth; //< width of this tile in pixels
-	TqUint32 tileHeight; //< height of this tile in pixels
+	TqUint32 width; //< width of this tile in pixels
+	TqUint32 height; //< height of this tile in pixels
 };
 
 class CqDeepTileAdaptor
@@ -159,67 +148,14 @@ class CqDeepTileAdaptor
 		 */
 		void rebuildVisibilityFunctions(boost::shared_array<TqFloat> data, const TqMapKey tileKey);
 		
-		/** \brief Copy given metadata into the given std::vector.
-		 * 
-		 * \param toMetaData - The destination to which we want to copy metadata
-		 * \param fromMetaData - The source of the data we want to copy.
-		 * \param rxmin - The first x-coordinate, relative to the origin of the sub-region to which we are copying.
-		 * \param rymin - The first y-coordinate, relative to the origin of the sub-region to which we are copying.
-		 * \param rxmax - The x-coordinate, 
-		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
-		 * \param rymax - The y-coordinate, 
-		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
-		 */	
-		//void copyMetaData(std::vector< std::vector<int> >& toMetaData, const int* fromMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
-		
-		/** \brief Copy given data into the given std::vector.
-		 * 
-		 * \param toData - The destination to which we want to copy data
-		 * \param fromData - The source of the data we want to copy.
-		 * \param rxmin - The first x-coordinate, relative to the origin of the sub-region to which we are copying.
-		 * \param rymin - The first y-coordinate, relative to the origin of the sub-region to which we are copying.
-		 * \param rxmax - The x-coordinate, 
-		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
-		 * \param rymax - The y-coordinate, 
-		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
-		 */	
-		//void copyData(std::vector< std::vector<float> >& toData, const float* fromData, const int* functionLengths, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
-		
-		/** \brief Fill the sub-region specified by (rxmin,rymin,rxmax,rymax), with default metadata. 
-		 * The sub-region may be part of a neglectable tile, and therefore may never be written to disk,
-		 * but we have to assume it might be part of a tile that will be written, and so we fill it with minimal data
-		 * to indicate that the pixels in this region have 100% visibility.
-		 * 
-		 * \param toMetaData - The destination we want to fill with default metadata
-		 * \param rxmin - The first x-coordinate, relative to the origin of the sub-region to which we are copying.
-		 * \param rymin - The first y-coordinate, relative to the origin of the sub-region to which we are copying.
-		 * \param rxmax - The x-coordinate, 
-		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
-		 * \param rymax - The y-coordinate, 
-		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
-		 */	
-		//void fillEmptyMetaData(std::vector< std::vector<int> >& toMetaData, const int rxmin, const int rymin, const int rxmax, const int rymax) const;
-		
-		/** \brief Fill the sub-region specified by (rxmin,rymin,rxmax,rymax), with default metadata. 
-		 * The sub-region may be part of a neglectable tile, and therefore may never be written to disk,
-		 * but we have to assume it might be part of a tile that will be written, and so we fill it with minimal data
-		 * to indicate that the pixels in this region have 100% visibility.
-		 * 
-		 * \param rxmin - The first x-coordinate, relative to the origin of the sub-region to which we are copying.
-		 * \param rymin - The first y-coordinate, relative to the origin of the sub-region to which we are copying.
-		 * \param rxmax - The x-coordinate, 
-		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
-		 * \param rymax - The y-coordinate, 
-		 * 		relative to the origin of the sub-region to which we are copying, where copying should halt.
-		 */	
-		//void fillEmptyData(std::vector< std::vector<float> >& toData, const int rxmin, const int rymin, const int rxmax, const int rymax);
-		
 		/** \brief Determine if all data has been received for a specific tile,
 		 *  meaning it is full and ready for output to file.
 		 *
 		 * \param tileKey - The key for the tile; we want to know if the tile is full
+		 * \return True if the sum of the tile's reb-region widths is equal to the tile's width
+		 * 		and the sum of the sub-region heights is equal to the tile height, false otherwise.
 		 */				
-		bool isFullTile(const TqMapKey tileKey) const;
+		bool isFullTile(const TqMapKey tileKey);
 		
 		//-----------------------------------------------------------------------------------------
 		// Data
@@ -228,6 +164,8 @@ class CqDeepTileAdaptor
 		// that can identify the region of the larger picture covered by a particular tile.
 		std::map<TqMapKey, boost::shared_ptr<SqDeepDataTile> > m_deepTileMap;
 		
+		// This class implements an outputTile() function that, in our case, writes the tile to disk
+		// in a deep texture file. 
 		boost::shared_ptr<IqDeepTextureOutput> m_deepTexOutput;
 		
 		TqUint32 m_imageWidth;

@@ -208,7 +208,7 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::loadTile(const TqUint t
 		tileHeight = m_fileHeader.imageHeight-(tileRow*m_fileHeader.tileHeight);
 	}
 	
-	boost::shared_array<TqUint> functionOffsets(new TqUint[tileWidth*tileHeight+1]);
+	boost::shared_array<TqInt> functionOffsets(new TqInt[tileWidth*tileHeight+1]);
 	
 	// Seek to the poition of the beginning of the requested tile and read it in
 	m_dtexFile.seekg(fileOffset, std::ios::beg);

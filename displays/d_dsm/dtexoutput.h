@@ -161,9 +161,6 @@ struct SqDtexFileHeader
 	float matWorldToCamera[4][4];
 };
 
-// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
-char SqDtexFileHeader::magicNumber[8] =  {0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
-
 //------------------------------------------------------------------------------
 /** \brief A deep texture class to receive deep data from a deep display device, manage the DTEX file and tile
  * headers, and write all of these things to disk in a single binary DTEX file.
@@ -240,11 +237,6 @@ class CqDeepTexOutputFile : public IqDeepTextureOutput
 		std::vector<SqTileTableEntry> m_tileTable;
 		
 		unsigned long m_tileTablePositon;
-		int m_xBucketsPerTile;
-		int m_yBucketsPerTile;
-		int m_bucketWidth;
-		int m_bucketHeight;
-		
 };
 
 //------------------------------------------------------------------------------

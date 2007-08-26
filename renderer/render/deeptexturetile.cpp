@@ -45,8 +45,8 @@ CqDeepTextureTile::CqDeepTextureTile(const boost::shared_array<TqFloat> data,
 
 CqDeepTextureTile::CqDeepTextureTile( const TqFloat* data, const TqInt* funcOffsets, TqUint xmin, TqUint ymin,
 		TqUint xmaxplus1, TqUint ymaxplus1, TqUint colorChannels ) :
-			m_data( data ),
-			m_funcOffsets( funcOffsets ),
+			m_data( ), //< initialized below 
+			m_funcOffsets( ), //< initialized below
 			m_width( xmaxplus1-xmin ),
 			m_height( ymaxplus1-ymin ),
 			m_topLeftX( xmin ),
@@ -58,11 +58,11 @@ CqDeepTextureTile::CqDeepTextureTile( const TqFloat* data, const TqInt* funcOffs
 	if ( !m_flagEmpty )
 	{
 		// Allocate memory for function offsets
-		m_funcOffsets = boost::shared_array<TqUint>(new TqUint[m_width*m_height+1]);
+		m_funcOffsets = boost::shared_array<TqInt>(new TqInt[m_width*m_height+1]);
 		// Copy function offsets
-		memcpy( m_funcOffsets.get(), funcOffsets, (m_width*m_height+1)*sizeof(TqUint32) );
+		memcpy( m_funcOffsets.get(), funcOffsets, (m_width*m_height+1)*sizeof(TqInt) );
 		// Allocate memory for data
-		m_data = boost::shared_array<TqFloat>(new TqUint[m_funcOffsets[m_width*m_height+1]*(colorChannels+1)]);
+		m_data = boost::shared_array<TqFloat>(new TqFloat[m_funcOffsets[m_width*m_height+1]*(colorChannels+1)]);
 		// Copy data
 		memcpy( m_data.get(), data, m_funcOffsets[m_width*m_height+1]*(colorChannels+1)*sizeof(TqFloat));
 	}
