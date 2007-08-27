@@ -41,7 +41,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "dtexoutput.h"
+//#include "dtexoutput.h"
 #include "ndspy.h"
 #include "deeptexturetile.h"
 #include "deeptileadaptor.h"
@@ -519,6 +519,7 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 							formatCount, matWorldToScreen, matWorldToCamera));
 	pData->tileAdaptor = new Aqsis::CqDeepTileAdaptor(deepTexFile, width, height, tileWidth, tileHeight, 
 			pData->bucketDimensions[0], pData->bucketDimensions[1], formatCount);
+	
 	//-----------------------------------------------------
 	// Stuff for testing/debugging
 	

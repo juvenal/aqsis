@@ -343,6 +343,11 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 				m_DelayCloseMethod = (DspyImageDelayCloseMethod)dspyPlugin.SimpleDLSym( m_DriverHandle, &ddMemberData.m_strDelayCloseMethod );
 			}
 		}
+		else
+		{
+			throw XqInternal(std::string("Error loading display driver [ ") + strDriverFile +
+					std::string( " ]"), __FILE__, __LINE__); 
+		}
 	}
 	else
 	{

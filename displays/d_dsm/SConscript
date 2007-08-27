@@ -1,33 +1,36 @@
 Import('env', 'embedManifest')
 d_dsmenv = env.Copy()
 d_dsmenv.AppendUnique(CPPPATH=['#/renderer/ddmanager'])
-d_dsmenv.AppendUnique(CPPDEFINES=['d_dsm_EXPORTS'])
+d_dsmenv.AppendUnique(CPPDEFINES=['D_DSM_EXPORTS'])
 
 d_dsm_sources = Split("""
 	d_dsm.cpp
 	dtexoutput.cpp
+	displayhelpers.c
 	deeptileadaptor.cpp
-	displayhelpers.c""")
+	""")
 
 d_dsm_headers =  Split("""
-	d_dsm.h
 	dtexoutput.h
-	deeptileadaptor.h""")
+	deeptileadaptor.h
+	""")
 
 
 d_dsmenv.AppendUnique(LIBS = ['aqsistypes', '$tiff_lib'])
 d_dsmenv.AppendUnique(CPPPATH=['$tiff_include_path'])
 
 # Set any platform specific target options.
-d_dsmenv.UseTargetOptions('d_dsm')
+d_dsmenv.UseTargetOptions('dsm')
+#d_dsmenv.UseTargetOptions('d_dsm')
 
-d_dsm = d_dsmenv.SharedLibrary('d_dsm', d_dsm_sources)
+dsm = d_dsmenv.SharedLibrary('d_dsm', d_dsm_sources)
+#d_dsm = d_dsmenv.SharedLibrary('d_dsm', d_dsm_sources)
 
-embedManifest(env, d_dsmenv, d_dsm, 'DLL')
+embedManifest(env, d_dsmenv, dsm, 'DLL')
 
-d_dsmenv.Install('$DISPLAYSDIR', d_dsm)
+d_dsmenv.Install('$DISPLAYSDIR', dsm)
 
-Return('d_dsm')
+Return('dsm')
 
 env.Distribute(d_dsm_sources)
 env.Distribute(d_dsm_headers)

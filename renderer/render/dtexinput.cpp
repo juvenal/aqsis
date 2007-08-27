@@ -33,12 +33,12 @@ namespace Aqsis
 
 // Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
 static const char dtexMagicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
+//char SqDtexFileHeader::magicNumber[8] =  { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
 
 SqDtexFileHeader::SqDtexFileHeader( const uint32 fileSize, 
 		const uint32 imageWidth, const uint32 imageHeight, const uint32 numberOfChannels, const uint32 dataSize, 
 		const uint32 tileWidth, const uint32 tileHeight, const uint32 numberOfTiles,
 		const float matWorldToScreen[4][4], const float matWorldToCamera[4][4] ) :
-	//magicNumber( magicNumber ),
 	fileSize( fileSize ),
 	imageWidth( imageWidth ),
 	imageHeight( imageHeight ),
@@ -55,7 +55,7 @@ SqDtexFileHeader::SqDtexFileHeader( const uint32 fileSize,
 
 void SqDtexFileHeader::writeToFile( std::ofstream& file ) const
 {
-	file.write((const char*)magicNumber, 8);
+	file.write(dtexMagicNumber, 8);
 	file.write((const char*)(&fileSize), sizeof(uint32));
 	file.write((const char*)(&imageWidth), sizeof(uint32));
 	file.write((const char*)(&imageHeight), sizeof(uint32));
@@ -70,7 +70,7 @@ void SqDtexFileHeader::writeToFile( std::ofstream& file ) const
 
 void SqDtexFileHeader::readFromFile( std::ifstream& file )
 {
-	file.read(magicNumber, 8);
+	//file.read(magicNumber, 8);
 	file.read((char*)(&fileSize), sizeof(uint32));
 	file.read((char*)(&imageWidth), sizeof(uint32));
 	file.read((char*)(&imageHeight), sizeof(uint32));
@@ -112,17 +112,20 @@ CqDeepTexInputFile::CqDeepTexInputFile( const std::string filename )
 		throw Aqsis::XqInternal(std::string("Failed to open file \"") + filename + std::string( "\""), __FILE__, __LINE__);
 		m_isValid = false;
 	}
-	// Load the file header into memory
-	m_fileHeader.readFromFile(m_dtexFile);
 	// Verify that the magic number is valid
+	char buffer[8];
+	m_dtexFile.read(buffer, 8);
 	std::string correctMN = dtexMagicNumber;
-	std::string testMN = m_fileHeader.magicNumber;
+	std::string testMN = buffer;
 	if ( testMN != correctMN )
 	{
 		throw XqInternal(std::string("Magic number in DTEX file: ") + filename 
 				+ std::string(" is not valid."), __FILE__, __LINE__);
 		m_isValid = false;
 	}
+	// Load the file header into memory
+	m_fileHeader.readFromFile(m_dtexFile);
+
 	// Calculate some other variables
 	m_tilesPerRow = m_fileHeader.imageWidth/m_fileHeader.tileWidth;
 	m_tilesPerCol = m_fileHeader.imageHeight/m_fileHeader.tileHeight;

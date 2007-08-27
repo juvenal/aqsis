@@ -45,8 +45,6 @@
 #include <boost/shared_array.hpp>
 #include <boost/shared_ptr.hpp>
 
-//#include "smartptr.h"
-
 namespace Aqsis
 {
 
@@ -158,7 +156,7 @@ struct SqDtexFileHeader
 	// This sequence ensures that if the file is "typed" on a DOS shell or Windows command shell, the user will see "AqD" 
 	// on a single line, preceded by a strange character.
 	// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
-	static char magicNumber[8]; 
+	//char magicNumber[8]; 
 	/// Size of this file in bytes
 	uint32 fileSize;
 	// Number of horizontal pixels in the image

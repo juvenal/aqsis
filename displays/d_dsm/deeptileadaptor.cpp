@@ -29,6 +29,7 @@
 #include "deeptileadaptor.h"
 #include "exception.h"
 #include "aqsismath.h"
+#include "logging.h"
 
 namespace Aqsis
 {
@@ -63,6 +64,16 @@ CqDeepTileAdaptor::CqDeepTileAdaptor( boost::shared_ptr<IqDeepTextureOutput> out
 			m_bucketsPerTileCol( tileHeight/bucketHeight ),
 			m_numberOfChannels( numberOfChannels )		
 {}
+
+void CqDeepTileAdaptor::connectOutput( boost::shared_ptr<IqDeepTextureOutput> outputObject )
+{
+	if (m_deepTexOutput.get() != NULL)
+	{
+		Aqsis::log() << debug << "CqDeepTileAdaptor discarding valid tile output "
+				"object in order to connect a new one. " << std::endl;
+	}
+	m_deepTexOutput = outputObject;
+}
 
 void CqDeepTileAdaptor::addTile( const boost::shared_ptr<CqDeepTextureTile> tile )
 {

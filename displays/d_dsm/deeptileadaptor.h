@@ -47,7 +47,7 @@ namespace Aqsis
 {
 
 // To make eventual refactor to using Aqsis types nicer:
-typedef uint32 TqUint32;
+//typedef uint32 TqUint32;
 
 // Key to use when finding elements in std::maps.
 typedef std::pair<TqUint32, TqUint32> TqMapKey;
@@ -86,7 +86,7 @@ class CqDeepTileAdaptor
 		CqDeepTileAdaptor( boost::shared_ptr<IqDeepTextureOutput> outputObject, 
 				TqUint32 imageWidth, TqUint32 imageHeight, TqUint32 tileWidth, TqUint32 tileHeight, 
 				TqUint32 bucketWidth, TqUint32 bucketHeight, TqUint32 numberOfChannels);
-		virtual ~CqDeepTileAdaptor();
+		virtual ~CqDeepTileAdaptor(){};
 		
 		/** \brief Accept a new pointer to a new tile and store it in tile map. If it is full, 
 		 * send it to the output,  otherwise make it part of a bigger tile and wait for the rest

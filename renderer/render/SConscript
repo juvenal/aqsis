@@ -71,7 +71,7 @@ aqsisdll_headers = Split("""
 	csgtree.h               ishader.h               parameters.h            surface.h
 	curves.h                ishaderdata.h           patch.h                 symbols.h
 	deepshadow.h
-	dtexinput.h				deeptexturetile.h		deeptexture.h
+	dtexinput.h				deeptexturetile.h		deeptexture.h			tilearray.h
 	focus.h                 ishaderexecenv.h        plane.h                 teapot.h
 	forwarddiff.h           isurface.h              points.h                texturemap.h
 	genpoly.h               itexturemap.h           polygon.h               transform.h
