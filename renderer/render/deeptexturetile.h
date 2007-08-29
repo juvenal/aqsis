@@ -141,7 +141,7 @@ class CqDeepTextureTile : public CqIntrusivePtrCounted
 		 * \param colorChannels - number of color channels per deep data node.
 		 */
 		CqDeepTextureTile( const TqFloat* data, const TqInt* funcOffsets, TqUint xmin, TqUint ymin,
-				TqUint xmaxplus1, TqUint ymaxplus1, TqUint colorChannels );
+				TqUint xmaxplus1, TqUint ymaxplus1, TqUint colorChannels, bool funcLengths );
 
 		/** \brief Set the class data to the given data pointer
 		 *

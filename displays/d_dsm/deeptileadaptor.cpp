@@ -1,5 +1,5 @@
-// Aqsis
 // Copyright (C) 1997 - 2007, Paul C. Gregory
+// Aqsis
 //
 // Contact: pgregory@aqsis.org
 //
@@ -34,11 +34,8 @@
 namespace Aqsis
 {
 
-SqDeepDataTile::SqDeepDataTile( const TqUint32 col, const TqUint32 row,
-				const TqUint32 width, const TqUint32 height ) :
+SqDeepDataTile::SqDeepDataTile( const TqUint32 width, const TqUint32 height ) :
 					subRegionMap(),
-					col(col),
-					row(row),
 					width(width),
 					height(height)
 {}
@@ -84,12 +81,12 @@ void CqDeepTileAdaptor::addTile( const boost::shared_ptr<CqDeepTextureTile> tile
 		return;
 	}
 	
-	const int homeTileTopLeftX = tile->topLeftX()/m_tileWidth;
-	const int homeTileTopLeftY = tile->topLeftY()/m_tileHeight;
-	const TqMapKey homeTileKey(homeTileTopLeftX, homeTileTopLeftY);
+	const int homeTileTopLeftX = (tile->topLeftX()/m_tileWidth)*m_tileWidth;
+	const int homeTileTopLeftY = (tile->topLeftY()/m_tileHeight)*m_tileHeight;
+	const TqMapKey homeTileKey(homeTileTopLeftY, homeTileTopLeftX);
 	const int subRegionTopLeftX = tile->topLeftX()-homeTileTopLeftX;
 	const int subRegionTopLeftY = tile->topLeftY()-homeTileTopLeftY;
-	const TqMapKey subRegionKey(subRegionTopLeftX, subRegionTopLeftY);
+	const TqMapKey subRegionKey(subRegionTopLeftY, subRegionTopLeftX);
 	
 	// If the tile that should hold this sebRegion has not been created yet, create it.
 	if (m_deepTileMap.count(homeTileKey) == 0)
@@ -176,13 +173,15 @@ TqUint CqDeepTileAdaptor::rebuildFunctionOffsets(boost::shared_array<TqInt> func
 	// represents the total number of nodes in the tile.
 	for (TqUint rowIndex = 0; rowIndex < tilesPerCol; ++rowIndex )
 	{
-		mapKey.first = rowIndex*subTileHeight; mapKey.second = 0;
+		mapKey.first = 0; mapKey.second = 0;
+		subTileHeight = subRegionMap[mapKey]->height();
+		mapKey.first = rowIndex*subTileHeight;
 		subTileHeight = subRegionMap[mapKey]->height();
 		for (TqUint subRowIndex = 0; subRowIndex < subTileHeight; ++subRowIndex)
 		{
 			for (TqUint colIndex = 0; colIndex < tilesPerRow; ++colIndex)
 			{
-				mapKey.first = rowIndex*subTileHeight; mapKey.second = colIndex*subTileWidth;
+				mapKey.second = colIndex*subTileWidth;
 				subTile = subRegionMap[mapKey];
 				subRegionWidth = subTile->width();
 				if (subTile->isEmpty())
@@ -208,6 +207,7 @@ TqUint CqDeepTileAdaptor::rebuildFunctionOffsets(boost::shared_array<TqInt> func
 			}
 		}
 	}
+	funcOffsets[funcOffsetsArrayPos] = currentOffset;
 	return currentOffset;
 }
 
@@ -238,13 +238,15 @@ void CqDeepTileAdaptor::rebuildVisibilityFunctions(boost::shared_array<TqFloat> 
 	// into a new tile so that all nodes are in the correct order with respect to the tile origin.
 	for ( TqUint rowIndex = 0; rowIndex < tilesPerCol; ++rowIndex )
 	{
-		mapKey.first = rowIndex*subTileHeight; mapKey.second = 0;
+		mapKey.first = 0; mapKey.second = 0;
+		subTileHeight = subRegionMap[mapKey]->height();
+		mapKey.first = rowIndex*subTileHeight;
 		subTileHeight = subRegionMap[mapKey]->height();
 		for (TqUint subRowIndex = 0; subRowIndex < subTileHeight; ++subRowIndex)
 		{
 			for (TqUint colIndex = 0; colIndex < tilesPerRow; ++colIndex)
 			{
-				mapKey.first = rowIndex*subTileHeight; mapKey.second = colIndex*subTileWidth;
+				mapKey.second = colIndex*subTileWidth;
 				subTile = subRegionMap[mapKey];
 				subRegionWidth = subTile->width();
 				if (subTile->isEmpty())
@@ -253,10 +255,10 @@ void CqDeepTileAdaptor::rebuildVisibilityFunctions(boost::shared_array<TqFloat> 
 					for (TqUint pixel = 0; pixel < subRegionWidth; ++pixel)
 					{
 						const TqUint arrayIndex = dataArrayPos*nodeSize; 
-						data[arrayIndex] = 0;
+						data[arrayIndex] = 0; //< depth 0
 						for (TqUint i = 1; i <= subTile->colorChannels(); ++i)
 						{
-							data[arrayIndex+i] = 1; 
+							data[arrayIndex+i] = 1; //< visibility 1
 						}
 					}
 					dataArrayPos += subRegionWidth;
@@ -265,9 +267,9 @@ void CqDeepTileAdaptor::rebuildVisibilityFunctions(boost::shared_array<TqFloat> 
 				{
 					const TqInt* sourceFuncOffsets = subTile->funcOffsets()+(subRowIndex*subRegionWidth);
 					rowDataStart = sourceFuncOffsets[0];
-					rowNodeCount = sourceFuncOffsets[subRegionWidth+1]-rowDataStart;
+					rowNodeCount = sourceFuncOffsets[subRegionWidth]-rowDataStart;
 					const TqFloat* sourceData = subTile->data()+(rowDataStart*nodeSize);
-					memcpy(data.get()+(dataArrayPos*nodeSize*sizeof(TqFloat)), sourceData,
+					memcpy(data.get()+(dataArrayPos*nodeSize), sourceData,
 							rowNodeCount*nodeSize*sizeof(TqFloat));
 					dataArrayPos += rowNodeCount;
 				}
@@ -299,17 +301,16 @@ void CqDeepTileAdaptor::createNewTile(const TqMapKey tileKey)
 
 	// If this is an end tile, and the image width or height is not divisible by tile width or height,
 	// Then perform padding: size this tile to a smaller size than usual.
-	if (tileKey.first+newTileWidth > m_imageWidth) 
+	if (tileKey.first+newTileHeight > m_imageHeight) 
 	{
-		newTileWidth = m_imageWidth-tileKey.first;
+		newTileHeight = m_imageHeight-tileKey.first;
 	}
-	if (tileKey.second+newTileHeight > m_imageHeight)
+	if (tileKey.second+newTileWidth > m_imageWidth)
 	{
-		newTileHeight = m_imageHeight-tileKey.second;
+		newTileWidth = m_imageWidth-tileKey.second;
 	}
 	
-	boost::shared_ptr<SqDeepDataTile> newTile(new SqDeepDataTile(tileKey.second/m_tileWidth, 
-										tileKey.first/m_tileHeight, newTileWidth, newTileHeight));	
+	boost::shared_ptr<SqDeepDataTile> newTile(new SqDeepDataTile(newTileWidth, newTileHeight));	
 	m_deepTileMap[tileKey] = newTile;
 }
 
@@ -322,12 +323,29 @@ bool CqDeepTileAdaptor::isFullTile(const TqMapKey tileKey)
 	const TqSubRegionMap& subRegionMap = tile->subRegionMap;
 	TqUint totalSubRegionWidth = 0;
 	TqUint totalSubRegionHeight = 0;
+	TqUint numSubTilesWhenFull = (lceil((float)tile->width/subRegionMap.begin()->second->width()))*
+								(lceil((float)tile->height/subRegionMap.begin()->second->height()));
+	TqInt previousRow = -1;
+	TqInt firstFirst = 0;
+	
+	if (subRegionMap.size() != numSubTilesWhenFull)
+	{
+		return false;
+	}
 	
 	TqSubRegionMap::const_iterator it;
 	for(it = subRegionMap.begin(); it != subRegionMap.end(); ++it)
 	{
-		totalSubRegionWidth += it->second->width();
-		totalSubRegionHeight += it->second->height();
+		firstFirst = it->first.first;
+		if (firstFirst == 0)
+		{
+			totalSubRegionWidth += it->second->width();
+		}
+		if (firstFirst > previousRow)
+		{
+			totalSubRegionHeight += it->second->height();
+			previousRow = firstFirst;
+		}
 	}
 	
 	if ((totalSubRegionWidth == tile->width) && (totalSubRegionHeight == tile->height))

@@ -55,8 +55,7 @@ typedef uint32 TqUint32;
  */
 typedef struct IqDeepTextureOutput
 {
-	virtual ~IqDeepTextureOutput()
-	{};
+	virtual ~IqDeepTextureOutput(){};
 	
 	/** \brief Send deep tile to a class equipped to output the tile.
 	 *

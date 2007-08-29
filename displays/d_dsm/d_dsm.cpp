@@ -602,7 +602,7 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	{
 		boost::shared_ptr<Aqsis::CqDeepTextureTile> newTile(
 				new Aqsis::CqDeepTextureTile(visData, funLengths, xmin, ymin, xmax_plusone, 
-				ymax_plusone, entrysize));
+				ymax_plusone, entrysize, true));
 		pData->tileAdaptor->addTile(newTile);
 	}
 	
@@ -655,7 +655,7 @@ extern "C" PtDspyError DspyImageClose(PtDspyImageHandle image)
 	{
 		WriteDSMImageSequence(image);
 	}
-
+	
 	delete pData->tileAdaptor;
 	delete[] pData->testDeepData;
 	delete[] pData->functionLengths;

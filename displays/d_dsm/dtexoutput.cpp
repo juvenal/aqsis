@@ -104,16 +104,14 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 			m_dtexFile( filename.c_str(), std::ios::out | std::ios::binary ),
 			m_fileHeader( (uint32)0, (uint32)imageWidth, (uint32)imageHeight, 
 						(uint32)numberOfChannels, (uint32)0, (uint32)tileWidth, (uint32)tileHeight, 
-						((imageWidth/tileWidth)*(imageHeight/tileHeight)), matWorldToScreen, matWorldToCamera),
+						((lceil((float)imageWidth/tileWidth))*(lceil((float)imageHeight/tileHeight))),
+						matWorldToScreen, matWorldToCamera),
 			m_tileTable(),
 			m_tileTablePositon( 0 )
 {
 	// Note: in the file header initialization above, fileSize and dataSize can't be determined 
 	// until we receive all the data so we write 0 now, then seek back and re-write these fields 
 	// before the file is closed.
-	const int tilesX = imageWidth/tileWidth;
-	const int tilesY = imageHeight/tileHeight;
-	const int numberOfTiles = tilesX*tilesY; 
 
 	// If file open failed, throw an exception. This happens for example, if the file already existed,
 	// or the destination directory did not have write permission.
@@ -127,7 +125,7 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 		throw Aqsis::XqInternal(std::string("User specified tile dimensions are not an integer multiple "
 				"of bucket dimensions."), __FILE__, __LINE__);
 	}
-	m_tileTable.reserve(numberOfTiles); 
+	m_tileTable.reserve(m_fileHeader.numberOfTiles); 
 	
 	// Write the file header
 	m_fileHeader.writeToFile( m_dtexFile );
@@ -135,11 +133,11 @@ CqDeepTexOutputFile::CqDeepTexOutputFile(std::string filename, uint32 imageWidth
 	// Save the file position so that we may return to this spot later, to write the tile table.
 	m_tileTablePositon = m_dtexFile.tellp();
 	// This is the first part of fileSize. Add the data size part later.
-	m_fileHeader.fileSize = m_tileTablePositon + numberOfTiles*sizeof(SqTileTableEntry);
+	m_fileHeader.fileSize = m_tileTablePositon + m_fileHeader.numberOfTiles*sizeof(SqTileTableEntry);
 	// Seek forward in file to reserve space for writing the tile table later.
 	// Seek from the current positon. 
 	// Alternatively, you could seek from the file's beginning with std::ios::beg
-	m_dtexFile.seekp(numberOfTiles*sizeof(SqTileTableEntry), std::ios::cur);
+	m_dtexFile.seekp(m_fileHeader.numberOfTiles*sizeof(SqTileTableEntry), std::ios::cur);
 }
 
 CqDeepTexOutputFile::~CqDeepTexOutputFile()
@@ -200,7 +198,11 @@ void CqDeepTexOutputFile::outputTile( const boost::shared_ptr<CqDeepTextureTile>
 void CqDeepTexOutputFile::writeTile(const boost::shared_ptr<CqDeepTextureTile> tile)
 {
 	const TqUint metaDataSizeInBytes = tile->width()*tile->height()+1*sizeof(TqUint32);
-	const TqUint dataSizeInBytes = (tile->funcOffsets()[tile->width()*tile->height()+1])*
+	const TqInt* funcOffsets = tile->funcOffsets();
+	TqUint width = tile->width();
+	TqUint height = tile->height();
+	TqUint offset = funcOffsets[tile->width()*tile->height()];
+	const TqUint dataSizeInBytes = offset*
 									(tile->colorChannels()+1)*sizeof(TqFloat);
 	m_fileHeader.dataSize += metaDataSizeInBytes + dataSizeInBytes;
 	

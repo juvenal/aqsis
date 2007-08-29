@@ -62,8 +62,7 @@ typedef std::map<TqMapKey, boost::shared_ptr<CqDeepTextureTile> > TqSubRegionMap
  */
 struct SqDeepDataTile
 {
-	SqDeepDataTile( const TqUint32 col, const TqUint32 row,
-					const TqUint32 width, const TqUint32 height );
+	SqDeepDataTile( const TqUint32 width, const TqUint32 height );
 	
 	/** \brief Add small tile pointer to subRegionMap.
 	 *
@@ -74,8 +73,6 @@ struct SqDeepDataTile
 
 	// A map of sub-regions indexable by TqMapKeys
 	TqSubRegionMap subRegionMap;
-	TqUint32 col; //< this tile's column in the image
-	TqUint32 row; //< this tile's row in the image
 	TqUint32 width; //< width of this tile in pixels
 	TqUint32 height; //< height of this tile in pixels
 };

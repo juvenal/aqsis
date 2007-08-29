@@ -37,11 +37,19 @@
 #include	"ri.h"
 #include	"iddmanager.h"
 #include	"plugins.h"
+//#include 	"deeptexturetile.h"
 #define		DSPY_INTERNAL
 #include	"ndspy.h"
 #undef		DSPY_INTERNAL
 
 START_NAMESPACE( Aqsis )
+
+
+struct SqSingleBucketData
+{
+	std::vector<int> m_visibilityFunctionLengths;
+	std::vector<float> m_visibilityData;
+};
 
 //------------------------------------------------------------------------------
 /** \brief Structure to hold the final deep data (from a bucket) 
@@ -329,7 +337,8 @@ class CqDeepDisplayRequest : virtual public CqDisplayRequest
 	private:
 		std::map<TqInt, std::vector<boost::shared_ptr<SqCompressedDeepData> > > m_BucketDeepDataMap; ///< Used when the display device wants scanline order
 		boost::shared_ptr<SqCompressedDeepData> m_CollapsedBucketRow; ///< Used when the display device wants scanline order
-		boost::shared_ptr<SqCompressedDeepData> m_DeepDataBucket; ///< Used when the display wants bucket order
+		boost::shared_ptr<SqSingleBucketData> m_DeepDataBucket; ///< Used when the display wants bucket order
+		//boost::shared_ptr<CqDeepTextureTile> m_DeepDataBucket; ///< Used when the display wants bucket order
 };
 
 //---------------------------------------------------------------------

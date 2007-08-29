@@ -1193,8 +1193,7 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 					if (shColor == gColWhite)
 					{
 						nextHitHeap.pop();
-						//shColor *= (-1)*secondaryHit.weight*inverseSumFilterValues;
-						//shColor *= (-1); //*inverseSumFilterValues;
+						shColor *= (-1)*secondaryHit.weight*inverseSumFilterValues;
 						deltaNode.deltaTransmittance += shColor;
 					}
 					else

@@ -44,7 +44,7 @@ CqDeepTextureTile::CqDeepTextureTile(const boost::shared_array<TqFloat> data,
 {}
 
 CqDeepTextureTile::CqDeepTextureTile( const TqFloat* data, const TqInt* funcOffsets, TqUint xmin, TqUint ymin,
-		TqUint xmaxplus1, TqUint ymaxplus1, TqUint colorChannels ) :
+		TqUint xmaxplus1, TqUint ymaxplus1, TqUint colorChannels, bool funcLengths ) :
 			m_data( ), //< initialized below 
 			m_funcOffsets( ), //< initialized below
 			m_width( xmaxplus1-xmin ),
@@ -57,14 +57,37 @@ CqDeepTextureTile::CqDeepTextureTile( const TqFloat* data, const TqInt* funcOffs
 	// If the tile is not empty, copy the data. Otherwise do nothing.
 	if ( !m_flagEmpty )
 	{
-		// Allocate memory for function offsets
-		m_funcOffsets = boost::shared_array<TqInt>(new TqInt[m_width*m_height+1]);
-		// Copy function offsets
-		memcpy( m_funcOffsets.get(), funcOffsets, (m_width*m_height+1)*sizeof(TqInt) );
-		// Allocate memory for data
-		m_data = boost::shared_array<TqFloat>(new TqFloat[m_funcOffsets[m_width*m_height+1]*(colorChannels+1)]);
-		// Copy data
-		memcpy( m_data.get(), data, m_funcOffsets[m_width*m_height+1]*(colorChannels+1)*sizeof(TqFloat));
+		if ( funcLengths )
+		{
+			// This is temporary code, but I need to convert function lengths to offsets somewhere, and this
+			// works for now.
+			// Allocate memory for function offsets
+			m_funcOffsets = boost::shared_array<TqInt>(new TqInt[m_width*m_height+1]);
+			// Convert function lengths to offsets
+			TqUint currentOffset = 0;
+			TqUint i = 0;
+			for( i = 0; i < m_width*m_height; ++i)
+			{
+				m_funcOffsets[i] = currentOffset;
+				currentOffset += funcOffsets[i]; 
+			}
+			m_funcOffsets[i] = currentOffset;
+			// Allocate memory for data
+			m_data = boost::shared_array<TqFloat>(new TqFloat[currentOffset*(colorChannels+1)]);
+			// Copy data
+			memcpy( m_data.get(), data, currentOffset*(colorChannels+1)*sizeof(TqFloat));
+		}
+		else
+		{
+			// Allocate memory for function offsets
+			m_funcOffsets = boost::shared_array<TqInt>(new TqInt[m_width*m_height+1]);
+			// Copy function offsets
+			memcpy( m_funcOffsets.get(), funcOffsets, (m_width*m_height+1)*sizeof(TqInt) );
+			// Allocate memory for data
+			m_data = boost::shared_array<TqFloat>(new TqFloat[m_funcOffsets[m_width*m_height+1]*(colorChannels+1)]);
+			// Copy data
+			memcpy( m_data.get(), data, m_funcOffsets[m_width*m_height+1]*(colorChannels+1)*sizeof(TqFloat));			
+		}
 	}
 }
 
