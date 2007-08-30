@@ -86,7 +86,7 @@ struct SqHitHeapNode
 	TqInt queueIndex;
 	/// running total visibility at queueIndex of sample data
 	CqColor runningVisibility;
-	/// running total visibility at queueIndex of sample data
+	/// sample weight (0 <= weigh <= 1)
 	TqFloat weight;  
 };
 

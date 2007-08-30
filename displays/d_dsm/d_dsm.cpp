@@ -41,8 +41,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//#include "dtexoutput.h"
 #include "ndspy.h"
+#include "dtexoutput.h"
 #include "deeptexturetile.h"
 #include "deeptileadaptor.h"
 
@@ -507,8 +507,8 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	DspyFindMatrixInParamList( "Nl", reinterpret_cast<float*>(matWorldToCamera), paramCount, parameters );
 
 	// Note: flags can also be binary ANDed with PkDspyFlagsWantsEmptyBuckets and PkDspyFlagsWantsNullEmptyBuckets
-	flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
-	pData->flags = PkDspyFlagsWantsScanLineOrder;
+	//flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
+	//pData->flags = PkDspyFlagsWantsScanLineOrder;
 
 	pData->Channels = formatCount; // Lets display know how many floats per visibility node to expect from DspyImageDeepData
 	pData->iWidth = width;
