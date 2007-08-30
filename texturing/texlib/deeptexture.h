@@ -40,7 +40,7 @@
 #include "vector3d.h"
 #include "matrix.h"
 #include "itexturemap.h" 
-#include "tilearray.h"
+#include "deeptilearray.h"
 #include "color.h"
 
 // External libraries

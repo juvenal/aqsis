@@ -27,7 +27,7 @@
 
 #include <numeric>
 
-#include "tilearray.h"
+#include "deeptilearray.h"
 
 namespace Aqsis
 {
