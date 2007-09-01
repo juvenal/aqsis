@@ -96,6 +96,40 @@ bool SqHitHeapNode::operator<( const SqHitHeapNode& nodeComp ) const
 	return ( s1depth > s2depth );
 }
 
+void CqHitHeap::push(SqHitHeapNode node)
+{
+	m_heap.push(node);
+}
+
+SqHitHeapNode CqHitHeap::pop()
+{
+	// Grab a reference to the node at front of queue
+	SqHitHeapNode topNode = m_heap.top();
+	// Dequeue the heap
+	m_heap.pop();
+	
+	// Now we decide whether we should enque another node from topNode.samplePointer
+	// We want to do so iff: 
+		// 1) Visibility for that transmittance function has not yet reached 0 as we step along its nodes and
+		// 2) That particular transmittance function still has nodes remaining
+	/*
+	if ((topNode.samplePointer->m_Data.size()-1 > topNode.queueIndex) && (topNode.runningVisibility > gColBlack))
+	{ // Enqueue another node
+		SqHitHeapNode hitNode(topNode.samplePointer,
+							topNode.queueIndex+1,
+							topNode.runningVisibility+deltaNode.deltaTransmittance, // This needs to also include slope
+							topNode.weight);
+		m_heap.push(hitNode);						
+	}		
+	*/
+	return topNode;
+}
+
+bool CqHitHeap::isEmpty() const
+{
+	return m_heap.empty();
+}
+
 //----------------------------------------------------------------------
 /** Initialise the static image storage area.
  *  Clear,Allocate, Init. the m_aieImage samples
@@ -1032,7 +1066,7 @@ void CqBucket::FilterTransmittance(bool empty)
 				CalculateVisibility(xcent, ycent, pixel);
 			}
 		}
-		//CheckVisibilityFunction(1); // This checks the visibility function of the first pixel in this bucket
+		CheckVisibilityFunction(1); // This checks the visibility function of the first pixel in this bucket
 	}
 	// Empty buckets will be identified and handled in ddmanager
 }
@@ -1044,27 +1078,16 @@ void CqBucket::FilterTransmittance(bool empty)
  * \param ycent the y-coordinate of the current pixel's center, in raster space
  * \param pixel a pointer to the current pixel
  */
-void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* pixel )
+void CqBucket::CalculateVisibility( const TqFloat xcent, const TqFloat ycent, CqImagePixel* pixel )
 {
-	/// \todo Break up the code in this function into a few smaller functions
-	CqImagePixel* pixel2;
-	TqInt fx, fy;
-	TqInt SampleCount = 0;
-	const TqFloat xfwo2 = lceil(FilterXWidth()) * 0.5f;
-	const TqFloat yfwo2 = lceil(FilterYWidth()) * 0.5f;
-	const TqInt xmax = m_DiscreteShiftX;
-	const TqInt ymax = m_DiscreteShiftY;
-	const TqInt numsubpixels = ( PixelXSamples() * PixelYSamples() );
-	const TqInt numperpixel = numsubpixels * numsubpixels;
-	TqInt xlen = RealWidth();
-	TqFloat sumFilterValues = 0; // For normalizing the filter values
-	TqFloat inverseSumFilterValues = 0; // so we can do multiplication instead of division (faster?)
-	std::priority_queue<SqHitHeapNode, std::vector<SqHitHeapNode> > nextHitHeap; // min-heap keeps next-closest "hit" in each transmittance data set
+	//CqHitHeap nextHitHeap; //< min-heap keeps next-closest "hit" in each transmittance data set
+	TqHitHeap nextHitHeap; //< min-heap keeps next-closest "hit" in each transmittance data set
 	CqColor slopeAtJ(0,0,0); // Keeps track of the sum of the changes in slope up until node j (the current node)
 							 // which happens to equal the slope of the visibility curve at that point
+	
 	// Setup						
 	boost::shared_ptr<TqVisibilityFunction> currentVisFunc(new TqVisibilityFunction);
-	currentVisFunc->reserve(numperpixel); // There may be more, but at least this many
+	//currentVisFunc->reserve(numperpixel); // There may be more, but at least this many
 	m_VisibilityFunctions.push_back(currentVisFunc);
 	// First, build and insert node 0, which has 100% visibility at depth z=0
 	// Note: Perhaps we don't want to do this. The first and last nodes can be implicit.
@@ -1077,51 +1100,8 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 	// Place the first hit (if there is one) from each sub-sample into the heap.
 	/// \todo Support other filtering algorithms, for example, separable filtering algorithms.
 	// Filter using a non-separable filter is good, and fast, for filter widths smaller than or equal to 16 pixels
-	for ( fy = -ymax; fy <= ymax; ++fy )
-	{	
-		pixel2 = pixel;
-		for ( fx = -xmax; fx <= xmax; ++fx )
-		{
-			TqInt index = ( ( ( fy + ymax ) * lceil(FilterXWidth()) ) + ( fx + xmax ) ) * numperpixel;
-			// Now go over each subsample within the pixel
-			TqInt sx, sy;
-			TqInt sampleIndex = 0;
-			for ( sy = 0; sy < PixelYSamples(); ++sy )
-			{
-				for ( sx = 0; sx < PixelXSamples(); ++sx )
-				{
-					TqInt sindex = index + ( ( ( sy * PixelXSamples() ) + sx ) * numsubpixels );
-					const SqSampleData& currentSampleData = pixel2->SampleData(sampleIndex);
-					const CqVector2D vecS = currentSampleData.m_Position - CqVector2D( xcent, ycent );
-					if ( (vecS.x() >= -xfwo2) && (vecS.y() >= -yfwo2) && (vecS.x() <= xfwo2) && (vecS.y() <= yfwo2) )
-					{
-						const TqFloat filterValue = m_aFilterValues[ sindex + currentSampleData.m_SubCellIndex ];
-						sumFilterValues += filterValue;
-						if ( pixel2->OpaqueValues( sampleIndex ).m_flags & SqImageSample::Flag_Valid )
-						{
-							if ( !currentSampleData.m_Data.empty() )
-							{ 
-								// This subpixel covers multiple samples, and the frontmost sample is not opaque
-								SqHitHeapNode hitNode(&currentSampleData, 0, gColWhite, filterValue);
-								nextHitHeap.push(hitNode);
-							}
-							else 
-							{ 
-								// This subpixel only had one hit (m_OpaqueSample), so construct its tuple, add it to the heap and we are done
-								SqHitHeapNode hitNode(&currentSampleData, -1, gColWhite, filterValue);
-								nextHitHeap.push(hitNode);
-							}
-							SampleCount++;
-						}
-					}
-					sampleIndex++;
-				}
-			}
-			pixel2++;
-		}
-		pixel += xlen; // This is for filter widths larger than a single pixel
-	}
-	inverseSumFilterValues = 1.0/sumFilterValues;
+	// Get inverse of the sum of filter values, so we can do multiplication instead of division (faster)
+	const TqFloat inverseSumFilterValues = filterNonSeparable(xcent, ycent, pixel, nextHitHeap);
 	
 	// Check if the heap is sorted (DEBUGGING)
 	//CheckHeapSorted(nextHitHeap);	
@@ -1151,6 +1131,10 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 			while ( ! nextHitHeap.empty() )
 			{
 				SqHitHeapNode secondaryHit = nextHitHeap.top();
+				//if (secondaryHit.samplePointer->m_OpaqueSample.Data()[Sample_Depth] != deltaNode.zdepth)
+				//{
+				//	break;
+				//}
 				if (secondaryHit.queueIndex == -1)
 				{
 					nextHitHeap.pop();
@@ -1227,11 +1211,72 @@ void CqBucket::CalculateVisibility( TqFloat xcent, TqFloat ycent, CqImagePixel* 
 		// However, x nodes are being added, all at (0,1) where x is the number of sample points.
 		// We do not want to add these. Actually, I should investigate why this is happening, because it was
 		// not expected.
-		if (deltaNode.zdepth != currentVisFunc->back()->zdepth)
-		{
+		//if (deltaNode.zdepth != currentVisFunc->back()->zdepth)
+		//{
 			ReconstructVisibilityNode( deltaNode, slopeAtJ, currentVisFunc );
-		}
+		//}
 	}
+}
+
+TqFloat CqBucket::filterNonSeparable( const TqFloat xcent, const TqFloat ycent, CqImagePixel* pixel, TqHitHeap& nextHitHeap )
+{
+	CqImagePixel* pixel2;
+	TqInt fx, fy;
+	TqInt SampleCount = 0;
+	const TqFloat xfwo2 = lceil(FilterXWidth()) * 0.5f;
+	const TqFloat yfwo2 = lceil(FilterYWidth()) * 0.5f;
+	const TqInt xmax = m_DiscreteShiftX;
+	const TqInt ymax = m_DiscreteShiftY;
+	const TqInt numsubpixels = ( PixelXSamples() * PixelYSamples() );
+	const TqInt numperpixel = numsubpixels * numsubpixels;
+	TqInt xlen = RealWidth();
+	TqFloat sumFilterValues = 0; //< For normalizing the filter values
+
+	for ( fy = -ymax; fy <= ymax; ++fy )
+	{	
+		pixel2 = pixel;
+		for ( fx = -xmax; fx <= xmax; ++fx )
+		{
+			TqInt index = ( ( ( fy + ymax ) * lceil(FilterXWidth()) ) + ( fx + xmax ) ) * numperpixel;
+			// Now go over each subsample within the pixel
+			TqInt sx, sy;
+			TqInt sampleIndex = 0;
+			for ( sy = 0; sy < PixelYSamples(); ++sy )
+			{
+				for ( sx = 0; sx < PixelXSamples(); ++sx )
+				{
+					TqInt sindex = index + ( ( ( sy * PixelXSamples() ) + sx ) * numsubpixels );
+					const SqSampleData& currentSampleData = pixel2->SampleData(sampleIndex);
+					const CqVector2D vecS = currentSampleData.m_Position - CqVector2D( xcent, ycent );
+					if ( (vecS.x() >= -xfwo2) && (vecS.y() >= -yfwo2) && (vecS.x() <= xfwo2) && (vecS.y() <= yfwo2) )
+					{
+						const TqFloat filterValue = m_aFilterValues[ sindex + currentSampleData.m_SubCellIndex ];
+						sumFilterValues += filterValue;
+						if ( pixel2->OpaqueValues( sampleIndex ).m_flags & SqImageSample::Flag_Valid )
+						{
+							if ( !currentSampleData.m_Data.empty() )
+							{ 
+								// This subpixel covers multiple samples, and the frontmost sample is not opaque
+								SqHitHeapNode hitNode(&currentSampleData, 0, gColWhite, filterValue);
+								nextHitHeap.push(hitNode);
+							}
+							else 
+							{ 
+								// This subpixel only had one hit (m_OpaqueSample), so construct its tuple, add it to the heap and we are done
+								SqHitHeapNode hitNode(&currentSampleData, -1, gColWhite, filterValue);
+								nextHitHeap.push(hitNode);
+							}
+							SampleCount++;
+						}
+					}
+					sampleIndex++;
+				}
+			}
+			pixel2++;
+		}
+		pixel += xlen; // This is for filter widths larger than a single pixel
+	}
+	return 1/sumFilterValues;
 }
 
 //----------------------------------------------------------------------

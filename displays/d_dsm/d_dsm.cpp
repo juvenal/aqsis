@@ -46,6 +46,9 @@
 #include "deeptexturetile.h"
 #include "deeptileadaptor.h"
 
+// External libraries
+#include <boost/shared_ptr.hpp>
+
 // From displayhelpers.c
 // Note: We should probably put these functions in a global library because they are used by this display as
 // well as d_exr and the main display. Currently each subdirectory has its own copy of these functions.
@@ -135,7 +138,6 @@ static bool lowendian();
 
 typedef struct
 {
-	//CqDeepTexOutputFile* DtexFile;
 	Aqsis::CqDeepTileAdaptor* tileAdaptor;  
 	int				iWidth; //< Image width in pixels
 	int				iHeight;
@@ -507,8 +509,8 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	DspyFindMatrixInParamList( "Nl", reinterpret_cast<float*>(matWorldToCamera), paramCount, parameters );
 
 	// Note: flags can also be binary ANDed with PkDspyFlagsWantsEmptyBuckets and PkDspyFlagsWantsNullEmptyBuckets
-	//flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
-	//pData->flags = PkDspyFlagsWantsScanLineOrder;
+	flagstuff->flags = PkDspyFlagsWantsScanLineOrder;
+	pData->flags = PkDspyFlagsWantsScanLineOrder;
 
 	pData->Channels = formatCount; // Lets display know how many floats per visibility node to expect from DspyImageDeepData
 	pData->iWidth = width;
@@ -516,7 +518,7 @@ extern "C" PtDspyError DspyImageOpen(PtDspyImageHandle    *image,
 	
 	boost::shared_ptr<Aqsis::CqDeepTexOutputFile> deepTexFile(new Aqsis::CqDeepTexOutputFile(std::string(filename), width, height, 
 							tileWidth, tileHeight, pData->bucketDimensions[0], pData->bucketDimensions[1],
-							formatCount, matWorldToScreen, matWorldToCamera));
+							formatCount, matWorldToScreen, matWorldToCamera));	
 	pData->tileAdaptor = new Aqsis::CqDeepTileAdaptor(deepTexFile, width, height, tileWidth, tileHeight, 
 			pData->bucketDimensions[0], pData->bucketDimensions[1], formatCount);
 	
@@ -602,7 +604,7 @@ extern "C" PtDspyError DspyImageDeepData(PtDspyImageHandle image,
 	{
 		boost::shared_ptr<Aqsis::CqDeepTextureTile> newTile(
 				new Aqsis::CqDeepTextureTile(visData, funLengths, xmin, ymin, xmax_plusone, 
-				ymax_plusone, entrysize, true));
+				ymax_plusone, entrysize, true));			
 		pData->tileAdaptor->addTile(newTile);
 	}
 	

@@ -44,7 +44,7 @@
 
 START_NAMESPACE( Aqsis )
 
- //------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 /** \brief Structure representing changes in visibility at a specific depth
  *
  * A visibility function is a collection of these structures.
@@ -88,6 +88,48 @@ struct SqHitHeapNode
 	CqColor runningVisibility;
 	/// sample weight (0 <= weigh <= 1)
 	TqFloat weight;  
+};
+
+typedef std::priority_queue<SqHitHeapNode, std::vector<SqHitHeapNode> > TqHitHeap;
+
+/** \brief Class encapsulates operations on an SqHitHeapNode queue for visibility calculations.
+* This class should handle micromanagement of the heap, such as adding new nodes (if required)
+* when nodes are removed. This is a priority queue that sorts nodes based on depth, such that the
+* deepest nodes are processed last.
+*/
+class CqHitHeap
+{
+	public:
+		/** \brief Constructor
+		*/
+		CqHitHeap();
+
+		/** \brief The user should call this method once per visibility function to enqueue the first
+		* node from each visibility function on the heap. No extra identifier is needed to differentiate 
+		* between them, since they are differentiated implicitly by the sub-sample data arrays they point to.
+		*
+		*/
+		void push(SqHitHeapNode node);
+		
+		/** \brief Take and return the top node off the heap. Check if another node
+		*  should be added, and if so, add it.
+		*
+		* \return A reference to the hit heap node popped from the heap.
+		*/
+		SqHitHeapNode pop();
+		
+		/** \brief Check if the heap is empty of nodes
+		*
+		* \return True if there are no nodes in the queue, false otherwise.
+		*/		
+		bool isEmpty() const;
+
+	private:
+	
+		// Functions
+	
+		// Data
+		std::priority_queue<SqHitHeapNode, std::vector<SqHitHeapNode> > m_heap;	
 };
 
 //-----------------------------------------------------------------------
@@ -215,16 +257,44 @@ class CqBucket : public IqBucket
 		void	ExposeBucket();
 		void	QuantizeBucket();
 		static	void	ShutdownBucket();
+		
+		/** \brief Filter and produce visibility functions for all pixels in the bucket, if it is not empty.
+		 * If it is empty, indicate so by storing a -1 at the front of the function length data for the bucket.
+		 * 
+		*/
 		void FilterTransmittance(bool empty);
-		void CalculateVisibility(TqFloat xcent, TqFloat ycent, CqImagePixel* pie);
+		
+		/** \brief Filter and generate visibility function for a single pixel.
+		 * 
+		*/
+		void CalculateVisibility(const TqFloat xcent, const TqFloat ycent, CqImagePixel* pie);
+		
+		/** \brief Using a non-separable filter (good when image filters are smaller than 16 pixels in width) filter the deep data
+		 * to produce a heap containing the first (most shallow) hit from each sum-sample in the filter.
+		 * 
+		 * \return A float, the inverse of the normalized filter weight (sum of all filter weights) 
+		*/
+		TqFloat filterNonSeparable( const TqFloat xcent, const TqFloat ycent, CqImagePixel* pixel, TqHitHeap& nextHitHeap );
+		
+		/** \brief Get a const pointer to the visibility function at the rquested bucket space pixel coordinates (hpos, vpos)
+		 * 
+		*/
 		void ReconstructVisibilityNode( const SqDeltaNode& deltaNode, CqColor& slopeAtJ, boost::shared_ptr<TqVisibilityFunction> currentVisFunc );
+		
+		/** \brief Get a const pointer to the visibility function at the rquested bucket space pixel coordinates (hpos, vpos)
+		 * 
+		*/
 		virtual	const TqVisibilityFunction* DeepData( TqInt hpos, TqInt vpos ) const;
+		
+		// Assert that the heap is sorted (DEBUGGING)
 		void CheckHeapSorted(std::priority_queue< SqHitHeapNode, std::vector<SqHitHeapNode> > nexthitheap);
+		
+		// Print to standard output the nodes in a given visibility function (DEBUGGING)
 		void CheckVisibilityFunction(TqInt index) const;
+		
 		/** \brief Get the size of the visibility data for this bucket
 		 *
-		 * It is important to have easy access to this information
-		 * because visibility data size is non-uniform per-pixel.
+		 * Note: this function is currently not used
 		 * 
 		 * \return The total number of TqFloats used in representing all
 		 * visibility functions for this bucket

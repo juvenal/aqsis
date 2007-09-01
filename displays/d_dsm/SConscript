@@ -11,7 +11,7 @@ d_dsm_sources = Split("""
 d_dsm_headers =  Split("""
 	""")
 	
-d_dsmenv.AppendUnique(LIBS = ['aqsistypes', '$tiff_lib'])
+d_dsmenv.AppendUnique(LIBS = ['aqsistypes', 'aqsistex', '$tiff_lib'])
 d_dsmenv.AppendUnique(CPPPATH=['$tiff_include_path'])
 	
 

@@ -24,6 +24,7 @@
  * \brief Facilities for constructing/caching tiles from smaller sets of deep data,
  * such as buckets a row or more from a single bucket.
  */
+
 #ifndef DEEPTILEADAPTOR_H_INCLUDED
 #define DEEPTILEADAPTOR_H_INCLUDED
 
@@ -59,7 +60,7 @@ typedef std::map<TqMapKey, boost::shared_ptr<CqDeepTextureTile> > TqSubRegionMap
  * until all sub-regions are full and we have a full tile, at which time
  * a single CqDeepTextureTile can be created from the sub-regions.
  *
- */
+*/
 struct SqDeepDataTile
 {
 	SqDeepDataTile( const TqUint32 width, const TqUint32 height );
@@ -68,7 +69,7 @@ struct SqDeepDataTile
 	 *
 	 * \param tile - A pointer to a small tile.
 	 * \param subRegionKey - key specifies where in the subRegionMap to place the tile pointer. 
-	 */
+	*/
 	void addSubRegion( boost::shared_ptr<CqDeepTextureTile> tile, TqMapKey subRegionKey );
 
 	// A map of sub-regions indexable by TqMapKeys
@@ -90,14 +91,14 @@ class CqDeepTileAdaptor
 		 * of the data to come in.
 		 *
 		 * \param newTile - A pointer to a new tile. It may or may not be full. 
-		 */
+		*/
 		virtual void addTile( const boost::shared_ptr<CqDeepTextureTile> tile );
 		
 		/** \brief connect this tile adaptor to an output object to which we send tiles
 		 * once they are full.
 		 *
 		 * \param outputObject - The object that can accept full deep tiles for output via an outputTile() function.
-		 */
+		*/
 		virtual void connectOutput( boost::shared_ptr<IqDeepTextureOutput> outputObject );
 		
 	private:
@@ -108,7 +109,7 @@ class CqDeepTileAdaptor
 		 * then release its memory.
 		 *
 		 * \param tileKey - the key into m_deepTileMap to retrieve the SqDeepDataTile we want to rebuild
-		 */
+		*/
 		void rebuildAndOutputTile(const TqMapKey tileKey);
 
 		/** \brief Get a boolean flag indicating whether of not the specified SqDeepDataTile
@@ -118,13 +119,13 @@ class CqDeepTileAdaptor
 		 *  we want to check is it is empty.
 		 * 
 		 * \return True is all reb-regions are empty in the SqDeepDataTile specified by tileKey.
-		 */
-		bool CqDeepTileAdaptor::allSubRegionsEmpty(const TqMapKey tileKey);
+		*/
+		bool allSubRegionsEmpty(const TqMapKey tileKey);
 	
 		/** \brief Create a new tile and add it to m_deepTileMap with the given key: tileID
 		 *
 		 * \param tileKey - The new tile's map key into m_deepTileMap. 
-		 */
+		*/
 		void createNewTile(const TqMapKey tileKey);
 		
 		/** \brief Recalculate the visibility function offsets for this tile by
@@ -134,7 +135,7 @@ class CqDeepTileAdaptor
 		 * \param tileKey - The tile's key into m_deepTileMap.
 		 * \return the value of the largest function offset, which represents the
 		 * number of visibility nodes in the tile.   
-		 */		
+		*/		
 		TqUint rebuildFunctionOffsets(boost::shared_array<TqInt> funcOffsets, const TqMapKey tileKey);
 
 		/** \brief Rebuild the visibility functions for this tile by
@@ -142,7 +143,7 @@ class CqDeepTileAdaptor
 		 * 
 		 * \param data - A pointer to pre-alloacted storage where we should store the data
 		 * \param tileKey - The tile's key into m_deepTileMap.
-		 */
+		*/
 		void rebuildVisibilityFunctions(boost::shared_array<TqFloat> data, const TqMapKey tileKey);
 		
 		/** \brief Determine if all data has been received for a specific tile,
@@ -151,7 +152,7 @@ class CqDeepTileAdaptor
 		 * \param tileKey - The key for the tile; we want to know if the tile is full
 		 * \return True if the sum of the tile's reb-region widths is equal to the tile's width
 		 * 		and the sum of the sub-region heights is equal to the tile height, false otherwise.
-		 */				
+		*/				
 		bool isFullTile(const TqMapKey tileKey);
 		
 		//-----------------------------------------------------------------------------------------

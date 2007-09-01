@@ -27,6 +27,9 @@
 #include "deepfileheader.h"
 #include "exception.h"
 
+// Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
+const char dtexMagicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
+
 namespace Aqsis 
 {
 

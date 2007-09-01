@@ -77,9 +77,11 @@ CqPluginBase::DLOpen( CqString *library )
 	handle = ( void * ) dlopen( tstring.c_str(), RTLD_NOW | RTLD_GLOBAL );
 #endif
 #endif
-
+	
 	if ( handle )
 		m_activeHandles.push_back( handle );
+	else
+		Aqsis::log() << error << "Could not load plugin: \"" << dlerror() << "\"\n";
 	return handle;
 }
 

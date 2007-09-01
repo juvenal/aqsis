@@ -42,6 +42,7 @@ aqsistypes_headers = Split("""
 	pool.h
 	random.h
 	refcount.h
+	smartptr.h
 	socket.h
 	spline.h
 	sstring.h

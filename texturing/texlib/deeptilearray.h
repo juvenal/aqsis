@@ -61,8 +61,7 @@ class CqDeepTileArray
 		 * \param filename - The full path and file name of the dtex file to open and read from.
 		 */
 		CqDeepTileArray( IqDeepTextureInput& tileSource );
-		virtual ~CqDeepTileArray(){};
-	  
+		
 		/** \brief (This is just a thought) Identify the tile that contains the requested pixel. 
 		 * If the tile is already cached, return the visibility function for the desired pixel.
 		 * If the tile is not in cache, load it from file, evicting the least recently used cached 

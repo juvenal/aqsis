@@ -37,6 +37,7 @@
 #include <map>
 
 // Additional Aqsis headers
+#include "smartptr.h"
 #include "deepfileheader.h"
 #include "deeptexturetile.h"
 

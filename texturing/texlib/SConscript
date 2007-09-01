@@ -3,23 +3,23 @@ import os
 Import('env')
 
 texlib_sources = Split("""
-	dtexoutput.cpp
-	dtexinput.cpp
-	deeptexturetile.cpp
-	deeptileadaptor.cpp
 	deeptilearray.cpp
 	deeptexture.cpp
+	dtexinput.cpp
+	deeptileadaptor.cpp
 	deepfileheader.cpp
+	dtexoutput.cpp
+	deeptexturetile.cpp
 	""")
 
 texlib_headers = Split("""
-	dtexoutput.h
-	dtexinput.h
-	deeptexturetile.h
-	deeptileadaptor.h
 	deeptilearray.h
 	deeptexture.h
+	dtexinput.h
+	deeptileadaptor.h
 	deepfileheader.h
+	dtexoutput.h
+	deeptexturetile.h
 	""")
 
 texlibenv = env.Copy()
