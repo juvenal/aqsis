@@ -1023,7 +1023,7 @@ void CqShaderExecEnv::SO_shadow( IqShaderData* name, IqShaderData* channel, IqSh
 	GetTexParams(cParams, apParams, paramMap);
 
 	__iGrid = 0;
-	CqString _aq_name;
+	CqString _aq_name; // shadow.map
 	(name)->GetString(_aq_name,__iGrid);
 	TqFloat _aq_channel;
 	(channel)->GetFloat(_aq_channel,__iGrid);

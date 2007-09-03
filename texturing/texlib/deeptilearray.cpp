@@ -42,9 +42,10 @@ const TqVisFuncPtr CqDeepTileArray::visibilityFunctionAtPixel( const TqUint x, c
 	// Identify the tile the requested pixel belongs to
 	const TqUint homeTileCol = x/m_deepTextureInputSource.standardTileWidth();
 	const TqUint homeTileRow = y/m_deepTextureInputSource.standardTileHeight();
+	const TileKey homeTileKey(homeTileRow, homeTileCol);
 	const TqUint homeTileXmin = homeTileCol*m_deepTextureInputSource.standardTileWidth(); 
 	const TqUint homeTileYmin = homeTileRow*m_deepTextureInputSource.standardTileHeight();
-	const TileKey homeTileKey(homeTileYmin, homeTileXmin);
+	//const TileKey homeTileKey(homeTileYmin, homeTileXmin);
 	const TqUint homeTileX = x-homeTileXmin; // pixel x-ccordinate, relative to bucket origin
 	const TqUint homeTileY = y-homeTileYmin; // pixel y-ccordinate, relative to bucket origin
 	

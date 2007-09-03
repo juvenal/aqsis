@@ -42,12 +42,43 @@
 #include "itexturemap.h" 
 #include "deeptilearray.h"
 #include "color.h"
+#include "ri.h"
 
 // External libraries
 #include <boost/shared_ptr.hpp>
 
 namespace Aqsis
 {
+
+//----------------------------------------------------------------------
+/** CalculateFilter() Figure out which filter is applied to this mipmap.
+*
+* \todo Note: this function is copied out of texturemap.h
+* It should be consolidated when the texture library is integrated.
+*/
+static RtFilterFunc CalculateFilter(CqString filter)
+{
+	RtFilterFunc filterfunc = RiBoxFilter;
+
+	if ( filter == "gaussian" )
+		filterfunc = RiGaussianFilter;
+	if ( filter == "mitchell" )
+		filterfunc = RiMitchellFilter;
+	if ( filter == "box" )
+		filterfunc = RiBoxFilter;
+	if ( filter == "triangle" )
+		filterfunc = RiTriangleFilter;
+	if ( filter == "catmull-rom" )
+		filterfunc = RiCatmullRomFilter;
+	if ( filter == "sinc" )
+		filterfunc = RiSincFilter;
+	if ( filter == "disk" )
+		filterfunc = RiDiskFilter;
+	if ( filter == "bessel" )
+		filterfunc = RiBesselFilter;
+
+	return filterfunc;
+}
 
 //------------------------------------------------------------------------------
 /** \brief A class to manage a single mipmap level of a deep shadow map.
@@ -64,26 +95,38 @@ class CqDeepMipmapLevel
 		 */
 		CqDeepMipmapLevel( IqDeepTextureInput& tileSource );
 		virtual ~CqDeepMipmapLevel(){};
-	  
-		/** \brief Identify the ID of the tile that contains the requested pixel. If the tile is already cached, return the visibility function
-		 * for the desired pixel and mark the tile as freshly used (so that it will not be evicted too soon), and increment the age of other cached tiles.
-		 * If the tile is not in cache, load it from file, evicting the least recently used cached tile if the cache is full, and proceeding normalyy from there.
+
+		/** \brief Access the tile array to fetch the visibility at the requested pixel and depth
 		 *
-		 * \param x - Image x-coordinate to which the scene point is projected on the shadow caster's image plane.
-		 * \param y - Image y-coordinate to which the scene point is projected on the shadow caster's image plane.
-		 * \param depth - Scene depth, measured from the shadow caster's position, of the point we seek shadow information for.
+		 * \param samplePoint - A vector containing the same point information as the overloaded function below.
 		 * \return A color representing the visibility at the requested point. 
 		 */
-		virtual CqColor visibilityAt( const int x, const int y, const float depth );
+		CqColor filterVisibility(const CqVector3D& p1, const CqVector3D& p2, const CqVector3D& p3,
+				const CqVector3D& p4, const TqFloat z, const TqInt numSamples, RtFilterFunc filterFunc)
 		
 	private:
 		
 		// Functions
-		//void filterFunction();
-
+		
+		/** \brief Access the tile array to fetch the visibility at the requested pixel and depth
+		 *
+		 * \param samplePoint - A vector containing the same point information as the overloaded function below.
+		 * \return A color representing the visibility at the requested point. 
+		 */
+		virtual CqColor visibilityAt( const CqVector3D& samplePoint )
+		
+		/** \brief Access the tile array to fetch the visibility at the requested pixel and depth
+		 *
+		 * \param x - Image x-coordinate to which the scene point is projected on the shadow caster's image plane.
+		 * \param y - Image y-coordinate to which the scene point is projected on the shadow caster's image plane.
+		 * \param depth - Scene depth, measured from the shadow caster's (light) position, of the point we seek shadow information for.
+		 * \return A color representing the visibility at the requested point. 
+		 */
+		virtual CqColor visibilityAt( const int x, const int y, const float depth );
+		
 		// Data
 		CqDeepTileArray m_deepTileArray;
-		
+		TqInt m_numberOfChannels;
 };
 
 //------------------------------------------------------------------------------
@@ -106,6 +149,13 @@ class CqDeepTexture : public IqTextureMap
 		 */
 		CqDeepTexture( const std::string filename );
 		virtual ~CqDeepTexture(){};
+		
+		/** Get a pointer to a deep shadow map. This is a factory method.
+		 * 
+		 * \return A pointer to a deep texture instance holding the resuested shadow map,
+		 * assuming the given file name specifies a valid shadow map. Otherwise return NULL.
+		 */
+		static IqTextureMap* GetDeepShadowMap( const std::string& strName );
 		
 		//---------------------------------------------------
 		// Pure virtual functions inherited from IqTextureMap
@@ -158,12 +208,33 @@ class CqDeepTexture : public IqTextureMap
 		
 		// Functions
 		
-		// Data
+		// static data
+		static std::vector<boost::shared_ptr<CqDeepTexture> > m_textureCache;
+		
+		// member data
 		CqDeepTexInputFile m_sourceFile;
-		std::vector<boost::shared_ptr<CqDeepMipmapLevel> > m_MipmapSet;
+		std::vector<boost::shared_ptr<CqDeepMipmapLevel> > m_mipmapSet;
+		CqMatrix m_matWorldToScreen;	///< Matrix to convert points from world space to screen space.
+		CqMatrix m_matWorldToCamera;	///< Matrix to convert points from world space to camera space.
+		
+		RtFilterFunc m_FilterFunc; ///< Catmull-Rom, sinc, disk, ... pixelfilter
+		TqFloat	m_sblur;
+		TqFloat	m_tblur;
+		TqFloat	m_pswidth;
+		TqFloat	m_ptwidth;          
+		TqFloat	m_samples;			///< How many samplings
+		TqFloat	m_lerp; 			///< Enable TriLinear
+		TqFloat	m_pixelvariance;    ///< Smallest Difference between two distinct samples
+		TqInt m_umapsize;           ///< Umapsize for m_level of mipmap
+		TqInt m_vmapsize;           ///< Vmapsize for m_level of mipmap
+		TqFloat	m_interp;           ///< Difference between m_level and m_level+1 MipMap (for TriLinear sampling)
+		TqFloat	m_swidth, m_twidth; ///< for the pixel's filter
+		TqFloat	m_ds;               ///< delta (u2-u1) 
+		TqFloat	m_dt;               ///< delta (v2-v1)
+		TqInt m_level;              ///< Which level of mipmap (from m_ds, m_dt)
 };
 
 //------------------------------------------------------------------------------
 } // namespace Aqsis
 
-#endif // TILEARRAY_H_INCLUDED
+#endif // DEEPTEXTURE_H_INCLUDED

@@ -180,7 +180,9 @@ class COMMON_SHARE CqMatrix
 
 		CqMatrix&	operator=( const CqMatrix &From );
 		CqMatrix&	operator=( TqFloat From[ 4 ][ 4 ] );
+		CqMatrix&	operator=( const TqFloat From[ 4 ][ 4 ] );
 		CqMatrix&	operator=( TqFloat From[ 16 ] );
+		CqMatrix&	operator=( const TqFloat From[ 16 ] );
 		CqMatrix&	operator+=( const CqMatrix &From );
 		CqMatrix&	operator-=( const CqMatrix &From );
 		CqMatrix&	operator+=( const CqVector4D &Vector );

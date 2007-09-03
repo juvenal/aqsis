@@ -39,6 +39,7 @@
 // Additional Aqsis headers
 #include "deepfileheader.h"
 #include "deeptexturetile.h"
+#include "matrix.h"
 
 // External libraries
 #include <boost/shared_array.hpp>
@@ -63,7 +64,12 @@ typedef struct IqDeepTextureInput
 	 */
 	virtual boost::shared_ptr<CqDeepTextureTile> tileForPixel( const TqUint x, const TqUint y ) = 0;
 
-	virtual void transformationMatrices( TqFloat matWorldToScreen[4][4], TqFloat matWorldToCamera[4][4] ) const = 0;
+	/** \brief Get the transformation matrices freom the deep shadow map
+	 *
+	 * \param matWorldToScreen - A preallocated 2-D array to hold the transformation matrix by the same name from the dsm.
+	 * \paran matWorldToCamera - A preallocated 2-D array to hold the transformation matrix by the same name from the dsm.
+	 */
+	virtual void transformationMatrices( CqMatrix& matWorldToScreen, CqMatrix& matWorldToCamera ) const = 0;
 	
 	/** \brief Get the width of the deep texture map
 	 *
@@ -119,7 +125,6 @@ class CqDeepTexInputFile : public IqDeepTextureInput
 		 */
 		CqDeepTexInputFile( const std::string filename ); 
 	  
-		
 		//-----------------------------------------------------------------
 		// Override pure virtual function inherited from IqDeepTextureInput
 		
@@ -136,10 +141,11 @@ class CqDeepTexInputFile : public IqDeepTextureInput
 		
 		/** \brief Get the transformation matrices freom the deep shadow map
 		 *
-		 * \param matWorldToScreen - A preallocated 2-D array to hold the transformation matrix by the same name from the dsm.
-		 * \paran matWorldToCamera - A preallocated 2-D array to hold the transformation matrix by the same name from the dsm.
+		 * \param matWorldToScreen - A preallocated CqMatrix reference to hold the transformation
+		 *  						matrix by the same name from the dsm.
+		 * \paran matWorldToCamera - similar to the above
 		 */
-		void transformationMatrices( TqFloat matWorldToScreen[4][4], TqFloat matWorldToCamera[4][4] ) const;
+		void transformationMatrices( CqMatrix& matWorldToScreen, CqMatrix& matWorldToCamera ) const;
 		
 		/** \brief Get the width of the deep texture map
 		 *
@@ -181,9 +187,9 @@ class CqDeepTexInputFile : public IqDeepTextureInput
 		 */
 		inline bool isValid() const;
 		
-		/** \brief Get he file name of the deep texture file from which we read.
+		/** \brief Get the file name of the deep texture file from which we read.
 		 *
-		 * \return a std::string with the file name
+		 * \return a std::string reference with the file name
 		 */
 		inline const std::string& fileName() const;
 		

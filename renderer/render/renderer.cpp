@@ -38,6 +38,7 @@
 #include	"transform.h"
 #include	"rifile.h"
 #include	"texturemap.h"
+#include	"deeptexture.h"
 #include	"shadervm.h"
 #include	"inlineparse.h"
 #include	"tiffio.h"
@@ -1657,6 +1658,13 @@ IqTextureMap* CqRenderer::GetEnvironmentMap( const CqString& strFileName )
 
 IqTextureMap* CqRenderer::GetShadowMap( const CqString& strFileName )
 {
+	// First try to see if the map is a deep shadow map
+	IqTextureMap* map = CqDeepTexture::GetDeepShadowMap( strFileName ); 
+	if (map != NULL)
+	{
+		return map;
+	}
+	// Otherwise load a standard shadow map
 	return ( CqTextureMap::GetShadowMap( strFileName ) );
 }
 

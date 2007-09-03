@@ -71,13 +71,13 @@ struct SqTileTableEntry
 {
 	/** Constructor
 	 */ 
-	SqTileTableEntry( uint32 x, uint32 y, uint32 fo )
-		: tileCol( x ),
-		tileRow( y ),
+	SqTileTableEntry( uint32 y, uint32 x, uint32 fo )
+		: tileRow( y ),
+		tileCol( x ),
 		fileOffset( fo )
 	{}
-	uint32 tileCol;
 	uint32 tileRow;
+	uint32 tileCol;
 	/// Absolute file offset to the beginning of a tile header (fileOffset == 0 if tile is empty)
 	uint32 fileOffset;
 };

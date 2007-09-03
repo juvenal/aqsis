@@ -36,7 +36,7 @@ namespace Aqsis
 SqDtexFileHeader::SqDtexFileHeader( const uint32 fileSize, const uint32 imageWidth, 
 		const uint32 imageHeight, const uint32 numberOfChannels, const uint32 dataSize, 
 		const uint32 tileWidth, const uint32 tileHeight, const uint32 numberOfTiles,
-		const float matWorldToScreen[4][4], const float matWorldToCamera[4][4]) :
+		const float imatWorldToScreen[4][4], const float imatWorldToCamera[4][4]) :
 	fileSize( fileSize ),
 	imageWidth( imageWidth ),
 	imageHeight( imageHeight ),
@@ -48,7 +48,7 @@ SqDtexFileHeader::SqDtexFileHeader( const uint32 fileSize, const uint32 imageWid
 	matWorldToScreen(),
 	matWorldToCamera()
 {
-	setTransformationMatrices( matWorldToScreen, matWorldToCamera );
+	setTransformationMatrices( imatWorldToScreen, imatWorldToCamera );
 }
 
 void SqDtexFileHeader::writeToFile( std::ofstream& file ) const

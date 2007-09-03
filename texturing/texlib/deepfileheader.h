@@ -59,7 +59,7 @@ struct SqDtexFileHeader
 	SqDtexFileHeader( const uint32 fileSize = 0, const uint32 imageWidth = 0, 
 			const uint32 imageHeight = 0, const uint32 numberOfChannels = 0, const uint32 dataSize = 0, 
 			const uint32 tileWidth = 0, const uint32 tileHeight = 0, const uint32 numberOfTiles = 0,
-			const float matWorldToScreen[4][4] = NULL, const float matWorldToCamera[4][4] = NULL);
+			const float imatWorldToScreen[4][4] = NULL, const float imatWorldToCamera[4][4] = NULL);
 	
 	/** \brief Write the dtex file header to open binary file.
 	 *

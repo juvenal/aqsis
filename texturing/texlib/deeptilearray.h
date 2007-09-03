@@ -80,9 +80,11 @@ class CqDeepTileArray
 		
 		// Data
 		/// Key to use when finding tiles in std::maps.
-		/// Index like so: tileKey[topLeftY][topLeftX]
-		/// For example: tileKey[0][64] identifies the tile rooted with its top left pixel at
-		/// image coordinates (0,64).
+		/// Index like so: tileKey[tileRow][tileCol]
+		/// such that tileRow == topLeftY/standardTileHeight
+		/// and tileCol == topLeftX/standardTileWidth
+		/// For example: tileKey[0][1] identifies the tile rooted with its top left pixel at
+		/// image coordinates (0,64), assuming tile width is 64 pixels.
 		typedef std::pair<TqUint, TqUint> TileKey;
 
 		// The map is indexed with a TileKey: a tile ID, which is a pair (topLeftX, topLeftY) 

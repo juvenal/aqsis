@@ -81,12 +81,12 @@ CqDeepTexOutputFile::~CqDeepTexOutputFile()
 	// re-write the datasSize and fileSize fields in the file header, then we are done.
 	// Re-write the dataSize and fileSize fields which were not written properly in the constructor
 	// Seek to the 9th byte position in the file and write fileSize field
-	m_dtexFile.seekp(9, std::ios::beg);
+	m_dtexFile.seekp(8, std::ios::beg);
 	m_fileHeader.fileSize += m_fileHeader.dataSize;
 	m_dtexFile.write((const char*)(&m_fileHeader.fileSize), sizeof(TqUint32));
 	
 	// Seek to the 25th byte position in the file and write dataSize.
-	m_dtexFile.seekp(25, std::ios::beg);
+	m_dtexFile.seekp(24, std::ios::beg);
 	m_dtexFile.write((const char*)(&m_fileHeader.dataSize), sizeof(TqUint32));
 }
 
@@ -99,7 +99,8 @@ void CqDeepTexOutputFile::updateTileTable(const boost::shared_ptr<CqDeepTextureT
 	{
 		offset = 0;
 	}
-	SqTileTableEntry entry(tile->topLeftY(), tile->topLeftX(), offset);
+	SqTileTableEntry entry(tile->topLeftY()/m_fileHeader.tileHeight, 
+			tile->topLeftX()/m_fileHeader.tileWidth, offset);
 	m_tileTable.push_back(entry);
 }
 

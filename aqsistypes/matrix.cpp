@@ -963,6 +963,36 @@ CqMatrix &CqMatrix::operator=( TqFloat From[ 4 ][ 4 ] )
 	return ( *this );
 }
 
+
+//---------------------------------------------------------------------
+/** Copy function.
+ * \param From Renderman matrix to copy information from.
+ */
+
+CqMatrix &CqMatrix::operator=( const TqFloat From[ 4 ][ 4 ] )
+{
+	m_aaElement[ 0 ][ 0 ] = From[ 0 ][ 0 ];
+	m_aaElement[ 1 ][ 0 ] = From[ 1 ][ 0 ];
+	m_aaElement[ 2 ][ 0 ] = From[ 2 ][ 0 ];
+	m_aaElement[ 3 ][ 0 ] = From[ 3 ][ 0 ];
+	m_aaElement[ 0 ][ 1 ] = From[ 0 ][ 1 ];
+	m_aaElement[ 1 ][ 1 ] = From[ 1 ][ 1 ];
+	m_aaElement[ 2 ][ 1 ] = From[ 2 ][ 1 ];
+	m_aaElement[ 3 ][ 1 ] = From[ 3 ][ 1 ];
+	m_aaElement[ 0 ][ 2 ] = From[ 0 ][ 2 ];
+	m_aaElement[ 1 ][ 2 ] = From[ 1 ][ 2 ];
+	m_aaElement[ 2 ][ 2 ] = From[ 2 ][ 2 ];
+	m_aaElement[ 3 ][ 2 ] = From[ 3 ][ 2 ];
+	m_aaElement[ 0 ][ 3 ] = From[ 0 ][ 3 ];
+	m_aaElement[ 1 ][ 3 ] = From[ 1 ][ 3 ];
+	m_aaElement[ 2 ][ 3 ] = From[ 2 ][ 3 ];
+	m_aaElement[ 3 ][ 3 ] = From[ 3 ][ 3 ];
+
+	m_fIdentity = false;
+
+	return ( *this );
+}
+
 //---------------------------------------------------------------------
 /** Copy function.
  * \param From Renderman matrix to copy information from.
@@ -992,6 +1022,34 @@ CqMatrix &CqMatrix::operator=( TqFloat From[ 16 ] )
 	return ( *this );
 }
 
+//---------------------------------------------------------------------
+/** Copy function.
+ * \param From Renderman matrix to copy information from.
+ */
+
+CqMatrix &CqMatrix::operator=( const TqFloat From[ 16 ] )
+{
+	m_aaElement[ 0 ][ 0 ] = From[ 0 ];
+	m_aaElement[ 0 ][ 1 ] = From[ 1 ];
+	m_aaElement[ 0 ][ 2 ] = From[ 2 ];
+	m_aaElement[ 0 ][ 3 ] = From[ 3 ];
+	m_aaElement[ 1 ][ 0 ] = From[ 4 ];
+	m_aaElement[ 1 ][ 1 ] = From[ 5 ];
+	m_aaElement[ 1 ][ 2 ] = From[ 6 ];
+	m_aaElement[ 1 ][ 3 ] = From[ 7 ];
+	m_aaElement[ 2 ][ 0 ] = From[ 8 ];
+	m_aaElement[ 2 ][ 1 ] = From[ 9 ];
+	m_aaElement[ 2 ][ 2 ] = From[ 10 ];
+	m_aaElement[ 2 ][ 3 ] = From[ 11 ];
+	m_aaElement[ 3 ][ 0 ] = From[ 12 ];
+	m_aaElement[ 3 ][ 1 ] = From[ 13 ];
+	m_aaElement[ 3 ][ 2 ] = From[ 14 ];
+	m_aaElement[ 3 ][ 3 ] = From[ 15 ];
+
+	m_fIdentity = false;
+
+	return ( *this );
+}
 
 //---------------------------------------------------------------------
 /** Returns the inverse of this matrix using an algorithm from Graphics

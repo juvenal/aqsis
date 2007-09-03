@@ -27,9 +27,11 @@
 #include "dtexinput.h"
 #include "exception.h"
 #include "aqsismath.h"
+#include "logging.h"
 
 // Magic number for a DTEX file is: "\0x89AqD\0x0b\0x0a\0x16\0x0a" Note 0x417144 represents ASCII AqD
 const char dtexMagicNumber[8] = { 0x89, 'A', 'q', 'D', 0x0b, 0x0a, 0x16, 0x0a };
+const std::string correctMN(dtexMagicNumber, 8);
 
 namespace Aqsis
 {
@@ -48,24 +50,31 @@ CqDeepTexInputFile::CqDeepTexInputFile( const std::string filename )
 	{
 		throw Aqsis::XqInternal(std::string("Failed to open file \"") + filename + std::string( "\""), __FILE__, __LINE__);
 		m_isValid = false;
+		return;
 	}
 	// Verify that the magic number is valid
 	char buffer[8];
 	m_dtexFile.read(buffer, 8);
-	std::string correctMN = dtexMagicNumber;
+	// PROBLEM: in the line below, correctMN ends up with the magic number twice, that is,
+	// the string's length will be 16, and it will have the magic number, followed by the magic number again!
+	// This is why I have the global correctMN defined above.
+	//std::string correctMN = dtexMagicNumberB;
 	std::string testMN = buffer;
 	if ( testMN != correctMN )
 	{
-		throw XqInternal(std::string("Magic number in DTEX file: ") + filename 
-				+ std::string(" is not valid."), __FILE__, __LINE__);
+		Aqsis::log() << "Magic number in file: \"" << filename.c_str() << "\" is not a valid"
+				" DTEX magic number." << std::endl;
+		//throw XqInternal(std::string("Magic number in file: ") + filename 
+		//		+ std::string(" is not a valid DTEX magic number."), __FILE__, __LINE__);
 		m_isValid = false;
+		return;
 	}
 	// Load the file header into memory
 	m_fileHeader.readFromFile(m_dtexFile);
 
 	// Calculate some other variables
-	m_tilesPerRow = m_fileHeader.imageWidth/m_fileHeader.tileWidth;
-	m_tilesPerCol = m_fileHeader.imageHeight/m_fileHeader.tileHeight;
+	m_tilesPerRow = m_fileHeader.imageWidth/max(m_fileHeader.tileWidth,(uint32)1);
+	m_tilesPerCol = m_fileHeader.imageHeight/max(m_fileHeader.tileHeight,(uint32)1);
 	// Load the tile table into memory
 	loadTileTable();
 }
@@ -87,28 +96,17 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::tileForPixel( const TqU
 	return nullTile; //< The requested tile is empty. Caller may assume visibility is 100%
 }
 
-void CqDeepTexInputFile::transformationMatrices( TqFloat matWorldToScreen[4][4], 
-		TqFloat matWorldToCamera[4][4] ) const
+void CqDeepTexInputFile::transformationMatrices( CqMatrix& matWorldToScreen, 
+		CqMatrix& matWorldToCamera ) const
 {
-	assert(matWorldToScreen != NULL);
-	assert(matWorldToCamera != NULL);
-	TqUint x, y;
-	for (x = 0; x < 4; ++x)
-	{
-		for (y = 0; y < 4; ++y)
-		{
-			assert(matWorldToCamera[x] != NULL);
-			assert(matWorldToScreen[x] != NULL);
-			matWorldToScreen[x][y] = m_fileHeader.matWorldToScreen[x][y];
-			matWorldToCamera[x][y] = m_fileHeader.matWorldToCamera[x][y];
-		}
-	}
+	matWorldToScreen = (const TqFloat*)m_fileHeader.matWorldToScreen;
+	matWorldToCamera = (const TqFloat*)m_fileHeader.matWorldToCamera;
 }
 
 void CqDeepTexInputFile::loadTileTable()
 {	
-	TqUint tcol;
-	TqUint trow;
+	TqUint trow; //< tile row index
+	TqUint tcol; //< tile column index
 	TqUint offset;
 	TqUint i;
 	
@@ -122,8 +120,8 @@ void CqDeepTexInputFile::loadTileTable()
 	// Read the tile table
 	for (i = 0; i < m_fileHeader.numberOfTiles; ++i)
 	{
-		m_dtexFile.read((char*)(&tcol), sizeof(uint32));
 		m_dtexFile.read((char*)(&trow), sizeof(uint32));
+		m_dtexFile.read((char*)(&tcol), sizeof(uint32));
 		m_dtexFile.read((char*)(&offset), sizeof(uint32));
 		m_tileOffsets[trow][tcol] = offset; 
 	}
