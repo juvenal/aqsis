@@ -26,14 +26,17 @@
 
 #include "deeptexture.h"
 #include "renderer.h"
+#include "random.h"
 
 namespace Aqsis
 {
 
-#define	MinSize		3.0f
-#define	NumSamples	16
-#define	MinSamples	3
+// Some costants
+const TqFloat MinSize = 3.0f;
+const TqInt NumSamples = 16;
+const TqInt MinSamples = 3;
 
+// Static member initialization
 std::vector<boost::shared_ptr<CqDeepTexture> > CqDeepTexture::m_textureCache(0);
 
 //-----------------------------------------------------------------------------
@@ -41,9 +44,48 @@ std::vector<boost::shared_ptr<CqDeepTexture> > CqDeepTexture::m_textureCache(0);
 
 CqDeepMipmapLevel::CqDeepMipmapLevel( IqDeepTextureInput& tileSource ) :
 	m_deepTileArray( tileSource ),
-	m_numberOfChannels( tileSource.numberOfColorChannels() )
+	m_numberOfChannels( tileSource.numberOfColorChannels() ),
+	m_xRes( tileSource.imageWidth() ), //< Note: eventually we should ensure this is the res of our specific mipmap level
+	m_yRes( tileSource.imageHeight() )
 {}
 
+CqColor CqDeepMipmapLevel::filterVisibility(const CqVector3D& p1, const CqVector3D& p2, const CqVector3D& p3,
+		const CqVector3D& p4, const TqFloat z, const TqInt numSamples, RtFilterFunc filterFunc)
+{
+	// The points (p1,p2,p3,p4) represent a quadrilateral in texture coordinates which is the region to be filtered over.
+	// For N samples,
+	// Randomly choose a point, P in texture coordinates from the quadrilateral:
+	// Choose two random numbers, ds and dt between 0 and 1; form the average P = bilerp(ds,dt, p1,p2,p3,p4). bilerp is bilinear interpoation.
+	// Sample the texture at P to get T(P). In principle any reconstruction filter can be used to evaulate T(P), but bilinear filtering seems to be a good tradeoff between quality and performance.
+	// Find the weight w(P) = filter_weight_func(ds-0.5, dt-0.5, 1, 1)
+	// Add w(P)*T(P) to the current computed average
+	// Return the average over N samples normalized by the total weight
+	
+	CqColor sum = gColBlack;
+	TqFloat weight = 0;
+	TqInt sample = 0;
+	TqFloat weightTot = 0;
+	TqFloat ds, dt; //< random numbers
+	CqVector3D samplePoint;
+	CqRandom rand(42);
+	while(sample < numSamples)
+	{
+	    //randomly choose s,t,z between 1,2,3,4:
+		ds = rand.RandomFloat(); //< uniform random number betwen 0 & 1
+	    dt = rand.RandomFloat();
+	    // bilinear interpolation between p1,p2,p3,p4.
+	    samplePoint = lerp(dt, lerp(ds, p1, p2), lerp(ds, p3, p4));
+	    weight = (*filterFunc)(ds-0.5, dt-0.5, 1.0, 1.0);
+	    sum += weight*visibilityAt( samplePoint.x()*m_xRes, samplePoint.y()*m_yRes, z);
+	    //sum += weight*visibilityAt(samplePoint);
+	    weightTot += weight;
+	    sample++;
+	}
+	return (sum / weightTot);
+}
+
+// Below could be used as a greyscale-only version
+/*
 CqColor CqDeepMipmapLevel::filterVisibility(const CqVector3D& p1, const CqVector3D& p2, const CqVector3D& p3,
 		const CqVector3D& p4, const TqFloat z, const TqInt numSamples, RtFilterFunc filterFunc)
 {
@@ -60,37 +102,40 @@ CqColor CqDeepMipmapLevel::filterVisibility(const CqVector3D& p1, const CqVector
 	TqFloat weight = 0;
 	TqFloat sample = 0;
 	TqFloat weightTot = 0;
-	TqFloat r1, r2; //< random numbers
+	TqFloat du, dv; //< random numbers
 	CqVector3D samplePoint;
 	while(sample < numSamples)
 	{
 	    //randomly choose s,t,z between 1,2,3,4:
-		r1 = urand(0,1); // urand = uniform random number betwen 0 & 1
-	    r2 = urand(0,1);
+		ds = urand(0,1); // urand = uniform random number betwen 0 & 1
+	    dt = urand(0,1);
 	    // bilinear interpolation between p1,p2,p3,p4.
-	    samplePoint = lerp(r2, lerp(r1, p1, p2), lerp(r1, p3, p4));  
-	    weight = weight_fxn(r1-0.5, r2-0.5, 1, 1);
+	    samplePoint = lerp(dt, lerp(ds, p1, p2), lerp(ds, p3, p4));
+	    weight = (*filterFunc)(ds-0.5, dt-0.5, 1.0, 1.0);
 	    sum += weight*visibilityAt(samplePoint);
 	    weightTot += weight;
 	    sample++;
 	}
 	return sum / weightTot;
 }
+*/
 
 CqColor CqDeepMipmapLevel::visibilityAt( const CqVector3D& samplePoint )
 {
 	CqColor retColor = gColWhite; //< default 100% visibility
 	const TqFloat sampleDepth = samplePoint.z();
 	const TqVisFuncPtr visFunc = m_deepTileArray.visibilityFunctionAtPixel( samplePoint.x(), samplePoint.y() );
+	TqInt i;
 	
 	if (visFunc.get() != NULL)
 	{
 		const TqInt nodeSize = m_numberOfChannels+1;
-		const TqInt functionLength = visFunc->functionLength;
+		const TqInt indexEndNode = visFunc->functionLength-1;
 		const TqFloat* functionPtr = visFunc->functionPtr;
 		// Search through the visibility function for the last node whose depth is 
 		// less than or equal to sampleDepth;
-		for (TqInt i = 0; i < functionLength; ++i)
+		// \todo We should do a binary search here, since the visibility function is potentially long
+		for (i = 0; i < indexEndNode; ++i)
 		{
 			if (sampleDepth <= functionPtr[i*nodeSize])
 			{
@@ -121,7 +166,45 @@ CqColor CqDeepMipmapLevel::visibilityAt( const CqVector3D& samplePoint )
 
 CqColor CqDeepMipmapLevel::visibilityAt( const int x, const int y, const float depth )
 {
-	return gColWhite;
+	CqColor retColor = gColWhite; //< default 100% visibility
+	const TqVisFuncPtr visFunc = m_deepTileArray.visibilityFunctionAtPixel( x, y );
+	TqInt i;
+	
+	if (visFunc.get() != NULL)
+	{
+		const TqInt nodeSize = m_numberOfChannels+1;
+		const TqInt indexEndNode = visFunc->functionLength-1;
+		const TqFloat* functionPtr = visFunc->functionPtr;
+		// Search through the visibility function for the last node whose depth is 
+		// less than or equal to sampleDepth;
+		// \todo We should do a binary search here, since the visibility function is potentially long
+		for (i = 0; i < indexEndNode; ++i)
+		{
+			if (depth <= functionPtr[i*nodeSize])
+			{
+				break;
+			}
+		}
+		// Now 'i' should index the node of interest, whether it is the past node in
+		// the function, or somewhere within.
+		// NOTE: I am not sure how I should handle the case where there are 2, or more than 3 color channels
+		// I am assuming there are either 1 or 3 color channels.
+		if (m_numberOfChannels == 3)
+		{
+			retColor.SetColorRGB(functionPtr[i*nodeSize+1],
+								 functionPtr[i*nodeSize+2],	
+								 functionPtr[i*nodeSize+3]);
+		}
+		else
+		{
+			// assume greyscale
+			retColor.SetColorRGB(functionPtr[i*nodeSize+1],
+								 functionPtr[i*nodeSize+1],	
+								 functionPtr[i*nodeSize+1]);	
+		}
+	}
+	// If the function was null then there are no "hits" under this pixel, so visibility is 100%
+	return retColor;
 }
 
 //------------------------------------------------------------------------------
@@ -136,6 +219,9 @@ CqDeepTexture::CqDeepTexture( std::string filename ) :
 	boost::shared_ptr<CqDeepMipmapLevel> newMipmapLevel( new CqDeepMipmapLevel( m_sourceFile ));
 	m_mipmapSet.push_back(newMipmapLevel);
 	m_sourceFile.transformationMatrices( m_matWorldToScreen, m_matWorldToCamera );
+	m_XRes = m_sourceFile.imageWidth();
+	m_YRes = m_sourceFile.imageHeight();
+	m_filterFunc = RiGaussianFilter; // Note: shouldn't set this here, but I don't know what else to do right now (just want to see renders)
 }
 
 IqTextureMap* CqDeepTexture::GetDeepShadowMap( const std::string& strName )
@@ -146,7 +232,7 @@ IqTextureMap* CqDeepTexture::GetDeepShadowMap( const std::string& strName )
 	for ( std::vector<boost::shared_ptr<CqDeepTexture> >::const_iterator i = m_textureCache.begin();
 																	i != m_textureCache.end(); ++i )
 	{
-		if ( ( *i ) ->getName() == strName )
+		if ( ( *i ) ->getName2() == strName )
 		{
 			return i->get();
 		}
@@ -213,6 +299,13 @@ const CqString&	CqDeepTexture::getName() const
 	return m_sourceFile.fileName();
 }
 
+/** Get the image name.
+ */
+const std::string CqDeepTexture::getName2() const
+{
+	return m_sourceFile.fileName();
+}
+
 /** Open this image ready for reading.
  */
 void CqDeepTexture::Open()
@@ -247,7 +340,7 @@ void CqDeepTexture::PrepareSampleOptions( std::map<std::string, IqShaderData*>& 
 		m_samples = 8.0f;
 	if (Type() != MapType_Environment)
 		m_samples = 8.0f;
-
+	
 	// Get parameters out of the map.
 	if ( paramMap.size() != 0 )
 	{
@@ -292,14 +385,34 @@ void CqDeepTexture::PrepareSampleOptions( std::map<std::string, IqShaderData*>& 
 			paramMap[ "filter" ] ->GetString( filter );
 			//Aqsis::log() << warning << "filter will be " << filter << std::endl;
 
-			m_FilterFunc = CalculateFilter(filter);
+			m_filterFunc = CalculateFilter(filter);
 		}
 
 		if ( paramMap.find( "pixelvariance" ) != paramMap.end() )
 		{
 			paramMap[ "pixelvariance" ] ->GetFloat( m_pixelvariance );
 		}
-	}	
+	}
+	// Extend the shadow() call to accept bias, if set, override global bias
+	m_bias = 0.0f;
+	m_bias0 = 0.0f;
+	m_bias1 = 0.0f;
+
+	if ( ( !paramMap.empty() ) && ( paramMap.find( "bias" ) != paramMap.end() ) )
+	{
+		paramMap[ "bias" ] ->GetFloat( m_bias );
+		m_bias0 = m_bias1 = 0.0f;
+	}
+	else
+	{
+		// Add in the bias at this point in camera coordinates.
+		const TqFloat* poptBias = QGetRenderContextI() ->GetFloatOption( "shadow", "bias0" );
+		if ( poptBias != 0 )
+			m_bias0 = poptBias[ 0 ];
+		poptBias = QGetRenderContextI() ->GetFloatOption( "shadow", "bias1" );
+		if ( poptBias != 0 )
+			m_bias1 = poptBias[ 0 ];
+	}
 }
 
 void CqDeepTexture::SampleMap( TqFloat s1, TqFloat t1, TqFloat swidth, TqFloat twidth,
@@ -332,8 +445,7 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 	// Check the memory and make sure we don't abuse it
 	//if (index == 0)
 	//	CriticalMeasure();
-
-	TIME_SCOPE("Shadow Mapping")
+	//TIME_SCOPE("Shadow Mapping")
 
 	// If no map defined, not in shadow.
 	val.resize( 1 );
@@ -341,7 +453,6 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 
 	CqVector3D	vecR1l;
 	CqVector3D	vecR1m, vecR2m, vecR3m, vecR4m;
-
 
 	TqFloat minbias;
 	TqFloat maxbias;
@@ -355,7 +466,6 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 		minbias = m_bias1;
 		maxbias = m_bias0;
 	}
-
 
 	// Generate a matrix to transform points from camera space into the space of the light source used in the
 	// definition of the shadow map.
@@ -410,16 +520,15 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 	TqUint hv = static_cast<TqInt>( lceil( tmax + tbo2 ) );
 
 	if ( lu >= m_XRes || hu < 0 || lv >= m_YRes || hv < 0 )
-		return ;
+		return;
 
-	lu = max(0,lu);
-	lv = max(0,lv);
-	hu = min(m_XRes - 1,hu);
-	hv = min(m_YRes - 1,hv);
+	lu = max(0, (int)lu);
+	lv = max(0, (int)lv);
+	hu = min(m_XRes - 1,(int)hu);
+	hv = min(m_YRes - 1,(int)hv);
 
 	TqFloat sres = (1.0 + m_pswidth/2.0) * (hu - lu);
 	TqFloat tres = (1.0 + m_ptwidth/2.0) * (hv - lv);
-
 
 	if (sres < MinSize)
 		sres = MinSize;
@@ -458,7 +567,7 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 	}
 	// Indexing the mipmap set lets us filter over one of several mipmap levels
 	CqColor visibility;
-	visibility = m_mipmapSet[index]->filterVisibility(vecR1m, vecR2m, vecR3m, vecR4m, z, ns*nt);
+	visibility = m_mipmapSet[index]->filterVisibility(vecR1m, vecR2m, vecR3m, vecR4m, z, ns*nt, m_filterFunc);
 /*
 
 	// Is this shadowmap an occlusion map (NumPages() > 1) ?
@@ -629,7 +738,8 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 		*shadow_depth = sample_z;
 	}
 */
-	val[ 0 ] = ( static_cast<TqFloat>( inshadow ) / ( ns * nt ) );
+	val[0] = (1.0-visibility.fRed());
+	//val[ 0 ] = ( static_cast<TqFloat>( inshadow ) / ( ns * nt ) );
 
 	// Keep track of computed values it might be usefull later in the next iteration
 	/*

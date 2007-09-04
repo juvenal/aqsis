@@ -48,7 +48,10 @@ SqDtexFileHeader::SqDtexFileHeader( const uint32 fileSize, const uint32 imageWid
 	matWorldToScreen(),
 	matWorldToCamera()
 {
-	setTransformationMatrices( imatWorldToScreen, imatWorldToCamera );
+	if (imatWorldToScreen != imatWorldToCamera != NULL)
+	{ 
+		setTransformationMatrices( imatWorldToScreen, imatWorldToCamera );
+	}
 }
 
 void SqDtexFileHeader::writeToFile( std::ofstream& file ) const
@@ -89,8 +92,8 @@ void SqDtexFileHeader::setTransformationMatrices(const float imatWorldToScreen[4
 	{
 		for (y = 0; y < 4; ++y)
 		{
-			matWorldToScreen[x][y] = matWorldToScreen[x][y];
-			matWorldToCamera[x][y] = matWorldToCamera[x][y];
+			matWorldToScreen[x][y] = imatWorldToScreen[x][y];
+			matWorldToCamera[x][y] = imatWorldToCamera[x][y];
 		}
 	}
 }

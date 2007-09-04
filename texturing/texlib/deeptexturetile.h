@@ -272,7 +272,7 @@ inline const TqVisFuncPtr CqDeepTextureTile::visibilityFunctionAtPixel( const Tq
 	if ( !m_flagEmpty )
 	{
 		return TqVisFuncPtr( new CqVisibilityFunction(
-			m_funcOffsets[tileSpaceX*tileSpaceY+1]-m_funcOffsets[tileSpaceX*tileSpaceY+1],
+			m_funcOffsets[tileSpaceX*tileSpaceY+1]-m_funcOffsets[tileSpaceX*tileSpaceY],
 			m_data.get()+(tileSpaceX*tileSpaceY*(1+m_colorChannels))));
 	}
 	return TqVisFuncPtr( new CqVisibilityFunction( 0, NULL ));

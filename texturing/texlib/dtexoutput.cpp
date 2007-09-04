@@ -132,13 +132,12 @@ void CqDeepTexOutputFile::outputTile( const boost::shared_ptr<CqDeepTextureTile>
 
 void CqDeepTexOutputFile::writeTile(const boost::shared_ptr<CqDeepTextureTile> tile)
 {
-	const TqUint metaDataSizeInBytes = tile->width()*tile->height()+1*sizeof(TqUint32);
+	const TqUint metaDataSizeInBytes = (tile->width()*tile->height()+1)*sizeof(TqUint32);
 	const TqInt* funcOffsets = tile->funcOffsets();
 	TqUint width = tile->width();
 	TqUint height = tile->height();
 	TqUint offset = funcOffsets[tile->width()*tile->height()];
-	const TqUint dataSizeInBytes = offset*
-									(tile->colorChannels()+1)*sizeof(TqFloat);
+	const TqUint dataSizeInBytes = offset*(tile->colorChannels()+1)*sizeof(TqFloat);
 	m_fileHeader.dataSize += metaDataSizeInBytes + dataSizeInBytes;
 	
 	// Write the function offsets

@@ -98,11 +98,15 @@ class CqDeepMipmapLevel
 
 		/** \brief Access the tile array to fetch the visibility at the requested pixel and depth
 		 *
-		 * \param samplePoint - A vector containing the same point information as the overloaded function below.
+		 * \param p1,p2,p3,p4 - points in texture space forming a quadrilateral over which we perform Monte Carlo filtering
+		 * \param z - The depth pf the point of interest: we want to know the visibility at this point.
+		 * \param numSampes - The number of times to sample with Monte Carlo integration
+		 * \param filterFunc - Function pointer: use to get filter weights.
+		 * 
 		 * \return A color representing the visibility at the requested point. 
 		 */
 		CqColor filterVisibility(const CqVector3D& p1, const CqVector3D& p2, const CqVector3D& p3,
-				const CqVector3D& p4, const TqFloat z, const TqInt numSamples, RtFilterFunc filterFunc)
+				const CqVector3D& p4, const TqFloat z, const TqInt numSamples, RtFilterFunc filterFunc);
 		
 	private:
 		
@@ -113,7 +117,7 @@ class CqDeepMipmapLevel
 		 * \param samplePoint - A vector containing the same point information as the overloaded function below.
 		 * \return A color representing the visibility at the requested point. 
 		 */
-		virtual CqColor visibilityAt( const CqVector3D& samplePoint )
+		virtual CqColor visibilityAt( const CqVector3D& samplePoint );
 		
 		/** \brief Access the tile array to fetch the visibility at the requested pixel and depth
 		 *
@@ -127,6 +131,8 @@ class CqDeepMipmapLevel
 		// Data
 		CqDeepTileArray m_deepTileArray;
 		TqInt m_numberOfChannels;
+		TqInt m_xRes; //< width (in pixels) of this mipmap level
+		TqInt m_yRes; //< height (in pixels) of this mipmap level
 };
 
 //------------------------------------------------------------------------------
@@ -178,6 +184,8 @@ class CqDeepTexture : public IqTextureMap
 		/** Get the image name.
 		 */
 		virtual	const CqString&	getName() const;
+		
+		virtual const std::string getName2() const;
 		/** Open this image ready for reading.
 		 */
 		virtual	void Open();
@@ -217,21 +225,19 @@ class CqDeepTexture : public IqTextureMap
 		CqMatrix m_matWorldToScreen;	///< Matrix to convert points from world space to screen space.
 		CqMatrix m_matWorldToCamera;	///< Matrix to convert points from world space to camera space.
 		
-		RtFilterFunc m_FilterFunc; ///< Catmull-Rom, sinc, disk, ... pixelfilter
+		RtFilterFunc m_filterFunc; ///< Catmull-Rom, sinc, disk, ... pixelfilter
+		TqInt m_XRes;
+		TqInt m_YRes;
 		TqFloat	m_sblur;
 		TqFloat	m_tblur;
 		TqFloat	m_pswidth;
 		TqFloat	m_ptwidth;          
 		TqFloat	m_samples;			///< How many samplings
-		TqFloat	m_lerp; 			///< Enable TriLinear
 		TqFloat	m_pixelvariance;    ///< Smallest Difference between two distinct samples
-		TqInt m_umapsize;           ///< Umapsize for m_level of mipmap
-		TqInt m_vmapsize;           ///< Vmapsize for m_level of mipmap
-		TqFloat	m_interp;           ///< Difference between m_level and m_level+1 MipMap (for TriLinear sampling)
 		TqFloat	m_swidth, m_twidth; ///< for the pixel's filter
-		TqFloat	m_ds;               ///< delta (u2-u1) 
-		TqFloat	m_dt;               ///< delta (v2-v1)
-		TqInt m_level;              ///< Which level of mipmap (from m_ds, m_dt)
+		TqFloat	m_bias;
+		TqFloat m_bias0;
+		TqFloat m_bias1;
 };
 
 //------------------------------------------------------------------------------

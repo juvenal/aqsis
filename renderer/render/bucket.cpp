@@ -1066,7 +1066,7 @@ void CqBucket::FilterTransmittance(bool empty)
 				CalculateVisibility(xcent, ycent, pixel);
 			}
 		}
-		CheckVisibilityFunction(1); // This checks the visibility function of the first pixel in this bucket
+		//CheckVisibilityFunction(1); // This checks the visibility function of the first pixel in this bucket
 	}
 	// Empty buckets will be identified and handled in ddmanager
 }

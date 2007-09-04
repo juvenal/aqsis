@@ -83,8 +83,8 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::tileForPixel( const TqU
 {
 	assert( x < m_fileHeader.imageWidth );
 	assert( y < m_fileHeader.imageHeight );
-	const TqUint tileCol = lceil((float)x/m_fileHeader.tileWidth);
-	const TqUint tileRow = lceil((float)y/m_fileHeader.tileHeight);
+	const TqUint tileCol = x/m_fileHeader.tileWidth;
+	const TqUint tileRow = y/m_fileHeader.tileHeight;
 	const TqUint fileOffset = m_tileOffsets[tileRow][tileCol];
 	
 	// If fileOffset is 0 then there is no tile to load.
@@ -133,7 +133,7 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::loadTile(const TqUint t
 	// Determine the pixel dimensions of this tile so we know how much space to allocate for the meta data
 	TqUint tileWidth = m_fileHeader.tileWidth;
 	TqUint tileHeight = m_fileHeader.tileHeight;
-	const TqUint fileOffset = m_tileOffsets[tileRow*m_fileHeader.tileHeight][tileCol*m_fileHeader.tileWidth];
+	const TqUint fileOffset = m_tileOffsets[tileRow][tileCol];
 	
 	// If this is an end tile, and the image width or height is not divisible by tile width or height,
 	// then perform padding: size this tile to a smaller size than usual.
@@ -151,7 +151,7 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::loadTile(const TqUint t
 	// Seek to the poition of the beginning of the requested tile and read it in
 	m_dtexFile.seekg(fileOffset, std::ios::beg);
 	m_dtexFile.read((char*)(functionOffsets.get()), ((tileWidth*tileHeight+1)*sizeof(uint32)));
-	const int totalNumberOfNodes = functionOffsets[tileWidth*tileHeight+1];
+	const int totalNumberOfNodes = functionOffsets[tileWidth*tileHeight];
 	const int nodeSize = m_fileHeader.numberOfChannels+1;
 	boost::shared_array<TqFloat> data(new TqFloat[totalNumberOfNodes*nodeSize]);
 	m_dtexFile.read((char*)(data.get()), (totalNumberOfNodes*nodeSize*sizeof(TqFloat)));
