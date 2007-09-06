@@ -49,8 +49,9 @@ CqDeepMipmapLevel::CqDeepMipmapLevel( IqDeepTextureInput& tileSource ) :
 	m_yRes( tileSource.imageHeight() )
 {}
 
-CqColor CqDeepMipmapLevel::filterVisibility(const CqVector3D& p1, const CqVector3D& p2, const CqVector3D& p3,
-		const CqVector3D& p4, const TqFloat z, const TqInt numSamples, RtFilterFunc filterFunc)
+CqColor CqDeepMipmapLevel::filterVisibility(const TqFloat s1, const TqFloat s2, const TqFloat s3, const TqFloat s4,
+		const TqFloat t1, const TqFloat t2, const TqFloat t3, const TqFloat t4,	const TqFloat z1, const TqFloat z2,
+		const TqFloat z3, const TqFloat z4, const TqInt numSamples, RtFilterFunc filterFunc)
 {
 	// The points (p1,p2,p3,p4) represent a quadrilateral in texture coordinates which is the region to be filtered over.
 	// For N samples,
@@ -65,8 +66,8 @@ CqColor CqDeepMipmapLevel::filterVisibility(const CqVector3D& p1, const CqVector
 	TqFloat weight = 0;
 	TqInt sample = 0;
 	TqFloat weightTot = 0;
+	TqFloat s, t, z;
 	TqFloat ds, dt; //< random numbers
-	CqVector3D samplePoint;
 	CqRandom rand(42);
 	while(sample < numSamples)
 	{
@@ -74,51 +75,16 @@ CqColor CqDeepMipmapLevel::filterVisibility(const CqVector3D& p1, const CqVector
 		ds = rand.RandomFloat(); //< uniform random number betwen 0 & 1
 	    dt = rand.RandomFloat();
 	    // bilinear interpolation between p1,p2,p3,p4.
-	    samplePoint = lerp(dt, lerp(ds, p1, p2), lerp(ds, p3, p4));
+	    s = lerp(dt, lerp(ds, s1, s2), lerp(ds, s3, s4));  // bilinear interpolation between s1,s2,s3,s4.
+	    t = lerp(ds, lerp(dt, t1, t2), lerp(dt, t3, t4));
+	    z = lerp(ds, lerp(dt, z1, z2), lerp(dt, z3, z4));
 	    weight = (*filterFunc)(ds-0.5, dt-0.5, 1.0, 1.0);
-	    sum += weight*visibilityAt( samplePoint.x()*m_xRes, samplePoint.y()*m_yRes, z);
-	    //sum += weight*visibilityAt(samplePoint);
+	    sum += weight*visibilityAt( s, t, z);
 	    weightTot += weight;
 	    sample++;
 	}
 	return (sum / weightTot);
 }
-
-// Below could be used as a greyscale-only version
-/*
-CqColor CqDeepMipmapLevel::filterVisibility(const CqVector3D& p1, const CqVector3D& p2, const CqVector3D& p3,
-		const CqVector3D& p4, const TqFloat z, const TqInt numSamples, RtFilterFunc filterFunc)
-{
-	// The points (p1,p2,p3,p4) represent a quadrilateral in texture coordinates which is the region to be filtered over.
-	// For N samples,
-	// Randomly choose a point, P in texture coordinates from the quadrilateral:
-	// Choose two random numbers, ds and dt between 0 and 1; form the average P = bilerp(ds,dt, p1,p2,p3,p4). bilerp is bilinear interpoation.
-	// Sample the texture at P to get T(P). In principle any reconstruction filter can be used to evaulate T(P), but bilinear filtering seems to be a good tradeoff between quality and performance.
-	// Find the weight w(P) = filter_weight_func(ds-0.5, dt-0.5, 1, 1)
-	// Add w(P)*T(P) to the current computed average
-	// Return the average over N samples normalized by the total weight
-	
-	TqFloat sum = 0;
-	TqFloat weight = 0;
-	TqFloat sample = 0;
-	TqFloat weightTot = 0;
-	TqFloat du, dv; //< random numbers
-	CqVector3D samplePoint;
-	while(sample < numSamples)
-	{
-	    //randomly choose s,t,z between 1,2,3,4:
-		ds = urand(0,1); // urand = uniform random number betwen 0 & 1
-	    dt = urand(0,1);
-	    // bilinear interpolation between p1,p2,p3,p4.
-	    samplePoint = lerp(dt, lerp(ds, p1, p2), lerp(ds, p3, p4));
-	    weight = (*filterFunc)(ds-0.5, dt-0.5, 1.0, 1.0);
-	    sum += weight*visibilityAt(samplePoint);
-	    weightTot += weight;
-	    sample++;
-	}
-	return sum / weightTot;
-}
-*/
 
 CqColor CqDeepMipmapLevel::visibilityAt( const CqVector3D& samplePoint )
 {
@@ -170,7 +136,7 @@ CqColor CqDeepMipmapLevel::visibilityAt( const int x, const int y, const float d
 	const TqVisFuncPtr visFunc = m_deepTileArray.visibilityFunctionAtPixel( x, y );
 	TqInt i;
 	
-	if (visFunc.get() != NULL)
+	if (visFunc->functionLength > 1)
 	{
 		const TqInt nodeSize = m_numberOfChannels+1;
 		const TqInt indexEndNode = visFunc->functionLength-1;
@@ -185,7 +151,7 @@ CqColor CqDeepMipmapLevel::visibilityAt( const int x, const int y, const float d
 				break;
 			}
 		}
-		// Now 'i' should index the node of interest, whether it is the past node in
+		// Now 'i' should index the node of interest, whether it is the last node in
 		// the function, or somewhere within.
 		// NOTE: I am not sure how I should handle the case where there are 2, or more than 3 color channels
 		// I am assuming there are either 1 or 3 color channels.
@@ -451,8 +417,9 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 	val.resize( 1 );
 	val[ 0 ] = 0.0f;
 
-	CqVector3D	vecR1l;
-	CqVector3D	vecR1m, vecR2m, vecR3m, vecR4m;
+	CqVector3D vecRlaverage; 
+	CqVector3D vecR1l, vecR2l, vecR3l, vecR4l;
+	CqVector3D vecR1m, vecR2m, vecR3m, vecR4m;
 
 	TqFloat minbias;
 	TqFloat maxbias;
@@ -473,11 +440,19 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 	// Generate a matrix to transform points from camera space into the space of the shadow map.
 	CqMatrix& matCameraToMap = m_matWorldToScreen;
 
-	vecR1l = matCameraToLight * ( ( R1 + R2 + R3 + R4 ) * 0.25f );
-	TqFloat z = vecR1l.z();
+	vecRlaverage = matCameraToLight * ( ( R1 + R2 + R3 + R4 ) * 0.25f );
+	TqFloat z_average = vecRlaverage.z();
+	vecR1l = matCameraToLight * R1;
+	vecR2l = matCameraToLight * R2;
+	vecR3l = matCameraToLight * R3;
+	vecR4l = matCameraToLight * R4;
+	TqFloat z1 = vecR1l.z();
+	TqFloat z2 = vecR2l.z();
+	TqFloat z3 = vecR3l.z();
+	TqFloat z4 = vecR4l.z();
 
 	// If point is behind light, call it not in shadow.
-	if (z <= 0.0f)
+	if (z_average <= 0.0f)
 		return;
 
 	vecR1m = matCameraToMap * R1;
@@ -567,9 +542,9 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 	}
 	// Indexing the mipmap set lets us filter over one of several mipmap levels
 	CqColor visibility;
-	visibility = m_mipmapSet[index]->filterVisibility(vecR1m, vecR2m, vecR3m, vecR4m, z, ns*nt, m_filterFunc);
+	visibility = m_mipmapSet[index]->filterVisibility(s1, s2, s3, s4,
+			t1, t2, t3, t4, z1, z2, z3, z4, ns*nt, m_filterFunc);
 /*
-
 	// Is this shadowmap an occlusion map (NumPages() > 1) ?
 	// NumPages() contains the number of shadowmaps which were used 
 	// to create this occlusion map.

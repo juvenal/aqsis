@@ -40,7 +40,7 @@ CqDeepTextureTile::CqDeepTextureTile(const boost::shared_array<TqFloat> data,
 			m_topLeftX( topLeftX ),
 			m_topLeftY( topLeftY ),
 			m_colorChannels( colorChannels ),
-			m_flagEmpty( (funcOffsets[0] == -1 ? true : false) )
+			m_flagEmpty( (funcOffsets.get() == NULL ? true : false) )
 {}
 
 CqDeepTextureTile::CqDeepTextureTile( const TqFloat* data, const TqInt* funcOffsets, TqUint xmin, TqUint ymin,

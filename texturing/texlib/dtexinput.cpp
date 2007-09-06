@@ -83,17 +83,35 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::tileForPixel( const TqU
 {
 	assert( x < m_fileHeader.imageWidth );
 	assert( y < m_fileHeader.imageHeight );
+	
 	const TqUint tileCol = x/m_fileHeader.tileWidth;
 	const TqUint tileRow = y/m_fileHeader.tileHeight;
 	const TqUint fileOffset = m_tileOffsets[tileRow][tileCol];
 	
-	// If fileOffset is 0 then there is no tile to load.
 	if (fileOffset != 0)
 	{
 		return loadTile(tileRow, tileCol);
 	}
-	boost::shared_ptr<CqDeepTextureTile> nullTile;
-	return nullTile; //< The requested tile is empty. Caller may assume visibility is 100%
+	// If fileOffset is 0 then there is no tile to load, but create an empty tile
+	TqUint tileWidth = m_fileHeader.tileWidth;
+	TqUint tileHeight = m_fileHeader.tileHeight;
+	
+	// If this is an end tile, and the image width or height is not divisible by tile width or height,
+	// then perform padding: size this tile to a smaller size than usual.
+	if (tileCol == (m_tilesPerRow-1)) //< -1 because tileCol is zero-indexed (tileCol == 2 -> 3rd from left)
+	{
+		tileWidth = m_fileHeader.imageWidth-(tileCol*m_fileHeader.tileWidth);
+	}
+	if (tileRow == (m_tilesPerCol-1))
+	{
+		tileHeight = m_fileHeader.imageHeight-(tileRow*m_fileHeader.tileHeight);
+	}
+	boost::shared_array<TqFloat> nullBoostData;
+	boost::shared_array<TqInt> nullBoostOffsets;
+	boost::shared_ptr<CqDeepTextureTile> emptyTile(new CqDeepTextureTile(nullBoostData, nullBoostOffsets,
+			tileWidth, tileHeight, tileCol*m_fileHeader.tileWidth, tileRow*m_fileHeader.tileHeight,
+			m_fileHeader.numberOfChannels));
+	return emptyTile; //< The requested tile is empty. Caller may assume visibility is 100%
 }
 
 void CqDeepTexInputFile::transformationMatrices( CqMatrix& matWorldToScreen, 

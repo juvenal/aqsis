@@ -95,8 +95,8 @@ class CqDeepMipmapLevel
 		 */
 		CqDeepMipmapLevel( IqDeepTextureInput& tileSource );
 		virtual ~CqDeepMipmapLevel(){};
-
-		/** \brief Access the tile array to fetch the visibility at the requested pixel and depth
+		
+		/** \brief Access the tile array, apply filter to estimate visibility at the requested pixel and depth
 		 *
 		 * \param p1,p2,p3,p4 - points in texture space forming a quadrilateral over which we perform Monte Carlo filtering
 		 * \param z - The depth pf the point of interest: we want to know the visibility at this point.
@@ -105,8 +105,9 @@ class CqDeepMipmapLevel
 		 * 
 		 * \return A color representing the visibility at the requested point. 
 		 */
-		CqColor filterVisibility(const CqVector3D& p1, const CqVector3D& p2, const CqVector3D& p3,
-				const CqVector3D& p4, const TqFloat z, const TqInt numSamples, RtFilterFunc filterFunc);
+		CqColor filterVisibility(const TqFloat s1, const TqFloat s2, const TqFloat s3, const TqFloat s4,
+				const TqFloat t1, const TqFloat t2, const TqFloat t3, const TqFloat t4,	const TqFloat z1, const TqFloat z2,
+				const TqFloat z3, const TqFloat z4, const TqInt numSamples, RtFilterFunc filterFunc);
 		
 	private:
 		
