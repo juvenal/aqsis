@@ -53,6 +53,7 @@ CqColor CqDeepMipmapLevel::filterVisibility(const TqFloat s1, const TqFloat s2, 
 		const TqFloat t1, const TqFloat t2, const TqFloat t3, const TqFloat t4,	const TqFloat z1, const TqFloat z2,
 		const TqFloat z3, const TqFloat z4, const TqInt numSamples, RtFilterFunc filterFunc)
 {
+	//printf("(%d, %d)\n", (int)s1, (int)t2);
 	// The points (p1,p2,p3,p4) represent a quadrilateral in texture coordinates which is the region to be filtered over.
 	// For N samples,
 	// Randomly choose a point, P in texture coordinates from the quadrilateral:
@@ -61,24 +62,20 @@ CqColor CqDeepMipmapLevel::filterVisibility(const TqFloat s1, const TqFloat s2, 
 	// Find the weight w(P) = filter_weight_func(ds-0.5, dt-0.5, 1, 1)
 	// Add w(P)*T(P) to the current computed average
 	// Return the average over N samples normalized by the total weight
-	
 	CqColor sum = gColBlack;
-	TqFloat weight = 0;
-	TqInt sample = 0;
 	TqFloat weightTot = 0;
-	TqFloat s, t, z;
-	TqFloat ds, dt; //< random numbers
-	CqRandom rand(42);
+	TqInt sample = 0;
 	while(sample < numSamples)
 	{
+		CqRandom rand(42+sample); // Generate unique random number sequence per sample
 	    //randomly choose s,t,z between 1,2,3,4:
-		ds = rand.RandomFloat(); //< uniform random number betwen 0 & 1
-	    dt = rand.RandomFloat();
+		TqFloat ds = rand.RandomFloat(); //< uniform random number betwen 0 & 1
+		TqFloat dt = rand.RandomFloat();
 	    // bilinear interpolation between p1,p2,p3,p4.
-	    s = lerp(dt, lerp(ds, s1, s2), lerp(ds, s3, s4));  // bilinear interpolation between s1,s2,s3,s4.
-	    t = lerp(ds, lerp(dt, t1, t2), lerp(dt, t3, t4));
-	    z = lerp(ds, lerp(dt, z1, z2), lerp(dt, z3, z4));
-	    weight = (*filterFunc)(ds-0.5, dt-0.5, 1.0, 1.0);
+	    TqFloat s = lerp(dt, lerp(ds, s1, s2), lerp(ds, s4, s3));  // bilinear interpolation between s1,s2,s3,s4.
+	    TqFloat t = lerp(ds, lerp(dt, t1, t2), lerp(dt, t3, t4));
+	    TqFloat z = lerp(ds, lerp(dt, z1, z2), lerp(dt, z3, z4));
+	    TqFloat weight = (*filterFunc)(ds-0.5, dt-0.5, 1.0, 1.0);
 	    sum += weight*visibilityAt( s, t, z);
 	    weightTot += weight;
 	    sample++;
@@ -190,6 +187,7 @@ CqDeepTexture::CqDeepTexture( std::string filename ) :
 	m_filterFunc = RiGaussianFilter; // Note: shouldn't set this here, but I don't know what else to do right now (just want to see renders)
 }
 
+// Static factory method
 IqTextureMap* CqDeepTexture::GetDeepShadowMap( const std::string& strName )
 {
 	QGetRenderContext() ->Stats().IncTextureMisses( 3 );

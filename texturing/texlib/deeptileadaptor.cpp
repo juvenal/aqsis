@@ -123,12 +123,7 @@ void CqDeepTileAdaptor::rebuildAndOutputTile(const TqMapKey tileKey)
 	TqMapKey mapKey(0,0);
 	const TqUint nodeSize = subRegionMap[mapKey]->colorChannels()+1;
 	
-	if ( allSubRegionsEmpty(tileKey) )
-	{
-		funcOffsets = boost::shared_array<TqInt>(new TqInt[1] );
-		funcOffsets[0] = -1;
-	}
-	else
+	if ( ! allSubRegionsEmpty(tileKey) )
 	{
 		// We cannot predict how much space must be allocated for deep data,
 		// but we know there is exactly one function offset for each pixel, plus one at the end.
@@ -255,10 +250,10 @@ void CqDeepTileAdaptor::rebuildVisibilityFunctions(boost::shared_array<TqFloat> 
 					for (TqUint pixel = 0; pixel < subRegionWidth; ++pixel)
 					{
 						const TqUint arrayIndex = dataArrayPos*nodeSize; 
-						data[arrayIndex] = 0; //< depth 0
+						data[arrayIndex+(pixel*nodeSize)] = 0; //< depth 0
 						for (TqUint i = 1; i <= subTile->colorChannels(); ++i)
 						{
-							data[arrayIndex+i] = 1; //< visibility 1
+							data[arrayIndex+(pixel*nodeSize)+i] = 1; //< visibility 1
 						}
 					}
 					dataArrayPos += subRegionWidth;

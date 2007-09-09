@@ -507,12 +507,14 @@ void CqBucket::FilterBucket(bool empty)
 	
 	// If rendering a DSM, invoke the transmittance filtering function
 	// This is a bad way to test for dsm because if multiple displays are being used, 
-	// this may not catch that one of them is a dsm display. For exanmple: my test using 3 displays:
-	// 1 file, 1 framebuffer, and 1 dsm always returned "file", and never "dsm" in the test below.
+	// this may not catch that one of them is a dsm display. For exanmple: in my test using 3 displays:
+	// 1 file, 1 framebuffer, and 1 dsm, GetStringOption always returned "file", and never "dsm" in the test below.
 	if ( QGetRenderContext()->poptCurrent()->GetStringOption( "System", "DisplayType" )[0] == "dsm" )
 	{
 		FilterTransmittance(empty);
 	}
+	// todo: currently we proceed with normal rendering even if the only thing we want is to render a DSM. 
+	// If we are only rendering a DSM, then we shouldn't execute the code below, only the above.
 
 	if(!empty)
 	{

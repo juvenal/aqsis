@@ -109,6 +109,13 @@ void CqDeepTexOutputFile::writeTileTable()
 	// Seek to the correct byte position in the file, immediately following the file header, and write the tile table
 	m_dtexFile.seekp(m_tileTablePositon, std::ios::beg);
 
+	printf("Print Tile table\n");
+	std::vector<SqTileTableEntry>::const_iterator myit;
+	for (myit = m_tileTable.begin(); myit != m_tileTable.end(); ++myit)
+	{
+		printf("(%d, %d) : %d\n", myit->tileRow, myit->tileCol, myit->fileOffset);
+	}
+	
 	// I assume that the member data in a C struct is gauranteed to be contiguous and ordered in memory to reflect the order of declaration.
 	// This is very likely an incorrect assumption, but it might be true in the case of SqTileTableEntry, since it has simply 3 floats.
 	// If not, then we have to write each float individually.
@@ -139,7 +146,14 @@ void CqDeepTexOutputFile::writeTile(const boost::shared_ptr<CqDeepTextureTile> t
 	TqUint offset = funcOffsets[tile->width()*tile->height()];
 	const TqUint dataSizeInBytes = offset*(tile->colorChannels()+1)*sizeof(TqFloat);
 	m_fileHeader.dataSize += metaDataSizeInBytes + dataSizeInBytes;
-	
+
+
+	printf("write a tile, origin (%d, %d):\n",tile->topLeftX(), tile->topLeftY());
+	for (int i = 0; i < offset; i += 4)
+	{
+		printf("depth: %f visibility: %f\n", tile->data()[i], tile->data()[i+1]);
+	}
+
 	// Write the function offsets
 	m_dtexFile.write(reinterpret_cast<const char*>(tile->funcOffsets()), metaDataSizeInBytes);
 	

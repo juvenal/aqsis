@@ -54,9 +54,12 @@ CqDeepTextureTile::CqDeepTextureTile( const TqFloat* data, const TqInt* funcOffs
 			m_colorChannels( colorChannels ),
 			m_flagEmpty( (funcOffsets[0] == -1 ? true : false) )			
 {
-	// If the tile is not empty, copy the data. Otherwise do nothing.
+	// If the tile is not empty, copy the data. Otherwise do nothing. 
 	if ( !m_flagEmpty )
 	{
+		// This is intended for automated handling of function length to function offset conversion.
+		// If creating a tile where the metadata currently exists as function lengths, this will create
+		// offsets based on those lengths.
 		if ( funcLengths )
 		{
 			// This is temporary code, but I need to convert function lengths to offsets somewhere, and this

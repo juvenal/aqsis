@@ -58,7 +58,7 @@ CqDeepTexInputFile::CqDeepTexInputFile( const std::string filename )
 	// PROBLEM: in the line below, correctMN ends up with the magic number twice, that is,
 	// the string's length will be 16, and it will have the magic number, followed by the magic number again!
 	// This is why I have the global correctMN defined above.
-	//std::string correctMN = dtexMagicNumberB;
+	//std::string correctMN = dtexMagicNumber;
 	std::string testMN = buffer;
 	if ( testMN != correctMN )
 	{
@@ -135,6 +135,7 @@ void CqDeepTexInputFile::loadTileTable()
 		m_tileOffsets[i].resize(m_tilesPerRow, 0);
 	}
 	
+	printf("Load Tile table\n");
 	// Read the tile table
 	for (i = 0; i < m_fileHeader.numberOfTiles; ++i)
 	{
@@ -142,6 +143,7 @@ void CqDeepTexInputFile::loadTileTable()
 		m_dtexFile.read((char*)(&tcol), sizeof(uint32));
 		m_dtexFile.read((char*)(&offset), sizeof(uint32));
 		m_tileOffsets[trow][tcol] = offset; 
+		printf("(%d, %d) : %d\n", trow, tcol, offset);
 	}
 }
 
@@ -178,7 +180,13 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::loadTile(const TqUint t
 	boost::shared_ptr<CqDeepTextureTile> tile(new CqDeepTextureTile(data, functionOffsets,
 			tileWidth, tileHeight, tileCol*m_fileHeader.tileWidth, tileRow*m_fileHeader.tileHeight,
 			m_fileHeader.numberOfChannels));
-	
+	/*
+	printf("Loading a new tile whose data is as follows:\n");
+	for (int i = 0; i < totalNumberOfNodes; i += 4)
+	{
+		printf("depth: %f visibility: %f\n", data[i], data[i+1]);
+	}
+	*/
 	return tile;
 }
 
