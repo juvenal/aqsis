@@ -53,7 +53,17 @@ CqColor CqDeepMipmapLevel::filterVisibility(const TqFloat s1, const TqFloat s2, 
 		const TqFloat t1, const TqFloat t2, const TqFloat t3, const TqFloat t4,	const TqFloat z1, const TqFloat z2,
 		const TqFloat z3, const TqFloat z4, const TqInt numSamples, RtFilterFunc filterFunc)
 {
-	//printf("(%d, %d)\n", (int)s1, (int)t2);
+/*
+	for ( int j = 0; j < 256; ++j)
+	{
+		for ( int i = 0; i < 256; ++i)
+		{
+			CqColor result = visibilityAt( i, j, 50 );
+			//printf("(%d, %d) : %f\n", j, i, result.fRed());
+		}
+	}
+	exit(0);
+*/
 	// The points (p1,p2,p3,p4) represent a quadrilateral in texture coordinates which is the region to be filtered over.
 	// For N samples,
 	// Randomly choose a point, P in texture coordinates from the quadrilateral:
@@ -65,8 +75,8 @@ CqColor CqDeepMipmapLevel::filterVisibility(const TqFloat s1, const TqFloat s2, 
 	CqColor sum = gColBlack;
 	TqFloat weightTot = 0;
 	TqInt sample = 0;
-	while(sample < numSamples)
-	{
+	//while(sample < numSamples)
+	//{
 		CqRandom rand(42+sample); // Generate unique random number sequence per sample
 	    //randomly choose s,t,z between 1,2,3,4:
 		TqFloat ds = rand.RandomFloat(); //< uniform random number betwen 0 & 1
@@ -79,7 +89,7 @@ CqColor CqDeepMipmapLevel::filterVisibility(const TqFloat s1, const TqFloat s2, 
 	    sum += weight*visibilityAt( s, t, z);
 	    weightTot += weight;
 	    sample++;
-	}
+	//}
 	return (sum / weightTot);
 }
 
@@ -89,7 +99,7 @@ CqColor CqDeepMipmapLevel::visibilityAt( const CqVector3D& samplePoint )
 	const TqFloat sampleDepth = samplePoint.z();
 	const TqVisFuncPtr visFunc = m_deepTileArray.visibilityFunctionAtPixel( samplePoint.x(), samplePoint.y() );
 	TqInt i;
-	
+
 	if (visFunc.get() != NULL)
 	{
 		const TqInt nodeSize = m_numberOfChannels+1;
@@ -133,6 +143,7 @@ CqColor CqDeepMipmapLevel::visibilityAt( const int x, const int y, const float d
 	const TqVisFuncPtr visFunc = m_deepTileArray.visibilityFunctionAtPixel( x, y );
 	TqInt i;
 	
+	//printf("at (%d, %d) length is: %d\n", x, y, visFunc->functionLength);
 	if (visFunc->functionLength > 1)
 	{
 		const TqInt nodeSize = m_numberOfChannels+1;

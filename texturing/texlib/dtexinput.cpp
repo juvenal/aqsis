@@ -135,15 +135,13 @@ void CqDeepTexInputFile::loadTileTable()
 		m_tileOffsets[i].resize(m_tilesPerRow, 0);
 	}
 	
-	printf("Load Tile table\n");
 	// Read the tile table
 	for (i = 0; i < m_fileHeader.numberOfTiles; ++i)
 	{
 		m_dtexFile.read((char*)(&trow), sizeof(uint32));
 		m_dtexFile.read((char*)(&tcol), sizeof(uint32));
 		m_dtexFile.read((char*)(&offset), sizeof(uint32));
-		m_tileOffsets[trow][tcol] = offset; 
-		printf("(%d, %d) : %d\n", trow, tcol, offset);
+		m_tileOffsets[trow][tcol] = offset;
 	}
 }
 
@@ -180,13 +178,14 @@ boost::shared_ptr<CqDeepTextureTile> CqDeepTexInputFile::loadTile(const TqUint t
 	boost::shared_ptr<CqDeepTextureTile> tile(new CqDeepTextureTile(data, functionOffsets,
 			tileWidth, tileHeight, tileCol*m_fileHeader.tileWidth, tileRow*m_fileHeader.tileHeight,
 			m_fileHeader.numberOfChannels));
-	/*
-	printf("Loading a new tile whose data is as follows:\n");
+
+	//printf("Load a tile, origin (%d, %d):\n",m_fileHeader.tileWidth*tileCol, m_fileHeader.tileHeight*tileRow );
+/*
 	for (int i = 0; i < totalNumberOfNodes; i += 4)
 	{
 		printf("depth: %f visibility: %f\n", data[i], data[i+1]);
 	}
-	*/
+*/
 	return tile;
 }
 
