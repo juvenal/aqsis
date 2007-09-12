@@ -344,10 +344,7 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 			}
 		}
 		else
-		{
-			throw XqInternal(std::string("Error loading display driver [ ") + strDriverFile +
-					std::string( " ]"), __FILE__, __LINE__); 
-		}
+			Aqsis::log() << error << "Could not successfully load the display driver" << std::endl;
 	}
 	else
 	{
