@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright © 1997 - 2001, Paul C. Gregory
+// Copyright (C) 1997 - 2007, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -23,21 +23,43 @@
 		\author Paul C. Gregory (pgregory@aqsis.org)
 */
 
-//? Is .h included already?
 #ifndef IDDMANAGER_H_INCLUDED
 #define IDDMANAGER_H_INCLUDED 1
 
+// Aqsis header
 #include	"aqsis.h"
-#include	"color.h"
+
+// Standard libraries
+#include	<vector>
 #include	<map>
+
+// External library headers
 #include	<boost/shared_ptr.hpp>
 
+#include	"color.h"
 
 START_NAMESPACE( Aqsis )
 
 struct SqImageSample;
 struct IqRenderer;
 class CqParameter;
+
+//------------------------------------------------------------------------------
+/** \brief Structure representing a visibility function node
+ * This is a (depth, visibility) tuple as described by the Lokovic and Veach DSM paper
+ * A visibility function is a collection of these structures.
+ */
+struct SqVisibilityNode
+{
+	TqFloat zdepth;
+	/// an [additive] change in light color associated with a transmittance function "hit" at this zdepth
+	/// \ todo Change type of visibility from CqColor to std::vector<TqFloat> so that we can have an arbitrary number of color channels
+	CqColor visibility;
+};
+
+/// \todo Performance tuning: Consider alternatives to shared_ptr here.  Possibly intrusive_ptr, or holding the structures by value, with a memory pooling mechanism like SqImageSample
+typedef std::vector< boost::shared_ptr<SqVisibilityNode> > TqVisibilityFunction;
+
 
 struct IqBucket
 {
@@ -88,6 +110,17 @@ struct IqBucket
 	 * \param iYPos Screen position of the requested element.
 	 */
 	virtual const TqFloat* Data( TqInt iXPos, TqInt iYPos ) = 0;
+	/** Get a pointer to the visibility data for the specified pixel
+	 * \param iXPos Screen position of the requested element.
+	 * \param iYPos Screen position of the requested element.
+	 */	
+	virtual const TqVisibilityFunction* DeepData( TqInt iXPos, TqInt iYPos ) const = 0;
+	/** Get the size (number of TqFloats) used in representing visibility data for this bucket.
+	 */		
+	virtual TqInt VisibilityDataTotalSize() const = 0;
+	/** Get the flag that indicates if the bucket's visibility (deep) data is empty
+	 */
+	virtual bool IsDeepEmpty() const = 0;	
 };
 
 struct IqDDManager

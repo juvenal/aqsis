@@ -25,7 +25,7 @@
  */
 
 #include "deeptexture.h"
-#include "renderer.h"
+#include "ishaderdata.h"
 #include "random.h"
 
 namespace Aqsis
@@ -201,8 +201,6 @@ CqDeepTexture::CqDeepTexture( std::string filename ) :
 // Static factory method
 IqTextureMap* CqDeepTexture::GetDeepShadowMap( const std::string& strName )
 {
-	QGetRenderContext() ->Stats().IncTextureMisses( 3 );
-
 	// First search the texture map cache
 	for ( std::vector<boost::shared_ptr<CqDeepTexture> >::const_iterator i = m_textureCache.begin();
 																	i != m_textureCache.end(); ++i )
@@ -212,18 +210,14 @@ IqTextureMap* CqDeepTexture::GetDeepShadowMap( const std::string& strName )
 			return i->get();
 		}
 	}
-	
-	QGetRenderContext() ->Stats().IncTextureHits( 0, 3 );
 
 	// If we got here, the map doesn't exist yet, so we must create and load it.
 	boost::shared_ptr<CqDeepTexture> newDeepTexture(new CqDeepTexture( strName ));
-	
 	if (newDeepTexture->IsValid())
 	{
 		m_textureCache.push_back(newDeepTexture);
 		return newDeepTexture.get();
 	}
-
 	return NULL;
 }
 
@@ -369,25 +363,34 @@ void CqDeepTexture::PrepareSampleOptions( std::map<std::string, IqShaderData*>& 
 		}
 	}
 	// Extend the shadow() call to accept bias, if set, override global bias
-	m_bias = 0.0f;
-	m_bias0 = 0.0f;
-	m_bias1 = 0.0f;
+	m_minBias = 0.0f;
+	TqFloat maxBias = 0.0f;
+	m_biasRange = 0.0f;
 
 	if ( ( !paramMap.empty() ) && ( paramMap.find( "bias" ) != paramMap.end() ) )
 	{
-		paramMap[ "bias" ] ->GetFloat( m_bias );
-		m_bias0 = m_bias1 = 0.0f;
+		paramMap[ "bias" ] ->GetFloat( m_minBias );
+		maxBias = m_minBias;
 	}
-	else
+	if ( ( !paramMap.empty() ) && ( paramMap.find( "bias0" ) != paramMap.end() ) )
 	{
-		// Add in the bias at this point in camera coordinates.
-		const TqFloat* poptBias = QGetRenderContextI() ->GetFloatOption( "shadow", "bias0" );
-		if ( poptBias != 0 )
-			m_bias0 = poptBias[ 0 ];
-		poptBias = QGetRenderContextI() ->GetFloatOption( "shadow", "bias1" );
-		if ( poptBias != 0 )
-			m_bias1 = poptBias[ 0 ];
+		paramMap[ "bias0" ] ->GetFloat( m_minBias );
+		maxBias = m_minBias;
 	}
+	if ( ( !paramMap.empty() ) && ( paramMap.find( "bias1" ) != paramMap.end() ) )
+	{
+		paramMap[ "bias1" ] ->GetFloat( maxBias );
+	}
+	
+	// Sanity check: make sure min biases is less than max bias.
+	if(m_minBias > maxBias)
+	{
+		TqFloat tmp = m_minBias;
+		m_minBias = maxBias;
+		maxBias = tmp;
+	}
+		
+	m_biasRange = maxBias - m_minBias;
 }
 
 void CqDeepTexture::SampleMap( TqFloat s1, TqFloat t1, TqFloat swidth, TqFloat twidth,
@@ -429,19 +432,6 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 	CqVector3D vecRlaverage; 
 	CqVector3D vecR1l, vecR2l, vecR3l, vecR4l;
 	CqVector3D vecR1m, vecR2m, vecR3m, vecR4m;
-
-	TqFloat minbias;
-	TqFloat maxbias;
-	TqFloat bias;
-
-	minbias = m_bias0;
-	maxbias = m_bias1;
-
-	if (minbias > maxbias)
-	{
-		minbias = m_bias1;
-		maxbias = m_bias0;
-	}
 
 	// Generate a matrix to transform points from camera space into the space of the light source used in the
 	// definition of the shadow map.
@@ -553,73 +543,19 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 	CqColor visibility;
 	visibility = m_mipmapSet[index]->filterVisibility(s1, s2, s3, s4,
 			t1, t2, t3, t4, z1, z2, z3, z4, ns*nt, m_filterFunc);
+	val[0] = (1.0-visibility.fRed()); //greyscale shadow
 /*
-	// Is this shadowmap an occlusion map (NumPages() > 1) ?
-	// NumPages() contains the number of shadowmaps which were used 
-	// to create this occlusion map.
-	// if ns, nt is computed assuming only one shadow map; let try divide 
-	// both numbers by the sqrt() of the number of maps. 
-	//
-	// eg: assuming I have 256 shadowmaps (256x256) in one occlusion map
-	// and ns = nt = 16 (depends solely of the du,dv,blur)
-	// Than the number of computations will be at the worst case 
-	// (re-visit each Z values on each shadowmaps).  
-	// 256 shadows * ns * nt * 256 * 256. or the 4G operations. 
-	// 
-	// We need to reduce the number of operations by one or two order 
-	// of magnitude then.
-	// An solution is to divide the numbers ns,nt by the sqrt(number of shadows). 
-	// In the examples something in range of 
-	// 256x256x256 x (16 x 16) / (8 x 8)  or 256 x 256 x 256 x 2 x 2 or 64M 
-	// operations good start; but not enough.  
-	// But what happens if you only have 4 shadows ?
-	// 256x256x256 x (16 x 16) /( 2 x 2) or 256x256x256x64 about 1G 
-	// it is worst than with 256 maps. So I chose another solution is to do 
-	// following let recompute ns, nt so the number of operations will 
-	// never reach more 256k. 
-	// 1) Bigger the number of shadowmap smaller ns, nt will be required; 
-	// 2) Bigger the shadowmaps than smaller ns, nt;
-
-	if (NumPages() > 1) {
-		TqInt samples = floor(sqrt(m_samples));
-		TqInt occl = (256 * 1024) / (NumPages() * XRes() * YRes());
-		occl = ceil(sqrt(static_cast<TqFloat>(occl)));
-		occl = max(2, occl);
-		// Samples could overwrite after all the magic number!!
-		occl = max(samples, occl); 
-		ns = nt = occl;
-	}
-
-	// Setup jitter variables
-	TqFloat ds = sres / ns;
-	TqFloat dt = tres / nt;
-	TqFloat js = ds * 0.5f;
-	TqFloat jt = dt * 0.5f;
-
-	// Test the samples.
-	TqInt inshadow = 0;
-	TqUint i;
-	TqFloat avz = 0.0f;
-	TqFloat sample_z = 0.0f; // How deep we're in the shadow
-	TqFloat rbias;
-	if ((minbias == 0.0f) && (maxbias == 0.0f))
-		rbias  = 0.5 * m_bias;
-	else
-		rbias  = (0.5 * (maxbias - minbias)) + minbias;
-
+	// I've really no idea what rbias does, but in the process of fixing the
+	// bias behaviour quickly (prior to the texture refactor which will replace
+	// much of this), I'm leaving it with the same value which it previously
+	// contained - CJF.
+	TqFloat rbias = m_minBias + 0.5*m_biasRange;
 
   	// A conservative z value is the worst case scenario
 	// for the high bias value will be between 0..2.0 * rbias
-        TqDouble minz = MinZ(index);
-
+    TqDouble minz = MinZ(index);
 	if ((minz != RI_FLOATMAX) && ((z + 2.0 * rbias) < minz))
 		return;
-
-	index = PseudoMipMaps( lu , index );
-
-	CqTextureMapBuffer * pTMBa = GetBuffer( lu, lv, index );
-
-	bool valid =  pTMBa  && pTMBa->IsValid (hu, hv, index );
 
 	// Don't do the area computing of the shadow if the conservative z 
 	// value is either lower than the current minz value of the tile or 
@@ -629,11 +565,9 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 	// for the high bias value will be between 0..2.0 * rbias
 
 	if ( (NumPages() > 1) && valid )
-        {
+    {
 		TqFloat minz, maxz;
-
-		pTMBa->MinMax(minz, maxz, 0);
-		
+		minMax(minz, maxz, 0);
 		if ((z + 2.0 * rbias) < minz ) 
 		{
 			return;
@@ -642,31 +576,13 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 		{
 			if ((z - 2.0 * rbias) > maxz  )
 			{
-				val[0] = 1.0;
+				val[0] = 1.0; // note: this is not the correct thing to do for deep shadows. Instead, use the last node in the visibility function
 				return;
 			}
 		}
 	}
 
-	TqFloat sdelta = (sres - static_cast<TqFloat>(hu - lu) ) / 2.0;
-	TqFloat tdelta = (tres - static_cast<TqFloat>(hv - lv) ) / 2.0;
-	TqFloat s = lu - sdelta;
-	TqFloat t = lv - tdelta;
-
-	// Speedup for the case of normal shadowmap; if we ever recompute around the same point
-	// we will return the previous value.
-	CqVector2D vecPoint(s,t);
-	if ((NumPages() == 1) && (vecPoint.x() == m_LastPoint.x()) && (vecPoint.y() == m_LastPoint.y()))
-	{
-		val[0] = m_Val;
-		if (average_depth)
-			*average_depth = m_Average;
-		if (shadow_depth)
-			*shadow_depth = m_Depth;
-		return;
-	}
-
-	for ( i = 0; i < ns; i++, s += ds )
+	for ( i = 0; i < ns; ++i, s += ds )
 	{
 		t = lv - tdelta;
 		TqUint j;
@@ -697,7 +613,7 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 				TqFloat mapz = pTMBa->GetValue( iu, iv, 0 );
 
 				m_rand_index = ( m_rand_index + 1 ) & 1023;
-				bias  = m_aRand_no[m_rand_index] * rbias;
+				TqFloat bias = m_biasRange*m_aRand_no[m_rand_index] + m_minBias;
 
 				if ( z > mapz + bias)
 				{
@@ -722,19 +638,6 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 		*shadow_depth = sample_z;
 	}
 */
-	val[0] = (1.0-visibility.fRed());
-	//val[ 0 ] = ( static_cast<TqFloat>( inshadow ) / ( ns * nt ) );
-
-	// Keep track of computed values it might be usefull later in the next iteration
-	/*
-	if (NumPages() == 1)
-	{
-		m_LastPoint = vecPoint;
-		m_Val = val[0];
-		m_Depth = sample_z;
-		m_Average = avz;
-	}	
-	*/
 }
 
 CqMatrix& CqDeepTexture::GetMatrix( TqInt which, TqInt index )

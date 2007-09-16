@@ -43,6 +43,8 @@
 #include "deeptilearray.h"
 #include "color.h"
 #include "ri.h"
+#include "librib.h"
+
 
 // External libraries
 #include <boost/shared_ptr.hpp>
@@ -236,9 +238,8 @@ class CqDeepTexture : public IqTextureMap
 		TqFloat	m_samples;			///< How many samplings
 		TqFloat	m_pixelvariance;    ///< Smallest Difference between two distinct samples
 		TqFloat	m_swidth, m_twidth; ///< for the pixel's filter
-		TqFloat	m_bias;
-		TqFloat m_bias0;
-		TqFloat m_bias1;
+		TqFloat	m_minBias;
+		TqFloat m_biasRange; 
 };
 
 //------------------------------------------------------------------------------

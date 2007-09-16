@@ -5,7 +5,7 @@
  */
 void save_tiff( char *filename, unsigned char *raster, int width, int length, int samples )
 {
-	/* save to a tiff file */
+	/* save to a tiff file */ 
 	int i;
 	char version[ 80 ];
 	unsigned char *pdata = raster;
