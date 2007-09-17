@@ -43,7 +43,6 @@
 #include "deeptilearray.h"
 #include "color.h"
 #include "ri.h"
-#include "librib.h"
 
 
 // External libraries
