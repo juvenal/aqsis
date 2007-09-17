@@ -44,7 +44,6 @@
 #include "color.h"
 #include "ri.h"
 
-
 // External libraries
 #include <boost/shared_ptr.hpp>
 
