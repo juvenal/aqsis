@@ -302,7 +302,9 @@ class CqImageBuffer
 		void	StoreExtraData( CqMicroPolygon* pMPG, SqImageSample& sample);
 
 		void	RenderMPG_MBOrDof( CqMicroPolygon* pMPG, long xmin, long xmax, long ymin, long ymax, bool IsMoving, bool UsingDof );
-		void	RenderMPG_Static( CqMicroPolygon* pMPG, long xmin, long xmax, long ymin, long ymax );
+		void 	RenderMPG_Static( CqMicroPolygon* pMPG, long xmin, long xmax, long ymin, long ymax );
+		void	StoreSample( CqMicroPolygon* pMPG, CqImagePixel* pie2, TqInt index, TqFloat D );
+		void	StoreExtraData( CqMicroPolygon* pMPG, TqFloat* val);
 
 
 

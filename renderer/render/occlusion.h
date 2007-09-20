@@ -46,8 +46,6 @@ struct SqMpgSampleInfo;
 struct SqGridInfo;
 
 class CqOcclusionTree;
-//typedef boost::shared_ptr<CqOcclusionTree> CqOcclusionTreePtr;
-//typedef boost::weak_ptr<CqOcclusionTree> CqOcclusionTreeWeakPtr;
 typedef CqOcclusionTree* CqOcclusionTreePtr;
 typedef CqOcclusionTree* CqOcclusionTreeWeakPtr;
 
@@ -104,7 +102,6 @@ class CqOcclusionTree// : public boost::enable_shared_from_this<CqOcclusionTree>
 		void UpdateBounds();
 
 		bool CanCull( CqBound* bound );
-		void SampleMPG( CqMicroPolygon* pMPG, const CqBound& bound, bool usingMB, TqFloat time0, TqFloat time1, bool usingDof, TqInt dofboundindex, SqMpgSampleInfo& MpgSampleInfo, bool usingLOD, SqGridInfo& gridInfo);
 
 		TqInt NumSamples() const
 		{
@@ -120,6 +117,18 @@ class CqOcclusionTree// : public boost::enable_shared_from_this<CqOcclusionTree>
 		{
 			m_MaxOpaqueZ = z;
 		}
+
+		void DumpOpaqueZ()
+		{
+			std::cout << m_MaxOpaqueZ << ",";
+			TqChildArray::iterator child = m_Children.begin();
+			for (++child; child != m_Children.end(); ++child)
+			{
+				if(*child)
+					(*child)->DumpOpaqueZ();
+			}	
+		}
+			
 
 		const CqVector2D& MinSamplePoint() const
 		{
@@ -143,13 +152,7 @@ class CqOcclusionTree// : public boost::enable_shared_from_this<CqOcclusionTree>
 		TqInt		m_Dimension;
 		CqVector2D	m_MinSamplePoint;
 		CqVector2D	m_MaxSamplePoint;
-		TqFloat		m_MinTime;
-		TqFloat		m_MaxTime;
 		TqFloat		m_MaxOpaqueZ;
-		TqInt		m_MinDofBoundIndex;
-		TqInt		m_MaxDofBoundIndex;
-		TqFloat		m_MinDetailLevel;
-		TqFloat		m_MaxDetailLevel;
 		TqChildArray	m_Children;
 		TqSampleIndices	m_SampleIndices;
 

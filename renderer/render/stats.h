@@ -185,6 +185,7 @@ class CqStats
 		       GPR_current,
 		       GPR_peak,
 		       GPR_culled,
+		       GPR_occlusion_culled,
 
 		       // GPrim types
 

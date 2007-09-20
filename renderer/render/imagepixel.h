@@ -43,6 +43,8 @@
 
 START_NAMESPACE( Aqsis )
 
+class CqOcclusionTree;
+
 //-----------------------------------------------------------------------
 /** Structure representing the information at a sample point in the image.
  */
@@ -219,6 +221,7 @@ struct SqSampleData
 	TqFloat		m_DetailLevel;		///< Float level-of-detail sample.
 	std::deque<SqImageSample>	m_Data;	///< Array of sampled surface data for this sample.
 	SqImageSample m_OpaqueSample;	///< Single opaque sample for optimised processing if all encountered surfaces are opaque
+	CqOcclusionTree* m_occlusionBox;
 };
 
 //-----------------------------------------------------------------------
@@ -345,7 +348,7 @@ class CqImagePixel
 		 * \param n The vertical index of the required sample point.
 		 * \return A Reference to a vector of SqImageSample data.
 		 */
-		//std::list<SqImageSample>&	Values( TqInt index );
+		std::deque<SqImageSample>&	Values( TqInt index );
 
 		SqImageSample& OpaqueValues( TqInt index );
 
