@@ -42,43 +42,13 @@
 #include "itexturemap.h" 
 #include "deeptilearray.h"
 #include "color.h"
-#include "ri.h"
+#include "filters.h"
 
 // External libraries
 #include <boost/shared_ptr.hpp>
 
 namespace Aqsis
 {
-
-//----------------------------------------------------------------------
-/** CalculateFilter() Figure out which filter is applied to this mipmap.
-*
-* \todo Note: this function is copied out of texturemap.h
-* It should be consolidated when the texture library is integrated.
-*/
-static RtFilterFunc CalculateFilter(CqString filter)
-{
-	RtFilterFunc filterfunc = RiBoxFilter;
-
-	if ( filter == "gaussian" )
-		filterfunc = RiGaussianFilter;
-	if ( filter == "mitchell" )
-		filterfunc = RiMitchellFilter;
-	if ( filter == "box" )
-		filterfunc = RiBoxFilter;
-	if ( filter == "triangle" )
-		filterfunc = RiTriangleFilter;
-	if ( filter == "catmull-rom" )
-		filterfunc = RiCatmullRomFilter;
-	if ( filter == "sinc" )
-		filterfunc = RiSincFilter;
-	if ( filter == "disk" )
-		filterfunc = RiDiskFilter;
-	if ( filter == "bessel" )
-		filterfunc = RiBesselFilter;
-
-	return filterfunc;
-}
 
 //------------------------------------------------------------------------------
 /** \brief A class to manage a single mipmap level of a deep shadow map.
@@ -107,7 +77,7 @@ class CqDeepMipmapLevel
 		 */
 		CqColor filterVisibility(const TqFloat s1, const TqFloat s2, const TqFloat s3, const TqFloat s4,
 				const TqFloat t1, const TqFloat t2, const TqFloat t3, const TqFloat t4,	const TqFloat z1, const TqFloat z2,
-				const TqFloat z3, const TqFloat z4, const TqInt numSamples, RtFilterFunc filterFunc);
+				const TqFloat z3, const TqFloat z4, const TqInt numSamples, boost::shared_ptr<CqTexFilter> filter);
 		
 	private:
 		
@@ -226,7 +196,7 @@ class CqDeepTexture : public IqTextureMap
 		CqMatrix m_matWorldToScreen;	///< Matrix to convert points from world space to screen space.
 		CqMatrix m_matWorldToCamera;	///< Matrix to convert points from world space to camera space.
 		
-		RtFilterFunc m_filterFunc; ///< Catmull-Rom, sinc, disk, ... pixelfilter
+		boost::shared_ptr<CqTexFilter> m_filter; ///< Catmull-Rom, sinc, disk, ... pixelfilter
 		TqInt m_XRes;
 		TqInt m_YRes;
 		TqFloat	m_sblur;

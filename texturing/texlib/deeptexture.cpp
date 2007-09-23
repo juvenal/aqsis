@@ -51,7 +51,7 @@ CqDeepMipmapLevel::CqDeepMipmapLevel( IqDeepTextureInput& tileSource ) :
 
 CqColor CqDeepMipmapLevel::filterVisibility(const TqFloat s1, const TqFloat s2, const TqFloat s3, const TqFloat s4,
 		const TqFloat t1, const TqFloat t2, const TqFloat t3, const TqFloat t4,	const TqFloat z1, const TqFloat z2,
-		const TqFloat z3, const TqFloat z4, const TqInt numSamples, RtFilterFunc filterFunc)
+		const TqFloat z3, const TqFloat z4, const TqInt numSamples, boost::shared_ptr<CqTexFilter> filter)
 {
 /*
 	for ( int j = 0; j < 256; ++j)
@@ -85,7 +85,7 @@ CqColor CqDeepMipmapLevel::filterVisibility(const TqFloat s1, const TqFloat s2, 
 	    TqFloat s = lerp(dt, lerp(ds, s1, s2), lerp(ds, s4, s3));  // bilinear interpolation between s1,s2,s3,s4.
 	    TqFloat t = lerp(ds, lerp(dt, t1, t2), lerp(dt, t3, t4));
 	    TqFloat z = lerp(ds, lerp(dt, z1, z2), lerp(dt, z3, z4));
-	    TqFloat weight = (*filterFunc)(ds-0.5, dt-0.5, 1.0, 1.0);
+	    TqFloat weight = filter->weight(ds-0.5, dt-0.5, 1.0, 1.0);
 	    sum += weight*visibilityAt( s, t, z);
 	    weightTot += weight;
 	    sample++;
@@ -186,16 +186,19 @@ CqColor CqDeepMipmapLevel::visibilityAt( const int x, const int y, const float d
 
 CqDeepTexture::CqDeepTexture( std::string filename ) :
 	m_sourceFile( filename ),
-	m_mipmapSet( )
+	m_mipmapSet( ),
+	m_XRes(m_sourceFile.imageWidth()),
+	m_YRes(m_sourceFile.imageHeight()),
+	m_filter(boost::shared_ptr<CqTexFilter>(new CqTexFilter()))
 {
 	/// \toDo Instantiate a set of CqDeepMipmapLevel objects, one for each mipmap level.
 	// For now, just create one:
 	boost::shared_ptr<CqDeepMipmapLevel> newMipmapLevel( new CqDeepMipmapLevel( m_sourceFile ));
 	m_mipmapSet.push_back(newMipmapLevel);
 	m_sourceFile.transformationMatrices( m_matWorldToScreen, m_matWorldToCamera );
-	m_XRes = m_sourceFile.imageWidth();
-	m_YRes = m_sourceFile.imageHeight();
-	m_filterFunc = RiGaussianFilter; // Note: shouldn't set this here, but I don't know what else to do right now (just want to see renders)
+	//m_XRes = m_sourceFile.imageWidth();
+	//m_YRes = m_sourceFile.imageHeight();
+	//m_filter = RiGaussianFilter; // Note: shouldn't set this here, but I don't know what else to do right now (just want to see renders)
 }
 
 // Static factory method
@@ -354,7 +357,7 @@ void CqDeepTexture::PrepareSampleOptions( std::map<std::string, IqShaderData*>& 
 			paramMap[ "filter" ] ->GetString( filter );
 			//Aqsis::log() << warning << "filter will be " << filter << std::endl;
 
-			m_filterFunc = CalculateFilter(filter);
+			m_filter->setType(filter);
 		}
 
 		if ( paramMap.find( "pixelvariance" ) != paramMap.end() )
@@ -542,7 +545,7 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 	// Indexing the mipmap set lets us filter over one of several mipmap levels
 	CqColor visibility;
 	visibility = m_mipmapSet[index]->filterVisibility(s1, s2, s3, s4,
-			t1, t2, t3, t4, z1, z2, z3, z4, ns*nt, m_filterFunc);
+			t1, t2, t3, t4, z1, z2, z3, z4, ns*nt, m_filter);
 	val[0] = (1.0-visibility.fRed()); //greyscale shadow
 /*
 	// I've really no idea what rbias does, but in the process of fixing the
