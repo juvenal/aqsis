@@ -32,6 +32,7 @@
 
 #include "aqsis.h"
 #include <string>
+#include <math.h>
 #include "aqsismath.h"
 
 namespace Aqsis
@@ -40,33 +41,13 @@ namespace Aqsis
 #define	RI_PI 3.14159265359f
 #define	RI_PIO2 RI_PI/2
 
-/* Definitions of Abstract Types Used in RI */
-
-//typedef	short	RtBoolean;
-//typedef	int		RtInt;
-typedef	float	RtFloat;
-//typedef	char*	RtToken;
-//typedef	RtFloat	RtColor[ 3 ];
-//typedef	RtFloat	RtPoint[ 3 ];
-//typedef	RtFloat	RtMatrix[ 4 ][ 4 ];
-//typedef	RtFloat	RtBasis[ 4 ][ 4 ];
-//typedef	RtFloat	RtBound[ 6 ];
-//typedef	char*	RtString;
-//typedef	void*	RtPointer;
-typedef	void	RtVoid;
-typedef	RtFloat	( *RtFilterFunc ) ( RtFloat, RtFloat, RtFloat, RtFloat );
-//typedef	RtFloat	( *RtFloatFunc ) ();
-//typedef	RtVoid	( *RtFunc ) ();
-//typedef	RtVoid	( *RtErrorFunc ) ( RtInt code, RtInt severity, RtString message );
-//typedef	RtErrorFunc	RtErrorHandler;
-
 class CqTexFilter
 {
 	public:
 		CqTexFilter();
 		CqTexFilter(std::string type);
 		
-		TqFloat weight(RtFloat x, RtFloat y, RtFloat width, RtFloat height);
+		TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
 		
 		void setType(std::string type);
 	
@@ -103,25 +84,24 @@ class CqTexFilter
 		};
 		
 		// Functions 
-		RtFloat TexGaussianFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth );
+		TqFloat TexGaussianFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
 
-		RtFloat	TexMitchellFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth );
+		TqFloat	TexMitchellFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
 		
-		RtFloat TexBesselFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth );
+		TqFloat TexBesselFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
 
-		RtFloat	TexBoxFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth );
+		TqFloat	TexBoxFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
 
-		RtFloat	TexTriangleFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth );
+		TqFloat	TexTriangleFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
 
-		RtFloat	TexCatmullRomFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth );
+		TqFloat	TexCatmullRomFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
 
-		RtFloat	TexSincFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth );
+		TqFloat	TexSincFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
 
-		RtFloat	TexDiskFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth );
+		TqFloat	TexDiskFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
 		
 		// Data
-		//RtFilterFunc m_filterFunc;
-		RtFloat (CqTexFilter::*m_filterFunc)(RtFloat, RtFloat, RtFloat, RtFloat);
+		TqFloat (CqTexFilter::*m_filterFunc)(TqFloat, TqFloat, TqFloat, TqFloat);
 		
 };
 

@@ -26,10 +26,6 @@
 		\author Paul C. Gregory (pgregory@aqsis.org)
 */
 
-#include	<stdarg.h>
-#include	<math.h>
-#include	<list>
-
 #include "filters.h"
 
 namespace Aqsis
@@ -46,7 +42,7 @@ CqTexFilter::CqTexFilter(std::string type)
 	setType(type);
 }
 
-RtFloat CqTexFilter::weight(RtFloat x, RtFloat y, RtFloat width, RtFloat height)
+TqFloat CqTexFilter::weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height)
 {
 	return (*this.*m_filterFunc)(x, y, width, height);
 }
@@ -77,7 +73,7 @@ void CqTexFilter::setType(std::string type)
 // TexGaussianFilter
 // Gaussian filter used as a possible value passed to TexPixelFilter.
 //
-RtFloat	CqTexFilter::TexGaussianFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth )
+TqFloat	CqTexFilter::TexGaussianFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	x /= xwidth;
 	y /= ywidth;
@@ -89,7 +85,7 @@ RtFloat	CqTexFilter::TexGaussianFilter( RtFloat x, RtFloat y, RtFloat xwidth, Rt
 // TexMitchellFilter
 // Mitchell filter used as a possible value passed to TexPixelFIlter.
 //
-RtFloat	CqTexFilter::TexMitchellFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth )
+TqFloat	CqTexFilter::TexMitchellFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	CqTexMitchellFilter mc(1/3.0f, 1/3.0f, xwidth, ywidth);
 
@@ -100,7 +96,7 @@ RtFloat	CqTexFilter::TexMitchellFilter( RtFloat x, RtFloat y, RtFloat xwidth, Rt
 // TexBoxFilter
 // Box filter used as a possible value passed to TexPixelFIlter.
 //
-RtFloat	CqTexFilter::TexBoxFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth )
+TqFloat	CqTexFilter::TexBoxFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	/* [UPST89] -- (RC p. 178) says that x and y will be in the
 	 *    following intervals:
@@ -118,12 +114,12 @@ RtFloat	CqTexFilter::TexBoxFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat
 // TexTriangleFilter
 // Triangle filter used as a possible value passed to TexPixelFilter
 //
-RtFloat	CqTexFilter::TexTriangleFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth )
+TqFloat	CqTexFilter::TexTriangleFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
-	RtFloat	hxw = xwidth / 2.0;
-	RtFloat	hyw = ywidth / 2.0;
-	RtFloat	absx = fabs( x );
-	RtFloat	absy = fabs( y );
+	TqFloat	hxw = xwidth / 2.0;
+	TqFloat	hyw = ywidth / 2.0;
+	TqFloat	absx = fabs( x );
+	TqFloat	absy = fabs( y );
 
 	/* This function can be simplified as well by not worrying about
 	 *    returning zero if the sample is beyond the filter window.
@@ -137,11 +133,11 @@ RtFloat	CqTexFilter::TexTriangleFilter( RtFloat x, RtFloat y, RtFloat xwidth, Rt
 // TexCatmullRomFilter
 // Catmull Rom filter used as a possible value passed to TexPixelFilter.
 //
-RtFloat	CqTexFilter::TexCatmullRomFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth )
+TqFloat	CqTexFilter::TexCatmullRomFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	/* RI SPec 3.2 */
-	RtFloat r2 = (x*x+y*y);
-	RtFloat r = sqrt(r2);
+	TqFloat r2 = (x*x+y*y);
+	TqFloat r = sqrt(r2);
 	return (r>=2.0)?0.0:
 	       (r<1.0)?(3.0*r*r2-5.0*r2+2.0):(-r*r2+5.0*r2-8.0*r+4.0);
 }
@@ -151,7 +147,7 @@ RtFloat	CqTexFilter::TexCatmullRomFilter( RtFloat x, RtFloat y, RtFloat xwidth, 
 // TexSincFilter
 // Sinc filter used as a possible value passed to TexPixelFilter.
 //
-RtFloat	CqTexFilter::TexSincFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth )
+TqFloat	CqTexFilter::TexSincFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	/* Uses a -PI to PI cosine window. */
 	if ( x != 0.0 )
@@ -185,7 +181,7 @@ RtFloat	CqTexFilter::TexSincFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloa
 // TexDiskFilter -- this is in Pixar's ri.h
 // Cylindrical filter used as a possible value passed to TexPixelFilter
 //
-RtFloat	CqTexFilter::TexDiskFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth )
+TqFloat	CqTexFilter::TexDiskFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	double d, xx, yy;
 
@@ -210,7 +206,7 @@ RtFloat	CqTexFilter::TexDiskFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloa
 // TexBesselFilter -- this is in Pixar's ri.h
 // Besselj0 filter used as a possible value passed to TexPixelFilter
 //
-RtFloat	CqTexFilter::TexBesselFilter( RtFloat x, RtFloat y, RtFloat xwidth, RtFloat ywidth )
+TqFloat	CqTexFilter::TexBesselFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 
 	double d, w, xx, yy;
