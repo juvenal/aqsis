@@ -31,15 +31,97 @@
 namespace Aqsis
 {
 
-CqTexFilter::CqTexFilter() :
-	m_filterFunc(NULL)
+CqTexFilter::CqTexFilter()
+{}
+
+/// brief: Static factory method returns a boost pointer to instance of appropriate filter class  
+boost::shared_ptr<IqTexFilter> CqTexFilter::filterOfType(std::string type)
 {
-	setType("box");
+	boost::shared_ptr<IqTexFilter> ref;
+
+	if ( type == "box" )
+		ref = boost::shared_ptr<CqTexBoxFilter>(new CqTexBoxFilter());
+	else if ( type == "gaussian" )
+		ref = boost::shared_ptr<CqTexGaussianFilter>(new CqTexGaussianFilter());
+	else if ( type == "mitchell" )
+		ref = boost::shared_ptr<CqTexMitchellFilter>(new CqTexMitchellFilter());
+	else if ( type == "triangle" )
+		ref = boost::shared_ptr<CqTexTriangleFilter>(new CqTexTriangleFilter());
+	else if ( type == "catmull-rom" )
+		ref = boost::shared_ptr<CqTexCatmullRomFilter>(new CqTexCatmullRomFilter());
+	else if ( type == "sinc" )
+		ref = boost::shared_ptr<CqTexSincFilter>(new CqTexSincFilter());
+	else if ( type == "disk" )
+		ref = boost::shared_ptr<CqTexDiskFilter>(new CqTexDiskFilter());
+	else if ( type == "bessel" )
+		ref = boost::shared_ptr<CqTexBesselFilter>(new CqTexBesselFilter());
+	return ref; 
 }
 
-CqTexFilter::CqTexFilter(std::string type)
+CqTexMitchellFilter::CqTexMitchellFilter() :
+	B (0),
+	C (0),
+	invXWidth(0),
+	invYWidth(0)
+{}
+
+CqTexMitchellFilter::CqTexMitchellFilter(TqFloat b, TqFloat c, TqFloat xw, TqFloat yw) :
+	B (b),
+	C (c),
+	invXWidth(1.0f/xw),
+	invYWidth(1.0f/yw)
+{}
+
+TqFloat	CqTexMitchellFilter::weight( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
-	setType(type);
+	B = 1/3.0f;
+	C = 1/3.0f;
+	invXWidth = 1.0f/xwidth;
+	invYWidth= 1.0f/ywidth;
+	
+	return Evaluate(x, y);
+}
+
+TqFloat CqTexMitchellFilter::Evaluate(TqFloat x, TqFloat y) const 
+{
+   return Evaluate(x * invXWidth) * Evaluate(y * invYWidth);
+}
+
+TqFloat CqTexMitchellFilter::Evaluate(TqFloat x) const 
+{
+   x = fabsf(2.f * x);
+   if (x > 1.f)
+      return ((-B - 6*C) * x*x*x + (6*B + 30*C) * x*x +
+      (-12*B - 48*C) * x + (8*B + 24*C)) * (1.f/6.f);
+   else
+      return ((12 - 9*B - 6*C) * x*x*x +
+      (-18 + 12*B + 6*C) * x*x +
+      (6 - 2*B)) * (1.f/6.f);
+}
+
+/*
+CqTexFilter::CqTexMitchellFilter::CqTexMitchellFilter(TqFloat b, TqFloat c, TqFloat xw, TqFloat yw) :
+	B (b),
+	C (c),
+	invXWidth(1.0f/xw),
+	invYWidth(1.0f/yw)
+{}
+
+TqFloat CqTexFilter::CqTexMitchellFilter::Evaluate(TqFloat x, TqFloat y) const 
+{
+   return Evaluate(x * invXWidth) * Evaluate(y * invYWidth);
+}
+
+TqFloat CqTexFilter::CqTexMitchellFilter::Evaluate(TqFloat x) const 
+{
+   x = fabsf(2.f * x);
+   if (x > 1.f)
+      return ((-B - 6*C) * x*x*x + (6*B + 30*C) * x*x +
+      (-12*B - 48*C) * x + (8*B + 24*C)) * (1.f/6.f);
+   else
+      return ((12 - 9*B - 6*C) * x*x*x +
+      (-18 + 12*B + 6*C) * x*x +
+      (6 - 2*B)) * (1.f/6.f);
 }
 
 TqFloat CqTexFilter::weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height)
@@ -68,12 +150,12 @@ void CqTexFilter::setType(std::string type)
 	else if ( type == "bessel" )
 		m_filterFunc = &Aqsis::CqTexFilter::TexBesselFilter;
 }
-
+*/
 //----------------------------------------------------------------------
 // TexGaussianFilter
 // Gaussian filter used as a possible value passed to TexPixelFilter.
 //
-TqFloat	CqTexFilter::TexGaussianFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
+TqFloat	CqTexGaussianFilter::weight( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	x /= xwidth;
 	y /= ywidth;
@@ -85,18 +167,20 @@ TqFloat	CqTexFilter::TexGaussianFilter( TqFloat x, TqFloat y, TqFloat xwidth, Tq
 // TexMitchellFilter
 // Mitchell filter used as a possible value passed to TexPixelFIlter.
 //
-TqFloat	CqTexFilter::TexMitchellFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
+/*
+TqFloat	CqTexMitchellFilter::weight( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	CqTexMitchellFilter mc(1/3.0f, 1/3.0f, xwidth, ywidth);
 
 	return mc.Evaluate(x, y);
 }
+*/
 
 //----------------------------------------------------------------------
 // TexBoxFilter
 // Box filter used as a possible value passed to TexPixelFIlter.
 //
-TqFloat	CqTexFilter::TexBoxFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
+TqFloat	CqTexBoxFilter::weight( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	/* [UPST89] -- (RC p. 178) says that x and y will be in the
 	 *    following intervals:
@@ -114,7 +198,7 @@ TqFloat	CqTexFilter::TexBoxFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat
 // TexTriangleFilter
 // Triangle filter used as a possible value passed to TexPixelFilter
 //
-TqFloat	CqTexFilter::TexTriangleFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
+TqFloat	CqTexTriangleFilter::weight( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	TqFloat	hxw = xwidth / 2.0;
 	TqFloat	hyw = ywidth / 2.0;
@@ -133,7 +217,7 @@ TqFloat	CqTexFilter::TexTriangleFilter( TqFloat x, TqFloat y, TqFloat xwidth, Tq
 // TexCatmullRomFilter
 // Catmull Rom filter used as a possible value passed to TexPixelFilter.
 //
-TqFloat	CqTexFilter::TexCatmullRomFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
+TqFloat	CqTexCatmullRomFilter::weight( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	/* RI SPec 3.2 */
 	TqFloat r2 = (x*x+y*y);
@@ -147,7 +231,7 @@ TqFloat	CqTexFilter::TexCatmullRomFilter( TqFloat x, TqFloat y, TqFloat xwidth, 
 // TexSincFilter
 // Sinc filter used as a possible value passed to TexPixelFilter.
 //
-TqFloat	CqTexFilter::TexSincFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
+TqFloat	CqTexSincFilter::weight( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	/* Uses a -PI to PI cosine window. */
 	if ( x != 0.0 )
@@ -181,7 +265,7 @@ TqFloat	CqTexFilter::TexSincFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloa
 // TexDiskFilter -- this is in Pixar's ri.h
 // Cylindrical filter used as a possible value passed to TexPixelFilter
 //
-TqFloat	CqTexFilter::TexDiskFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
+TqFloat	CqTexDiskFilter::weight( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 	double d, xx, yy;
 
@@ -206,7 +290,7 @@ TqFloat	CqTexFilter::TexDiskFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloa
 // TexBesselFilter -- this is in Pixar's ri.h
 // Besselj0 filter used as a possible value passed to TexPixelFilter
 //
-TqFloat	CqTexFilter::TexBesselFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
+TqFloat	CqTexBesselFilter::weight( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
 {
 
 	double d, w, xx, yy;

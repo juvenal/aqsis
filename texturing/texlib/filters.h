@@ -35,54 +35,114 @@
 #include <math.h>
 #include "aqsismath.h"
 
+// External libraries
+#include <boost/shared_ptr.hpp>
+
 namespace Aqsis
 {
 
 #define	RI_PI 3.14159265359f
 #define	RI_PIO2 RI_PI/2
 
+//NOTE: need to make a base class for all filter classes to inherit, like the following
+// 
+struct IqTexFilter
+{
+	virtual ~IqTexFilter(){};
+		
+	virtual TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height) = 0;
+};
+
+// Mitchell Filter Declarations
+class CqTexMitchellFilter : public IqTexFilter
+{
+	public:	
+	   // CqMitchellFilter Public Methods
+		CqTexMitchellFilter();
+		CqTexMitchellFilter(TqFloat b, TqFloat c, TqFloat xw, TqFloat yw);
+	   
+	   TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
+	   TqFloat Evaluate(TqFloat x, TqFloat y) const;
+	   TqFloat Evaluate(TqFloat x) const;
+	private:
+		TqFloat B, C;
+		TqFloat invXWidth, invYWidth;
+};
+
+class CqTexGaussianFilter : public IqTexFilter
+{
+	public:
+		CqTexGaussianFilter(){};
+	
+		TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
+};
+
+class CqTexBesselFilter : public IqTexFilter
+{
+	public:
+		CqTexBesselFilter(){};
+	
+		TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
+};
+
+class CqTexBoxFilter : public IqTexFilter
+{
+	public:
+		CqTexBoxFilter(){};
+	
+		TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
+};
+
+class CqTexTriangleFilter : public IqTexFilter
+{
+	public:
+		CqTexTriangleFilter(){};
+	
+		TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
+};
+
+class CqTexCatmullRomFilter : public IqTexFilter
+{
+	public:
+		CqTexCatmullRomFilter(){};
+	
+		TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
+};
+
+class CqTexSincFilter : public IqTexFilter
+{
+	public:
+		CqTexSincFilter(){};
+	
+		TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
+};
+
+class CqTexDiskFilter : public IqTexFilter
+{
+	public:
+		CqTexDiskFilter(){};
+	
+		TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
+};
+
+//---------------------------------------------------------------------
+/** \class CqTexFilter
+ * Serves as factory for various filter classes.
+ */
 class CqTexFilter
 {
 	public:
 		CqTexFilter();
-		CqTexFilter(std::string type);
 		
-		TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
+		// Static factory class method
+		static boost::shared_ptr<IqTexFilter> filterOfType(std::string type);
 		
-		void setType(std::string type);
+		//TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
+		
+		//void setType(std::string type);
 	
 	private:
-		
-		// Mitchell Filter Declarations
-		class CqTexMitchellFilter 
-		{
-			public:	
-			   // CqMitchellFilter Public Methods
-			   CqTexMitchellFilter(TqFloat b, TqFloat c, TqFloat xw, TqFloat yw)
-			   {
-			      B = b;
-			      C = c;
-			      invXWidth = 1.0f/xw;
-			      invYWidth = 1.0f/yw;
-			   }
-			   TqFloat Evaluate(TqFloat x, TqFloat y) const {
-			      return Evaluate(x * invXWidth) * Evaluate(y * invYWidth);
-			   }
-			   TqFloat Evaluate(TqFloat x) const {
-			      x = fabsf(2.f * x);
-			      if (x > 1.f)
-			         return ((-B - 6*C) * x*x*x + (6*B + 30*C) * x*x +
-			         (-12*B - 48*C) * x + (8*B + 24*C)) * (1.f/6.f);
-			      else
-			         return ((12 - 9*B - 6*C) * x*x*x +
-			         (-18 + 12*B + 6*C) * x*x +
-			         (6 - 2*B)) * (1.f/6.f);
-			   }
-			private:
-				TqFloat B, C;
-				TqFloat invXWidth, invYWidth;
-		};
-		
+		/*
 		// Functions 
 		TqFloat TexGaussianFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
 
@@ -102,7 +162,7 @@ class CqTexFilter
 		
 		// Data
 		TqFloat (CqTexFilter::*m_filterFunc)(TqFloat, TqFloat, TqFloat, TqFloat);
-		
+		*/
 };
 
 //------------------------------------------------------------------------------

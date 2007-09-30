@@ -51,7 +51,7 @@ CqDeepMipmapLevel::CqDeepMipmapLevel( IqDeepTextureInput& tileSource ) :
 
 CqColor CqDeepMipmapLevel::filterVisibility(const TqFloat s1, const TqFloat s2, const TqFloat s3, const TqFloat s4,
 		const TqFloat t1, const TqFloat t2, const TqFloat t3, const TqFloat t4,	const TqFloat z1, const TqFloat z2,
-		const TqFloat z3, const TqFloat z4, const TqInt numSamples, boost::shared_ptr<CqTexFilter> filter)
+		const TqFloat z3, const TqFloat z4, const TqInt numSamples, boost::shared_ptr<IqTexFilter> filter)
 {
 /*
 	for ( int j = 0; j < 256; ++j)
@@ -189,7 +189,7 @@ CqDeepTexture::CqDeepTexture( std::string filename ) :
 	m_mipmapSet( ),
 	m_XRes(m_sourceFile.imageWidth()),
 	m_YRes(m_sourceFile.imageHeight()),
-	m_filter(boost::shared_ptr<CqTexFilter>(new CqTexFilter()))
+	m_filter(boost::shared_ptr<IqTexFilter>(new CqTexBoxFilter()))
 {
 	/// \toDo Instantiate a set of CqDeepMipmapLevel objects, one for each mipmap level.
 	// For now, just create one:
@@ -357,7 +357,7 @@ void CqDeepTexture::PrepareSampleOptions( std::map<std::string, IqShaderData*>& 
 			paramMap[ "filter" ] ->GetString( filter );
 			//Aqsis::log() << warning << "filter will be " << filter << std::endl;
 
-			m_filter->setType(filter);
+			m_filter = CqTexFilter::filterOfType(filter);
 		}
 
 		if ( paramMap.find( "pixelvariance" ) != paramMap.end() )
