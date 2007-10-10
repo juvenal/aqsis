@@ -25,6 +25,10 @@
 
 #include	"aqsis.h"
 
+#ifdef AQSIS_SYSTEM_WIN32
+#include	<io.h>
+#endif
+
 #include	<math.h>
 #include	<map>
 #include	<vector>
