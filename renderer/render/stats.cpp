@@ -333,7 +333,7 @@ void CqStats::PrintStats( TqInt level ) const
 		if (STATS_INT_GETF( MPG_max_area ) != FLT_MIN)
 			_mpg_max = STATS_INT_GETF( MPG_max_area );
 		MSG << "Micropolygons:\n\t"
-		<< STATS_INT_GETI( MPG_allocated ) << " created (" << STATS_INT_GETI( MPG_culled ) << " culled)\n"
+		<< STATS_INT_GETI( MPG_allocated ) << " created (" << STATS_INT_GETI( MPG_culled ) << " culled " << STATS_INT_GETI( MPG_occlusion_culled ) << " occlusion culled)\n"
 		<< "\t" <<STATS_INT_GETI( MPG_peak ) << " peak, " << STATS_INT_GETI( MPG_trimmed ) << " trimmed, ( " << STATS_INT_GETI( MPG_trimmedout ) << " completely ) " << STATS_INT_GETI( MPG_missed ) << " missed (" << _mpg_m_q << "%)\n\t"
 		<< "\n\tMPG Area:\t" << _mpg_average_ratio << " average \n\t\t\t"
 		<<  _mpg_min << " min\n\t\t\t"

@@ -422,7 +422,7 @@ bool CqImageBuffer::OcclusionCullSurface( const boost::shared_ptr<CqSurface>& pS
 		if( pattrName )
 			objname = *pattrName;
 		Aqsis::log() << info << "GPrim: \"" << objname << "\" occlusion culled" << std::endl;
-		STATS_INC( GPR_culled );
+		STATS_INC( GPR_occlusion_culled );
 		return true;
 	}
 	else
@@ -1086,7 +1086,7 @@ void CqImageBuffer::RenderMPG_Static( CqMicroPolygon* pMPG, long xmin, long xmax
 		for(int iX = sX; iX < eX; ++iX, ++pie2)
 		{
 			// only bother sampling if the mpg is not occluded in this pixel.
-			//if(mustDraw || bminz <= pie2->MaxDepth())
+			//if(mustDraw || bminz <= pie2->SampleData(index).m_occlusionBox->MaxOpaqueZ())
 			{
 				if(!cachedHitData)
 				{
@@ -1110,36 +1110,39 @@ void CqImageBuffer::RenderMPG_Static( CqMicroPolygon* pMPG, long xmin, long xmax
 					for ( m = start_m; m < end_m; m++, index++ )
 					{
 						const SqSampleData& sampleData = pie2->SampleData( index );
-						const CqVector2D& vecP = sampleData.m_Position;
-						const TqFloat time = 0.0;
-
-						CqStats::IncI( CqStats::SPL_count );
-
-						if(!Bound.Contains2D( vecP ))
-							continue;
-
-						// Check to see if the sample is within the sample's level of detail
-						if ( UsingLevelOfDetail)
+						//if(mustDraw || bminz <= pie2->SampleData(index).m_occlusionBox->MaxOpaqueZ())
 						{
-							TqFloat LevelOfDetail = sampleData.m_DetailLevel;
-							if ( LodBounds[ 0 ] > LevelOfDetail || LevelOfDetail >= LodBounds[ 1 ] )
-							{
+							const CqVector2D& vecP = sampleData.m_Position;
+							const TqFloat time = 0.0;
+
+							CqStats::IncI( CqStats::SPL_count );
+
+							if(!Bound.Contains2D( vecP ))
 								continue;
+
+							// Check to see if the sample is within the sample's level of detail
+							if ( UsingLevelOfDetail)
+							{
+								TqFloat LevelOfDetail = sampleData.m_DetailLevel;
+								if ( LodBounds[ 0 ] > LevelOfDetail || LevelOfDetail >= LodBounds[ 1 ] )
+								{
+									continue;
+								}
 							}
-						}
 
-						CqStats::IncI( CqStats::SPL_bound_hits );
+							CqStats::IncI( CqStats::SPL_bound_hits );
 
-						// Now check if the subsample hits the micropoly
-						bool SampleHit;
-						TqFloat D;
+							// Now check if the subsample hits the micropoly
+							bool SampleHit;
+							TqFloat D;
 
-						SampleHit = pMPG->Sample( sampleData, D, time );
+							SampleHit = pMPG->Sample( sampleData, D, time );
 
-						if ( SampleHit )
-						{
-							sample_hits++;
-							StoreSample( pMPG, pie2, index, D );
+							if ( SampleHit )
+							{
+								sample_hits++;
+								StoreSample( pMPG, pie2, index, D );
+							}
 						}
 					}
 					index_start += iXSamples;
@@ -1396,7 +1399,6 @@ void CqImageBuffer::RenderSurfaces( long xmin, long xmax, long ymin, long ymax, 
 			{
 				Bucket.popSurface();
 				pSurface = Bucket.pTopSurface();
-				STATS_INC( GPR_occlusion_culled );
 				continue;
 			}
 		}
