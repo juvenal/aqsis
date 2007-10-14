@@ -294,8 +294,10 @@ void CqDisplayRequest::LoadDisplayLibrary( SqDDMemberData& ddMemberData, CqSimpl
 		// Try to open the file to see if it's really there
 		CqRiFile fileDriver( strDriverFile.c_str(), "display" );
 		if ( !fileDriver.IsValid() )
+		{
 			throw XqInternal(std::string("Error loading display driver [ ") + strDriverFile + std::string( "]"), __FILE__, __LINE__); // should __FILE__ be strDriverFile instead?
 			//throw( CqString( "Error loading display driver [ " ) + strDriverFile + CqString( " ]" ) );
+		}
 		CqString strDriverPathAndFile = fileDriver.strRealName(); // Note: I want to make this a std::string rather than CqString, but dspyPlugin.SimpleDLOpen(), below, wants the address of a CqString  
 		// Load the dynamic obejct and locate the relevant symbols.
 		m_DriverHandle = dspyPlugin.SimpleDLOpen( &strDriverPathAndFile );
