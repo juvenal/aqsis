@@ -1,5 +1,5 @@
 // Aqsis
-// Copyright © 1997 - 2001, Paul C. Gregory
+// Copyright (C) 1997 - 2001, Paul C. Gregory
 //
 // Contact: pgregory@aqsis.org
 //
@@ -680,20 +680,23 @@ void CqImageBuffer::RenderMPGs( long xmin, long xmax, long ymin, long ymax )
 			pGrid->Split( this, xmin, xmax, ymin, ymax );
 
 			CacheGridInfo(pGrid);
-
-			// Render any waiting MPGs
-			std::vector<CqMicroPolygon*>::iterator lastmpg = CurrentBucket().aMPGs().end();
-			for ( std::vector<CqMicroPolygon*>::iterator impg = CurrentBucket().aMPGs().begin(); impg != lastmpg; impg++ )
+			
 			{
-				CqMicroPolygon* pMpg = *impg;
-				RenderMicroPoly( pMpg, xmin, xmax, ymin, ymax );
-				if ( PushMPGDown( ( pMpg ), CurrentBucketCol(), CurrentBucketRow() ) )
-					STATS_INC( MPG_pushed_down );
-				if ( PushMPGForward( ( pMpg ), CurrentBucketCol(), CurrentBucketRow() ) )
-					STATS_INC( MPG_pushed_forward );
-				RELEASEREF( ( pMpg ) );
+				TIME_SCOPE("Render MPGs")
+				// Render any waiting MPGs
+				std::vector<CqMicroPolygon*>::iterator lastmpg = CurrentBucket().aMPGs().end();
+				for ( std::vector<CqMicroPolygon*>::iterator impg = CurrentBucket().aMPGs().begin(); impg != lastmpg; impg++ )
+				{
+					CqMicroPolygon* pMpg = *impg;
+					RenderMicroPoly( pMpg, xmin, xmax, ymin, ymax );
+					if ( PushMPGDown( ( pMpg ), CurrentBucketCol(), CurrentBucketRow() ) )
+						STATS_INC( MPG_pushed_down );
+					if ( PushMPGForward( ( pMpg ), CurrentBucketCol(), CurrentBucketRow() ) )
+						STATS_INC( MPG_pushed_forward );
+					RELEASEREF( ( pMpg ) );
+				}
+				CurrentBucket().aMPGs().clear();
 			}
-			CurrentBucket().aMPGs().clear();
 		}
 		CurrentBucket().aGrids().clear();
 	}
