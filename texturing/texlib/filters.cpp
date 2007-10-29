@@ -31,11 +31,8 @@
 namespace Aqsis
 {
 
-CqTexFilter::CqTexFilter()
-{}
-
 /// brief: Static factory method returns a boost pointer to instance of appropriate filter class  
-boost::shared_ptr<IqTexFilter> CqTexFilter::filterOfType(std::string type)
+boost::shared_ptr<IqTexFilter> IqTexFilter::filterOfType(std::string type)
 {
 	boost::shared_ptr<IqTexFilter> ref;
 
@@ -99,58 +96,6 @@ TqFloat CqTexMitchellFilter::Evaluate(TqFloat x) const
       (6 - 2*B)) * (1.f/6.f);
 }
 
-/*
-CqTexFilter::CqTexMitchellFilter::CqTexMitchellFilter(TqFloat b, TqFloat c, TqFloat xw, TqFloat yw) :
-	B (b),
-	C (c),
-	invXWidth(1.0f/xw),
-	invYWidth(1.0f/yw)
-{}
-
-TqFloat CqTexFilter::CqTexMitchellFilter::Evaluate(TqFloat x, TqFloat y) const 
-{
-   return Evaluate(x * invXWidth) * Evaluate(y * invYWidth);
-}
-
-TqFloat CqTexFilter::CqTexMitchellFilter::Evaluate(TqFloat x) const 
-{
-   x = fabsf(2.f * x);
-   if (x > 1.f)
-      return ((-B - 6*C) * x*x*x + (6*B + 30*C) * x*x +
-      (-12*B - 48*C) * x + (8*B + 24*C)) * (1.f/6.f);
-   else
-      return ((12 - 9*B - 6*C) * x*x*x +
-      (-18 + 12*B + 6*C) * x*x +
-      (6 - 2*B)) * (1.f/6.f);
-}
-
-TqFloat CqTexFilter::weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height)
-{
-	return (*this.*m_filterFunc)(x, y, width, height);
-}
-
-void CqTexFilter::setType(std::string type)
-{
-	m_filterFunc = &Aqsis::CqTexFilter::TexBoxFilter; // default
-
-	if ( type == "box" )
-		return;
-	else if ( type == "gaussian" )
-		m_filterFunc = &Aqsis::CqTexFilter::TexGaussianFilter;
-	else if ( type == "mitchell" )
-		m_filterFunc = &Aqsis::CqTexFilter::TexMitchellFilter;
-	else if ( type == "triangle" )
-		m_filterFunc = &Aqsis::CqTexFilter::TexTriangleFilter;
-	else if ( type == "catmull-rom" )
-		m_filterFunc = &Aqsis::CqTexFilter::TexCatmullRomFilter;
-	else if ( type == "sinc" )
-		m_filterFunc = &Aqsis::CqTexFilter::TexSincFilter;
-	else if ( type == "disk" )
-		m_filterFunc = &Aqsis::CqTexFilter::TexDiskFilter;
-	else if ( type == "bessel" )
-		m_filterFunc = &Aqsis::CqTexFilter::TexBesselFilter;
-}
-*/
 //----------------------------------------------------------------------
 // TexGaussianFilter
 // Gaussian filter used as a possible value passed to TexPixelFilter.
@@ -162,19 +107,6 @@ TqFloat	CqTexGaussianFilter::weight( TqFloat x, TqFloat y, TqFloat xwidth, TqFlo
 
 	return exp( -8.0 * ( x * x + y * y ) );
 }
-
-//----------------------------------------------------------------------
-// TexMitchellFilter
-// Mitchell filter used as a possible value passed to TexPixelFIlter.
-//
-/*
-TqFloat	CqTexMitchellFilter::weight( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth )
-{
-	CqTexMitchellFilter mc(1/3.0f, 1/3.0f, xwidth, ywidth);
-
-	return mc.Evaluate(x, y);
-}
-*/
 
 //----------------------------------------------------------------------
 // TexBoxFilter

@@ -44,13 +44,17 @@ namespace Aqsis
 #define	RI_PI 3.14159265359f
 #define	RI_PIO2 RI_PI/2
 
-//NOTE: need to make a base class for all filter classes to inherit, like the following
-// 
+//---------------------------------------------------------------------
+/** \class IqTexFilter
+ * An interface for textrue filtering classes, also serves as factory for various filter classes.
+ */
 struct IqTexFilter
 {
 	virtual ~IqTexFilter(){};
 		
 	virtual TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height) = 0;
+	
+	static boost::shared_ptr<IqTexFilter> filterOfType(std::string type);
 };
 
 // Mitchell Filter Declarations
@@ -123,46 +127,6 @@ class CqTexDiskFilter : public IqTexFilter
 		CqTexDiskFilter(){};
 	
 		TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
-};
-
-//---------------------------------------------------------------------
-/** \class CqTexFilter
- * Serves as factory for various filter classes.
- */
-class CqTexFilter
-{
-	public:
-		CqTexFilter();
-		
-		// Static factory class method
-		static boost::shared_ptr<IqTexFilter> filterOfType(std::string type);
-		
-		//TqFloat weight(TqFloat x, TqFloat y, TqFloat width, TqFloat height);
-		
-		//void setType(std::string type);
-	
-	private:
-		/*
-		// Functions 
-		TqFloat TexGaussianFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
-
-		TqFloat	TexMitchellFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
-		
-		TqFloat TexBesselFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
-
-		TqFloat	TexBoxFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
-
-		TqFloat	TexTriangleFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
-
-		TqFloat	TexCatmullRomFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
-
-		TqFloat	TexSincFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
-
-		TqFloat	TexDiskFilter( TqFloat x, TqFloat y, TqFloat xwidth, TqFloat ywidth );
-		
-		// Data
-		TqFloat (CqTexFilter::*m_filterFunc)(TqFloat, TqFloat, TqFloat, TqFloat);
-		*/
 };
 
 //------------------------------------------------------------------------------

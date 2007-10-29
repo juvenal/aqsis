@@ -75,13 +75,14 @@ CqColor CqDeepMipmapLevel::filterVisibility(const TqFloat s1, const TqFloat s2, 
 	CqColor sum = gColBlack;
 	TqFloat weightTot = 0;
 	TqInt sample = 0;
-	//while(sample < numSamples)
-	//{
+	while(sample < numSamples)
+	{
 		CqRandom rand(42+sample); // Generate unique random number sequence per sample
 	    //randomly choose s,t,z between 1,2,3,4:
 		TqFloat ds = rand.RandomFloat(); //< uniform random number betwen 0 & 1
 		TqFloat dt = rand.RandomFloat();
 	    // bilinear interpolation between p1,p2,p3,p4.
+		// Below, s and t represent (x,y) image space pixel coordinates on the shadow map
 	    TqFloat s = lerp(dt, lerp(ds, s1, s2), lerp(ds, s4, s3));  // bilinear interpolation between s1,s2,s3,s4.
 	    TqFloat t = lerp(ds, lerp(dt, t1, t2), lerp(dt, t3, t4));
 	    TqFloat z = lerp(ds, lerp(dt, z1, z2), lerp(dt, z3, z4));
@@ -89,7 +90,8 @@ CqColor CqDeepMipmapLevel::filterVisibility(const TqFloat s1, const TqFloat s2, 
 	    sum += weight*visibilityAt( s, t, z);
 	    weightTot += weight;
 	    sample++;
-	//}
+	}
+	assert(weightTot != 0);
 	return (sum / weightTot);
 }
 
@@ -357,7 +359,7 @@ void CqDeepTexture::PrepareSampleOptions( std::map<std::string, IqShaderData*>& 
 			paramMap[ "filter" ] ->GetString( filter );
 			//Aqsis::log() << warning << "filter will be " << filter << std::endl;
 
-			m_filter = CqTexFilter::filterOfType(filter);
+			m_filter = IqTexFilter::filterOfType(filter);
 		}
 
 		if ( paramMap.find( "pixelvariance" ) != paramMap.end() )
@@ -414,6 +416,138 @@ void CqDeepTexture::SampleMap( CqVector3D& R, CqVector3D& swidth, CqVector3D& tw
 {
 
 }
+/*
+void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, CqVector3D& R4,
+                        std::valarray<TqFloat>& val, TqInt index, 
+                        TqFloat* average_depth, TqFloat* shadow_depth )
+{
+	// If no map defined, not in shadow.
+	val.resize( 1 );
+	val[ 0 ] = 0.0f;
+
+	CqVector3D	vecR1l;
+	CqVector3D	vecR1m, vecR2m, vecR3m, vecR4m;
+
+
+	// Generate a matrix to transform points from camera space into the space of the light source used in the
+	// definition of the shadow map.
+	//CqMatrix& matCameraToLight = m_matWorldToCamera;
+	// Generate a matrix to transform points from camera space into the space of the shadow map.
+	//CqMatrix& matCameraToMap = m_matWorldToScreen;
+
+	CqMatrix matCameraToLight(0.707106769, -0.408204079, -0.577381492, 0, 0.45451948, 0.887895048, -0.0710943639, 0, 0.54167521, -0.212159812, 0.813373327, 0, -2.70837593, 1.06013584, 4.59338713, 1);
+	CqMatrix matCameraToMap(1.29423702, -0.747147143, -0.577387273, -0.577381492, 0.831919551, 1.62513864, -0.0710950792, -0.0710943639, 0.991443098, -0.388321936, 0.813381433, 0.813373327, -4.95721531, 1.94039536, 4.59333324, 4.59338713);
+	
+	vecR1l = matCameraToLight * ( ( R1 + R2 + R3 + R4 ) * 0.25f );
+	TqFloat z = vecR1l.z();
+
+	// If point is behind light, call it not in shadow.
+	if (z <= 0.0f)
+		return;
+
+	vecR1m = matCameraToMap * R1;
+	if ((R1 == R2) && (R2 == R3) && (R3 == R4))
+	{
+		vecR2m = vecR3m = vecR4m = vecR1m;
+	}
+ 	else
+ 	{
+ 		vecR2m = matCameraToMap * R2;
+ 		vecR3m = matCameraToMap * R3;
+ 		vecR4m = matCameraToMap * R4;
+ 	}
+
+	TqFloat xro2 = (m_XRes - 1) * 0.5f;
+	TqFloat yro2 = (m_YRes - 1) * 0.5f;
+
+	TqFloat sbo2 = m_sblur * xro2;
+	TqFloat tbo2 = m_tblur * yro2;
+
+
+	TqFloat s1 = vecR1m.x() * xro2 + xro2;
+	TqFloat t1 = m_YRes - ( vecR1m.y() * yro2 + yro2 ) - 1;
+	TqFloat s2 = vecR2m.x() * xro2 + xro2;
+	TqFloat t2 = m_YRes - ( vecR2m.y() * yro2 + yro2 ) - 1;
+	TqFloat s3 = vecR3m.x() * xro2 + xro2;
+	TqFloat t3 = m_YRes - ( vecR3m.y() * yro2 + yro2 ) - 1;
+	TqFloat s4 = vecR4m.x() * xro2 + xro2;
+	TqFloat t4 = m_YRes - ( vecR4m.y() * yro2 + yro2 ) - 1;
+
+	TqFloat smin = ( s1 < s2 ) ? s1 : ( s2 < s3 ) ? s2 : ( s3 < s4 ) ? s3 : s4;
+	TqFloat smax = ( s1 > s2 ) ? s1 : ( s2 > s3 ) ? s2 : ( s3 > s4 ) ? s3 : s4;
+	TqFloat tmin = ( t1 < t2 ) ? t1 : ( t2 < t3 ) ? t2 : ( t3 < t4 ) ? t3 : t4;
+	TqFloat tmax = ( t1 > t2 ) ? t1 : ( t2 > t3 ) ? t2 : ( t3 > t4 ) ? t3 : t4;
+
+	// Cull if outside bounding box.
+	TqUint lu = static_cast<TqInt>( FLOOR( smin - sbo2 ) );
+	TqUint hu = static_cast<TqInt>( CEIL ( smax + sbo2 ) );
+	TqUint lv = static_cast<TqInt>( FLOOR( tmin - tbo2 ) );
+	TqUint hv = static_cast<TqInt>( CEIL ( tmax + tbo2 ) );
+
+	if ( lu >= m_XRes || hu < 0 || lv >= m_YRes || hv < 0 )
+		return ;
+
+	lu = MAX(0,lu);
+	lv = MAX(0,lv);
+	hu = MIN(m_XRes - 1,hu);
+	hv = MIN(m_YRes - 1,hv);
+
+	TqFloat sres = (1.0 + m_pswidth/2.0) * (hu - lu);
+	TqFloat tres = (1.0 + m_ptwidth/2.0) * (hv - lv);
+
+
+	if (sres < MinSize)
+		sres = MinSize;
+	if (tres < MinSize)
+		tres = MinSize;
+
+	if (sres > m_XRes/2)
+		sres = m_XRes/2;
+	if (tres > m_YRes/2)
+		tres = m_YRes/2;
+
+	// Calculate no. of samples.
+	TqUint nt, ns;
+
+	if ( m_samples > 0 )
+	{
+
+		nt = ns =  3 * static_cast<TqInt>( CEIL( sqrt(  m_samples ) ) );
+	}
+	else
+	{
+		if ( sres * tres * 4.0 < NumSamples )
+		{
+			ns = static_cast<TqInt>( sres * 2.0 + 0.5 );
+			ns = ( ns < MinSamples ? MinSamples : ( ns > NumSamples ? NumSamples : ns ) );
+			nt = static_cast<TqInt>( tres * 2.0 + 0.5 );
+			nt = ( nt < MinSamples ? MinSamples : ( nt > NumSamples ? NumSamples : nt ) );
+		}
+		else
+		{
+			nt = static_cast<TqInt>( sqrt( tres * NumSamples / sres ) + 0.5 );
+			nt = ( nt < MinSamples ? MinSamples : ( nt > NumSamples ? NumSamples : nt ) );
+			ns = static_cast<TqInt>( static_cast<TqFloat>( NumSamples ) / nt + 0.5 );
+			ns = ( ns < MinSamples ? MinSamples : ( ns > NumSamples ? NumSamples : ns ) );
+		}
+	}
+
+	TqFloat sdelta = (sres - static_cast<TqFloat>(hu - lu) ) / 2.0;
+	TqFloat tdelta = (tres - static_cast<TqFloat>(hv - lv) ) / 2.0;
+	TqFloat s = lu - sdelta;
+	TqFloat t = lv - tdelta;	
+
+	printf("%f,%f\n", s,t);
+    if (s>96 && s < 160 && t>96 && t<160 )
+    {
+    	val[0] = 1;
+    }
+    else {
+    	val[0] = 0;
+    }
+
+}
+*/	
 
 void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, CqVector3D& R4,
                         std::valarray<TqFloat>& val, TqInt index, 
@@ -438,9 +572,11 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 
 	// Generate a matrix to transform points from camera space into the space of the light source used in the
 	// definition of the shadow map.
-	CqMatrix& matCameraToLight = m_matWorldToCamera;
+	//CqMatrix& matCameraToLight = m_matWorldToCamera;
 	// Generate a matrix to transform points from camera space into the space of the shadow map.
-	CqMatrix& matCameraToMap = m_matWorldToScreen;
+	//CqMatrix& matCameraToMap = m_matWorldToScreen;
+	CqMatrix matCameraToLight(0.707106769, -0.408204079, -0.577381492, 0, 0.45451948, 0.887895048, -0.0710943639, 0, 0.54167521, -0.212159812, 0.813373327, 0, -2.70837593, 1.06013584, 4.59338713, 1);
+	CqMatrix matCameraToMap(1.29423702, -0.747147143, -0.577387273, -0.577381492, 0.831919551, 1.62513864, -0.0710950792, -0.0710943639, 0.991443098, -0.388321936, 0.813381433, 0.813373327, -4.95721531, 1.94039536, 4.59333324, 4.59338713);
 
 	vecRlaverage = matCameraToLight * ( ( R1 + R2 + R3 + R4 ) * 0.25f );
 	TqFloat z_average = vecRlaverage.z();
@@ -542,12 +678,25 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 			ns = ( ns < MinSamples ? MinSamples : ( ns > NumSamples ? NumSamples : ns ) );
 		}
 	}
+	
+	//------------
+	/*
+	TqFloat sdelta = (sres - static_cast<TqFloat>(hu - lu) ) / 2.0;
+	TqFloat tdelta = (tres - static_cast<TqFloat>(hv - lv) ) / 2.0;
+	TqFloat s = lu - sdelta;
+	TqFloat t = lv - tdelta;
+
+	CqColor v;
+	v = m_mipmapSet[index]->visibilityAt( s, t, z1);
+	val[0] = 1-v.fRed();
+	*/
+	//------------
 	// Indexing the mipmap set lets us filter over one of several mipmap levels
 	CqColor visibility;
 	visibility = m_mipmapSet[index]->filterVisibility(s1, s2, s3, s4,
 			t1, t2, t3, t4, z1, z2, z3, z4, ns*nt, m_filter);
 	val[0] = (1.0-visibility.fRed()); //greyscale shadow
-/*
+/*	
 	// I've really no idea what rbias does, but in the process of fixing the
 	// bias behaviour quickly (prior to the texture refactor which will replace
 	// much of this), I'm leaving it with the same value which it previously

@@ -565,7 +565,7 @@ void	CqShadowMap::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, CqV
 	TqFloat tdelta = (tres - static_cast<TqFloat>(hv - lv) ) / 2.0;
 	TqFloat s = lu - sdelta;
 	TqFloat t = lv - tdelta;
-
+	
 	// Speedup for the case of normal shadowmap; if we ever recompute around the same point
 	// we will return the previous value.
 	CqVector2D vecPoint(s,t);

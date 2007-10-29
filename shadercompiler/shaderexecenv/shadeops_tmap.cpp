@@ -1030,43 +1030,6 @@ void CqShaderExecEnv::SO_shadow( IqShaderData* name, IqShaderData* channel, IqSh
 	std::map<std::string, IqShaderData*> paramMap;
 	GetTexParams(cParams, apParams, paramMap);
 
-<<<<<<< .working
-	// If the bias values haven't been specified in the arguments to the function, use those from the 
-	// Option stack.
-	if ( paramMap.find( "bias" ) == paramMap.end() )
-	{
-		TqFloat bias = 0.0f;
-		const TqFloat* poptBias = getRenderContext()->GetFloatOption( "shadow", "bias" );
-		if ( poptBias != 0 )
-			bias = poptBias[0];
-		pDefBias = pShader->CreateTemporaryStorage( type_float, class_uniform );
-		pDefBias->SetFloat( bias );
-		paramMap["bias"] = pDefBias;
-	}
-	if ( paramMap.find( "bias0" ) == paramMap.end() )
-	{
-		const TqFloat* poptBias = getRenderContext()->GetFloatOption( "shadow", "bias0" );
-		if ( poptBias != 0 )
-		{
-			TqFloat bias0 = poptBias[0];
-			pDefBias0 = pShader->CreateTemporaryStorage( type_float, class_uniform );
-			pDefBias0->SetFloat( bias0 );
-			paramMap["bias0"] = pDefBias0;
-		}
-	}
-	if ( paramMap.find( "bias1" ) == paramMap.end() )
-	{
-		const TqFloat* poptBias = getRenderContext()->GetFloatOption( "shadow", "bias1" );
-		if ( poptBias != 0 )
-		{
-			TqFloat bias1 = poptBias[0];
-			pDefBias1 = pShader->CreateTemporaryStorage( type_float, class_uniform );
-			pDefBias1->SetFloat( bias1 );
-			paramMap["bias1"] = pDefBias1;
-		}
-	}
-	
-=======
 	// If the bias values haven't been specified in the arguments to the function, use those from the 
 	// Option stack.
 	if ( paramMap.find( "bias" ) == paramMap.end() )
@@ -1102,7 +1065,6 @@ void CqShaderExecEnv::SO_shadow( IqShaderData* name, IqShaderData* channel, IqSh
 		}
 	}
 
->>>>>>> .merge-right.r1628
 	__iGrid = 0;
 	CqString _aq_name; // shadow.map
 	(name)->GetString(_aq_name,__iGrid);
