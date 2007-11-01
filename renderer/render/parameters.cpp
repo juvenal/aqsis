@@ -35,7 +35,6 @@
 
 START_NAMESPACE( Aqsis )
 
-
 /** Default constructor
  * \param strName Character pointer to parameter name.
  * \param Count Integer value count, for arrays.
@@ -57,24 +56,6 @@ CqParameter::CqParameter( const char* strName, TqInt Count ) :
 
 	STATS_SETI( PRM_peak, cPRM > cPeak ? cPRM : cPeak );
 	m_hash = CqString::hash(strName);
-}
-
-/** Copy constructor
- */
-CqParameter::CqParameter( const CqParameter& From ) :
-		m_strName( From.m_strName ),
-		m_Count( From.m_Count ),
-		m_hash(From.m_hash)
-{
-	/// \note Had to remove this as paramters are now created as part of the Renderer construction, so the
-	///		  renderer context isn't ready yet.
-	//	QGetRenderContext() ->Stats().IncParametersAllocated();
-	STATS_INC( PRM_created );
-	STATS_INC( PRM_current );
-	TqInt cPRM = STATS_GETI( PRM_current );
-	TqInt cPeak = STATS_GETI( PRM_peak );
-
-	STATS_SETI( PRM_peak, cPRM > cPeak ? cPRM : cPeak );
 }
 
 CqParameter::~CqParameter()
