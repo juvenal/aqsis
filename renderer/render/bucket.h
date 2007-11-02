@@ -145,6 +145,7 @@ class CqBucket : public IqBucket
 			//		iYPos < -m_YMax && iYPos < m_YSize + m_YMax );
 
 			TqInt i = ( ( iYPos + m_DiscreteShiftY ) * ( m_RealWidth ) ) + ( iXPos + m_DiscreteShiftX );
+			assert(i < m_aieImage.size());
 			pie = &m_aieImage[ i ];
 		}
 		static CqImagePixel& ImageElement(TqInt index)

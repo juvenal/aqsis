@@ -130,7 +130,18 @@ void CqStats::PrintStats( TqInt level ) const
 		TqFloat _gpr_c_q = 100.0f * STATS_INT_GETI( GPR_culled ) / STATS_INT_GETI( GPR_created_total );
 		TqFloat _gpr_oc_q = 100.0f * STATS_INT_GETI( GPR_occlusion_culled ) / STATS_INT_GETI( GPR_created_total );
 		TqFloat _gpr_u_q = 100.0f * STATS_INT_GETI( GPR_created_total ) / STATS_INT_GETI( GPR_allocated );
-		MSG << "Input geometry:\n\t" << STATS_INT_GETI( GPR_created ) << " primitives created\n\n"
+		TqInt _gpr_diced = STATS_INT_GETI( GPR_created_total ) - STATS_INT_GETI( GPR_occlusion_culled ) - STATS_INT_GETI( GPR_culled );
+		TqFloat _gpr_diced_q = 100.0f * _gpr_diced / STATS_INT_GETI( GPR_created_total );
+		MSG << "Input geometry:\n\t" << STATS_INT_GETI( GPR_created ) << " primitives created" << std::endl;
+		MSG << "GPrims:\n\t"
+		<< STATS_INT_GETI( GPR_allocated ) <<  " allocated\n\t"
+		<< STATS_INT_GETI( GPR_created_total ) <<  " diceable (" << _gpr_u_q << "%)\n\t" 
+		<< STATS_INT_GETI( GPR_peak ) << " peak\n\t"
+		<< STATS_INT_GETI( GPR_culled ) << " culled (" << _gpr_c_q << "%)\n\t"
+		<< STATS_INT_GETI( GPR_occlusion_culled ) << " occlusion culled (" << _gpr_oc_q << "%)\n\t"
+		<< _gpr_diced << " diced (" << _gpr_diced_q << "%)\n" << std::endl;
+
+		MSG
 		<< "\t"	<<	STATS_INT_GETI( GPR_subdiv ) << " subdivision primitives\n\t"
 		<<			STATS_INT_GETI( GPR_blobbies )   << " blobbies\n\t"
 		<<			STATS_INT_GETI( GPR_nurbs )	 << " NURBS primitives\n\t"
@@ -140,11 +151,6 @@ void CqStats::PrintStats( TqInt level ) const
 		<<			STATS_INT_GETI( GPR_patch )	 << " patches\n\t"
 		<<			STATS_INT_GETI( GPR_quad )	 << " quadrics\n\t"
 		<< std::endl;
-		MSG << "GPrims:\n\t"
-		<< STATS_INT_GETI( GPR_allocated ) <<  " allocated\n\t"
-		<< STATS_INT_GETI( GPR_created_total ) <<  " used (" << _gpr_u_q << "%), " << STATS_INT_GETI( GPR_peak ) << " peak,\n\t"
-		<< STATS_INT_GETI( GPR_culled ) << " culled (" << _gpr_c_q << "%)\n" << std::endl
-		<< STATS_INT_GETI( GPR_occlusion_culled ) << " occlusion culled (" << _gpr_oc_q << "%)\n" << std::endl;
 		/*
 			GPrim stats - End
 			-------------------------------------------------------------------

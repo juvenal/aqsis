@@ -269,10 +269,10 @@ bool CqImageBuffer::CullSurface( CqBound& Bound, const boost::shared_ptr<CqSurfa
 	}
 
 	// And expand to account for filter size.
-	Bound.vecMin().x( Bound.vecMin().x() - m_FilterXWidth / 2.0f );
-	Bound.vecMin().y( Bound.vecMin().y() - m_FilterYWidth / 2.0f );
-	Bound.vecMax().x( Bound.vecMax().x() + m_FilterXWidth / 2.0f );
-	Bound.vecMax().y( Bound.vecMax().y() + m_FilterYWidth / 2.0f );
+	Bound.vecMin().x( Bound.vecMin().x() - (m_FilterXWidth / 2.0f - 0.5f) );
+	Bound.vecMin().y( Bound.vecMin().y() - (m_FilterYWidth / 2.0f - 0.5f) );
+	Bound.vecMax().x( Bound.vecMax().x() + (m_FilterXWidth / 2.0f - 0.5f) );
+	Bound.vecMax().y( Bound.vecMax().y() + (m_FilterYWidth / 2.0f - 0.5f) );
 
 	// If the bounds are completely outside the viewing frustum, cull the primitive.
 	if ( Bound.vecMin().x() > CropWindowXMax() ||
@@ -443,8 +443,8 @@ void CqImageBuffer::AddMPG( CqMicroPolygon* pmpgNew )
 	CqBound	B( pmpgNew->GetTotalBound() );
 	ADDREF( pmpgNew );
 
-	if ( B.vecMax().x() < m_CropWindowXMin - m_FilterXWidth / 2.0f || B.vecMax().y() < m_CropWindowYMin - m_FilterYWidth / 2.0f ||
-	        B.vecMin().x() > m_CropWindowXMax + m_FilterXWidth / 2.0f || B.vecMin().y() > m_CropWindowYMax + m_FilterYWidth / 2.0f )
+	if ( B.vecMax().x() < m_CropWindowXMin - (m_FilterXWidth / 2.0f - 0.5f) || B.vecMax().y() < m_CropWindowYMin - (m_FilterYWidth / 2.0f - 0.5f)||
+	        B.vecMin().x() > m_CropWindowXMax + (m_FilterXWidth / 2.0f - 0.5f) || B.vecMin().y() > m_CropWindowYMax + (m_FilterYWidth / 2.0f - 0.5f) )
 	{
 		RELEASEREF( pmpgNew );
 		return ;
@@ -460,10 +460,10 @@ void CqImageBuffer::AddMPG( CqMicroPolygon* pmpgNew )
 
 	// Find out the minimum bucket touched by the micropoly bound.
 
-	B.vecMin().x( B.vecMin().x() - m_FilterXWidth / 2.0f );
-	B.vecMin().y( B.vecMin().y() - m_FilterYWidth / 2.0f );
-	B.vecMax().x( B.vecMax().x() + m_FilterXWidth / 2.0f );
-	B.vecMax().y( B.vecMax().y() + m_FilterYWidth / 2.0f );
+	B.vecMin().x( B.vecMin().x() - (m_FilterXWidth / 2.0f - 0.5f));
+	B.vecMin().y( B.vecMin().y() - (m_FilterYWidth / 2.0f - 0.5f));
+	B.vecMax().x( B.vecMax().x() + (m_FilterXWidth / 2.0f - 0.5f));
+	B.vecMax().y( B.vecMax().y() + (m_FilterYWidth / 2.0f - 0.5f));
 
 	TqInt iXBa = static_cast<TqInt>( B.vecMin().x() / ( m_XBucketSize ) );
 	TqInt iYBa = static_cast<TqInt>( B.vecMin().y() / ( m_YBucketSize ) );
@@ -524,7 +524,7 @@ bool CqImageBuffer::PushMPGForward( CqMicroPolygon* pmpg, TqInt Col, TqInt Row )
 	// Find out if any of the subbounds touch this bucket.
 	CqVector2D BucketMin = BucketPosition( NextBucketForward, Row );
 	CqVector2D BucketMax = BucketMin + BucketSize( NextBucketForward, Row );
-	CqVector2D FilterWidth( m_FilterXWidth * 0.5f, m_FilterYWidth * 0.5f );
+	CqVector2D FilterWidth( (m_FilterXWidth * 0.5f - 0.5f), (m_FilterYWidth * 0.5f - 0.5f) );
 	BucketMin -= FilterWidth;
 	BucketMax += FilterWidth;
 
@@ -580,7 +580,7 @@ bool CqImageBuffer::PushMPGDown( CqMicroPolygon* pmpg, TqInt Col, TqInt Row )
 	// Find out if any of the subbounds touch this bucket.
 	CqVector2D BucketMin = BucketPosition( Col, NextBucketDown );
 	CqVector2D BucketMax = BucketMin + BucketSize( Col, NextBucketDown );
-	CqVector2D FilterWidth( m_FilterXWidth * 0.5f, m_FilterYWidth * 0.5f );
+	CqVector2D FilterWidth( (m_FilterXWidth * 0.5f - 0.5f), (m_FilterYWidth * 0.5f - 0.5f) );
 	BucketMin -= FilterWidth;
 	BucketMax += FilterWidth;
 
@@ -1679,14 +1679,14 @@ void CqImageBuffer::RenderImage()
 		long xmax = static_cast<long>( vecMax.x() );
 		long ymax = static_cast<long>( vecMax.y() );
 
-		if ( xmin < CropWindowXMin() - m_FilterXWidth / 2 )
-			xmin = static_cast<long>(CropWindowXMin() - m_FilterXWidth / 2.0f);
-		if ( ymin < CropWindowYMin() - m_FilterYWidth / 2 )
-			ymin = static_cast<long>(CropWindowYMin() - m_FilterYWidth / 2.0f);
-		if ( xmax > CropWindowXMax() + m_FilterXWidth / 2 )
-			xmax = static_cast<long>(CropWindowXMax() + m_FilterXWidth / 2.0f);
-		if ( ymax > CropWindowYMax() + m_FilterYWidth / 2 )
-			ymax = static_cast<long>(CropWindowYMax() + m_FilterYWidth / 2.0f);
+		if ( xmin < CropWindowXMin() - (m_FilterXWidth / 2 - 0.5f) )
+			xmin = static_cast<long>(CropWindowXMin() - (m_FilterXWidth / 2.0f - 0.5f));
+		if ( ymin < CropWindowYMin() - (m_FilterYWidth / 2 - 0.5f) )
+			ymin = static_cast<long>(CropWindowYMin() - (m_FilterYWidth / 2.0f - 0.5f));
+		if ( xmax > CropWindowXMax() + (m_FilterXWidth / 2 - 0.5f) )
+			xmax = static_cast<long>(CropWindowXMax() + (m_FilterXWidth / 2.0f - 0.5f));
+		if ( ymax > CropWindowYMax() + (m_FilterYWidth / 2 - 0.5f) )
+			ymax = static_cast<long>(CropWindowYMax() + (m_FilterYWidth / 2.0f - 0.5f));
 
 
 		if ( !bIsEmpty )

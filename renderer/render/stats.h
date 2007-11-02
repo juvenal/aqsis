@@ -178,7 +178,6 @@ class CqStats
 		enum {	_First_int,
 
 		       // GPrim stats
-
 		       GPR_allocated,
 		       GPR_created,
 		       GPR_created_total,
@@ -187,10 +186,9 @@ class CqStats
 		       GPR_culled,
 		       GPR_occlusion_culled,
 
-		       // GPrim types
-
+		       // GPrim types created throughout
 		       GPR_nurbs,
-                       GPR_blobbies,
+			   GPR_blobbies,
 		       GPR_poly,
 		       GPR_subdiv,
 		       GPR_crv,

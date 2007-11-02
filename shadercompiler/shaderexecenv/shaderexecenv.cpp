@@ -27,6 +27,7 @@
 #include	"ishaderexecenv.h"
 //#include	"surface.h"
 #include	"refcount.h"
+#include	"multitimer.h"
 
 #include	"shadervm.h"
 
@@ -210,6 +211,7 @@ void CqShaderExecEnv::Initialise( const TqInt uGridRes, const TqInt vGridRes, Tq
 
 	if ( pShader )
 	{
+		TIME_SCOPE("Create Shader Variables")
 		if ( USES( Uses, EnvVars_P ) && m_apVariables[ EnvVars_P ] == 0 )
 			m_apVariables[ EnvVars_P ] = pShader->CreateVariable( type_point, class_varying, gVariableNames[ EnvVars_P ] );
 		if ( USES( Uses, EnvVars_Cs ) && m_apVariables[ EnvVars_Cs ] == 0 )

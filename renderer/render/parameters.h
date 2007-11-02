@@ -670,7 +670,7 @@ CqParameterTypedVarying<T,I,SLT>::~CqParameterTypedVarying()
 }
 
 template <class T, EqVariableType I, class SLT>
-CqParameter* CqParameterTypedVarying<T, I, SLT>::CloneType( const char* Name, TqInt Count = 1 ) const
+CqParameter* CqParameterTypedVarying<T, I, SLT>::CloneType( const char* Name, TqInt Count ) const
 {
 	return ( new CqParameterTypedVarying<T, I, SLT>( Name, Count ) );
 }
@@ -706,7 +706,7 @@ void CqParameterTypedVarying<T, I, SLT>::Clear()
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedVarying<T, I, SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface = 0 )
+void CqParameterTypedVarying<T, I, SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface )
 {
 	assert( pResult1->Type() == this->Type() && pResult1->Type() == this->Type() &&
 	        pResult1->Class() == this->Class() && pResult1->Class() == this->Class() );
@@ -736,7 +736,7 @@ void CqParameterTypedVarying<T, I, SLT>::Subdivide( CqParameter* pResult1, CqPar
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedVarying<T, I, SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0, TqInt ArrayIndex = 0 )
+void CqParameterTypedVarying<T, I, SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface, TqInt ArrayIndex )
 {
 	assert( false );
 	return;
@@ -779,7 +779,7 @@ CqParameter* CqParameterTypedVarying<T, I, SLT>::Create( const char* strName, Tq
 template <class T, EqVariableType I, class SLT>
 CqParameter* CqParameterTypedVarying<T, I, SLT>::Clone() const
 {
-	CqParameterTypedVarying<T, I, SLT>* clone = new CqParameterTypedVarying<T, I, SLT>( strName().c_str(), Count() );
+	CqParameterTypedVarying<T, I, SLT>* clone = new CqParameterTypedVarying<T, I, SLT>( this->strName().c_str(), this->Count() );
 	TqInt size = m_aValues.size();
 
 	clone->m_aValues.resize( size );
@@ -876,7 +876,7 @@ CqParameter* CqParameterTypedUniform<T,I,SLT>::CloneType( const char* Name, TqIn
 template <class T, EqVariableType I, class SLT>
 CqParameter* CqParameterTypedUniform<T,I,SLT>::Clone() const
 {
-	CqParameterTypedUniform<T,I,SLT>* clone = new CqParameterTypedUniform<T,I,SLT>(strName().c_str(), Count());
+	CqParameterTypedUniform<T,I,SLT>* clone = new CqParameterTypedUniform<T,I,SLT>(this->strName().c_str(), this->Count());
 	clone->m_aValues.resize( m_aValues.size() );
 	for ( TqUint j = 0; j < m_aValues.size(); j++ )
 	{
@@ -916,7 +916,7 @@ void CqParameterTypedUniform<T,I,SLT>::Clear()
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedUniform<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface = 0 )
+void CqParameterTypedUniform<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface )
 {
 	assert( pResult1->Type() == this->Type() && pResult1->Type() == this->Type() &&
 	        pResult1->Class() == Class() && pResult1->Class() == Class() );
@@ -926,7 +926,7 @@ void CqParameterTypedUniform<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParam
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedUniform<T,I,SLT>::Dice( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0 )
+void CqParameterTypedUniform<T,I,SLT>::Dice( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface )
 {
 	// Just promote the uniform value to varying by duplication.
 	assert( pResult->Type() == this->Type() );
@@ -956,7 +956,7 @@ void CqParameterTypedUniform<T,I,SLT>::CopyToShaderVariable( IqShaderData* pResu
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedUniform<T,I,SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0, TqInt ArrayIndex = 0 )
+void CqParameterTypedUniform<T,I,SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface, TqInt ArrayIndex )
 {
 	assert( false );
 	return;
@@ -1008,7 +1008,7 @@ CqParameterTypedConstant<T,I,SLT>::~CqParameterTypedConstant()
 {}
 
 template <class T, EqVariableType I, class SLT>
-CqParameter* CqParameterTypedConstant<T,I,SLT>::CloneType( const char* Name, TqInt Count = 1 ) const
+CqParameter* CqParameterTypedConstant<T,I,SLT>::CloneType( const char* Name, TqInt Count ) const
 {
 	return ( new CqParameterTypedConstant<T, I, SLT>( Name, Count ) );
 }
@@ -1016,7 +1016,7 @@ CqParameter* CqParameterTypedConstant<T,I,SLT>::CloneType( const char* Name, TqI
 template <class T, EqVariableType I, class SLT>
 CqParameter* CqParameterTypedConstant<T,I,SLT>::Clone() const
 {
-	CqParameterTypedConstant<T,I,SLT>* clone = new CqParameterTypedConstant<T,I,SLT>(strName().c_str(), Count());
+	CqParameterTypedConstant<T,I,SLT>* clone = new CqParameterTypedConstant<T,I,SLT>(this->strName().c_str(), this->Count());
 	clone->m_Value = m_Value;
 	return ( clone );
 }
@@ -1048,7 +1048,7 @@ void CqParameterTypedConstant<T,I,SLT>::Clear()
 {}
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedConstant<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface = 0 )
+void CqParameterTypedConstant<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface )
 {
 	assert( pResult1->Type() == this->Type() && pResult1->Type() == this->Type() &&
 	        pResult1->Class() == this->Class() && pResult1->Class() == this->Class() );
@@ -1058,7 +1058,7 @@ void CqParameterTypedConstant<T,I,SLT>::Subdivide( CqParameter* pResult1, CqPara
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedConstant<T,I,SLT>::Dice( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0 )
+void CqParameterTypedConstant<T,I,SLT>::Dice( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface )
 {
 	// Just promote the constant value to varying by duplication.
 	assert( pResult->Type() == this->Type() );
@@ -1084,7 +1084,7 @@ void CqParameterTypedConstant<T,I,SLT>::CopyToShaderVariable( IqShaderData* pRes
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedConstant<T,I,SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0, TqInt ArrayIndex = 0 )
+void CqParameterTypedConstant<T,I,SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface, TqInt ArrayIndex )
 {
 	assert( false );
 	return;
@@ -1132,7 +1132,7 @@ CqParameterTypedVertex<T,I,SLT>::~CqParameterTypedVertex()
 {}
 
 template <class T, EqVariableType I, class SLT>
-CqParameter* CqParameterTypedVertex<T,I,SLT>::CloneType( const char* Name, TqInt Count = 1 ) const
+CqParameter* CqParameterTypedVertex<T,I,SLT>::CloneType( const char* Name, TqInt Count ) const
 {
 	return ( new CqParameterTypedVertex<T, I, SLT>( Name, Count ) );
 }
@@ -1140,14 +1140,14 @@ CqParameter* CqParameterTypedVertex<T,I,SLT>::CloneType( const char* Name, TqInt
 template <class T, EqVariableType I, class SLT>
 CqParameter* CqParameterTypedVertex<T,I,SLT>::Clone() const
 {
-	CqParameterTypedVertex<T, I, SLT>* clone = new CqParameterTypedVertex<T, I, SLT>( strName().c_str(), Count() );
-	TqInt size = Size();
+	CqParameterTypedVertex<T, I, SLT>* clone = new CqParameterTypedVertex<T, I, SLT>( this->strName().c_str(), this->Count() );
+	TqInt size = this->Size();
 
 	clone->SetSize( size );
 
 	for ( TqUint j = 0; j < (TqUint) size; j++ )
 	{
-		clone->m_aValues[ j ] = m_aValues[ j ];
+		clone->m_aValues[ j ] = this->m_aValues[ j ];
 	}
 	return(clone);
 }
@@ -1159,7 +1159,7 @@ EqVariableClass	CqParameterTypedVertex<T,I,SLT>::Class() const
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedVertex<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface = 0 )
+void CqParameterTypedVertex<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface )
 {
 	assert( pResult1->Type() == this->Type() && pResult1->Type() == this->Type() &&
 	        pResult1->Class() == this->Class() && pResult1->Class() == this->Class() );
@@ -1168,7 +1168,7 @@ void CqParameterTypedVertex<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParame
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedVertex<T,I,SLT>::Dice( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0 )
+void CqParameterTypedVertex<T,I,SLT>::Dice( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface )
 {
 	// Just promote the constant value to varying by duplication.
 	assert( pResult->Type() == this->Type() );
@@ -1189,7 +1189,7 @@ void CqParameterTypedVertex<T,I,SLT>::CopyToShaderVariable( IqShaderData* pResul
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedVertex<T,I,SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0, TqInt ArrayIndex = 0 )
+void CqParameterTypedVertex<T,I,SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface, TqInt ArrayIndex )
 {
 	assert( false );
 	return;
@@ -1213,7 +1213,7 @@ CqParameterTypedFaceVarying<T,I,SLT>::~CqParameterTypedFaceVarying()
 {}
 
 template <class T, EqVariableType I, class SLT>
-CqParameter* CqParameterTypedFaceVarying<T,I,SLT>::CloneType( const char* Name, TqInt Count = 1 ) const
+CqParameter* CqParameterTypedFaceVarying<T,I,SLT>::CloneType( const char* Name, TqInt Count ) const
 {
 	return ( new CqParameterTypedFaceVarying<T, I, SLT>( Name, Count ) );
 }
@@ -1221,14 +1221,14 @@ CqParameter* CqParameterTypedFaceVarying<T,I,SLT>::CloneType( const char* Name, 
 template <class T, EqVariableType I, class SLT>
 CqParameter* CqParameterTypedFaceVarying<T,I,SLT>::Clone() const
 {
-	CqParameterTypedFaceVarying<T, I, SLT>* clone = new CqParameterTypedFaceVarying<T, I, SLT>( strName().c_str(), Count() );
-	TqInt size = m_aValues.size();
+	CqParameterTypedFaceVarying<T, I, SLT>* clone = new CqParameterTypedFaceVarying<T, I, SLT>( this->strName().c_str(), this->Count() );
+	TqInt size = this->m_aValues.size();
 
 	clone->m_aValues.resize( size );
 
 	for ( TqUint j = 0; j < (TqUint) size; j++ )
 	{
-		clone->m_aValues[ j ] = m_aValues[ j ];
+		clone->m_aValues[ j ] = this->m_aValues[ j ];
 	}
 	return(clone);
 }
@@ -1257,7 +1257,7 @@ CqParameterTypedFaceVertex<T,I,SLT>::~CqParameterTypedFaceVertex()
 {}
 
 template <class T, EqVariableType I, class SLT>
-CqParameter* CqParameterTypedFaceVertex<T,I,SLT>::CloneType( const char* Name, TqInt Count = 1 ) const
+CqParameter* CqParameterTypedFaceVertex<T,I,SLT>::CloneType( const char* Name, TqInt Count ) const
 {
 	return ( new CqParameterTypedFaceVertex<T, I, SLT>( Name, Count ) );
 }
@@ -1265,14 +1265,14 @@ CqParameter* CqParameterTypedFaceVertex<T,I,SLT>::CloneType( const char* Name, T
 template <class T, EqVariableType I, class SLT>
 CqParameter* CqParameterTypedFaceVertex<T,I,SLT>::Clone() const
 {
-	CqParameterTypedFaceVertex<T, I, SLT>* clone = new CqParameterTypedFaceVertex<T, I, SLT>( strName().c_str(), Count() );
-	TqInt size = m_aValues.size();
+	CqParameterTypedFaceVertex<T, I, SLT>* clone = new CqParameterTypedFaceVertex<T, I, SLT>( this->strName().c_str(), this->Count() );
+	TqInt size = this->m_aValues.size();
 
 	clone->m_aValues.resize( size );
 
 	for ( TqUint j = 0; j < (TqUint) size; j++ )
 	{
-		clone->m_aValues[ j ] = m_aValues[ j ];
+		clone->m_aValues[ j ] = this->m_aValues[ j ];
 	}
 	return(clone);
 }
@@ -1303,7 +1303,7 @@ CqParameterTypedVaryingArray<T,I,SLT>::~CqParameterTypedVaryingArray()
 {}
 
 template <class T, EqVariableType I, class SLT>
-CqParameter* CqParameterTypedVaryingArray<T,I,SLT>::CloneType( const char* Name, TqInt Count = 1 ) const
+CqParameter* CqParameterTypedVaryingArray<T,I,SLT>::CloneType( const char* Name, TqInt Count ) const
 {
 	return ( new CqParameterTypedVaryingArray<T, I, SLT>( Name, Count ) );
 }
@@ -1311,14 +1311,14 @@ CqParameter* CqParameterTypedVaryingArray<T,I,SLT>::CloneType( const char* Name,
 template <class T, EqVariableType I, class SLT>
 CqParameter* CqParameterTypedVaryingArray<T,I,SLT>::Clone() const
 {
-	CqParameterTypedVaryingArray<T, I, SLT>* clone = new CqParameterTypedVaryingArray<T, I, SLT>( strName().c_str(), Count() );
-	clone->m_aValues.resize( m_aValues.size(), std::vector<T>(Count()) );
-	clone->m_Count = m_Count;
+	CqParameterTypedVaryingArray<T, I, SLT>* clone = new CqParameterTypedVaryingArray<T, I, SLT>( this->strName().c_str(), this->Count() );
+	clone->m_aValues.resize( m_aValues.size(), std::vector<T>(this->Count()) );
+	clone->m_Count = this->Count();
 	TqUint j;
 	for ( j = 0; j < m_aValues.size(); j++ )
 	{
 		TqUint i;
-		for ( i = 0; i < (TqUint) Count(); i++ )
+		for ( i = 0; i < (TqUint) this->Count(); i++ )
 			clone->m_aValues[ j ][ i ] = m_aValues[ j ][ i ];
 	}
 	return(clone);
@@ -1355,7 +1355,7 @@ void CqParameterTypedVaryingArray<T,I,SLT>::Clear()
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedVaryingArray<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface = 0 )
+void CqParameterTypedVaryingArray<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface )
 {
 	assert( pResult1->Type() == this->Type() && pResult1->Type() == this->Type() &&
 	        pResult1->Class() == Class() && pResult1->Class() == Class() );
@@ -1565,7 +1565,7 @@ CqParameterTypedUniformArray<T,I,SLT>::~CqParameterTypedUniformArray()
 {}
 
 template <class T, EqVariableType I, class SLT>
-CqParameter* CqParameterTypedUniformArray<T,I,SLT>::CloneType( const char* Name, TqInt Count = 1 ) const
+CqParameter* CqParameterTypedUniformArray<T,I,SLT>::CloneType( const char* Name, TqInt Count ) const
 {
 	return ( new CqParameterTypedUniformArray<T, I, SLT>( Name, Count ) );
 }
@@ -1573,7 +1573,7 @@ CqParameter* CqParameterTypedUniformArray<T,I,SLT>::CloneType( const char* Name,
 template <class T, EqVariableType I, class SLT>
 CqParameter* CqParameterTypedUniformArray<T,I,SLT>::Clone() const
 {
-	CqParameterTypedUniformArray<T, I, SLT> *clone = new CqParameterTypedUniformArray<T, I, SLT>( strName().c_str(), Count() );
+	CqParameterTypedUniformArray<T, I, SLT> *clone = new CqParameterTypedUniformArray<T, I, SLT>( this->strName().c_str(), this->Count() );
 	clone->m_aValues.resize( m_aValues.size() );
 	TqInt i2 = 0;
 	for (typename  std::vector<T>::const_iterator i = m_aValues.begin(); i != m_aValues.end(); i++, i2++ )
@@ -1608,11 +1608,11 @@ void CqParameterTypedUniformArray<T,I,SLT>::Clear()
 {}
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedUniformArray<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface = 0 )
+void CqParameterTypedUniformArray<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface )
 {}
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedUniformArray<T,I,SLT>::Dice( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0 )
+void CqParameterTypedUniformArray<T,I,SLT>::Dice( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface )
 {
 	// Just promote the uniform value to varying by duplication.
 	assert( pResult->Type() == this->Type() );
@@ -1640,7 +1640,7 @@ void CqParameterTypedUniformArray<T,I,SLT>::CopyToShaderVariable( IqShaderData* 
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedUniformArray<T,I,SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0, TqInt ArrayIndex = 0 )
+void CqParameterTypedUniformArray<T,I,SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface, TqInt ArrayIndex )
 {
 	// Just promote the uniform value to varying by duplication.
 	assert( pResult->Type() == this->Type() );
@@ -1709,7 +1709,7 @@ CqParameter* CqParameterTypedConstantArray<T,I,SLT>::CloneType( const char* Name
 template <class T, EqVariableType I, class SLT>
 CqParameter* CqParameterTypedConstantArray<T,I,SLT>::Clone() const
 {
-	CqParameterTypedConstantArray<T, I, SLT>*clone = new CqParameterTypedConstantArray<T, I, SLT>( strName().c_str(), Count() );
+	CqParameterTypedConstantArray<T, I, SLT>*clone = new CqParameterTypedConstantArray<T, I, SLT>( this->strName().c_str(), this->Count() );
 	clone->m_aValues.resize( m_aValues.size() );
 	TqInt i2 = 0;
 	for ( typename std::vector<T>::const_iterator i = m_aValues.begin(); i != m_aValues.end(); i++, i2++ )
@@ -1744,11 +1744,11 @@ void CqParameterTypedConstantArray<T,I,SLT>::Clear()
 {}
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedConstantArray<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface = 0 )
+void CqParameterTypedConstantArray<T,I,SLT>::Subdivide( CqParameter* pResult1, CqParameter* pResult2, bool u, IqSurface* pSurface )
 {}
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedConstantArray<T,I,SLT>::Dice( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0 )
+void CqParameterTypedConstantArray<T,I,SLT>::Dice( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface )
 {
 	// Just promote the constant value to varying by duplication.
 	assert( pResult->Type() == this->Type() );
@@ -1776,7 +1776,7 @@ void CqParameterTypedConstantArray<T,I,SLT>::CopyToShaderVariable( IqShaderData*
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedConstantArray<T,I,SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0, TqInt ArrayIndex = 0 )
+void CqParameterTypedConstantArray<T,I,SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface, TqInt ArrayIndex )
 {
 	// Just promote the constant value to varying by duplication.
 	assert( pResult->Type() == this->Type() );
@@ -1836,7 +1836,7 @@ CqParameterTypedVertexArray<T,I,SLT>::~CqParameterTypedVertexArray()
 {}
 
 template <class T, EqVariableType I, class SLT>
-CqParameter* CqParameterTypedVertexArray<T,I,SLT>::CloneType( const char* Name, TqInt Count = 1 ) const
+CqParameter* CqParameterTypedVertexArray<T,I,SLT>::CloneType( const char* Name, TqInt Count ) const
 {
 	return ( new CqParameterTypedVertexArray<T, I, SLT>( Name, Count ) );
 }
@@ -1844,15 +1844,15 @@ CqParameter* CqParameterTypedVertexArray<T,I,SLT>::CloneType( const char* Name, 
 template <class T, EqVariableType I, class SLT>
 CqParameter* CqParameterTypedVertexArray<T,I,SLT>::Clone() const
 {
-	CqParameterTypedVertexArray<T, I, SLT>* clone = new CqParameterTypedVertexArray<T, I, SLT>( strName().c_str(), Count() );
-	clone->m_aValues.resize( m_aValues.size(), std::vector<T>(Count()) );
-	clone->m_Count = m_Count;
+	CqParameterTypedVertexArray<T, I, SLT>* clone = new CqParameterTypedVertexArray<T, I, SLT>( this->strName().c_str(), this->Count() );
+	clone->m_aValues.resize( this->m_aValues.size(), std::vector<T>(this->Count()) );
+	clone->m_Count = this->Count();
 	TqUint j;
-	for ( j = 0; j < m_aValues.size(); j++ )
+	for ( j = 0; j < this->m_aValues.size(); j++ )
 	{
 		TqUint i;
-		for ( i = 0; i < (TqUint) Count(); i++ )
-			clone->m_aValues[ j ][ i ] = m_aValues[ j ][ i ];
+		for ( i = 0; i < (TqUint) this->Count(); i++ )
+			clone->m_aValues[ j ][ i ] = this->m_aValues[ j ][ i ];
 	}
 	return(clone);
 }
@@ -1864,7 +1864,7 @@ EqVariableClass	CqParameterTypedVertexArray<T,I,SLT>::Class() const
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedVertexArray<T,I,SLT>::Dice( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0 )
+void CqParameterTypedVertexArray<T,I,SLT>::Dice( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface )
 {
 	// Just promote the uniform value to varying by duplication.
 	assert( pResult->Type() == this->Type() );
@@ -1888,7 +1888,7 @@ void CqParameterTypedVertexArray<T,I,SLT>::CopyToShaderVariable( IqShaderData* p
 }
 
 template <class T, EqVariableType I, class SLT>
-void CqParameterTypedVertexArray<T,I,SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface = 0, TqInt ArrayIndex = 0 )
+void CqParameterTypedVertexArray<T,I,SLT>::DiceOne( TqInt u, TqInt v, IqShaderData* pResult, IqSurface* pSurface, TqInt ArrayIndex )
 {
 	/// \note: Need to work out how to do this...
 	return;
@@ -1912,7 +1912,7 @@ CqParameterTypedFaceVaryingArray<T,I,SLT>::~CqParameterTypedFaceVaryingArray()
 {}
 
 template <class T, EqVariableType I, class SLT>
-CqParameter* CqParameterTypedFaceVaryingArray<T,I,SLT>::CloneType( const char* Name, TqInt Count = 1 ) const
+CqParameter* CqParameterTypedFaceVaryingArray<T,I,SLT>::CloneType( const char* Name, TqInt Count ) const
 {
 	return ( new CqParameterTypedFaceVaryingArray<T, I, SLT>( Name, Count ) );
 }
@@ -1920,15 +1920,15 @@ CqParameter* CqParameterTypedFaceVaryingArray<T,I,SLT>::CloneType( const char* N
 template <class T, EqVariableType I, class SLT>
 CqParameter* CqParameterTypedFaceVaryingArray<T,I,SLT>::Clone() const
 {
-	CqParameterTypedFaceVaryingArray<T, I, SLT>* clone = new CqParameterTypedFaceVaryingArray<T, I, SLT>( strName().c_str(), Count() );
-	clone->m_aValues.resize( m_aValues.size(), std::vector<T>(Count()) );
-	clone->m_Count = m_Count;
+	CqParameterTypedFaceVaryingArray<T, I, SLT>* clone = new CqParameterTypedFaceVaryingArray<T, I, SLT>( this->strName().c_str(), this->Count() );
+	clone->m_aValues.resize( this->m_aValues.size(), std::vector<T>(this->Count()) );
+	clone->m_Count = this->Count();
 	TqUint j;
-	for ( j = 0; j < m_aValues.size(); j++ )
+	for ( j = 0; j < this->m_aValues.size(); j++ )
 	{
 		TqUint i;
-		for ( i = 0; i < (TqUint) Count(); i++ )
-			clone->m_aValues[ j ][ i ] = m_aValues[ j ][ i ];
+		for ( i = 0; i < (TqUint) this->Count(); i++ )
+			clone->m_aValues[ j ][ i ] = this->m_aValues[ j ][ i ];
 	}
 	return(clone);
 }
@@ -1957,7 +1957,7 @@ CqParameterTypedFaceVertexArray<T,I,SLT>::~CqParameterTypedFaceVertexArray()
 {}
 
 template <class T, EqVariableType I, class SLT>
-CqParameter* CqParameterTypedFaceVertexArray<T,I,SLT>::CloneType( const char* Name, TqInt Count = 1 ) const
+CqParameter* CqParameterTypedFaceVertexArray<T,I,SLT>::CloneType( const char* Name, TqInt Count ) const
 {
 	return ( new CqParameterTypedFaceVertexArray<T, I, SLT>( Name, Count ) );
 }
@@ -1965,15 +1965,15 @@ CqParameter* CqParameterTypedFaceVertexArray<T,I,SLT>::CloneType( const char* Na
 template <class T, EqVariableType I, class SLT>
 CqParameter* CqParameterTypedFaceVertexArray<T,I,SLT>::Clone() const
 {
-	CqParameterTypedFaceVertexArray<T, I, SLT>* clone = new CqParameterTypedFaceVertexArray<T, I, SLT>( strName().c_str(), Count() );
-	clone->m_aValues.resize( m_aValues.size(), std::vector<T>(Count()) );
-	clone->m_Count = m_Count;
+	CqParameterTypedFaceVertexArray<T, I, SLT>* clone = new CqParameterTypedFaceVertexArray<T, I, SLT>( this->strName().c_str(), this->Count() );
+	clone->m_aValues.resize( this->m_aValues.size(), std::vector<T>(this->Count()) );
+	clone->m_Count = this->Count();
 	TqUint j;
-	for ( j = 0; j < m_aValues.size(); j++ )
+	for ( j = 0; j < this->m_aValues.size(); j++ )
 	{
 		TqUint i;
-		for ( i = 0; i < (TqUint) Count(); i++ )
-			clone->m_aValues[ j ][ i ] = m_aValues[ j ][ i ];
+		for ( i = 0; i < (TqUint) this->Count(); i++ )
+			clone->m_aValues[ j ][ i ] = this->m_aValues[ j ][ i ];
 	}
 	return(clone);
 }
