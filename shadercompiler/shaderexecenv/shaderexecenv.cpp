@@ -213,45 +213,45 @@ void CqShaderExecEnv::Initialise( const TqInt uGridRes, const TqInt vGridRes, Tq
 	{
 		TIME_SCOPE("Create Shader Variables")
 		if ( USES( Uses, EnvVars_P ) && m_apVariables[ EnvVars_P ] == 0 )
-			m_apVariables[ EnvVars_P ] = pShader->CreateVariable( type_point, class_varying, gVariableNames[ EnvVars_P ] );
+			m_apVariables[ EnvVars_P ] = pShader->CreateVariable( type_point, class_varying, gVariableNames[ EnvVars_P ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_Cs ) && m_apVariables[ EnvVars_Cs ] == 0 )
-			m_apVariables[ EnvVars_Cs ] = pShader->CreateVariable( type_color, class_varying, gVariableNames[ EnvVars_Cs ] );
+			m_apVariables[ EnvVars_Cs ] = pShader->CreateVariable( type_color, class_varying, gVariableNames[ EnvVars_Cs ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_Os ) && m_apVariables[ EnvVars_Os ] == 0 )
-			m_apVariables[ EnvVars_Os ] = pShader->CreateVariable( type_color, class_varying, gVariableNames[ EnvVars_Os ] );
+			m_apVariables[ EnvVars_Os ] = pShader->CreateVariable( type_color, class_varying, gVariableNames[ EnvVars_Os ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_Ng ) && m_apVariables[ EnvVars_Ng ] == 0 )
-			m_apVariables[ EnvVars_Ng ] = pShader->CreateVariable( type_normal, class_varying, gVariableNames[ EnvVars_Ng ] );
+			m_apVariables[ EnvVars_Ng ] = pShader->CreateVariable( type_normal, class_varying, gVariableNames[ EnvVars_Ng ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_du ) && m_apVariables[ EnvVars_du ] == 0 )
-			m_apVariables[ EnvVars_du ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_du ] );
+			m_apVariables[ EnvVars_du ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_du ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_dv ) && m_apVariables[ EnvVars_dv ] == 0 )
-			m_apVariables[ EnvVars_dv ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_dv ] );
+			m_apVariables[ EnvVars_dv ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_dv ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_L ) && m_apVariables[ EnvVars_L ] == 0 )
-			m_apVariables[ EnvVars_L ] = pShader->CreateVariable( type_vector, class_varying, gVariableNames[ EnvVars_L ] );
+			m_apVariables[ EnvVars_L ] = pShader->CreateVariable( type_vector, class_varying, gVariableNames[ EnvVars_L ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_Cl ) && m_apVariables[ EnvVars_Cl ] == 0 )
-			m_apVariables[ EnvVars_Cl ] = pShader->CreateVariable( type_color, class_varying, gVariableNames[ EnvVars_Cl ] );
+			m_apVariables[ EnvVars_Cl ] = pShader->CreateVariable( type_color, class_varying, gVariableNames[ EnvVars_Cl ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_Ol ) && m_apVariables[ EnvVars_Ol ] == 0 )
-			m_apVariables[ EnvVars_Ol ] = pShader->CreateVariable( type_color, class_varying, gVariableNames[ EnvVars_Ol ] );
+			m_apVariables[ EnvVars_Ol ] = pShader->CreateVariable( type_color, class_varying, gVariableNames[ EnvVars_Ol ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_dPdu ) && m_apVariables[ EnvVars_dPdu ] == 0 )
-			m_apVariables[ EnvVars_dPdu ] = pShader->CreateVariable( type_vector, class_varying, gVariableNames[ EnvVars_dPdu ] );
+			m_apVariables[ EnvVars_dPdu ] = pShader->CreateVariable( type_vector, class_varying, gVariableNames[ EnvVars_dPdu ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_dPdv ) && m_apVariables[ EnvVars_dPdv ] == 0 )
-			m_apVariables[ EnvVars_dPdv ] = pShader->CreateVariable( type_vector, class_varying, gVariableNames[ EnvVars_dPdv ] );
+			m_apVariables[ EnvVars_dPdv ] = pShader->CreateVariable( type_vector, class_varying, gVariableNames[ EnvVars_dPdv ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_N ) && m_apVariables[ EnvVars_N ] == 0 )
-			m_apVariables[ EnvVars_N ] = pShader->CreateVariable( type_normal, class_varying, gVariableNames[ EnvVars_N ] );
+			m_apVariables[ EnvVars_N ] = pShader->CreateVariable( type_normal, class_varying, gVariableNames[ EnvVars_N ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_u ) && m_apVariables[ EnvVars_u ] == 0 )
-			m_apVariables[ EnvVars_u ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_u ] );
+			m_apVariables[ EnvVars_u ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_u ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_v ) && m_apVariables[ EnvVars_v ] == 0 )
-			m_apVariables[ EnvVars_v ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_v ] );
+			m_apVariables[ EnvVars_v ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_v ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_s ) && m_apVariables[ EnvVars_s ] == 0 )
-			m_apVariables[ EnvVars_s ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_s ] );
+			m_apVariables[ EnvVars_s ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_s ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_t ) && m_apVariables[ EnvVars_t ] == 0 )
-			m_apVariables[ EnvVars_t ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_t ] );
+			m_apVariables[ EnvVars_t ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_t ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_I ) && m_apVariables[ EnvVars_I ] == 0 )
-			m_apVariables[ EnvVars_I ] = pShader->CreateVariable( type_vector, class_varying, gVariableNames[ EnvVars_I ] );
+			m_apVariables[ EnvVars_I ] = pShader->CreateVariable( type_vector, class_varying, gVariableNames[ EnvVars_I ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_Ci ) && m_apVariables[ EnvVars_Ci ] == 0 )
-			m_apVariables[ EnvVars_Ci ] = pShader->CreateVariable( type_color, class_varying, gVariableNames[ EnvVars_Ci ] );
+			m_apVariables[ EnvVars_Ci ] = pShader->CreateVariable( type_color, class_varying, gVariableNames[ EnvVars_Ci ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_Oi ) && m_apVariables[ EnvVars_Oi ] == 0 )
-			m_apVariables[ EnvVars_Oi ] = pShader->CreateVariable( type_color, class_varying, gVariableNames[ EnvVars_Oi ] );
+			m_apVariables[ EnvVars_Oi ] = pShader->CreateVariable( type_color, class_varying, gVariableNames[ EnvVars_Oi ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_Ps ) && m_apVariables[ EnvVars_Ps ] == 0 )
-			m_apVariables[ EnvVars_Ps ] = pShader->CreateVariable( type_point, class_varying, gVariableNames[ EnvVars_Ps ] );
+			m_apVariables[ EnvVars_Ps ] = pShader->CreateVariable( type_point, class_varying, gVariableNames[ EnvVars_Ps ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_E ) && m_apVariables[ EnvVars_E ] == 0 )
 			m_apVariables[ EnvVars_E ] = pShader->CreateVariable( type_point, class_uniform, gVariableNames[ EnvVars_E ] );
 		if ( USES( Uses, EnvVars_ncomps ) && m_apVariables[ EnvVars_ncomps ] == 0 )
@@ -259,17 +259,17 @@ void CqShaderExecEnv::Initialise( const TqInt uGridRes, const TqInt vGridRes, Tq
 		if ( USES( Uses, EnvVars_time ) && m_apVariables[ EnvVars_time ] == 0 )
 			m_apVariables[ EnvVars_time ] = pShader->CreateVariable( type_float, class_uniform, gVariableNames[ EnvVars_time ] );
 		if ( USES( Uses, EnvVars_alpha ) && m_apVariables[ EnvVars_alpha ] == 0 )
-			m_apVariables[ EnvVars_alpha ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_alpha ] );
+			m_apVariables[ EnvVars_alpha ] = pShader->CreateVariable( type_float, class_varying, gVariableNames[ EnvVars_alpha ], false, false, shadingPointCount );
 		if ( USES( Uses, EnvVars_Ns ) && m_apVariables[ EnvVars_Ns ] == 0 )
-			m_apVariables[ EnvVars_Ns ] = pShader->CreateVariable( type_normal, class_varying, gVariableNames[ EnvVars_Ns ] );
+			m_apVariables[ EnvVars_Ns ] = pShader->CreateVariable( type_normal, class_varying, gVariableNames[ EnvVars_Ns ], false, false, shadingPointCount );
 	}
 
-	TqInt i;
+/*	TqInt i;
 	for ( i = 0; i < EnvVars_Last; i++ )
 	{
 		if ( m_apVariables[ i ] && USES( Uses, i ) )
 			m_apVariables[ i ] ->Initialise( shadingPointCount );
-	}
+	}*/
 
 	if( USES( Uses, EnvVars_time ) )
 	{

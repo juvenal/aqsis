@@ -938,7 +938,7 @@ void CqImageBuffer::RenderMPG_MBOrDof( CqMicroPolygon* pMPG,
 						index = indexT0;
 					}
 					// only bother sampling if the mpg is not occluded in this pixel.
-					if(mustDraw || bminz <= pie2->SampleData(index).m_occlusionBox->MaxOpaqueZ())
+					//if(mustDraw || bminz <= pie2->SampleData(index).m_occlusionBox->MaxOpaqueZ())
 					{
 
 						// loop over potential samples

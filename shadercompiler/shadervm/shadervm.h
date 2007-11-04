@@ -761,8 +761,8 @@ class SHADERVM_SHARE CqShaderVM : public CqShaderStack, public IqShader, public 
 		{
 			return ( m_Uses );
 		}
-		virtual IqShaderData* CreateVariable( EqVariableType Type, EqVariableClass Class, const CqString& name, bool fArgument = false, bool fOutput = false  );
-		virtual IqShaderData* CreateVariableArray( EqVariableType Type, EqVariableClass Class, const CqString& name, TqInt Count, bool fParameter = false, bool fOutput = false  );
+		virtual IqShaderData* CreateVariable( EqVariableType Type, EqVariableClass Class, const CqString& name, bool fArgument = false, bool fOutput = false, TqInt varyingSize = 1 );
+		virtual IqShaderData* CreateVariableArray( EqVariableType Type, EqVariableClass Class, const CqString& name, TqInt Count, bool fParameter = false, bool fOutput = false, TqInt varyingSize = 1  );
 		virtual	IqShaderData* CreateTemporaryStorage( EqVariableType type, EqVariableClass _class );
 		virtual void DeleteTemporaryStorage( IqShaderData* pData );
 		virtual void DefaultSurface();

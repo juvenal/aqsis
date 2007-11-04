@@ -445,9 +445,11 @@ CqMicroPolyGridBase* CqSurface::Dice()
 
 	// Dice the primitive variables.
 
-	// Special cases for s and t if "st" exists, it should override s and t.
+	// If "s" or "t" haven't been already specified, and the combined primvar "st" can be found, fill in the 
+	// separate values with it.
 	CqParameter* pParam;
-	if( ( pParam = FindUserParam("st") ) != NULL )
+	if((!isDONE (lDone, EnvVars_s) || !isDONE(lDone, EnvVars_t)) &&
+	    (pParam = FindUserParam("st")) != NULL )
 	{
 		if ( !isDONE( lDone, EnvVars_s ) && USES( lUses, EnvVars_s ) && ( NULL != pGrid->pVar(EnvVars_s) ) )
 			pParam ->DiceOne( m_uDiceSize, m_vDiceSize, pGrid->pVar(EnvVars_s), this, 0 );
@@ -458,7 +460,7 @@ CqMicroPolyGridBase* CqSurface::Dice()
 	}
 
 	// Loop over all the variables checking if they have been specified in the scene, and
-	// if they are needed by the shaders, and id the grid can accept them.
+	// if they are needed by the shaders, and if the grid can accept them.
 	// If all the tests pass, dice them into the grid based on their type.
 	TqInt varID;
 	for( varID = EnvVars_Cs; varID != EnvVars_Last; varID++ )

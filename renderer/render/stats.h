@@ -251,10 +251,10 @@ class CqStats
 		       MPG_current,
 		       MPG_peak,
 		       MPG_culled,
-		       MPG_occlusion_culled,
 		       MPG_missed,
 		       MPG_trimmed,
 		       MPG_trimmedout,
+
 
 		       // Sample hit quote
 		       MPG_sample_coverage0_125,

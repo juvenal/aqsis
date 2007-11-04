@@ -424,8 +424,8 @@ void CqBucket::FilterBucket(bool empty)
 
 	TqInt xmax = m_DiscreteShiftX;
 	TqInt ymax = m_DiscreteShiftY;
-	TqFloat xfwo2 = CEIL(FilterXWidth()) * 0.5f;
-	TqFloat yfwo2 = CEIL(FilterYWidth()) * 0.5f;
+	TqFloat xfwo2 = CEIL(FilterXWidth()) * 0.5f - 0.5f;
+	TqFloat yfwo2 = CEIL(FilterYWidth()) * 0.5f - 0.5f;
 	TqInt numsubpixels = ( PixelXSamples() * PixelYSamples() );
 
 	TqInt numperpixel = numsubpixels * numsubpixels;

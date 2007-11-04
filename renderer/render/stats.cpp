@@ -339,7 +339,7 @@ void CqStats::PrintStats( TqInt level ) const
 		if (STATS_INT_GETF( MPG_max_area ) != FLT_MIN)
 			_mpg_max = STATS_INT_GETF( MPG_max_area );
 		MSG << "Micropolygons:\n\t"
-		<< STATS_INT_GETI( MPG_allocated ) << " created (" << STATS_INT_GETI( MPG_culled ) << " culled " << STATS_INT_GETI( MPG_occlusion_culled ) << " occlusion culled)\n"
+		<< STATS_INT_GETI( MPG_allocated ) << " created (" << STATS_INT_GETI( MPG_culled ) << " culled)\n"
 		<< "\t" <<STATS_INT_GETI( MPG_peak ) << " peak, " << STATS_INT_GETI( MPG_trimmed ) << " trimmed, ( " << STATS_INT_GETI( MPG_trimmedout ) << " completely ) " << STATS_INT_GETI( MPG_missed ) << " missed (" << _mpg_m_q << "%)\n\t"
 		<< "\n\tMPG Area:\t" << _mpg_average_ratio << " average \n\t\t\t"
 		<<  _mpg_min << " min\n\t\t\t"
@@ -388,7 +388,7 @@ void CqStats::PrintStats( TqInt level ) const
 		MSG << "Sampling:\n"
 		<< "\tSamples per Pixel: " << _spl_px * _spl_py << " (" << _spl_px << " " << _spl_py << ")\n\t"
 		<< STATS_INT_GETI( SPL_count ) << " samples" << std::endl;
-		MSG					<< "\tHits: " << STATS_INT_GETI( SPL_hits ) << " (" << _spl_h << "%), "
+		MSG << "\tHits: " << STATS_INT_GETI( SPL_hits ) << " (" << _spl_h << "%), "
 		<< "bound hits: " << STATS_INT_GETI( SPL_bound_hits ) << " (" << _spl_b_h << "%),\n\tmisses: "
 		<< STATS_INT_GETI( SPL_count ) - STATS_INT_GETI( SPL_hits ) - STATS_INT_GETI( SPL_bound_hits ) << " (" << _spl_m << "%)\n"
 		<< std::endl;
