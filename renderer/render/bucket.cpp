@@ -257,8 +257,8 @@ void CqBucket::InitialiseFilterValues()
 
 	TqFloat xmax = m_DiscreteShiftX;
 	TqFloat ymax = m_DiscreteShiftY;
-	TqFloat xfwo2 = CEIL(FilterXWidth()) * 0.5f;
-	TqFloat yfwo2 = CEIL(FilterYWidth()) * 0.5f;
+	TqFloat xfwo2 = CEIL(FilterXWidth()) * 0.5f - 0.5f;
+	TqFloat yfwo2 = CEIL(FilterYWidth()) * 0.5f - 0.5f;
 	TqFloat xfw = CEIL(FilterXWidth());
 
 	TqFloat subcellwidth = 1.0f / numsubpixels;
