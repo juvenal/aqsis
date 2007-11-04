@@ -1609,7 +1609,7 @@ void CqImageBuffer::RenderImage()
 	// Render the surface at the front of the list.
 	m_fDone = false;
 
-	CqVector2D bHalf = CqVector2D( FLOOR(m_FilterXWidth / 2.0f), FLOOR(m_FilterYWidth / 2.0f) );
+	CqVector2D bHalf = CqVector2D( FLOOR(m_FilterXWidth / 2.0f - 0.5f), FLOOR(m_FilterYWidth / 2.0f - 0.5f) );
 
 	RtProgressFunc pProgressHandler = NULL;
 	pProgressHandler = QGetRenderContext()->pProgressHandler();
