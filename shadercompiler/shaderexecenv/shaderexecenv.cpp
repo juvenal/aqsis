@@ -264,12 +264,12 @@ void CqShaderExecEnv::Initialise( const TqInt uGridRes, const TqInt vGridRes, Tq
 			m_apVariables[ EnvVars_Ns ] = pShader->CreateVariable( type_normal, class_varying, gVariableNames[ EnvVars_Ns ], false, false, shadingPointCount );
 	}
 
-/*	TqInt i;
+	TqInt i;
 	for ( i = 0; i < EnvVars_Last; i++ )
 	{
 		if ( m_apVariables[ i ] && USES( Uses, i ) )
 			m_apVariables[ i ] ->Initialise( shadingPointCount );
-	}*/
+	}
 
 	if( USES( Uses, EnvVars_time ) )
 	{
