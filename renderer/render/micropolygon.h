@@ -45,6 +45,8 @@
 #include	"refcount.h"
 #include	"logging.h"
 
+#include	<boost/noncopyable.hpp>
+
 START_NAMESPACE( Aqsis )
 
 class CqVector3D;
@@ -448,7 +450,7 @@ struct CqHitTestCache
  * Abstract base class from which static and motion micropolygons are derived.
  */
 
-class CqMicroPolygon : public CqRefCount
+class CqMicroPolygon : public CqRefCount, boost::noncopyable
 {
 	public:
 		CqMicroPolygon();
@@ -478,7 +480,7 @@ class CqMicroPolygon : public CqRefCount
 		/** Assigment operator, copies contents of donor micropoly while safely deleting old contents.
 		 * \param From Donor micropoly.
 		 */
-		CqMicroPolygon& operator=( const CqMicroPolygon& From )
+/*		CqMicroPolygon& operator=( const CqMicroPolygon& From )
 		{
 			if ( m_pGrid != NULL )
 				RELEASEREF( m_pGrid );
@@ -490,7 +492,7 @@ class CqMicroPolygon : public CqRefCount
 			m_Flags = From.m_Flags;
 
 			return ( *this );
-		}
+		}*/
 
 	private:
 		enum EqMicroPolyFlags
@@ -704,8 +706,8 @@ class CqMicroPolygon : public CqRefCount
 		/**
 		* \todo Review: operator= defined, but empty copy-ctor.
 		*/
-		CqMicroPolygon( const CqMicroPolygon& From)
-		{}
+		//CqMicroPolygon( const CqMicroPolygon& From)
+		//{}
 
 		static	CqObjectPool<CqMicroPolygon> m_thePool;
 }
