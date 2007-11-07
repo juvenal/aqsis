@@ -1029,6 +1029,7 @@ void CqShaderExecEnv::SO_shadow( IqShaderData* name, IqShaderData* channel, IqSh
 
 	std::map<std::string, IqShaderData*> paramMap;
 	GetTexParams(cParams, apParams, paramMap);
+	CqMatrix matCToW = getRenderContext()->matSpaceToSpace( "camera", "world", NULL, NULL, getRenderContext()->Time() );
 
 	// If the bias values haven't been specified in the arguments to the function, use those from the 
 	// Option stack.
@@ -1100,11 +1101,11 @@ void CqShaderExecEnv::SO_shadow( IqShaderData* name, IqShaderData* channel, IqSh
 
 				CqVector3D dpuOn2 = fdu*0.5*SO_DuType<CqVector3D>(P, __iGrid, this, defaultDeriv);
 				CqVector3D dpvOn2 = fdv*0.5*SO_DvType<CqVector3D>(P, __iGrid, this, defaultDeriv);
-				CqVector3D p1 = p - dpuOn2 - dpvOn2;
-				CqVector3D p2 = p + dpuOn2 - dpvOn2;
-				CqVector3D p3 = p + dpuOn2 + dpvOn2;
-				CqVector3D p4 = p - dpuOn2 + dpvOn2;
-				pMap->SampleMap(p1, p2, p3, p4, fv, 0 );
+				CqVector3D p1 = matCToW * (p - dpuOn2 - dpvOn2);
+				CqVector3D p2 = matCToW * (p + dpuOn2 - dpvOn2);
+				CqVector3D p3 = matCToW * (p + dpuOn2 + dpvOn2);
+				CqVector3D p4 = matCToW * (p - dpuOn2 + dpvOn2);
+				pMap->SampleMap(p1, p2, p3, p4, fv, 0);
 				(Result)->SetFloat(fv[ 0 ],__iGrid);
 			}
 		}

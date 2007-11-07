@@ -575,15 +575,17 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 	//CqMatrix& matCameraToLight = m_matWorldToCamera;
 	// Generate a matrix to transform points from camera space into the space of the shadow map.
 	//CqMatrix& matCameraToMap = m_matWorldToScreen;
-	CqMatrix matCameraToLight(0.707106769, -0.408204079, -0.577381492, 0, 0.45451948, 0.887895048, -0.0710943639, 0, 0.54167521, -0.212159812, 0.813373327, 0, -2.70837593, 1.06013584, 4.59338713, 1);
-	CqMatrix matCameraToMap(1.29423702, -0.747147143, -0.577387273, -0.577381492, 0.831919551, 1.62513864, -0.0710950792, -0.0710943639, 0.991443098, -0.388321936, 0.813381433, 0.813373327, -4.95721531, 1.94039536, 4.59333324, 4.59338713);
+	//CqMatrix matCameraToLight(0.707106769, -0.408204079, -0.577381492, 0, 0.45451948, 0.887895048, -0.0710943639, 0, 0.54167521, -0.212159812, 0.813373327, 0, -2.70837593, 1.06013584, 4.59338713, 1);
+	//CqMatrix matCameraToMap(1.29423702, -0.747147143, -0.577387273, -0.577381492, 0.831919551, 1.62513864, -0.0710950792, -0.0710943639, 0.991443098, -0.388321936, 0.813381433, 0.813373327, -4.95721531, 1.94039536, 4.59333324, 4.59338713);
 
-	vecRlaverage = matCameraToLight * ( ( R1 + R2 + R3 + R4 ) * 0.25f );
+	// The points R1, R2, R3, R4 are in world space
+	
+	vecRlaverage = m_matWorldToCamera * ( ( R1 + R2 + R3 + R4 ) * 0.25f );
 	TqFloat z_average = vecRlaverage.z();
-	vecR1l = matCameraToLight * R1;
-	vecR2l = matCameraToLight * R2;
-	vecR3l = matCameraToLight * R3;
-	vecR4l = matCameraToLight * R4;
+	vecR1l = m_matWorldToCamera * R1;
+	vecR2l = m_matWorldToCamera * R2;
+	vecR3l = m_matWorldToCamera * R3;
+	vecR4l = m_matWorldToCamera * R4;
 	TqFloat z1 = vecR1l.z();
 	TqFloat z2 = vecR2l.z();
 	TqFloat z3 = vecR3l.z();
@@ -593,16 +595,16 @@ void CqDeepTexture::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, C
 	if (z_average <= 0.0f)
 		return;
 
-	vecR1m = matCameraToMap * R1;
+	vecR1m = m_matWorldToScreen * R1;
 	if ((R1 == R2) && (R2 == R3) && (R3 == R4))
 	{
 		vecR2m = vecR3m = vecR4m = vecR1m;
 	}
  	else
  	{
- 		vecR2m = matCameraToMap * R2;
- 		vecR3m = matCameraToMap * R3;
- 		vecR4m = matCameraToMap * R4;
+ 		vecR2m = m_matWorldToScreen * R2;
+ 		vecR3m = m_matWorldToScreen * R3;
+ 		vecR4m = m_matWorldToScreen * R4;
  	}
 
 	TqFloat xro2 = (m_XRes - 1) * 0.5f;
