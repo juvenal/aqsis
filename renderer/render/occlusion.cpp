@@ -514,7 +514,7 @@ bool CqOcclusionBox::CanCull( CqBound* bound )
 
 	std::deque<SqNodeStack> stack;
 	stack.push_front(SqNodeStack(minX, minY, maxX, maxY, 0, true));
-	bool newCull = false;
+	bool newCull = true;
 	SqNodeStack terminatingNode(0.0f, 0.0f, 0.0f, 0.0f, 0, true);
 	
 	while(!stack.empty())
@@ -522,18 +522,19 @@ bool CqOcclusionBox::CanCull( CqBound* bound )
 		SqNodeStack node = stack.front();
 		stack.pop_front();
 
-		if ( ( tminX >= node.minX && tmaxX <= node.maxX ) &&
-			 ( tminY >= node.minY && tmaxY <= node.maxY ) )
+		// If the bound intersects the node.
+		if( !(tminX > maxX || tminY > maxY ||
+			  tmaxX < minX || tmaxY < minY) )
 		{
-			if(bound->vecMin().z() > m_depthTree[node.index]) 
-			{
-				terminatingNode = node;
-				newCull = true;
-				break;
-			}
+			// If the depth stored at the node is closer than the minimum Z of the bound, contiune.
+			if(m_depthTree[node.index] < bound->vecMin().z()) 
+				continue;
 
 			if(node.index * 2 + 1 >= m_depthTree.size())
-				continue;
+			{
+				newCull = false;
+				break;
+			}
 
 			if(node.splitInX)
 			{
