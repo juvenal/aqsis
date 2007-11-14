@@ -1242,6 +1242,7 @@ void CqImageBuffer::StoreSample( CqMicroPolygon* pMPG, CqImagePixel* pie2, TqInt
 		{
 			pie2->SampleData(index).m_occlusionBox->SetMaxOpaqueZ(D);
 			pie2->SampleData(index).m_occlusionBox->PropagateChanges();
+			CqOcclusionBox::UpdateDepth(pie2->SampleData(index).m_occlusionIndex, D);
 		}
     }
 

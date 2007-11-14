@@ -62,6 +62,12 @@ struct IqBucket
 	/** Get the position of this bucket in Y
 	 */
 	virtual	TqInt	YOrigin() const = 0;
+	/** Get the real position of this bucket in X
+	 */
+	virtual	TqInt	realXOrigin() const = 0;
+	/** Get the real position of this bucket in Y
+	 */
+	virtual	TqInt	realYOrigin() const = 0;
 
 	/** Get an element color from this bucket. If the requested address is not within this bucket, returns black.
 	 * \param iXPos Screen position of the requested element.

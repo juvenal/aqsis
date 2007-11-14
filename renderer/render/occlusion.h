@@ -173,6 +173,9 @@ class CqOcclusionBox
 		{
 			return(m_KDTree);
 		}
+		
+		// New system
+		static void UpdateDepth(TqInt index, TqFloat depth);
 
 	protected:
 		CqOcclusionBox();
@@ -180,6 +183,7 @@ class CqOcclusionBox
 
 		static CqBucket* m_Bucket;
 		static CqOcclusionTreePtr	m_KDTree;			///< Tree representing the samples in the bucket.
+		static std::vector<TqFloat>	m_depthTree;
 };
 
 

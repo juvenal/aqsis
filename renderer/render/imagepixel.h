@@ -222,6 +222,7 @@ struct SqSampleData
 	std::deque<SqImageSample>	m_Data;	///< Array of sampled surface data for this sample.
 	SqImageSample m_OpaqueSample;	///< Single opaque sample for optimised processing if all encountered surfaces are opaque
 	CqOcclusionTree* m_occlusionBox;
+	TqInt		m_occlusionIndex;
 };
 
 //-----------------------------------------------------------------------

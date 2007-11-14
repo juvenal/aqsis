@@ -334,6 +334,8 @@ bool CqOcclusionTree::CqOcclusionTreeComparator::operator()(const std::pair<TqIn
 
 CqOcclusionTreePtr	CqOcclusionBox::m_KDTree;	///< KD Tree representing the samples in the bucket.
 
+std::vector<TqFloat>	CqOcclusionBox::m_depthTree;
+
 
 //----------------------------------------------------------------------
 /** Constructor
@@ -361,6 +363,60 @@ void CqOcclusionBox::DeleteHierarchy()
 	m_KDTree = NULL;
 }
 
+
+//------------------------------------------------------------------------------
+/** Return the tree index for leaf node containing the given point.
+ *
+ * treeDepth - depth of the tree, (root node has treeDepth == 1).
+ *
+ * p - a point which we'd like the index for.  We assume that the possible
+ *     points lie in the box [0,1) x [0,1)
+ *
+ * Returns an index for a 0-based array.
+ */
+TqUint treeIndexForPoint_fast(TqUint treeDepth, const CqVector2D& p)
+{
+	assert(treeDepth > 0);
+	assert(p.x() >= 0 && p.x() <= 1);
+	assert(p.y() >= 0 && p.y() <= 1);
+
+	const TqUint numXSubdivisions = treeDepth / 2;
+	const TqUint numYSubdivisions = (treeDepth-1) / 2;
+	// true if the last subdivison was along the x-direction.
+	const bool lastSubdivisionInX = (treeDepth % 2 == 0);
+
+	// integer coordinates of the point in terms of the subdivison which it
+	// falls into, staring from 0 in the top left.
+	TqUint x = static_cast<int>(floor(p.x() * (1 << numXSubdivisions)));
+	TqUint y = static_cast<int>(floor(p.y() * (1 << numYSubdivisions)));
+
+	// This is the base coordinate for the first leaf in a tree of depth "treeDepth".
+	TqUint index = 1 << (treeDepth-1);
+	if(lastSubdivisionInX)
+	{
+		// Every second bit of the index (starting with the LSB) should make up
+		// the coordinate x, so distribute x into index in that fashion.
+		//
+		// Similarly for y, except alternating with the bits of x (starting
+		// from the bit up from the LSB.)
+		for(TqUint i = 0; i < numXSubdivisions; ++i)
+		{
+			index |= (x & (1 << i)) << i
+				| (y & (1 << i)) << (i+1);
+		}
+	}
+	else
+	{
+		// This is the opposite of the above: x and y are interlaced as before,
+		// but now the LSB of y rather than x goes into the LSB of index.
+		for(TqUint i = 0; i < numYSubdivisions; ++i)
+		{
+			index |= (y & (1 << i)) << i
+				| (x & (1 << i)) << (i+1);
+		}
+	}
+	return index - 1;
+}
 
 //----------------------------------------------------------------------
 /** Setup the hierarchy for one bucket. Static.
@@ -397,12 +453,123 @@ void CqOcclusionBox::SetupHierarchy( CqBucket* bucket, TqInt xMin, TqInt yMin, T
 	}
 
 	m_KDTree->UpdateBounds();
+
+	// Now setup the new array based tree.
+	// First work out how deep the tree needs to be.
+	TqLong numLeafNodes = (bucket->RealHeight() * bucket->RealWidth()) * (bucket->PixelXSamples() * bucket->PixelYSamples());
+	TqLong depth = lceil(log10(static_cast<double>(numLeafNodes))/log10(2.0));
+	TqLong numTotalNodes = lceil(pow(2.0, static_cast<double>(depth+1)))-1;
+	m_depthTree.resize(numTotalNodes, 0.0f);
+
+	// Now initialise the node depths of those that contain sample points to infinity.
+	std::vector<SqSampleData>& samples = bucket->SamplePoints();
+	std::vector<SqSampleData>::iterator sample;
+	for(sample = samples.begin(); sample != samples.end(); ++sample)
+	{
+		CqVector2D samplePos = sample->m_Position;
+		samplePos.x((samplePos.x() - static_cast<TqFloat>(bucket->realXOrigin())) / static_cast<TqFloat>(bucket->RealWidth()));
+		samplePos.y((samplePos.y() - static_cast<TqFloat>(bucket->realYOrigin())) / static_cast<TqFloat>(bucket->RealHeight()));
+		TqUint sampleNodeIndex = treeIndexForPoint_fast(depth+1, samplePos);
+
+		// Check that the index is within the tree
+		assert(sampleNodeIndex < numTotalNodes);
+		// Check that the index is a leaf node.
+		assert((sampleNodeIndex*2)+1 >= numTotalNodes);
+
+		m_depthTree[sampleNodeIndex] = FLT_MAX;
+		TqInt parentIndex = (sampleNodeIndex-1)>>1;
+		while(parentIndex >= 0)
+		{
+			m_depthTree[parentIndex] = FLT_MAX;
+			parentIndex = (parentIndex - 1)>>1;
+		}
+		sample->m_occlusionIndex = sampleNodeIndex;
+	} 
 }
 
+	struct SqNodeStack
+	{
+		SqNodeStack(TqFloat _minX, TqFloat _minY, TqFloat _maxX, TqFloat _maxY, TqInt _index, bool _splitInX) :
+			minX(_minX), minY(_minY), maxX(_maxX), maxY(_maxY), index(_index), splitInX(_splitInX) {}
+		TqFloat minX, minY;
+		TqFloat maxX, maxY;
+		TqInt	index;
+		bool	splitInX;
+	};
 
 bool CqOcclusionBox::CanCull( CqBound* bound )
 {
-	return(m_KDTree->CanCull(bound));
+	bool oldCull = m_KDTree->CanCull(bound);
+	// Check the new system.
+	// Normalize the bound
+	TqFloat minX = m_Bucket->realXOrigin();
+	TqFloat minY = m_Bucket->realYOrigin(); 
+	TqFloat maxX = m_Bucket->realXOrigin() + m_Bucket->RealWidth();
+	TqFloat maxY = m_Bucket->realYOrigin() + m_Bucket->RealHeight();
+	// If the test bound is bigger than the overall bucket, then crop it.
+	TqFloat tminX = std::max(bound->vecMin().x(), minX);
+	TqFloat tminY = std::max(bound->vecMin().y(), minY);
+	TqFloat tmaxX = std::min(bound->vecMax().x(), maxX);
+	TqFloat tmaxY = std::min(bound->vecMax().y(), maxY);
+
+	std::deque<SqNodeStack> stack;
+	stack.push_front(SqNodeStack(minX, minY, maxX, maxY, 0, true));
+	bool newCull = false;
+	SqNodeStack terminatingNode(0.0f, 0.0f, 0.0f, 0.0f, 0, true);
+	
+	while(!stack.empty())
+	{
+		SqNodeStack node = stack.front();
+		stack.pop_front();
+
+		if ( ( tminX >= node.minX && tmaxX <= node.maxX ) &&
+			 ( tminY >= node.minY && tmaxY <= node.maxY ) )
+		{
+			if(bound->vecMin().z() > m_depthTree[node.index]) 
+			{
+				terminatingNode = node;
+				newCull = true;
+				break;
+			}
+
+			if(node.index * 2 + 1 >= m_depthTree.size())
+				continue;
+
+			if(node.splitInX)
+			{
+				TqFloat median = ((node.maxX - node.minX) * 0.5f) + node.minX;
+				stack.push_front(SqNodeStack(node.minX, node.minY, median, node.maxY, node.index * 2 + 1, !node.splitInX));
+				stack.push_front(SqNodeStack(median, node.minY, node.maxX, node.maxY, node.index * 2 + 2, !node.splitInX));
+			}
+			else
+			{
+				TqFloat median = ((node.maxY - node.minY) * 0.5f) + node.minY;
+				stack.push_front(SqNodeStack(node.minX, node.minY, node.maxX, median, node.index * 2 + 1, !node.splitInX));
+				stack.push_front(SqNodeStack(node.minX, median, node.maxX, node.maxY, node.index * 2 + 2, !node.splitInX));
+			}
+		}
+	}
+	if(oldCull != newCull)
+		Aqsis::log() << error << "Culling mismatch : " << oldCull << " - " << newCull << std::endl;
+	else
+		Aqsis::log() << debug << "Culling match : " << oldCull << " - " << newCull << std::endl;
+	return(newCull);
+}
+
+void CqOcclusionBox::UpdateDepth(TqInt index, TqFloat depth)
+{
+	assert(index < m_depthTree.size());
+	// Check that we're only updating leaf nodes.
+	assert((index*2)+1 >= m_depthTree.size());
+
+	m_depthTree[index] = std::min(m_depthTree[index], depth);
+
+	TqInt parentIndex = (index - 1)>>1;
+	while(parentIndex >= 0)
+	{
+		m_depthTree[parentIndex] = std::max(m_depthTree[(parentIndex<<1)+1], m_depthTree[(parentIndex<<1)+2]);
+		parentIndex = (parentIndex - 1)>>1;
+	}
 }
 
 END_NAMESPACE( Aqsis )
