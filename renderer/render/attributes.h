@@ -109,7 +109,7 @@ class CqAttributes : public CqRefCount, public IqAttributes
 			boost::shared_ptr<CqNamedParameterList> pAttr = m_aAttributes.Find( strName );
 			if ( pAttr )
 			{
-				if ( pAttr.unique() )
+				if ( pAttr.use_count() <= 2 )
 					return ( pAttr );
 				else
 				{
