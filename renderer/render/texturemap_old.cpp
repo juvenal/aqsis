@@ -1941,8 +1941,10 @@ void CqEnvironmentMapOld::SampleMap( CqVector3D& R1,
 		if ((R1 * R1) == 0)
 			return;
 
-		TqFloat dfovu = fabs(1.0f - m_fov)/(TqFloat) (m_XRes);
-		TqFloat dfovv = fabs(1.0f - m_fov)/(TqFloat) (m_YRes);
+		// kludge: setting these to zero will lower the sampling efficiency.
+		// (This code is replaced in aqsis-1.5)
+		CalculateLevel(0, 0);
+
 		for (i=0; i < m_samples; i++)
 		{
 			CalculateNoise(x, y, i);
@@ -1989,14 +1991,14 @@ void CqEnvironmentMapOld::SampleMap( CqVector3D& R1,
 					if (D[COMP_X] > 0)
 					{
 						memcpy(side,   &sides[PX][0], sizeof(TqFloat) * 2);
-						t =   1 / D[COMP_X];
+						t =   m_fov / D[COMP_X];
 						u =   (-D[COMP_Z]*t+1)*(float) 0.5;
 						v =   (-D[COMP_Y]*t+1)*(float) 0.5;
 					}
 					else
 					{
 						memcpy(side,   &sides[NX][0], sizeof(TqFloat) * 2);
-						t =   -1 / D[COMP_X];
+						t =   -m_fov / D[COMP_X];
 						u =   (D[COMP_Z]*t+1)*(float) 0.5;
 						v =   (-D[COMP_Y]*t+1)*(float) 0.5;
 					}
@@ -2006,14 +2008,14 @@ void CqEnvironmentMapOld::SampleMap( CqVector3D& R1,
 					if (D[COMP_Y] > 0)
 					{
 						memcpy(side, &sides[PY][0], sizeof(TqFloat) * 2);
-						t =   1 / D[COMP_Y];
+						t =   m_fov / D[COMP_Y];
 						u =   (D[COMP_X]*t+1)*(float) 0.5;
 						v =   (D[COMP_Z]*t+1)*(float) 0.5;
 					}
 					else
 					{
 						memcpy(side,   &sides[NY][0], sizeof(TqFloat) * 2);
-						t =   -1 / D[COMP_Y];
+						t =   -m_fov / D[COMP_Y];
 						u =   (D[COMP_X]*t+1)*(float) 0.5;
 						v =   (-D[COMP_Z]*t+1)*(float) 0.5;
 					}
@@ -2023,14 +2025,14 @@ void CqEnvironmentMapOld::SampleMap( CqVector3D& R1,
 					if (D[COMP_Z] > 0)
 					{
 						memcpy(side,   &sides[PZ][0], sizeof(TqFloat) * 2);
-						t =   1 / D[COMP_Z];
+						t =   m_fov / D[COMP_Z];
 						u =   (D[COMP_X]*t+1)*(float) 0.5;
 						v =   (-D[COMP_Y]*t+1)*(float) 0.5;
 					}
 					else
 					{
 						memcpy(side,   &sides[NZ][0], sizeof(TqFloat) * 2);
-						t =   -1 / D[COMP_Z];
+						t =   -m_fov / D[COMP_Z];
 						u =   (-D[COMP_X]*t+1)*(float) 0.5;
 						v =   (-D[COMP_Y]*t+1)*(float) 0.5;
 					}
@@ -2042,14 +2044,10 @@ void CqEnvironmentMapOld::SampleMap( CqVector3D& R1,
 			* position 
 			*/
 
-			u = clamp(u, dfovu, 1.0f );
-			v = clamp(v, dfovv, 1.0f );
-
 			u = side[0] + u*ONETHIRD;
 			v = side[1] + v*ONEHALF;
 			u = clamp(u, 0.0f, 1.0f);
 			v = clamp(v, 0.0f, 1.0f);
-			CalculateLevel(u, v);
 
 			BiLinear(u, v, m_umapsize, m_vmapsize, m_level, m_pixel_variance);
 			if (bLerp)

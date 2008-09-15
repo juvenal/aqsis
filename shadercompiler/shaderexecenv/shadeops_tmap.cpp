@@ -648,27 +648,14 @@ void CqShaderExecEnv::SO_fenvironment2( IqShaderData* name, IqShaderData* startC
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D swidth = 0.0f, twidth = 0.0f;
-				if ( fdu != 0.0f )
-				{
-					CqVector3D dRdu = SO_DuType<CqVector3D>( R, __iGrid, this, Defvec );
-					swidth = dRdu * fdu;
-				}
-				if ( fdv != 0.0f )
-				{
-					CqVector3D dRdv = SO_DvType<CqVector3D>( R, __iGrid, this, Defvec );
-					twidth = dRdv * fdv;
-				}
-				else
-				{
-					swidth = CqVector3D( 1.0 / pTMap->XRes() );
-					twidth = CqVector3D( 1.0 / pTMap->YRes() );
-				}
+				// Get sample region
+				CqVector3D dR_u = diffU<CqVector3D>(R, __iGrid);
+				CqVector3D dR_v = diffV<CqVector3D>(R, __iGrid);
+				CqVector3D RVal;
+				R->GetVector(RVal,__iGrid);
 
 				// Sample the texture.
-				CqVector3D _aq_R;
-				(R)->GetVector(_aq_R,__iGrid);
-				pTMap->SampleMap( _aq_R, swidth, twidth, val );
+				pTMap->SampleMap(RVal, dR_u, dR_v, val);
 
 				// Grab the appropriate channel.
 				TqFloat fchan = _aq_channel;
@@ -823,28 +810,14 @@ void CqShaderExecEnv::SO_cenvironment2( IqShaderData* name, IqShaderData* startC
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D swidth = 0.0f, twidth = 0.0f;
-				if ( fdu != 0.0f )
-				{
-					CqVector3D dRdu = SO_DuType<CqVector3D>( R, __iGrid, this, Defvec );
-					swidth = dRdu * fdu;
-				}
-				if ( fdv != 0.0f )
-				{
-					CqVector3D dRdv = SO_DvType<CqVector3D>( R, __iGrid, this, Defvec );
-					twidth = dRdv * fdv;
-				}
-				else
-				{
-					swidth = CqVector3D( 1.0 / pTMap->XRes() );
-					twidth = CqVector3D( 1.0 / pTMap->YRes() );
-				}
+				// Get sample region
+				CqVector3D dR_u = diffU<CqVector3D>(R, __iGrid);
+				CqVector3D dR_v = diffV<CqVector3D>(R, __iGrid);
+				CqVector3D RVal;
+				R->GetVector(RVal,__iGrid);
 
 				// Sample the texture.
-				CqVector3D _aq_R;
-				(R)->GetVector(_aq_R,__iGrid);
-				pTMap->SampleMap( _aq_R, swidth, twidth, val );
-
+				pTMap->SampleMap(RVal, dR_u, dR_v, val);
 
 				// Grab the appropriate channel.
 				TqFloat fchan = _aq_channel;
