@@ -125,7 +125,7 @@ INCLUDE(FindResource)
 # these version variables are potentially used there.
 SET(MAJOR 1)
 SET(MINOR 4)
-SET(BUILD 0)
+SET(BUILD 1)
 SVN_REPOSITORY_VERSION( REVISION ${PROJECT_SOURCE_DIR} )
 
 
