@@ -13,3 +13,4 @@ Bugfixes
 * Fix incorrect fixed-size integer types in ndspy.h on some platforms.
 * bug #2128051: "8-bit character encoding missing"
 * Fix printing of parameter lists which was missing the token names when using -echoapi
+* Remove the AQSIS_USE_PLUGINS option from the build system to avoid confusion and broken builds.
