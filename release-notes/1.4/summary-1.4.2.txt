@@ -15,3 +15,4 @@ Bugfixes
 * Fix printing of parameter lists which was missing the token names when using -echoapi
 * Remove the AQSIS_USE_PLUGINS option from the build system to avoid confusion and broken builds.
 * bug #2167498: "uniform user parameters not working for SDS"
+* Fix the array length count as passed by the RIB parser into RiColorSamples.
