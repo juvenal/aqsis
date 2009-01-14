@@ -4,9 +4,10 @@ Summary of changes in aqsis-1.4.2 (chronological order):
 Enhancements
 ------------
 
+* Add a compatibility interface to Pixar's sloarg shader argument library.
+
 
 Bugfixes
 --------
 
 * Fix incorrect fixed-size integer types in ndspy.h on some platforms.
-
