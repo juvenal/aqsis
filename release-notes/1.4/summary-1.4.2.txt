@@ -11,3 +11,4 @@ Bugfixes
 --------
 
 * Fix incorrect fixed-size integer types in ndspy.h on some platforms.
+* bug #2128051: "8-bit character encoding missing"
