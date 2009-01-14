@@ -5,6 +5,7 @@ Enhancements
 ------------
 
 * Add a compatibility interface to Pixar's sloarg shader argument library.
+* Improve piqsldisplay standard compliance to work with 3delight
 
 
 Bugfixes
