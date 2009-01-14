@@ -16,3 +16,4 @@ Bugfixes
 * Remove the AQSIS_USE_PLUGINS option from the build system to avoid confusion and broken builds.
 * bug #2167498: "uniform user parameters not working for SDS"
 * Fix the array length count as passed by the RIB parser into RiColorSamples.
+* Fix texture(..., "lerp", 1) which incorrectly used mipmap level 1 when magnifying a texture

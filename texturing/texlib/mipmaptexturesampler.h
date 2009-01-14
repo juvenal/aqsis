@@ -175,7 +175,7 @@ void CqMipmapTextureSampler<LevelCacheT>::sample(const SqSampleQuad& sampleQuad,
 
 	if( ( sampleOpts.lerp() == Lerp_Always
 		|| (sampleOpts.lerp() == Lerp_Auto && usingBlur && blurRatio > 0.2) )
-		&& level < m_levels->numLevels()-1 )
+		&& level < m_levels->numLevels()-1 && levelCts > 0)
 	{
 		// Use linear interpolation between the results of filtering on two
 		// different mipmap levels.  This should only be necessary if using
