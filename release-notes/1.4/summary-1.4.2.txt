@@ -8,4 +8,5 @@ Enhancements
 Bugfixes
 --------
 
+* Fix incorrect fixed-size integer types in ndspy.h on some platforms.
 
