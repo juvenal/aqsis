@@ -7,6 +7,7 @@ Enhancements
 * Add a compatibility interface to Pixar's sloarg shader argument library.
 * Improve piqsldisplay standard compliance to work with 3delight
 * Optimization to texture filtering code: precomputed integer image channel normalization.
+* Revised Windows installer, removing unnecessary features and improved logging.
 
 
 Bugfixes
