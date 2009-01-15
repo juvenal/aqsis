@@ -21,4 +21,14 @@ Bugfixes
 * Fix texture(..., "lerp", 1) which incorrectly used mipmap level 1 when magnifying a texture
 * Fix intermittent aqsl segfault when typechecking functions, especially external DSOs.
 * Fix varying string value assignment in the shading language which acted as if it was uniform.
+* Fix bug #2128030: "unnecessary PATH environment variable"
 
+
+Known Issues
+------------
+
+  * Piqsl only updates the non-zoomed image at present, meaning you will need to zoom-out to the 1:1 size to see render progress. #2022177
+  * Smooth shading interpolation does not presently support depth-of-field and motion blur features.
+  * The "expandgrids" attribute does not presently support semi-opaque surfaces and shadows using either "depthfilter" or "midpoint".
+  * Massive Software's "DynamicLoad" procedural plugin is presently not supported.
+  * The "mpanalyse.py" Python script will not operate standalone and assumes both CGKit and PyOpenGL are installed on your system.
