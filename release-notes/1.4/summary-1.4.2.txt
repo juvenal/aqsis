@@ -23,6 +23,7 @@ Bugfixes
 * Fix intermittent aqsl segfault when typechecking functions, especially external DSOs.
 * Fix varying string value assignment in the shading language which acted as if it was uniform.
 * Fix bug #2128030: "unnecessary PATH environment variable"
+* Fix bug #2499967: ".aqsisrc no-longer supports backslashes in paths"
 
 
 Known Issues
@@ -33,3 +34,4 @@ Known Issues
   * The "expandgrids" attribute does not presently support semi-opaque surfaces and shadows using either "depthfilter" or "midpoint".
   * Massive Software's "DynamicLoad" procedural plugin is presently not supported.
   * The "mpanalyse.py" Python script will not operate standalone and assumes both CGKit and PyOpenGL are installed on your system.
+  * Backslash support within 'aqsisrc' paths has been removed, in accordance with the RISpec (reserved character).
