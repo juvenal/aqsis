@@ -24,7 +24,11 @@ Bugfixes
 * Fix varying string value assignment in the shading language which acted as if it was uniform.
 * Fix bug #2128030: "unnecessary PATH environment variable"
 * Fix bug #2499967: ".aqsisrc no-longer supports backslashes in paths"
-
+* Add some basic validity checks to the quadric primitives.
+* Fix bug #2173552 by flipping Ng's direction as necessary when a user specified N is present.
+* Add missing include files to OSX bundle.
+* Add missing include files to NSIS.
+* Fix the installation details for OSX to ensure visibility on the PATH.
 
 Known Issues
 ------------
