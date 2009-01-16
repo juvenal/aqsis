@@ -569,10 +569,26 @@ class CqSurface : public IqSurface, private boost::noncopyable, public boost::en
 			return(false);
 		}
 
+		/** Get the shading rate, adjusted for DoF (and MB in the future)
+		 *
+		 * Without depth of field or motion blur, this function just returns
+		 * the shading rate as given by the current attribute set.
+		 *
+		 * When depth of field is turned on, the shading rate is increased
+		 * according to value of the system "GeometricFocusFactor" attribute
+		 * (as specified with RiGeometricApproximation("focusfactor", ...) )
+		 *
+		 * \todo No adjustment is yet implemented for motion blur, but the
+		 * intention is to allow RiGeometricApproximation("motionfactor", ...)
+		 * to have an effect on the returned shading rate as well.
+		 */
+		TqFloat AdjustedShadingRate() const;
+
 		bool	m_fDiceable;		///< Flag to indicate that this GPrim is diceable.
 		bool	m_fDiscard;			///< Flag to indicate that this GPrim is to be discarded.
 		TqInt	m_SplitCount;		///< The number of times this GPrim has been split
 	protected:
+
 		/** Protected member function to clone the data, used by the Clone() functions
 		 *  on the derived classes.
 		 */
@@ -636,6 +652,7 @@ class CqDeformingSurface : public CqSurface, public CqMotionSpec<boost::shared_p
 				ADDREF(pGrid2);
 				pGrid->SetfTriangular( pGrid2->fTriangular() );
 			}
+			pGrid->Initialise(m_uDiceSize, m_vDiceSize, shared_from_this());
 			return ( pGrid );
 		}
 		/** Split this GPrim, creating a series of CqDeformingSurface with all times in.

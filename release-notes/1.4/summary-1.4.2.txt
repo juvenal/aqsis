@@ -8,6 +8,7 @@ Enhancements
 * Improve piqsldisplay standard compliance to work with 3delight
 * Optimization to texture filtering code: precomputed integer image channel normalization.
 * Revised Windows installer, removing unnecessary features and improved logging.
+* Add GeometricApproximation "focusfactor" approximation for faster depth of field rendering.  Off by default.
 
 
 Bugfixes
@@ -38,4 +39,4 @@ Known Issues
   * The "expandgrids" attribute does not presently support semi-opaque surfaces and shadows using either "depthfilter" or "midpoint".
   * Massive Software's "DynamicLoad" procedural plugin is presently not supported.
   * The "mpanalyse.py" Python script will not operate standalone and assumes both CGKit and PyOpenGL are installed on your system.
-  * Backslash support within 'aqsisrc' paths has been removed, in accordance with the RISpec (reserved character).
+  * Backslashes in 'aqsisrc' paths must now be escaped (use \\ to get a single \ ), in accordance with the RISpec.

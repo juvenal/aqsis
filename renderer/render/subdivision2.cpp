@@ -1737,6 +1737,7 @@ CqMicroPolyGridBase* CqSurfaceSubdivisionPatch::DiceExtract()
 		TqInt i;
 		for ( i = 0; i < pTopology()->cTimes(); i++ )
 			pGrid->AddTimeSlot( pTopology()->Time( i ), apGrids[ i ] );
+		pGrid->Initialise(dicesize, dicesize, pTopology()->pPoints() );
 		return( pGrid );
 	}
 }
@@ -2182,8 +2183,6 @@ bool CqSurfaceSubdivisionPatch::Diceable()
 	CqVector2D	avecHull[ 4 ];
 	TqInt i;
 
-	TqFloat ShadingRate = pAttributes() ->GetFloatAttribute( "System", "ShadingRate" ) [ 0 ];
-
 	for ( i = 0; i < 4; i++ )
 		avecHull[ i ] = matCtoR * pTopology()->pPoints()->P()->pValue() [ aQfv[ i ]->VertexIndex() ];
 
@@ -2198,8 +2197,9 @@ bool CqSurfaceSubdivisionPatch::Diceable()
 	Vec2 = avecHull[ 2 ] - avecHull[ 1 ];
 	vLen = ( Vec1.Magnitude2() > Vec2.Magnitude2() ) ? Vec1.Magnitude2() : Vec2.Magnitude2();
 
-	uLen = sqrt( uLen / ShadingRate);
-	vLen = sqrt( vLen / ShadingRate);
+	TqFloat shadingRate = AdjustedShadingRate();
+	uLen = sqrt(uLen/shadingRate);
+	vLen = sqrt(vLen/shadingRate);
 
 	m_SplitDir = ( uLen > vLen ) ? SplitDir_U : SplitDir_V;
 

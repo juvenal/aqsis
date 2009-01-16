@@ -52,6 +52,17 @@ class CqImageBuffer;
 class CqSurface;
 struct SqSampleData;
 
+
+// This struct holds info about a grid that can be cached and used for all its mpgs.
+//
+// This version of SqGridInfo comes from the multithreading branch, but is
+// backported here to support the "focusfactor" optimizations with the smallest
+// changes from the trunk implementation.
+struct SqGridInfo2
+{
+	TqFloat			m_ShadingRate;
+};
+
 //----------------------------------------------------------------------
 /** \brief Cache of output sample data for a micropoly
  *
@@ -192,10 +203,23 @@ class CqMicroPolyGridBase : public CqRefCount
 		virtual	IqShaderData* FindStandardVar( const char* pname ) = 0;
 		virtual boost::shared_ptr<IqShaderExecEnv> pShaderExecEnv() = 0; 
 
+		const SqGridInfo2& GetCachedGridInfo() const
+		{
+			return m_CurrentGridInfo;
+		}
+
 	protected:
 		bool m_fCulled; ///< Boolean indicating the entire grid is culled.
 		CqTriangleSplitLine	m_TriangleSplitLine;	///< Two endpoints of the line that is used to turn the quad into a triangle at sample time.
 		bool	m_fTriangular;			///< Flag indicating that this grid should be rendered as a triangular grid with a phantom fourth corner.
+
+		/** Cached info about the given grid so it can be
+		 * referenced by multiple mpgs. */
+		SqGridInfo2 m_CurrentGridInfo;
+
+		/** Cache some info about the given grid so it can be
+		 * referenced by multiple mpgs. */
+		void CacheGridInfo(const boost::shared_ptr<const CqSurface>& surface);
 };
 
 
@@ -491,6 +515,12 @@ class CqMotionMicroPolyGrid : public CqMicroPolyGridBase, public CqMotionSpec<Cq
 		virtual	CqMicroPolyGridBase* LinearInterpolateMotionObjects( TqFloat /* Fraction */, CqMicroPolyGridBase* const & A, CqMicroPolyGridBase* const & /* B */ ) const
 		{
 			return ( A );
+		}
+		void	Initialise( TqInt cu, TqInt cv, const boost::shared_ptr<CqSurface>& pSurface )
+		{
+			//assert( GetMotionObject( Time( 0 ) ) );
+			//static_cast<CqMicroPolyGrid*>( GetMotionObject( Time( 0 ) ) ) ->Initialise(cu, cv, pSurface);
+			CacheGridInfo(pSurface);
 		}
 
 	private:
