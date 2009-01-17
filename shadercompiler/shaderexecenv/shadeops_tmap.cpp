@@ -649,13 +649,14 @@ void CqShaderExecEnv::SO_fenvironment2( IqShaderData* name, IqShaderData* startC
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
 				// Get sample region
-				CqVector3D dR_u = diffU<CqVector3D>(R, __iGrid);
-				CqVector3D dR_v = diffV<CqVector3D>(R, __iGrid);
-				CqVector3D RVal;
-				R->GetVector(RVal,__iGrid);
+				CqVector3D R1, R2, R3, R4;
+				R->GetVector(R1, m_diffVI1[m_diffUI1[__iGrid]]);
+				R->GetVector(R2, m_diffVI1[m_diffUI2[__iGrid]]);
+				R->GetVector(R3, m_diffVI2[m_diffUI1[__iGrid]]);
+				R->GetVector(R4, m_diffVI2[m_diffUI2[__iGrid]]);
 
 				// Sample the texture.
-				pTMap->SampleMap(RVal, dR_u, dR_v, val);
+				pTMap->SampleMap(R1, R2, R3, R4, val);
 
 				// Grab the appropriate channel.
 				TqFloat fchan = _aq_channel;
@@ -811,13 +812,14 @@ void CqShaderExecEnv::SO_cenvironment2( IqShaderData* name, IqShaderData* startC
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
 				// Get sample region
-				CqVector3D dR_u = diffU<CqVector3D>(R, __iGrid);
-				CqVector3D dR_v = diffV<CqVector3D>(R, __iGrid);
-				CqVector3D RVal;
-				R->GetVector(RVal,__iGrid);
+				CqVector3D R1, R2, R3, R4;
+				R->GetVector(R1, m_diffVI1[m_diffUI1[__iGrid]]);
+				R->GetVector(R2, m_diffVI1[m_diffUI2[__iGrid]]);
+				R->GetVector(R3, m_diffVI2[m_diffUI1[__iGrid]]);
+				R->GetVector(R4, m_diffVI2[m_diffUI2[__iGrid]]);
 
 				// Sample the texture.
-				pTMap->SampleMap(RVal, dR_u, dR_v, val);
+				pTMap->SampleMap(R1, R2, R3, R4, val);
 
 				// Grab the appropriate channel.
 				TqFloat fchan = _aq_channel;
