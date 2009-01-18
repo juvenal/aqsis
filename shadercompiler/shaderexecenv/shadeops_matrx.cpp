@@ -731,30 +731,29 @@ void CqShaderExecEnv::SO_ctransform( IqShaderData* fromspace, IqShaderData* tosp
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqColor _aq_c;
-			(c)->GetColor(_aq_c,__iGrid);
-			CqColor res( _aq_c );
+			CqColor res;
+			(c)->GetColor(res,__iGrid);
 			if ( strfromspace.compare( "hsv" ) == 0 )
-				res = _aq_c.hsvtorgb();
+				res = res.hsvtorgb();
 			else if ( strfromspace.compare( "hsl" ) == 0 )
-				res = _aq_c.hsltorgb();
+				res = res.hsltorgb();
 			else if ( strfromspace.compare( "XYZ" ) == 0 )
-				res = _aq_c.XYZtorgb();
+				res = res.XYZtorgb();
 			else if ( strfromspace.compare( "xyY" ) == 0 )
-				res = _aq_c.xyYtorgb();
+				res = res.xyYtorgb();
 			else if ( strfromspace.compare( "YIQ" ) == 0 )
-				res = _aq_c.YIQtorgb();
+				res = res.YIQtorgb();
 
 			if ( _aq_tospace.compare( "hsv" ) == 0 )
-				res = _aq_c.rgbtohsv();
+				res = res.rgbtohsv();
 			else if ( _aq_tospace.compare( "hsl" ) == 0 )
-				res = _aq_c.rgbtohsl();
+				res = res.rgbtohsl();
 			else if ( _aq_tospace.compare( "XYZ" ) == 0 )
-				res = _aq_c.rgbtoXYZ();
+				res = res.rgbtoXYZ();
 			else if ( _aq_tospace.compare( "xyY" ) == 0 )
-				res = _aq_c.rgbtoxyY();
+				res = res.rgbtoxyY();
 			else if ( _aq_tospace.compare( "YIQ" ) == 0 )
-				res = _aq_c.rgbtoYIQ();
+				res = res.rgbtoYIQ();
 
 			(Result)->SetColor(res,__iGrid);
 		}
