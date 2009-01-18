@@ -30,6 +30,7 @@ Bugfixes
 * Add missing include files to OSX bundle.
 * Add missing include files to NSIS.
 * Fix the installation details for OSX to ensure visibility on the PATH.
+* Fix bug #2498990: Backface culling sometimes incorrect in motion blocks
 
 Known Issues
 ------------
