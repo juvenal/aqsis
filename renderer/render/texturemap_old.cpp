@@ -160,7 +160,10 @@ static void CalculateNoise(TqFloat &du, TqFloat &dv, TqInt which)
 	}
 	else
 	{
-		dv = du = 0.5;
+		// Use 0.49 rather than 0.5, since this prevents a special-case in
+		// which the refraction() RSL builtin interacts badly with the
+		// filtering to produce an invalid sample direction of (0,0,0).
+		dv = du = 0.49;
 	}
 }
 //----------------------------------------------------------------------
