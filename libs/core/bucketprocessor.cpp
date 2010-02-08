@@ -171,7 +171,7 @@ void CqBucketProcessor::preProcess(IqSampler* sampler)
 			{
 				// Setup the offsets
 				which = ((y-originY+m_DiscreteShiftY)*stride)+x-originX+m_DiscreteShiftX;
-				CqVector2D bPos2 = CqVector2D(x, y);
+				Imath::V2f bPos2(x, y);
 				m_aieImage[which]->clear();
 				m_aieImage[which]->setSamples(sampler, bPos2);
 			}
@@ -469,9 +469,9 @@ void CqBucketProcessor::FilterBucket()
 							for ( TqInt sx = 0; sx < m_optCache.xSamps; sx++ )
 							{
 								SqSampleData const& sampleData = (*pie2)->SampleData( sampleIndex );
-								CqVector2D vecS = sampleData.position;
-								vecS -= CqVector2D( xcent, ycent );
-								if ( vecS.x() >= -xfwo2 && vecS.y() >= -yfwo2 && vecS.x() <= xfwo2 && vecS.y() <= yfwo2 )
+								Imath::V2f vecS = sampleData.position;
+								vecS -= Imath::V2f( xcent, ycent );
+								if ( vecS.x >= -xfwo2 && vecS.y >= -yfwo2 && vecS.x <= xfwo2 && vecS.y <= yfwo2 )
 								{
 									TqFloat g = m_aFilterValues[index + sampleIndex];
 									gTot += g;
@@ -527,9 +527,9 @@ void CqBucketProcessor::FilterBucket()
 						for ( sy = 0; sy < m_optCache.ySamps; sy++ )
 						{
 							SqSampleData const& sampleData = (*pie2)->SampleData( sampleIndex );
-							CqVector2D vecS = sampleData.position;
-							vecS -= CqVector2D( xcent, ycent );
-							if ( vecS.x() >= -xfwo2 && vecS.y() >= -yfwo2 && vecS.x() <= xfwo2 && vecS.y() <= yfwo2 )
+							Imath::V2f vecS = sampleData.position;
+							vecS -= Imath::V2f( xcent, ycent );
+							if ( vecS.x >= -xfwo2 && vecS.y >= -yfwo2 && vecS.x <= xfwo2 && vecS.y <= yfwo2 )
 							{
 								TqFloat g = m_aFilterValues[index + sampleIndex];
 								gTot += g;
@@ -601,9 +601,9 @@ void CqBucketProcessor::FilterBucket()
 								for (TqInt sx = 0; sx < m_optCache.xSamps; sx++ )
 								{
 									SqSampleData const& sampleData = (*pie2)->SampleData( sampleIndex );
-									CqVector2D vecS = sampleData.position;
-									vecS -= CqVector2D( xcent, ycent );
-									if ( vecS.x() >= -xfwo2 && vecS.y() >= -yfwo2 && vecS.x() <= xfwo2 && vecS.y() <= yfwo2 )
+									Imath::V2f vecS = sampleData.position;
+									vecS -= Imath::V2f( xcent, ycent );
+									if ( vecS.x >= -xfwo2 && vecS.y >= -yfwo2 && vecS.x <= xfwo2 && vecS.y <= yfwo2 )
 									{
 										TqFloat g = m_aFilterValues[index+sampleIndex];
 										gTot += g;
@@ -864,29 +864,29 @@ void CqBucketProcessor::CalculateDofBounds()
 	{
 		for(int i = 0; i < m_optCache.xSamps; ++i)
 		{
-			CqVector2D topLeft = CqImagePixel::projectToCircle(CqVector2D(minX, minY)); 
-			CqVector2D topRight = CqImagePixel::projectToCircle(CqVector2D(minX + dx, minY)); 
-			CqVector2D bottomLeft = CqImagePixel::projectToCircle(CqVector2D(minX, minY + dy)); 
-			CqVector2D bottomRight = CqImagePixel::projectToCircle(CqVector2D(minX + dx, minY + dy)); 
+			Imath::V2f topLeft = CqImagePixel::projectToCircle(Imath::V2f(minX, minY)); 
+			Imath::V2f topRight = CqImagePixel::projectToCircle(Imath::V2f(minX + dx, minY)); 
+			Imath::V2f bottomLeft = CqImagePixel::projectToCircle(Imath::V2f(minX, minY + dy)); 
+			Imath::V2f bottomRight = CqImagePixel::projectToCircle(Imath::V2f(minX + dx, minY + dy)); 
 
 			// if the bound straddles x=0 or y=0 then just using the corners
 			// will give too small a bound, so we enlarge it by including the
 			// non-projected coords.
-			if((topLeft.y() > 0.0 && bottomLeft.y() < 0.0) ||
-			        (topLeft.y() < 0.0 && bottomLeft.y() > 0.0))
+			if((topLeft.y > 0.0 && bottomLeft.y < 0.0) ||
+			        (topLeft.y < 0.0 && bottomLeft.y > 0.0))
 			{
-				topLeft.x(minX);
-				bottomLeft.x(minX);
-				topRight.x(minX + dx);
-				bottomRight.x(minX + dx);
+				topLeft.x = minX;
+				bottomLeft.x = minX;
+				topRight.x = minX + dx;
+				bottomRight.x = minX + dx;
 			}
-			if((topLeft.x() > 0.0 && topRight.x() < 0.0) ||
-			        (topLeft.x() < 0.0 && topRight.x() > 0.0))
+			if((topLeft.x > 0.0 && topRight.x < 0.0) ||
+			        (topLeft.x < 0.0 && topRight.x > 0.0))
 			{
-				topLeft.y(minY);
-				bottomLeft.y(minY + dy);
-				topRight.y(minY);
-				bottomRight.y(minY + dy);
+				topLeft.y = minY;
+				bottomLeft.y = minY + dy;
+				topRight.y = minY;
+				bottomRight.y = minY + dy;
 			}
 
 			m_DofBounds[which].vecMin() = vectorCast<CqVector3D>(topLeft);
@@ -1108,7 +1108,7 @@ void CqBucketProcessor::RenderMPG_Static( CqMicroPolygon* pMPG)
 				for ( m = start_m; m < end_m; m++, index++ )
 				{
 					SqSampleData const& sampleData = (*pie2)->SampleData( index );
-					const CqVector2D& vecP = sampleData.position;
+					const Imath::V2f& vecP = sampleData.position;
 					const TqFloat time = 0.0;
 
 					CqStats::IncI( CqStats::SPL_count );
@@ -1136,7 +1136,7 @@ void CqBucketProcessor::RenderMPG_Static( CqMicroPolygon* pMPG)
 					// Now check if the subsample hits the micropoly
 					bool SampleHit;
 					TqFloat D;
-					CqVector2D uv;
+					Imath::V2f uv;
 
 					SampleHit = pMPG->Sample( hitTestCache, sampleData, D, uv, time );
 
@@ -1243,10 +1243,10 @@ void CqBucketProcessor::RenderMPG_MBOrDof( CqMicroPolygon* pMPG, bool IsMoving, 
 		TqInt bound_maxDof = 1;
 		if(UsingDof)
 		{
-			const CqVector2D& minZCoc = QGetRenderContext()->GetCircleOfConfusion( Bound.vecMin().z() );
-			const CqVector2D& maxZCoc = QGetRenderContext()->GetCircleOfConfusion( Bound.vecMax().z() );
-			maxCocX = max( minZCoc.x(), maxZCoc.x() );
-			maxCocY = max( minZCoc.y(), maxZCoc.y() );
+			const Imath::V2f& minZCoc = QGetRenderContext()->GetCircleOfConfusion( Bound.vecMin().z() );
+			const Imath::V2f& maxZCoc = QGetRenderContext()->GetCircleOfConfusion( Bound.vecMax().z() );
+			maxCocX = max( minZCoc.x, maxZCoc.x );
+			maxCocY = max( minZCoc.y, maxZCoc.y );
 			bound_maxDof = m_NumDofBounds;
 		}
 		else
@@ -1319,7 +1319,7 @@ void CqBucketProcessor::RenderMPG_MBOrDof( CqMicroPolygon* pMPG, bool IsMoving, 
 					do
 					{
 						SqSampleData const& sampleData = (*pie2)->SampleData( index );
-						const CqVector2D& vecP = sampleData.position;
+						const Imath::V2f& vecP = sampleData.position;
 						const TqFloat time = sampleData.time;
 
 						index++;
@@ -1359,7 +1359,7 @@ void CqBucketProcessor::RenderMPG_MBOrDof( CqMicroPolygon* pMPG, bool IsMoving, 
 							// Now check if the subsample hits the micropoly
 							bool SampleHit;
 							TqFloat D;
-							CqVector2D uv;
+							Imath::V2f uv;
 
 							SampleHit = pMPG->Sample( hitTestCache, sampleData, D, uv, time, UsingDof );
 							if ( SampleHit )
@@ -1393,7 +1393,7 @@ void CqBucketProcessor::RenderMPG_MBOrDof( CqMicroPolygon* pMPG, bool IsMoving, 
 							// Now check if the subsample hits the micropoly
 							bool SampleHit;
 							TqFloat D;
-							CqVector2D uv;
+							Imath::V2f uv;
 
 							SampleHit = pMPG->Sample( hitTestCache, sampleData, D, uv, time, UsingDof );
 							if ( SampleHit )
@@ -1410,7 +1410,7 @@ void CqBucketProcessor::RenderMPG_MBOrDof( CqMicroPolygon* pMPG, bool IsMoving, 
     }
 }
 
-void CqBucketProcessor::StoreSample( CqMicroPolygon* pMPG, CqImagePixel* pie2, TqInt index, TqFloat D, const CqVector2D& uv )
+void CqBucketProcessor::StoreSample( CqMicroPolygon* pMPG, CqImagePixel* pie2, TqInt index, TqFloat D, const Imath::V2f& uv )
 {
 	bool isCullable = m_CurrentMpgSampleInfo.isCullable;
 	SqSampleData& sampleData = pie2->SampleData( index );

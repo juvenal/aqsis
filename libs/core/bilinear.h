@@ -29,7 +29,9 @@
 #define BILINEAR_H_INCLUDED 1
 
 #include	<aqsis/aqsis.h>
+#include	<ImathVec.h>
 #include	<aqsis/math/vector2d.h>
+#include	<aqsis/math/vectorcast.h>
 
 namespace Aqsis {
 
@@ -106,7 +108,7 @@ class CqInvBilinear
 		 *
 		 * \see setVertices for the vertex ordering.
 		 */
-		CqInvBilinear(CqVector2D A, CqVector2D B, CqVector2D C, CqVector2D D);
+		CqInvBilinear(Imath::V2f A, Imath::V2f B, Imath::V2f C, Imath::V2f D);
 
 		/** \brief Reset the micropolygon vertices.
 		 *
@@ -116,7 +118,7 @@ class CqInvBilinear
 		 *   |   |
 		 *   A---B
 		 */
-		void setVertices(CqVector2D A, CqVector2D B, CqVector2D C, CqVector2D D);
+		void setVertices(Imath::V2f A, Imath::V2f B, Imath::V2f C, Imath::V2f D);
 
 		/** \brief Perform the inverse bilinear mapping
 		 *
@@ -124,18 +126,18 @@ class CqInvBilinear
 		 * parameters of the bilinear patch which would map to P under the
 		 * usual bilinear interpolation scheme.
 		 */
-		CqVector2D operator()(CqVector2D P) const;
+		Imath::V2f operator()(Imath::V2f P) const;
 
 	private:
 		template<bool unsafeInvert>
-		static CqVector2D solve(CqVector2D M1, CqVector2D M2, CqVector2D b);
+		static Imath::V2f solve(Imath::V2f M1, Imath::V2f M2, Imath::V2f b);
 
-		CqVector2D bilinEval(CqVector2D uv) const;
+		Imath::V2f bilinEval(Imath::V2f uv) const;
 
-		CqVector2D m_A;
-		CqVector2D m_E;
-		CqVector2D m_F;
-		CqVector2D m_G;
+		Imath::V2f m_A;
+		Imath::V2f m_E;
+		Imath::V2f m_F;
+		Imath::V2f m_G;
 		bool m_linear;
 };
 
@@ -179,7 +181,7 @@ T BilinearEvaluate( const T& A, const T& B, const T& C, const T& D, TqFloat s, T
  * \param uv - Parametric (u,v) coordinates, should be in the interval [0,1]
  */
 template<typename T>
-inline T bilerp(T A, T B, T C, T D, CqVector2D uv);
+inline T bilerp(T A, T B, T C, T D, Imath::V2f uv);
 
 
 
@@ -226,12 +228,12 @@ inline T BilinearEvaluate( const T& A, const T& B, const T& C, const T& D, TqFlo
 
 
 template<typename T>
-inline T bilerp(T A, T B, T C, T D, CqVector2D uv)
+inline T bilerp(T A, T B, T C, T D, Imath::V2f uv)
 {
-    TqFloat w0 = (1-uv.y())*(1-uv.x());
-    TqFloat w1 = (1-uv.y())*uv.x();
-    TqFloat w2 = uv.y()*(1-uv.x());
-    TqFloat w3 = uv.y()*uv.x();
+    TqFloat w0 = (1-uv.y)*(1-uv.x);
+    TqFloat w1 = (1-uv.y)*uv.x;
+    TqFloat w2 = uv.y*(1-uv.x);
+    TqFloat w3 = uv.y*uv.x;
     return w0*A + w1*B + w2*C + w3*D;
 }
 
@@ -246,8 +248,8 @@ inline CqInvBilinear::CqInvBilinear()
 	m_linear(false)
 {}
 
-inline CqInvBilinear::CqInvBilinear(CqVector2D A, CqVector2D B,
-									CqVector2D C, CqVector2D D)
+inline CqInvBilinear::CqInvBilinear(Imath::V2f A, Imath::V2f B,
+									Imath::V2f C, Imath::V2f D)
 	: m_A(),
 	m_E(),
 	m_F(),
@@ -257,10 +259,10 @@ inline CqInvBilinear::CqInvBilinear(CqVector2D A, CqVector2D B,
 	setVertices(A,B,C,D);
 }
 
-inline void CqInvBilinear::setVertices(CqVector2D A, CqVector2D B,
-									   CqVector2D C, CqVector2D D)
+inline void CqInvBilinear::setVertices(Imath::V2f A, Imath::V2f B,
+									   Imath::V2f C, Imath::V2f D)
 {
-	m_A = A,
+	m_A = A;
 	m_E = B-A;
 	m_F = C-A;
 	m_G = -m_E-C+D;
@@ -274,17 +276,17 @@ inline void CqInvBilinear::setVertices(CqVector2D A, CqVector2D B,
 		m_linear = true;
 }
 
-inline CqVector2D CqInvBilinear::operator()(CqVector2D P) const
+inline Imath::V2f CqInvBilinear::operator()(Imath::V2f P) const
 {
 	// Start at centre of the micropoly & do one or two iterations of Newton's
 	// method to solve for (u,v).
-	CqVector2D uv(0.5, 0.5);
-	uv -= solve<true>(m_E + m_G*uv.y(), m_F + m_G*uv.x(), bilinEval(uv)-P);
+	Imath::V2f uv(0.5, 0.5);
+	uv -= solve<true>(m_E + m_G*uv.y, m_F + m_G*uv.x, bilinEval(uv)-P);
 	if(!m_linear)
 	{
 		// The second iteration is only used if we know that the micropolygon
 		// is non-rectangular.
-		uv -= solve<false>(m_E + m_G*uv.y(), m_F + m_G*uv.x(), bilinEval(uv)-P);
+		uv -= solve<false>(m_E + m_G*uv.y, m_F + m_G*uv.x, bilinEval(uv)-P);
 	}
 	return uv;
 }
@@ -296,17 +298,17 @@ inline CqVector2D CqInvBilinear::operator()(CqVector2D P) const
  * vector.
  */
 template<bool unsafeInvert>
-inline CqVector2D CqInvBilinear::solve(CqVector2D M1, CqVector2D M2,
-											  CqVector2D b)
+inline Imath::V2f CqInvBilinear::solve(Imath::V2f M1, Imath::V2f M2,
+											  Imath::V2f b)
 {
-	TqFloat det = cross(M1, M2);
+	TqFloat det = M1.cross(M2);
 	if(unsafeInvert || det != 0) det = 1/det;
-	return det * CqVector2D(cross(b, M2), -cross(b, M1));
+	return det * Imath::V2f(b.cross(M2), -b.cross(M1));
 }
 /// Evaluate the bilinear function at the coordinates (u,v)
-inline CqVector2D CqInvBilinear::bilinEval(CqVector2D uv) const
+inline Imath::V2f CqInvBilinear::bilinEval(Imath::V2f uv) const
 {
-	return m_A + m_E*uv.x() + m_F*uv.y() + m_G*uv.x()*uv.y();
+	return m_A + m_E*uv.x + m_F*uv.y + m_G*uv.x*uv.y;
 }
 
 

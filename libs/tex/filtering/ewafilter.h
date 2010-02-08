@@ -66,7 +66,7 @@ class CqEwaFilter
 		 * \param filterCenter - the filter is centered on this point.
 		 * \param logEdgeWeight - log of the filter weight at the edge cutoff.
 		 */
-		CqEwaFilter(SqMatrix2D quadForm, CqVector2D filterCenter,
+		CqEwaFilter(SqMatrix2D quadForm, Imath::V2f filterCenter,
 				TqFloat logEdgeWeight);
 
 		/// EWA filters are never pre-noramlized; return false.
@@ -89,7 +89,7 @@ class CqEwaFilter
 		/// Quadratic form matrix
 		const SqMatrix2D m_quadForm;
 		/// Center point of the gaussian filter function
-		const CqVector2D m_filterCenter;
+		const Imath::V2f m_filterCenter;
 		/// The log of the filter weight at the filter edge cutoff.
 		const TqFloat m_logEdgeWeight;
 };
@@ -244,7 +244,7 @@ class CqEwaFilterFactory
 		/// Quadratic form matrix
 		SqMatrix2D m_quadForm;
 		/// Center point of the gaussian filter function
-		CqVector2D m_filterCenter;
+		Imath::V2f m_filterCenter;
 		/// The log of the filter weight at the filter edge cutoff.
 		TqFloat m_logEdgeWeight;
 		/// Width of the semi-minor axis of the elliptical filter
@@ -279,8 +279,8 @@ inline CqEwaFilterFactory::CqEwaFilterFactory(const SqSampleQuad& sQuad,
 	// Scale the filterCenter up to the dimensions of the base texture, and
 	// adjust by -0.5 in both directions such that the base texture is
 	// *centered* on the unit square.
-	m_filterCenter.x(m_filterCenter.x()*baseResS - 0.5);
-	m_filterCenter.y(m_filterCenter.y()*baseResT - 0.5);
+	m_filterCenter.x = m_filterCenter.x * baseResS - 0.5;
+	m_filterCenter.y = m_filterCenter.y * baseResT - 0.5;
 	// compute and cache the filter
 	computeFilter(SqSamplePllgram(sQuad), baseResS, baseResT, ewaBlurMatrix(sBlur, tBlur),
 			maxAspectRatio);
@@ -299,8 +299,8 @@ inline CqEwaFilterFactory::CqEwaFilterFactory(
 	// Scale the filterCenter up to the dimensions of the base texture, and
 	// adjust by -0.5 in both directions such that the base texture is
 	// *centered* on the unit square.
-	m_filterCenter.x(m_filterCenter.x()*baseResS - 0.5);
-	m_filterCenter.y(m_filterCenter.y()*baseResT - 0.5);
+	m_filterCenter.x = m_filterCenter.x*baseResS - 0.5;
+	m_filterCenter.y = m_filterCenter.y*baseResT - 0.5;
 	// compute and cache the filter
 	computeFilter(samplePllgram, baseResS, baseResT, blurVariance, maxAspectRatio);
 }
@@ -338,8 +338,8 @@ inline CqEwaFilter CqEwaFilterFactory::createFilter(TqFloat xScale, TqFloat xOff
 	return CqEwaFilter(
 			SqMatrix2D(invXs*invXs*m_quadForm.a, invXs*invYs*m_quadForm.b,
 				invXs*invYs*m_quadForm.c, invYs*invYs*m_quadForm.d),
-			CqVector2D(xScale*(m_filterCenter.x() + xOff),
-				yScale*(m_filterCenter.y() + yOff)),
+			Imath::V2f(xScale*(m_filterCenter.x + xOff),
+				yScale*(m_filterCenter.y + yOff)),
 			m_logEdgeWeight);
 }
 
@@ -407,7 +407,7 @@ extern CqNegExpTable negExpTable;
 
 //------------------------------------------------------------------------------
 // CqEwaFilter implementation
-inline CqEwaFilter::CqEwaFilter(SqMatrix2D quadForm, CqVector2D filterCenter,
+inline CqEwaFilter::CqEwaFilter(SqMatrix2D quadForm, Imath::V2f filterCenter,
 		TqFloat logEdgeWeight)
 	: m_quadForm(quadForm),
 	m_filterCenter(filterCenter),
@@ -416,8 +416,8 @@ inline CqEwaFilter::CqEwaFilter(SqMatrix2D quadForm, CqVector2D filterCenter,
 
 inline TqFloat CqEwaFilter::operator()(TqFloat x, TqFloat y) const
 {
-	x -= m_filterCenter.x();
-	y -= m_filterCenter.y();
+	x -= m_filterCenter.x;
+	y -= m_filterCenter.y;
 	// evaluate quadratic form
 	TqFloat q = m_quadForm.a*x*x + (m_quadForm.b+m_quadForm.c)*x*y
 		+ m_quadForm.d*y*y;
@@ -437,10 +437,10 @@ inline SqFilterSupport CqEwaFilter::support() const
 	TqFloat sRad = std::sqrt(m_quadForm.d*m_logEdgeWeight/detQ);
 	TqFloat tRad = std::sqrt(m_quadForm.a*m_logEdgeWeight/detQ);
 	return SqFilterSupport(
-			lceil(m_filterCenter.x()-sRad),     // startX
-			lfloor(m_filterCenter.x()+sRad)+1,  // endX
-			lceil(m_filterCenter.y()-tRad),     // startY
-			lfloor(m_filterCenter.y()+tRad)+1   // endY
+			lceil(m_filterCenter.x-sRad),     // startX
+			lfloor(m_filterCenter.x+sRad)+1,  // endX
+			lceil(m_filterCenter.y-tRad),     // startY
+			lfloor(m_filterCenter.y+tRad)+1   // endY
 		);
 }
 

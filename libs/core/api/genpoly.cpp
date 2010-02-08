@@ -26,6 +26,8 @@
 #include	<aqsis/aqsis.h>
 #include	"genpoly.h"
 #include	<aqsis/math/math.h>
+#include	<ImathVec.h>
+#include	<aqsis/math/vectorcast.h>
 
 namespace Aqsis {
 
@@ -120,13 +122,13 @@ TqInt CqPolygonGeneral2D::CalcOrientation()
 	// if it is negative the polygon is clockwise.
 	TqInt vertices1 = cVertices() - 1;
 
-	TqFloat	Area = ( *this ) [ vertices1 ].x() * ( *this ) [ 0 ].y() -
-	               ( *this ) [ 0 ].x() * ( *this ) [ vertices1 ].y();
+	TqFloat	Area = ( *this ) [ vertices1 ].x * ( *this ) [ 0 ].y -
+	               ( *this ) [ 0 ].x * ( *this ) [ vertices1 ].y;
 
 
 	for ( TqInt iVertex = 0; iVertex < vertices1; iVertex++ )
-		Area += ( *this ) [ iVertex ].x() * ( *this ) [ iVertex + 1 ].y() -
-		        ( *this ) [ iVertex + 1 ].x() * ( *this ) [ iVertex ].y();
+		Area += ( *this ) [ iVertex ].x * ( *this ) [ iVertex + 1 ].y -
+		        ( *this ) [ iVertex + 1 ].x * ( *this ) [ iVertex ].y;
 
 	if ( Area >= 0.0 )
 		m_Orientation = Orientation_AntiClockwise;
@@ -149,10 +151,10 @@ TqInt CqPolygonGeneral2D::CalcDeterminant( TqInt i1, TqInt i2, TqInt i3 ) const
 	assert( i3 >= 0 && i3 <= cVertices() );
 
 	// TODO: Look up what a determinant is and therefore, why this works.
-	TqFloat	Determ = ( ( *this ) [ i2 ].x() - ( *this ) [ i1 ].x() )
-	                 * ( ( *this ) [ i3 ].y() - ( *this ) [ i1 ].y() )
-	                 - ( ( *this ) [ i3 ].x() - ( *this ) [ i1 ].x() )
-	                 * ( ( *this ) [ i2 ].y() - ( *this ) [ i1 ].y() );
+	TqFloat	Determ = ( ( *this ) [ i2 ].x - ( *this ) [ i1 ].x )
+	                 * ( ( *this ) [ i3 ].y - ( *this ) [ i1 ].y )
+	                 - ( ( *this ) [ i3 ].x - ( *this ) [ i1 ].x )
+	                 * ( ( *this ) [ i2 ].y - ( *this ) [ i1 ].y );
 
 	if ( Determ > 0.0 )
 		return ( Orientation_AntiClockwise );
@@ -239,19 +241,19 @@ bool CqPolygonGeneral2D::Contains( CqPolygonGeneral2D& polyCheck )
 	for ( TqInt iVertex = 0; iVertex < vertices; iVertex++ )
 	{
 		TqInt	c = 0;
-		TqFloat	x = polyCheck[ iVertex ].x();
-		TqFloat	y = polyCheck[ iVertex ].y();
+		TqFloat	x = polyCheck[ iVertex ].x;
+		TqFloat	y = polyCheck[ iVertex ].y;
 
 		// Check if this vertex is inside this polygon.
 		TqInt	i, j;
 		for ( i = 0, j = vertices - 1; i < vertices; j = i++ )
 		{
 			// Check if this edge spans the vertex in y
-			if ( ( ( ( ( *this ) [ i ].y() <= y ) && ( y < ( *this ) [ j ].y() ) ) ||
-			        ( ( ( *this ) [ j ].y() <= y ) && ( y < ( *this ) [ i ].y() ) ) ) &&
+			if ( ( ( ( ( *this ) [ i ].y <= y ) && ( y < ( *this ) [ j ].y ) ) ||
+			        ( ( ( *this ) [ j ].y <= y ) && ( y < ( *this ) [ i ].y ) ) ) &&
 			        // and if so, check the position of the vertex in relation to the edge.
-			        ( x < ( ( *this ) [ j ].x() - ( *this ) [ i ].x() ) * ( y - ( *this ) [ i ].y() ) /
-			          ( ( *this ) [ j ].y() - ( *this ) [ i ].y() ) + ( *this ) [ i ].x() ) )
+			        ( x < ( ( *this ) [ j ].x - ( *this ) [ i ].x ) * ( y - ( *this ) [ i ].y ) /
+			          ( ( *this ) [ j ].y - ( *this ) [ i ].y ) + ( *this ) [ i ].x ) )
 				c = !c;
 		}
 		// If this point is outside, then the polygon cannot be entirely inside.
@@ -273,7 +275,7 @@ void CqPolygonGeneral2D::Combine( CqPolygonGeneral2D& polyFrom )
 	// Go through and find the two points on the polygons
 	// which are closest together.
 
-	CqVector2D	currToPrev, currToNext, minToPrev, minToNext;
+	Imath::V2f	currToPrev, currToNext, minToPrev, minToNext;
 	TqInt	iMinThis = 0;
 	TqInt	iMinThat = 0;
 	TqFloat	CurrDist;
@@ -288,8 +290,8 @@ void CqPolygonGeneral2D::Combine( CqPolygonGeneral2D& polyFrom )
 
 		for ( j = 0; j < polyvertices; j++ )
 		{
-			CqVector2D	vecTemp( ( *this ) [ i ] - polyFrom[ j ] );
-			CurrDist = static_cast<TqFloat>( sqrt( vecTemp * vecTemp ) );
+			Imath::V2f	vecTemp( ( *this ) [ i ] - polyFrom[ j ] );
+			CurrDist = static_cast<TqFloat>( sqrt( vecTemp.dot(vecTemp) ) );
 
 			if ( CurrDist == MinDist )
 			{
@@ -303,21 +305,21 @@ void CqPolygonGeneral2D::Combine( CqPolygonGeneral2D& polyFrom )
 				minToNext = ( iMinThis < cVertices() - 1 ) ? ( *this ) [ iMinThis + 1 ] - ( *this ) [ iMinThis ] :
 				            ( *this ) [ 0 ] - ( *this ) [ iMinThis ];
 
-				CqVector2D	vecTest = polyFrom[ j ] - ( *this ) [ i ];
+				Imath::V2f	vecTest = polyFrom[ j ] - ( *this ) [ i ];
 
-				currToPrev.Unit();
-				currToNext.Unit();
-				minToPrev.Unit();
-				minToNext.Unit();
+				currToPrev.normalize();
+				currToNext.normalize();
+				minToPrev.normalize();
+				minToNext.normalize();
 
 				vecTemp = currToPrev - vecTest;
-				TqFloat	distCP = static_cast<TqFloat>( sqrt( vecTemp * vecTemp ) );
+				TqFloat	distCP = static_cast<TqFloat>( sqrt( vecTemp.dot(vecTemp) ) );
 				vecTemp = currToNext - vecTest;
-				TqFloat	distCN = static_cast<TqFloat>( sqrt( vecTemp * vecTemp ) );
+				TqFloat	distCN = static_cast<TqFloat>( sqrt( vecTemp.dot(vecTemp) ) );
 				vecTemp = minToPrev - vecTest;
-				TqFloat	distMP = static_cast<TqFloat>( sqrt( vecTemp * vecTemp ) );
+				TqFloat	distMP = static_cast<TqFloat>( sqrt( vecTemp.dot(vecTemp) ) );
 				vecTemp = minToNext - vecTest;
-				TqFloat	distMN = static_cast<TqFloat>( sqrt( vecTemp * vecTemp ) );
+				TqFloat	distMN = static_cast<TqFloat>( sqrt( vecTemp.dot(vecTemp) ) );
 
 				if ( ( distCP + distCN ) < ( distMP + distMN ) )
 				{

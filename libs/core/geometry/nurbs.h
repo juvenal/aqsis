@@ -347,11 +347,11 @@ class CqSurfaceNURBS : public CqSurface
 		{
 			return ( true );
 		}
-		virtual const bool bIsPointTrimmed( const CqVector2D& p ) const
+		virtual const bool bIsPointTrimmed( const Imath::V2f& p ) const
 		{
 			return ( m_TrimLoops.TrimPoint( p ) );
 		}
-		virtual const bool bIsLineIntersecting( const CqVector2D& v1, const CqVector2D& v2 ) const
+		virtual const bool bIsLineIntersecting( const Imath::V2f& v1, const Imath::V2f& v2 ) const
 		{
 			return ( m_TrimLoops.LineIntersects( v1, v2 ) );
 		}

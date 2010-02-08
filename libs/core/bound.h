@@ -35,6 +35,8 @@
 #include <aqsis/math/matrix.h>
 #include "plane.h"
 #include <aqsis/math/vector2d.h>
+#include <aqsis/math/vectorcast.h>
+#include <ImathVec.h>
 
 namespace Aqsis {
 
@@ -122,7 +124,7 @@ class CqBound
 		void		Transform( const CqMatrix&	matTransform );
 		void		Encapsulate( const CqBound* const bound );
 		void		Encapsulate( const CqVector3D& v );
-		void		Encapsulate( const CqVector2D& v );
+		void		Encapsulate( const Imath::V2f& v );
 
 		bool	Contains2D( const CqBound* const b ) const
 		{
@@ -141,19 +143,19 @@ class CqBound
 			else
 				return ( false );
 		}
-		bool	Contains2D( const CqVector2D& v ) const
+		bool	Contains2D( const Imath::V2f& v ) const
 		{
-			if ( ( v.x() < m_vecMin.x() || v.x() > m_vecMax.x() ) ||
-			        ( v.y() < m_vecMin.y() || v.y() > m_vecMax.y() ) )
+			if ( ( v.x < m_vecMin.x() || v.x > m_vecMax.x() ) ||
+			     ( v.y < m_vecMin.y() || v.y > m_vecMax.y() ) )
 				return ( false );
 			else
 				return ( true );
 		}
 
-		bool	Intersects( const CqVector2D& min, const CqVector2D& max ) const
+		bool	Intersects( const Imath::V2f& min, const Imath::V2f& max ) const
 		{
-			if( min.x() > m_vecMax.x() || min.y() > m_vecMax.y() ||
-			        max.x() < m_vecMin.x() || max.y() < m_vecMin.y() )
+			if( min.x > m_vecMax.x() || min.y > m_vecMax.y() ||
+			    max.x < m_vecMin.x() || max.y < m_vecMin.y() )
 				return ( false );
 			else
 				return ( true );

@@ -310,37 +310,37 @@ bool	CqSurfacePatchBicubic::Diceable()
 	QGetRenderContext() ->matSpaceToSpace( "camera", "raster", NULL, NULL, QGetRenderContext()->Time(), matCtoR );
 
 	// Convert the control hull to raster space.
-	CqVector2D	avecHull[ 16 ];
+	Imath::V2f	avecHull[ 16 ];
 
 	for (TqInt i = 0; i < 16; i++ )
-		avecHull[i] = vectorCast<CqVector2D>(matCtoR * P()->pValue(i)[0]);
+		avecHull[i] = vectorCast<Imath::V2f>(matCtoR * P()->pValue(i)[0]);
 
 	TqFloat uLen = 0;
 	TqFloat vLen = 0;
 
 	for (TqInt u = 0; u < 16; u += 4 )
 	{
-		CqVector2D	Vec1 = avecHull[ u + 1 ] - avecHull[ u ];
-		CqVector2D	Vec2 = avecHull[ u + 2 ] - avecHull[ u + 1 ];
-		CqVector2D	Vec3 = avecHull[ u + 3 ] - avecHull[ u + 2 ];
-		if ( Vec1.Magnitude2() > uLen )
-			uLen = Vec1.Magnitude2();
-		if ( Vec2.Magnitude2() > uLen )
-			uLen = Vec2.Magnitude2();
-		if ( Vec3.Magnitude2() > uLen )
-			uLen = Vec3.Magnitude2();
+		Imath::V2f	Vec1 = avecHull[ u + 1 ] - avecHull[ u ];
+		Imath::V2f	Vec2 = avecHull[ u + 2 ] - avecHull[ u + 1 ];
+		Imath::V2f	Vec3 = avecHull[ u + 3 ] - avecHull[ u + 2 ];
+		if ( Vec1.length2() > uLen )
+			uLen = Vec1.length2();
+		if ( Vec2.length2() > uLen )
+			uLen = Vec2.length2();
+		if ( Vec3.length2() > uLen )
+			uLen = Vec3.length2();
 	}
 	for (TqInt v = 0; v < 4; v++ )
 	{
-		CqVector2D	Vec1 = avecHull[ v + 4 ] - avecHull[ v ];
-		CqVector2D	Vec2 = avecHull[ v + 8 ] - avecHull[ v + 4 ];
-		CqVector2D	Vec3 = avecHull[ v + 12 ] - avecHull[ v + 8 ];
-		if ( Vec1.Magnitude2() > vLen )
-			vLen = Vec1.Magnitude2();
-		if ( Vec2.Magnitude2() > vLen )
-			vLen = Vec2.Magnitude2();
-		if ( Vec3.Magnitude2() > vLen )
-			vLen = Vec3.Magnitude2();
+		Imath::V2f	Vec1 = avecHull[ v + 4 ] - avecHull[ v ];
+		Imath::V2f	Vec2 = avecHull[ v + 8 ] - avecHull[ v + 4 ];
+		Imath::V2f	Vec3 = avecHull[ v + 12 ] - avecHull[ v + 8 ];
+		if ( Vec1.length2() > vLen )
+			vLen = Vec1.length2();
+		if ( Vec2.length2() > vLen )
+			vLen = Vec2.length2();
+		if ( Vec3.length2() > vLen )
+			vLen = Vec3.length2();
 	}
 
 	TqFloat shadingRate = AdjustedShadingRate();
@@ -684,22 +684,22 @@ bool	CqSurfacePatchBilinear::Diceable()
 	QGetRenderContext() ->matSpaceToSpace( "camera", "raster", NULL, NULL, QGetRenderContext()->Time(), matCtoR );
 
 	// Convert the control hull to raster space.
-	CqVector2D	avecHull[ 4 ];
+	Imath::V2f	avecHull[ 4 ];
 	TqInt i;
 
 	for ( i = 0; i < 4; i++ )
-		avecHull[i] = vectorCast<CqVector2D>(matCtoR * P()->pValue(i)[0]);
+		avecHull[i] = vectorCast<Imath::V2f>(matCtoR * P()->pValue(i)[0]);
 
 	TqFloat uLen = 0;
 	TqFloat vLen = 0;
 
-	CqVector2D	Vec1 = avecHull[ 1 ] - avecHull[ 0 ];
-	CqVector2D	Vec2 = avecHull[ 3 ] - avecHull[ 2 ];
-	uLen = ( Vec1.Magnitude2() > Vec2.Magnitude2() ) ? Vec1.Magnitude2() : Vec2.Magnitude2();
+	Imath::V2f	Vec1 = avecHull[ 1 ] - avecHull[ 0 ];
+	Imath::V2f	Vec2 = avecHull[ 3 ] - avecHull[ 2 ];
+	uLen = ( Vec1.length2() > Vec2.length2() ) ? Vec1.length2() : Vec2.length2();
 
 	Vec1 = avecHull[ 2 ] - avecHull[ 0 ];
 	Vec2 = avecHull[ 3 ] - avecHull[ 1 ];
-	vLen = ( Vec1.Magnitude2() > Vec2.Magnitude2() ) ? Vec1.Magnitude2() : Vec2.Magnitude2();
+	vLen = ( Vec1.length2() > Vec2.length2() ) ? Vec1.length2() : Vec2.length2();
 
 	TqFloat shadingRate = AdjustedShadingRate();
 	uLen = sqrt(uLen/shadingRate);
@@ -924,10 +924,10 @@ TqInt CqSurfacePatchMeshBicubic::Split( std::vector<boost::shared_ptr<CqSurface>
 	TqInt MyUses = Uses();
 
 	const TqFloat* pTC = pAttributes() ->GetFloatAttribute( "System", "TextureCoordinates" );
-	CqVector2D st1( pTC[ 0 ], pTC[ 1 ] );
-	CqVector2D st2( pTC[ 2 ], pTC[ 3 ] );
-	CqVector2D st3( pTC[ 4 ], pTC[ 5 ] );
-	CqVector2D st4( pTC[ 6 ], pTC[ 7 ] );
+	Imath::V2f st1( pTC[ 0 ], pTC[ 1 ] );
+	Imath::V2f st2( pTC[ 2 ], pTC[ 3 ] );
+	Imath::V2f st3( pTC[ 4 ], pTC[ 5 ] );
+	Imath::V2f st4( pTC[ 6 ], pTC[ 7 ] );
 
 	// Fill in the variables.
 	TqInt i;
@@ -1034,20 +1034,20 @@ TqInt CqSurfacePatchMeshBicubic::Split( std::vector<boost::shared_ptr<CqSurface>
 			{
 				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s" ) );
 				pSurface->s() ->SetSize( 4 );
-				pSurface->s() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u0, v0 );
-				pSurface->s() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u1, v0 );
-				pSurface->s() ->pValue( 2 ) [ 0 ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u0, v1 );
-				pSurface->s() ->pValue( 3 ) [ 0 ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u1, v1 );
+				pSurface->s() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( st1.x, st2.x, st3.x, st4.x, u0, v0 );
+				pSurface->s() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( st1.x, st2.x, st3.x, st4.x, u1, v0 );
+				pSurface->s() ->pValue( 2 ) [ 0 ] = BilinearEvaluate( st1.x, st2.x, st3.x, st4.x, u0, v1 );
+				pSurface->s() ->pValue( 3 ) [ 0 ] = BilinearEvaluate( st1.x, st2.x, st3.x, st4.x, u1, v1 );
 			}
 
 			if ( USES( MyUses, EnvVars_t ) && !bHasVar(EnvVars_t) )
 			{
 				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t" ) );
 				pSurface->t() ->SetSize( 4 );
-				pSurface->t() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u0, v0 );
-				pSurface->t() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u1, v0 );
-				pSurface->t() ->pValue( 2 ) [ 0 ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u0, v1 );
-				pSurface->t() ->pValue( 3 ) [ 0 ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u1, v1 );
+				pSurface->t() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( st1.y, st2.y, st3.y, st4.y, u0, v0 );
+				pSurface->t() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( st1.y, st2.y, st3.y, st4.y, u1, v0 );
+				pSurface->t() ->pValue( 2 ) [ 0 ] = BilinearEvaluate( st1.y, st2.y, st3.y, st4.y, u0, v1 );
+				pSurface->t() ->pValue( 3 ) [ 0 ] = BilinearEvaluate( st1.y, st2.y, st3.y, st4.y, u1, v1 );
 			}
 
 			aSplits.push_back( pSurface );
@@ -1149,10 +1149,10 @@ TqInt CqSurfacePatchMeshBilinear::Split( std::vector<boost::shared_ptr<CqSurface
 	TqInt MyUses = Uses();
 
 	const TqFloat* pTC = pAttributes() ->GetFloatAttribute( "System", "TextureCoordinates" );
-	CqVector2D st1( pTC[ 0 ], pTC[ 1 ] );
-	CqVector2D st2( pTC[ 2 ], pTC[ 3 ] );
-	CqVector2D st3( pTC[ 4 ], pTC[ 5 ] );
-	CqVector2D st4( pTC[ 6 ], pTC[ 7 ] );
+	Imath::V2f st1( pTC[ 0 ], pTC[ 1 ] );
+	Imath::V2f st2( pTC[ 2 ], pTC[ 3 ] );
+	Imath::V2f st3( pTC[ 4 ], pTC[ 5 ] );
+	Imath::V2f st4( pTC[ 6 ], pTC[ 7 ] );
 
 	TqInt i;
 	for ( i = 0; i < m_vPatches; i++ )
@@ -1252,20 +1252,20 @@ TqInt CqSurfacePatchMeshBilinear::Split( std::vector<boost::shared_ptr<CqSurface
 			{
 				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s" ) );
 				pSurface->s() ->SetSize( 4 );
-				pSurface->s() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u0, v0 );
-				pSurface->s() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u1, v0 );
-				pSurface->s() ->pValue( 2 ) [ 0 ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u0, v1 );
-				pSurface->s() ->pValue( 3 ) [ 0 ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u1, v1 );
+				pSurface->s() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( st1.x, st2.x, st3.x, st4.x, u0, v0 );
+				pSurface->s() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( st1.x, st2.x, st3.x, st4.x, u1, v0 );
+				pSurface->s() ->pValue( 2 ) [ 0 ] = BilinearEvaluate( st1.x, st2.x, st3.x, st4.x, u0, v1 );
+				pSurface->s() ->pValue( 3 ) [ 0 ] = BilinearEvaluate( st1.x, st2.x, st3.x, st4.x, u1, v1 );
 			}
 
 			if ( USES( MyUses, EnvVars_t ) && !bHasVar(EnvVars_t) )
 			{
 				pSurface->AddPrimitiveVariable( new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t" ) );
 				pSurface->t() ->SetSize( 4 );
-				pSurface->t() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u0, v0 );
-				pSurface->t() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u1, v0 );
-				pSurface->t() ->pValue( 2 ) [ 0 ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u0, v1 );
-				pSurface->t() ->pValue( 3 ) [ 0 ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u1, v1 );
+				pSurface->t() ->pValue( 0 ) [ 0 ] = BilinearEvaluate( st1.y, st2.y, st3.y, st4.y, u0, v0 );
+				pSurface->t() ->pValue( 1 ) [ 0 ] = BilinearEvaluate( st1.y, st2.y, st3.y, st4.y, u1, v0 );
+				pSurface->t() ->pValue( 2 ) [ 0 ] = BilinearEvaluate( st1.y, st2.y, st3.y, st4.y, u0, v1 );
+				pSurface->t() ->pValue( 3 ) [ 0 ] = BilinearEvaluate( st1.y, st2.y, st3.y, st4.y, u1, v1 );
 			}
 
 			aSplits.push_back( pSurface );

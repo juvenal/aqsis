@@ -106,7 +106,7 @@ inline SqSamplePllgram directionToLatLong(const Sq3DSamplePllgram& region,
 	if(R2 != 0)
 		theta = std::acos(R.z()/RLen)*(1.0/M_PI);
 	// (s,t) coordinates of parallelogram center
-	CqVector2D st(phi, theta);
+	Imath::V2f st(phi, theta);
 
 	// Next compute the coefficients of the tangent map.  That is, the
 	// coefficients of the linear function which take the sides of the 3D
@@ -140,11 +140,11 @@ inline SqSamplePllgram directionToLatLong(const Sq3DSamplePllgram& region,
 	sBlur *= RLen / (RxyLen + 0.0001);
 
 	// Apply the tangent map to the parallelogram sides
-	CqVector2D side1(
+	Imath::V2f side1(
 		tMap11*region.s1.x() + tMap12*region.s1.y(),
 		tMap21*region.s1.x() + tMap22*region.s1.y() + tMap23*region.s1.z()
 	);
-	CqVector2D side2(
+	Imath::V2f side2(
 		tMap11*region.s2.x() + tMap12*region.s2.y(),
 		tMap21*region.s2.x() + tMap22*region.s2.y() + tMap23*region.s2.z()
 	);

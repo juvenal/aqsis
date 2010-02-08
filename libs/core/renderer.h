@@ -389,19 +389,19 @@ class CqRenderer : public IqRenderer
 		 */
 		void SetDepthOfFieldScale( TqFloat x, TqFloat y )
 		{
-			m_DepthOfFieldScale.x( x );
-			m_DepthOfFieldScale.y( y );
+			m_DepthOfFieldScale.x = x;
+			m_DepthOfFieldScale.y = y;
 		}
 
 		/** Get the circle of confusion at the specified depth
 		 * \param depth The depth in camera space
 		 * \return A 2d vector with the radius of the coc in raster space along x and y.
 		 */
-		const CqVector2D GetCircleOfConfusion( TqFloat depth ) const
+		const Imath::V2f GetCircleOfConfusion( TqFloat depth ) const
 		{
 			assert(m_UsingDepthOfField);
 			TqFloat c = m_DofMultiplier * fabs(1.0f / depth - m_OneOverFocalDistance);
-			return CqVector2D(m_DepthOfFieldScale * c);
+			return Imath::V2f(m_DepthOfFieldScale * c);
 		}
 
 		/** \brief Return minimum circle of confusion radius for objects inside a bound
@@ -598,7 +598,7 @@ class CqRenderer : public IqRenderer
 		TqFloat			m_DofMultiplier;
 		TqFloat			m_OneOverFocalDistance;
 		bool			m_UsingDepthOfField;
-		CqVector2D		m_DepthOfFieldScale;
+		Imath::V2f		m_DepthOfFieldScale;
 
 		bool WhichMatWorldTo(CqMatrix &a, TqUlong thash);
 		bool WhichMatToWorld(CqMatrix &b, TqUlong thash);

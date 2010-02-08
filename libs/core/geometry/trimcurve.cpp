@@ -76,7 +76,7 @@ void CqTrimCurve::BasisFunctions( TqFloat u, TqUint span, std::vector<TqFloat>& 
 /** Evaluate the nurbs curve at parameter value u.
  */
 
-CqVector2D	CqTrimCurve::Evaluate( TqFloat u )
+Imath::V2f	CqTrimCurve::Evaluate( TqFloat u )
 {
 	std::vector<TqFloat> basis( m_Order );
 
@@ -102,7 +102,7 @@ CqVector2D	CqTrimCurve::Evaluate( TqFloat u )
 		r.z( r.z() + cp.z() * tmp );
 	}
 
-	return ( CqVector2D( r.x() / r.z(), r.y() / r.z() ) );
+	return ( Imath::V2f( r.x() / r.z(), r.y() / r.z() ) );
 }
 
 
@@ -125,7 +125,7 @@ void CqTrimLoop::Prepare( CqSurface* pSurface )
 
 		for ( iPoint = 0; iPoint < cPoints; iPoint++ )
 		{
-			// CqVector2D v(iCurve->Evaluate(u));
+			// Imath::V2f v(iCurve->Evaluate(u));
 			// std::cout << v.x() << "," << v.y() << std::endl;
 			m_aCurvePoints.push_back( iCurve->Evaluate( u ) );
 			u += du;
@@ -142,19 +142,19 @@ void CqTrimLoop::Prepare( CqSurface* pSurface )
 	See http://www.alienryderflex.com/polygon/
  */
 
-const TqInt	CqTrimLoop::TrimPoint( const CqVector2D& v ) const
+const TqInt	CqTrimLoop::TrimPoint( const Imath::V2f& v ) const
 {
-	TqFloat x = v.x();
-	TqFloat y = v.y();
+	TqFloat x = v.x;
+	TqFloat y = v.y;
 	TqInt i, j;
 	bool oddNodes = false;
 	TqInt size = m_aCurvePoints.size();
 	for ( i = 0, j = size - 1; i < size; j = i++ )
 	{
-		TqFloat ax = m_aCurvePoints[ i ].x();
-		TqFloat ay = m_aCurvePoints[ i ].y();
-		TqFloat bx = m_aCurvePoints[ j ].x();
-		TqFloat by = m_aCurvePoints[ j ].y();
+		TqFloat ax = m_aCurvePoints[ i ].x;
+		TqFloat ay = m_aCurvePoints[ i ].y;
+		TqFloat bx = m_aCurvePoints[ j ].x;
+		TqFloat by = m_aCurvePoints[ j ].y;
 		// Does this line segment span the point in y?
 		if ( ( ( ( ay < y ) && ( by >= y ) ) ||
 		        ( ( by < y ) && ( ay >= y ) ) ) )
@@ -169,21 +169,21 @@ const TqInt	CqTrimLoop::TrimPoint( const CqVector2D& v ) const
 }
 
 
-const bool CqTrimLoop::LineIntersects(const CqVector2D& v1, const CqVector2D& v2) const
+const bool CqTrimLoop::LineIntersects(const Imath::V2f& v1, const Imath::V2f& v2) const
 {
-	TqFloat x1 = v1.x();
-	TqFloat y1 = v1.y();
-	TqFloat x2 = v2.x();
-	TqFloat y2 = v2.y();
+	TqFloat x1 = v1.x;
+	TqFloat y1 = v1.y;
+	TqFloat x2 = v2.x;
+	TqFloat y2 = v2.y;
 
 	TqInt i, j;
 	TqInt size = m_aCurvePoints.size();
 	for ( i = 0, j = size - 1; i < size; j = i++ )
 	{
-		TqFloat x3 = m_aCurvePoints[ i ].x();
-		TqFloat y3 = m_aCurvePoints[ i ].y();
-		TqFloat x4 = m_aCurvePoints[ j ].x();
-		TqFloat y4 = m_aCurvePoints[ j ].y();
+		TqFloat x3 = m_aCurvePoints[ i ].x;
+		TqFloat y3 = m_aCurvePoints[ i ].y;
+		TqFloat x4 = m_aCurvePoints[ j ].x;
+		TqFloat y4 = m_aCurvePoints[ j ].y;
 
 		TqFloat d = (x2-x1)*(y4-y3) - (y2-y1)*(x4-x3);
 		if(d == 0.0f)
@@ -208,7 +208,7 @@ void CqTrimLoopArray::Prepare( CqSurface* pSurface )
 }
 
 
-const bool	CqTrimLoopArray::TrimPoint( const CqVector2D& v ) const
+const bool	CqTrimLoopArray::TrimPoint( const Imath::V2f& v ) const
 {
 	// Early out if no trim loops at all.
 	if ( m_aLoops.size() == 0 )
@@ -225,7 +225,7 @@ const bool	CqTrimLoopArray::TrimPoint( const CqVector2D& v ) const
 }
 
 
-const bool	CqTrimLoopArray::LineIntersects( const CqVector2D& v1, const CqVector2D& v2 ) const
+const bool	CqTrimLoopArray::LineIntersects( const Imath::V2f& v1, const Imath::V2f& v2 ) const
 {
 	// Early out if no trim loops at all.
 	if ( m_aLoops.size() == 0 )

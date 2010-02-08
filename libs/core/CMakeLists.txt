@@ -89,7 +89,8 @@ source_group("Header Files" FILES ${core_hdrs})
 
 include_directories(
 	${PROJECT_SOURCE_DIR}  #< Needed so that files in subdirectories can find headers.
-	${AQSIS_TIFF_INCLUDE_DIR})
+	${AQSIS_TIFF_INCLUDE_DIR}
+	${AQSIS_OPENEXR_INCLUDE_DIR})
 
 # Create list of preprocessor definitions
 set(defs AQSIS_RI_EXPORTS AQSIS_CORE_EXPORTS

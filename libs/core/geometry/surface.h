@@ -39,6 +39,7 @@
 #include	<aqsis/util/list.h>
 #include	<aqsis/util/refcount.h>
 #include	<aqsis/math/matrix.h>
+#include	<ImathVec.h>
 #include	"parameters.h"
 #include	"bound.h"
 #include	"csgtree.h"
@@ -501,14 +502,14 @@ class CqSurface : public IqSurface, private boost::noncopyable, public boost::en
 		/** Determine if the specified point is trimmed.
 		 * \todo Review: Unused parameter p
 		 */
-		virtual	const	bool	bIsPointTrimmed( const CqVector2D& p ) const
+		virtual	const	bool	bIsPointTrimmed( const Imath::V2f& p ) const
 		{
 			return ( false );
 		}
 		/** Determine if the specified edge crosses the trimming curves.
 		 * \todo Review: Unused parameter v1, v2
 		 */
-		virtual	const	bool	bIsLineIntersecting( const CqVector2D& v1, const CqVector2D& v2 ) const
+		virtual	const	bool	bIsLineIntersecting( const Imath::V2f& v1, const Imath::V2f& v2 ) const
 		{
 			return ( false );
 		}

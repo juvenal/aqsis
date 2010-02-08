@@ -30,6 +30,7 @@
 #include <aqsis/aqsis.h>
 
 #include <aqsis/math/vector2d.h>
+#include <ImathVec.h>
 
 namespace Aqsis {
 
@@ -50,7 +51,7 @@ class CqRegion
 	TqInt width() const;
 	TqInt height() const;
 	TqInt area() const;
-	CqVector2D diagonal() const;
+	Imath::V2f diagonal() const;
 
 	private:
 		TqInt		m_xMin;
@@ -99,9 +100,9 @@ inline TqInt CqRegion::area() const
 	return width() * height();
 }
 
-inline CqVector2D CqRegion::diagonal() const
+inline Imath::V2f CqRegion::diagonal() const
 {
-	return CqVector2D(m_xMax - m_xMin, m_yMax - m_yMin);
+	return Imath::V2f(m_xMax - m_xMin, m_yMax - m_yMin);
 }
 //-----------------------------------------------------------------------
 

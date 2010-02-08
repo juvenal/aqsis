@@ -2524,16 +2524,16 @@ bool CqSurfaceSubdivisionPatch::Diceable()
 	CqMatrix matCtoR;
 	QGetRenderContext() ->matSpaceToSpace("camera", "raster", NULL, NULL,
 			QGetRenderContext()->Time(), matCtoR );
-	CqVector2D	hull[ 4 ];
+	Imath::V2f	hull[ 4 ];
 	for (TqInt i = 0; i < 4; i++ )
-		hull[i] = vectorCast<CqVector2D>( matCtoR*pTopology()->limitPoint(aQfv[i]) );
+		hull[i] = vectorCast<Imath::V2f>( matCtoR*pTopology()->limitPoint(aQfv[i]) );
 
 	TqFloat uLen = max(
-			(hull[1] - hull[0]).Magnitude2(),
-			(hull[2] - hull[3]).Magnitude2());
+			(hull[1] - hull[0]).length2(),
+			(hull[2] - hull[3]).length2());
 	TqFloat vLen = max(
-			(hull[3] - hull[0]).Magnitude2(),
-			(hull[2] - hull[1]).Magnitude2());
+			(hull[3] - hull[0]).length2(),
+			(hull[2] - hull[1]).length2());
 
 	TqFloat shadingRate = AdjustedShadingRate();
 	uLen = sqrt(uLen/shadingRate);

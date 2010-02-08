@@ -1662,8 +1662,7 @@ const TqFloat CqRenderer::MinCoCForBound(const CqBound& bound) const
 	// z-extents of the bound.
 	TqFloat minBlur = min(std::fabs(1/z1 - m_OneOverFocalDistance),
 				std::fabs(1/z2 - m_OneOverFocalDistance));
-	return m_DofMultiplier * min(m_DepthOfFieldScale.x(),
-			m_DepthOfFieldScale.y()) * minBlur;
+	return m_DofMultiplier * min(m_DepthOfFieldScale.x, m_DepthOfFieldScale.y) * minBlur;
 }
 
 void CqRenderer::initialiseCropWindow()

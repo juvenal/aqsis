@@ -795,10 +795,10 @@ void CqMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 				pVar(EnvVars_u) ->GetFloat( u4, iIndex + cu + 1 );
 				pVar(EnvVars_v) ->GetFloat( v4, iIndex + cu + 1 );
 
-				CqVector2D vecA(u1, v1);
-				CqVector2D vecB(u2, v2);
-				CqVector2D vecC(u3, v3);
-				CqVector2D vecD(u4, v4);
+				Imath::V2f vecA(u1, v1);
+				Imath::V2f vecB(u2, v2);
+				Imath::V2f vecC(u3, v3);
+				Imath::V2f vecD(u4, v4);
 
 				bool fTrimA = pSurface() ->bIsPointTrimmed( vecA );
 				bool fTrimB = pSurface() ->bIsPointTrimmed( vecB );
@@ -818,9 +818,9 @@ void CqMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 				if ( fTrimA && fTrimB && fTrimC && fTrimD )
 				{
 					if(!pSurface()->bIsLineIntersecting(vecA, vecB) &&
-					        !pSurface()->bIsLineIntersecting(vecB, vecC) &&
-					        !pSurface()->bIsLineIntersecting(vecC, vecD) &&
-					        !pSurface()->bIsLineIntersecting(vecD, vecA) )
+					   !pSurface()->bIsLineIntersecting(vecB, vecC) &&
+					   !pSurface()->bIsLineIntersecting(vecC, vecD) &&
+					   !pSurface()->bIsLineIntersecting(vecD, vecA) )
 					{
 						STATS_INC( MPG_trimmedout );
 						continue;
@@ -1092,10 +1092,10 @@ void CqMotionMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 				pGridA->pVar(EnvVars_u) ->GetFloat( u4, iIndex + cu + 1 );
 				pGridA->pVar(EnvVars_v) ->GetFloat( v4, iIndex + cu + 1 );
 
-				CqVector2D vecA(u1, v1);
-				CqVector2D vecB(u2, v2);
-				CqVector2D vecC(u3, v3);
-				CqVector2D vecD(u4, v4);
+				Imath::V2f vecA(u1, v1);
+				Imath::V2f vecB(u2, v2);
+				Imath::V2f vecC(u3, v3);
+				Imath::V2f vecD(u4, v4);
 
 				bool fTrimA = pSurface() ->bIsPointTrimmed( vecA );
 				bool fTrimB = pSurface() ->bIsPointTrimmed( vecB );
@@ -1115,9 +1115,9 @@ void CqMotionMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 				if ( fTrimA && fTrimB && fTrimC && fTrimD )
 				{
 					if(!pSurface()->bIsLineIntersecting(vecA, vecB) &&
-					        !pSurface()->bIsLineIntersecting(vecB, vecC) &&
-					        !pSurface()->bIsLineIntersecting(vecC, vecD) &&
-					        !pSurface()->bIsLineIntersecting(vecD, vecA) )
+					   !pSurface()->bIsLineIntersecting(vecB, vecC) &&
+					   !pSurface()->bIsLineIntersecting(vecC, vecD) &&
+					   !pSurface()->bIsLineIntersecting(vecD, vecA) )
 					{
 						STATS_INC( MPG_trimmedout );
 						continue;
@@ -1290,10 +1290,10 @@ void CqMicroPolygon::ComputeVertexOrder()
  * \return Boolean indicating sample hit.
  */
 
-bool CqMicroPolygon::fContains( CqHitTestCache& hitTestCache, const CqVector2D& vecP, TqFloat& Depth, CqVector2D& uv, TqFloat time) const
+bool CqMicroPolygon::fContains( CqHitTestCache& hitTestCache, const Imath::V2f& vecP, TqFloat& Depth, Imath::V2f& uv, TqFloat time) const
 {
 	// AGG - optimised version of above.
-	TqFloat x = vecP.x(), y = vecP.y();
+	TqFloat x = vecP.x, y = vecP.y;
 
 	// start with the edge that failed last time to get the most benefit
 	// from an early exit.
@@ -1348,10 +1348,10 @@ void CqMicroPolygon::cachePointInPolyTest(CqHitTestCache& cache,
 	cache.z[1] = pointsIn[1].z();
 	cache.z[2] = pointsIn[2].z();
 	cache.z[3] = pointsIn[3].z();
-	cache.xyToUV.setVertices(vectorCast<CqVector2D>(pointsIn[0]),
-							 vectorCast<CqVector2D>(pointsIn[1]),
-							 vectorCast<CqVector2D>(pointsIn[2]),
-							 vectorCast<CqVector2D>(pointsIn[3]));
+	cache.xyToUV.setVertices(vectorCast<Imath::V2f>(pointsIn[0]),
+							 vectorCast<Imath::V2f>(pointsIn[1]),
+							 vectorCast<Imath::V2f>(pointsIn[2]),
+							 vectorCast<Imath::V2f>(pointsIn[3]));
 
 	// The point-in-poly test requires a carefully chosen order for the points,
 	// and special cases when the micropoly is degenerate.  This information is
@@ -1409,10 +1409,10 @@ void CqMicroPolygon::CacheHitTestValues(CqHitTestCache& cache, bool usingDof) co
 		// multipliers can also be cached, and used in the bounding box test
 		// for fast sample rejection.
 		const CqRenderer* renderContext = QGetRenderContext();
-		cache.cocMult[0] = renderContext->GetCircleOfConfusion(P[0].z());
-		cache.cocMult[1] = renderContext->GetCircleOfConfusion(P[1].z());
-		cache.cocMult[2] = renderContext->GetCircleOfConfusion(P[2].z());
-		cache.cocMult[3] = renderContext->GetCircleOfConfusion(P[3].z());
+		cache.cocMult[0] = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(P[0].z()));
+		cache.cocMult[1] = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(P[1].z()));
+		cache.cocMult[2] = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(P[2].z()));
+		cache.cocMult[3] = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(P[3].z()));
 
 		cache.cocMultMin = min(min(cache.cocMult[0], cache.cocMult[1]),
 							   min(cache.cocMult[2], cache.cocMult[3]));
@@ -1439,15 +1439,15 @@ void CqMicroPolygon::CacheOutputInterpCoeffs(SqMpgSampleInfo& cache) const
 
 
 void CqMicroPolygon::InterpolateOutputs(const SqMpgSampleInfo& cache,
-	const CqVector2D& uv, CqColor& outCol, CqColor& outOpac) const
+	const Imath::V2f& uv, CqColor& outCol, CqColor& outOpac) const
 {
 	if(cache.smoothInterpolation)
 	{
 		// bilinear interpolation.
-		TqFloat w0 = (1-uv.x())*(1-uv.y());
-		TqFloat w1 = uv.x()*(1-uv.y());
-		TqFloat w2 = (1-uv.x())*uv.y();
-		TqFloat w3 = uv.x()*uv.y();
+		TqFloat w0 = (1-uv.x)*(1-uv.y);
+		TqFloat w1 = uv.x*(1-uv.y);
+		TqFloat w2 = (1-uv.x)*uv.y;
+		TqFloat w3 = uv.x*uv.y;
 
 		outCol = w0*cache.col[0] + w1*cache.col[1] + w2*cache.col[2] + w3*cache.col[3];
 		outOpac = w0*cache.opa[0] + w1*cache.opa[1] + w2*cache.opa[2] + w3*cache.opa[3];
@@ -1529,22 +1529,22 @@ void CqMicroPolygon::CacheOutputInterpCoeffsSmooth(SqMpgSampleInfo& cache) const
 inline bool CqMicroPolygon::dofSampleInBound(const CqBound& bound,
 		const CqHitTestCache& cache, SqSampleData const& sample)
 {
-	CqVector2D dofOffset = sample.dofOffset;
-	CqVector2D samplePos = sample.position;
+	Imath::V2f dofOffset = sample.dofOffset;
+	Imath::V2f samplePos = sample.position;
 	// Compute the two ends of a line segment on which the sample would
 	// lie after offsetting by the "true" CoC multiplier*DoF offset.  The true
 	// offset can't be calculated without knowing the sample hit depth, but
 	// these allow us to put bounds on what it can be.
-	CqVector2D cocMin = samplePos + compMul(cache.cocMultMin, dofOffset);
-	CqVector2D cocMax = samplePos + compMul(cache.cocMultMax, dofOffset);
+	Imath::V2f cocMin = samplePos + compMul(cache.cocMultMin, dofOffset);
+	Imath::V2f cocMax = samplePos + compMul(cache.cocMultMax, dofOffset);
 	// cocMin and cocMax define a bounding box, but may not be the bottom-left
 	// and top-right.  We swap the components as necessary so that cocMin is
 	// the bottom left and cocMax is the top-right.
-	if(dofOffset.x() < 0)
-		std::swap(cocMin.x(), cocMax.x());
-	if(dofOffset.y() < 0)
-		std::swap(cocMin.y(), cocMax.y());
-	return bound.Intersects(cocMin, cocMax);
+	if(dofOffset.x < 0)
+		std::swap(cocMin.x, cocMax.x);
+	if(dofOffset.y < 0)
+		std::swap(cocMin.y, cocMax.y);
+	return bound.Intersects(vectorCast<Imath::V2f>(cocMin), vectorCast<Imath::V2f>(cocMax));
 }
 
 //---------------------------------------------------------------------
@@ -1556,9 +1556,9 @@ inline bool CqMicroPolygon::dofSampleInBound(const CqBound& bound,
  * \return Boolean indicating smaple hit.
  */
 
-bool CqMicroPolygon::Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, CqVector2D& uv, TqFloat time, bool UsingDof ) const
+bool CqMicroPolygon::Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, Imath::V2f& uv, TqFloat time, bool UsingDof ) const
 {
-	CqVector2D vecSample = sample.position;
+	Imath::V2f vecSample = sample.position;
 
 	if(UsingDof)
 	{
@@ -1572,8 +1572,8 @@ bool CqMicroPolygon::Sample( CqHitTestCache& hitTestCache, SqSampleData const& s
 		// When using DoF, we need to adjust the micropolygon point positions
 		// along the opposite of the direction of the DoF offset for the
 		// current sample.
-		CqVector2D* coc = hitTestCache.cocMult;
-		CqVector2D dofOffset = sample.dofOffset;
+		Imath::V2f* coc = hitTestCache.cocMult;
+		Imath::V2f dofOffset = sample.dofOffset;
 		CqVector3D* P = hitTestCache.P;
 		CqVector3D points[4] = {
 			P[0] - vectorCast<CqVector3D>(compMul(coc[0], dofOffset)),
@@ -1602,21 +1602,21 @@ bool CqMicroPolygon::Sample( CqHitTestCache& hitTestCache, SqSampleData const& s
 
 			pGrid() ->pVar(EnvVars_u) ->GetFloat( u, m_Index );
 			pGrid() ->pVar(EnvVars_v) ->GetFloat( v, m_Index );
-			CqVector2D uvA( u, v );
+			Imath::V2f uvA( u, v );
 
 			pGrid() ->pVar(EnvVars_u) ->GetFloat( u, m_Index + 1 );
 			pGrid() ->pVar(EnvVars_v) ->GetFloat( v, m_Index + 1 );
-			CqVector2D uvB( u, v );
+			Imath::V2f uvB( u, v );
 
 			pGrid() ->pVar(EnvVars_u) ->GetFloat( u, m_Index + pGrid() ->uGridRes() + 1 );
 			pGrid() ->pVar(EnvVars_v) ->GetFloat( v, m_Index + pGrid() ->uGridRes() + 1 );
-			CqVector2D uvC( u, v );
+			Imath::V2f uvC( u, v );
 
 			pGrid() ->pVar(EnvVars_u) ->GetFloat( u, m_Index + pGrid() ->uGridRes() + 2 );
 			pGrid() ->pVar(EnvVars_v) ->GetFloat( v, m_Index + pGrid() ->uGridRes() + 2 );
-			CqVector2D uvD( u, v );
+			Imath::V2f uvD( u, v );
 
-			CqVector2D vR = BilinearEvaluate( uvA, uvB, uvC, uvD, uv.x(), uv.y() );
+			Imath::V2f vR = BilinearEvaluate( uvA, uvB, uvC, uvD, uv.x, uv.y );
 
 			if ( pGrid() ->pSurface() ->bCanBeTrimmed() && pGrid() ->pSurface() ->bIsPointTrimmed( vR ) && !bOutside )
 			{
@@ -1634,7 +1634,7 @@ bool CqMicroPolygon::Sample( CqHitTestCache& hitTestCache, SqSampleData const& s
 			TqFloat Bx = vB.x();
 			TqFloat By = vB.y();
 
-			CqVector2D hitPos = vecSample;
+			Imath::V2f hitPos = vecSample;
 			if(UsingDof)
 			{
 				// DoF interacts with the triangle split line computation: the
@@ -1642,11 +1642,11 @@ bool CqMicroPolygon::Sample( CqHitTestCache& hitTestCache, SqSampleData const& s
 				// calculation, so we need to move the apparent position of the
 				// hit in the opposite direction before determining which side
 				// of the triangle split line the hit lies on.
-				CqVector2D cocMult = QGetRenderContext()->GetCircleOfConfusion(D);
+				Imath::V2f cocMult = vectorCast<Imath::V2f>(QGetRenderContext()->GetCircleOfConfusion(D));
 				hitPos += compMul(cocMult, sample.dofOffset);
 			}
 
-			TqFloat v = (Ay - By)*hitPos.x() + (Bx - Ax)*hitPos.y() + (Ax*By - Bx*Ay);
+			TqFloat v = (Ay - By)*hitPos.x + (Bx - Ax)*hitPos.y + (Ax*By - Bx*Ay);
 			if ( v <= 0 )
 				return ( false );
 		}
@@ -1695,11 +1695,8 @@ void CqMicroPolygonMotion::BuildBoundList(TqUint timeRanges)
 
 	// Compute an approximation of the number of micropolygon lengths moved in
 	// raster space.  We use this to guide how many sub-bounds to calcuate.
-	TqFloat polyLen2 = vectorCast<CqVector2D>(m_Keys.front()->GetBound().vecCross())
-						.Magnitude2();
-	TqFloat moveDist2 = (vectorCast<CqVector2D>(m_Keys.front()->m_Point0)
-						- vectorCast<CqVector2D>(m_Keys.back()->m_Point0))
-						.Magnitude2();
+	TqFloat polyLen2 = m_Keys.front()->GetBound().vecCross().Magnitude2();
+	TqFloat moveDist2 = (m_Keys.front()->m_Point0 - m_Keys.back()->m_Point0).Magnitude2();
 	TqInt polyLengthsMoved = max<TqInt>(1, lfloor(std::sqrt(moveDist2/polyLen2)));
 
 	TqUint divisions = min<TqInt>(polyLengthsMoved, timeRanges);
@@ -1763,9 +1760,9 @@ void CqMicroPolygonMotion::BuildBoundList(TqUint timeRanges)
  * \return Boolean indicating smaple hit.
  */
 
-bool CqMicroPolygonMotion::Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, CqVector2D& uv, TqFloat time, bool UsingDof ) const
+bool CqMicroPolygonMotion::Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, Imath::V2f& uv, TqFloat time, bool UsingDof ) const
 {
-	const CqVector2D vecSample = sample.position;
+	const Imath::V2f vecSample = sample.position;
 	CqVector3D points[4];
 
 	// Calculate the position in time of the MP.
@@ -1817,15 +1814,15 @@ bool CqMicroPolygonMotion::Sample( CqHitTestCache& hitTestCache, SqSampleData co
 		// simple example, dofmb.rib, in the RTS.
 		/*
 		const CqRenderer* renderContext = QGetRenderContext();
-		CqVector2D cocMult1 = renderContext->GetCircleOfConfusion(tightBound.vecMin().z());
-		CqVector2D cocMult2 = renderContext->GetCircleOfConfusion(tightBound.vecMax().z());
+		Imath::V2f cocMult1 = renderContext->GetCircleOfConfusion(tightBound.vecMin().z());
+		Imath::V2f cocMult2 = renderContext->GetCircleOfConfusion(tightBound.vecMax().z());
 		*/
 		if(!dofSampleInBound(tightBound, hitTestCache, sample))
 			return false;
 	}
 	else
 	{
-		if( !tightBound.Contains2D(vecSample) )
+		if( !tightBound.Contains2D(vectorCast<Imath::V2f>(vecSample)) )
 			return false;
 	}
 
@@ -1857,15 +1854,11 @@ bool CqMicroPolygonMotion::Sample( CqHitTestCache& hitTestCache, SqSampleData co
 	{
 		const CqRenderer* renderContext = QGetRenderContext();
 		// Adjust the micropolygon vertices by the DoF offest.
-		CqVector2D dofOffset = sample.dofOffset;
-		points[0] -= vectorCast<CqVector3D>(compMul(renderContext->GetCircleOfConfusion(
-						points[0].z()), dofOffset));
-		points[1] -= vectorCast<CqVector3D>(compMul(renderContext->GetCircleOfConfusion(
-						points[1].z()), dofOffset));
-		points[2] -= vectorCast<CqVector3D>(compMul(renderContext->GetCircleOfConfusion(
-						points[2].z()), dofOffset));
-		points[3] -= vectorCast<CqVector3D>(compMul(renderContext->GetCircleOfConfusion(
-						points[3].z()), dofOffset));
+		Imath::V2f dofOffset = sample.dofOffset;
+		points[0] -= vectorCast<CqVector3D>(compMul(renderContext->GetCircleOfConfusion(points[0].z()), dofOffset));
+		points[1] -= vectorCast<CqVector3D>(compMul(renderContext->GetCircleOfConfusion(points[1].z()), dofOffset));
+		points[2] -= vectorCast<CqVector3D>(compMul(renderContext->GetCircleOfConfusion(points[2].z()), dofOffset));
+		points[3] -= vectorCast<CqVector3D>(compMul(renderContext->GetCircleOfConfusion(points[3].z()), dofOffset));
 	}
 	// Fill in the hit test coefficients for the current sample.
 	cachePointInPolyTest(hitTestCache, points);
@@ -1889,7 +1882,7 @@ bool CqMicroPolygonMotion::Sample( CqHitTestCache& hitTestCache, SqSampleData co
 			TqFloat Bx = vB.x();
 			TqFloat By = vB.y();
 
-			CqVector2D hitPos = vecSample;
+			Imath::V2f hitPos = vecSample;
 			if(UsingDof)
 			{
 				// DoF interacts with the triangle split line computation: the
@@ -1897,11 +1890,11 @@ bool CqMicroPolygonMotion::Sample( CqHitTestCache& hitTestCache, SqSampleData co
 				// calculation, so we need to move the apparent position of the
 				// hit in the opposite direction before determining which side
 				// of the triangle split line the hit lies on.
-				CqVector2D cocMult = QGetRenderContext()->GetCircleOfConfusion(D);
+				Imath::V2f cocMult = vectorCast<Imath::V2f>(QGetRenderContext()->GetCircleOfConfusion(D));
 				hitPos += compMul(cocMult, sample.dofOffset);
 			}
 
-			TqFloat v = (Ay - By)*hitPos.x() + (Bx - Ax)*hitPos.y() + (Ax*By - Bx*Ay);
+			TqFloat v = (Ay - By)*hitPos.x + (Bx - Ax)*hitPos.y + (Ax*By - Bx*Ay);
 			if( v <= 0 )
 				return ( false );
 		}
@@ -1921,14 +1914,14 @@ void CqMicroPolygonMotion::CacheHitTestValues(CqHitTestCache& cache,
 		// for the four corners of the micropolygon like in the static case,
 		// since the depth is a function of time in general.
 		const CqRenderer* renderContext = QGetRenderContext();
-		CqVector2D coc1 = renderContext->GetCircleOfConfusion(GetBound().vecMin().z());
-		CqVector2D coc2 = renderContext->GetCircleOfConfusion(GetBound().vecMax().z());
+		Imath::V2f coc1 = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(GetBound().vecMin().z()));
+		Imath::V2f coc2 = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(GetBound().vecMax().z()));
 		if(renderContext->MinCoCForBound(GetBound()) == 0)
 		{
 			// special case for when the bound crosses the focal plane, in
 			// which case the min() of the CoC multipliers retrieved above
 			// doesn't actually give the correct minimum.
-			cache.cocMultMin = CqVector2D(0,0);
+			cache.cocMultMin = Imath::V2f(0,0);
 		}
 		else
 			cache.cocMultMin = min(coc1, coc2);

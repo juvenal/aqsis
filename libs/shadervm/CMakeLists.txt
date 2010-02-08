@@ -24,6 +24,8 @@ set(shadervm_hdrs
 )
 source_group("Header Files" FILES ${shadervm_hdrs})
 
+include_directories(${AQSIS_OPENEXR_INCLUDE_DIR})
+	
 add_subproject(shaderexecenv)
 
 aqsis_add_library(aqsis_shadervm ${shadervm_srcs} ${shadervm_hdrs}

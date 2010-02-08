@@ -73,7 +73,7 @@ CqShadowMapOld::CqShadowMapOld( const CqString& strName ) :
 	}
 	for (TqInt k=0; k < 256; k++)
 		m_apLast[k] = NULL;
-	m_LastPoint = CqVector2D(-1, -1);
+	m_LastPoint = Imath::V2f(-1, -1);
 	m_Val = 0.0f;
 	m_Depth = 0.0f;
 	m_Average = 0.0f;
@@ -574,8 +574,8 @@ void	CqShadowMapOld::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, 
 
 	// Speedup for the case of normal shadowmap; if we ever recompute around the same point
 	// we will return the previous value.
-	CqVector2D vecPoint(s,t);
-	if ((NumPages() == 1) && (vecPoint.x() == m_LastPoint.x()) && (vecPoint.y() == m_LastPoint.y()))
+	Imath::V2f vecPoint(s,t);
+	if ((NumPages() == 1) && (vecPoint.x == m_LastPoint.x) && (vecPoint.y == m_LastPoint.y))
 	{
 		val[0] = m_Val;
 		if (average_depth)

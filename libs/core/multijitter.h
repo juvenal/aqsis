@@ -51,7 +51,7 @@ class CqMultiJitteredSampler : public IqSampler
 		~CqMultiJitteredSampler();
 
 		/* Interface functions from IqSampler */
-		virtual const CqVector2D* get2DSamples();		
+		virtual const Imath::V2f* get2DSamples();		
 		virtual const TqFloat* get1DSamples();		
 		virtual const TqInt* getShuffledIndices();
 
@@ -77,7 +77,7 @@ class CqMultiJitteredSampler : public IqSampler
 		TqInt					m_pixelYSamples;
 		TqFloat					m_openTime;
 		TqFloat					m_closeTime;
-		std::vector<CqVector2D>	m_2dSamples;
+		std::vector<Imath::V2f>	m_2dSamples;
 		std::vector<TqFloat>	m_1dSamples;
 		std::vector<TqInt>		m_shuffledIndices;
 		CqRandom				m_random;

@@ -88,7 +88,7 @@ public:
 			   bool fImager,
 			   const CqColor& zThreshold,
 			   EqDepthFilter depthfilter,
-			   const CqVector2D& bHalf) :
+			   const Imath::V2f& bHalf) :
 		m_imageBuffer(imageBuffer),
 		m_bucketList(bucketList),
 		m_fImager(fImager),
@@ -108,12 +108,12 @@ public:
 				m_bucketProcessor.setInitiallyEmpty(false);
 			
 			// Set up some bounds for the bucket.
-			const CqVector2D bPos = m_imageBuffer->BucketPosition( bucket->getCol(),
+			const Imath::V2f bPos = m_imageBuffer->BucketPosition( bucket->getCol(),
 									       bucket->getRow() );
-			const CqVector2D bSize = m_imageBuffer->BucketSize( bucket->getCol(),
+			const Imath::V2f bSize = m_imageBuffer->BucketSize( bucket->getCol(),
 									    bucket->getRow() );
-			const CqVector2D vecMin = bPos - m_bHalf;
-			const CqVector2D vecMax = bPos + bSize + m_bHalf;
+			const Imath::V2f vecMin = bPos - m_bHalf;
+			const Imath::V2f vecMax = bPos + bSize + m_bHalf;
 
 			TqInt xmin = static_cast<TqInt>( vecMin.x() );
 			TqInt ymin = static_cast<TqInt>( vecMin.y() );
@@ -150,7 +150,7 @@ private:
 	bool m_fImager;
 	CqColor m_zThreshold;
 	EqDepthFilter m_depthfilter;
-	CqVector2D m_bHalf;
+	Imath::V2f m_bHalf;
 };
 
 */
@@ -312,10 +312,10 @@ bool CqImageBuffer::CullSurface( CqBound& Bound, const boost::shared_ptr<CqSurfa
 	// Take into account depth-of-field
 	if ( QGetRenderContext() ->UsingDepthOfField() )
 	{
-		const CqVector2D minZCoc = QGetRenderContext()->GetCircleOfConfusion( minz );
-		const CqVector2D maxZCoc = QGetRenderContext()->GetCircleOfConfusion( maxz );
-		TqFloat cocX = max( minZCoc.x(), maxZCoc.x() );
-		TqFloat cocY = max( minZCoc.y(), maxZCoc.y() );
+		const Imath::V2f minZCoc = QGetRenderContext()->GetCircleOfConfusion( minz );
+		const Imath::V2f maxZCoc = QGetRenderContext()->GetCircleOfConfusion( maxz );
+		TqFloat cocX = max( minZCoc.x, maxZCoc.x );
+		TqFloat cocY = max( minZCoc.y, maxZCoc.y );
 		Bound.vecMin().x( Bound.vecMin().x() - cocX );
 		Bound.vecMin().y( Bound.vecMin().y() - cocY );
 		Bound.vecMax().x( Bound.vecMax().x() + cocX );
@@ -520,7 +520,7 @@ void CqImageBuffer::AddMPG( boost::shared_ptr<CqMicroPolygon>& pmpgNew )
 	if(renderContext->UsingDepthOfField())
 	{
 		// Get the maximum CoC multiplier for the micropolygon depth.
-		const CqVector2D maxCoC = max(
+		const Imath::V2f maxCoC = max(
 			renderContext->GetCircleOfConfusion(B.vecMin().z()),
 			renderContext->GetCircleOfConfusion(B.vecMax().z())
 		);

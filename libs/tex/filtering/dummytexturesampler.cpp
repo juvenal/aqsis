@@ -36,8 +36,8 @@ void CqDummyTextureSampler::sample(const SqSamplePllgram& samplePllgram,
 
 	// Make an ugly unfiltered black-on-white cross shape to indicate that the
 	// texture isn't present.
-	TqFloat x = pllgram.c.x();
-	TqFloat y = pllgram.c.y();
+	TqFloat x = pllgram.c.x;
+	TqFloat y = pllgram.c.y;
 	const TqFloat crossWidth = 0.10;
 	const TqFloat borderWidth = 0.05;
 	TqFloat result = 1;

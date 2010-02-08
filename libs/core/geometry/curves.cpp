@@ -258,12 +258,12 @@ bool CqCurve::Diceable()
 									matCtoR
 									);
 		// control hull
-		CqVector2D hull[2] = {
-			vectorCast<CqVector2D>(matCtoR * P()->pValue(0)[0]),
-			vectorCast<CqVector2D>(matCtoR * P()->pValue(1)[0])
+		Imath::V2f hull[2] = {
+			vectorCast<Imath::V2f>(matCtoR * P()->pValue(0)[0]),
+			vectorCast<Imath::V2f>(matCtoR * P()->pValue(1)[0])
 		};
-		CqVector2D lengthVector = hull[ 1 ] - hull[ 0 ];
-		TqFloat lengthraster = lengthVector.Magnitude();
+		Imath::V2f lengthVector = hull[ 1 ] - hull[ 0 ];
+		TqFloat lengthraster = lengthVector.length();
 
 		// find the approximate "length" of a diced patch in raster space
 		TqFloat gridlength = GetGridLength();

@@ -27,10 +27,9 @@
 #define ISAMPLER_H_INCLUDED 1
 
 #include	<aqsis/aqsis.h>
+#include	<ImathVec.h>
 
 namespace Aqsis {
-
-class CqVector2D;
 
 //------------------------------------------------------------------------------
 /** \brief An interface to sample distribution patterns generation.
@@ -55,7 +54,7 @@ class IqSampler
 		 *
 		 * \returns - a constant pointer to an array of sample positions.
 		 */
-		virtual const CqVector2D* get2DSamples() = 0;		
+		virtual const Imath::V2f* get2DSamples() = 0;		
 		/** \brief Return a set of 1D sample positions over the specified region.
 		 *
 		 * Returns a set of 1D values for the number of samples requested.

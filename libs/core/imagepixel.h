@@ -28,6 +28,9 @@
 
 #include	<aqsis/aqsis.h>
 
+#include	<ImathVec.h>
+#include	<aqsis/math/vectorcast.h>
+
 #include	<vector>
 #include	<cfloat> // for FLT_MAX
 
@@ -121,8 +124,8 @@ struct SqImageSample
 
 struct SqSampleData : private boost::noncopyable
 {
-	CqVector2D	position;			///< Sample position
-	CqVector2D	dofOffset;			///< Dof lens offset.
+	Imath::V2f	position;			///< Sample position
+	Imath::V2f	dofOffset;			///< Dof lens offset.
 	TqUint      occlusionIndex;     ///< Index for sample in occlusion tree.
 	TqFloat		time;				///< Float sample time.
 	TqFloat		detailLevel;		///< Float level-of-detail sample.
@@ -194,7 +197,7 @@ class CqImagePixel : private boost::noncopyable
 		 * \param opentime - The motion blur shutter open time.
 		 * \param closetime - The motion blur shutter close time.
 		 */
-		void setupJitterPattern(CqVector2D& offset, TqFloat opentime,
+		void setupJitterPattern(Imath::V2f& offset, TqFloat opentime,
 				TqFloat closetime);
 		/** \brief Set up a regular sample pattern for the pixel
 		 *
@@ -206,7 +209,7 @@ class CqImagePixel : private boost::noncopyable
 		 * \param opentime - The motion blur shutter open time.
 		 * \param closetime - The motion blur shutter close time.
 		 */
-		void setupGridPattern(CqVector2D& offset, TqFloat opentime,
+		void setupGridPattern(Imath::V2f& offset, TqFloat opentime,
 				TqFloat closetime);
 
 		/** \brief Clear all sample information from this pixel.
@@ -282,7 +285,7 @@ class CqImagePixel : private boost::noncopyable
 		 *
 		 *  \param pos - The 2D coordinate to convert.
 		 */
-		static CqVector2D projectToCircle(const CqVector2D& pos);
+		static Imath::V2f projectToCircle(const Imath::V2f& pos);
 
 		/// Return the number of references to the pixel
 		TqInt refCount() const;
@@ -300,7 +303,7 @@ class CqImagePixel : private boost::noncopyable
 		 *  \param sampler - A pointer to an object that provides a sample distribution
 		 *					 via the IqSampler interface.
 		 */
-		void setSamples(IqSampler* sampler, CqVector2D& offset);
+		void setSamples(IqSampler* sampler, Imath::V2f& offset);
 
 	private:
 		/// boost::intrusive_ptr required function, to increment the reference count.
@@ -426,12 +429,12 @@ inline TqInt CqImagePixel::GetDofOffsetIndex(TqInt i) const
 	return m_DofOffsetIndices[i];
 }
 
-inline CqVector2D CqImagePixel::projectToCircle(const CqVector2D& pos)
+inline Imath::V2f CqImagePixel::projectToCircle(const Imath::V2f& pos)
 {
-	TqFloat r = pos.Magnitude();
+	TqFloat r = pos.length();
 	if( r == 0.0 )
-		return CqVector2D(0,0);
-	TqFloat adj = max(fabs(pos.x()), fabs(pos.y())) / r;
+		return Imath::V2f(0,0);
+	TqFloat adj = max(fabs(pos.x), fabs(pos.y)) / r;
 	return adj*pos;
 }
 

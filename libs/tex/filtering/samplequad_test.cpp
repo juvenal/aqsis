@@ -38,22 +38,22 @@
 BOOST_AUTO_TEST_CASE(SqSampleQuad_scaleWidth_test)
 {
 	Aqsis::SqSampleQuad quad(
-			Aqsis::CqVector2D(0,0),
-			Aqsis::CqVector2D(0,1), 
-			Aqsis::CqVector2D(1,0),
-			Aqsis::CqVector2D(1,1));
+			Imath::V2f(0,0),
+			Imath::V2f(0,1), 
+			Imath::V2f(1,0),
+			Imath::V2f(1,1));
 	quad.scaleWidth(3, 0.1);
 
-	BOOST_CHECK_CLOSE(quad.v1.x(), -1.0f, 0.01f);
-	BOOST_CHECK_CLOSE(quad.v1.y(), 0.45f, 0.01f);
+	BOOST_CHECK_CLOSE(quad.v1.x, -1.0f, 0.01f);
+	BOOST_CHECK_CLOSE(quad.v1.y, 0.45f, 0.01f);
 
-	BOOST_CHECK_CLOSE(quad.v2.x(), -1.0f, 0.01f);
-	BOOST_CHECK_CLOSE(quad.v2.y(), 0.55f, 0.01f);
+	BOOST_CHECK_CLOSE(quad.v2.x, -1.0f, 0.01f);
+	BOOST_CHECK_CLOSE(quad.v2.y, 0.55f, 0.01f);
 
-	BOOST_CHECK_CLOSE(quad.v3.x(), 2.0f, 0.01f);
-	BOOST_CHECK_CLOSE(quad.v3.y(), 0.45f, 0.01f);
+	BOOST_CHECK_CLOSE(quad.v3.x, 2.0f, 0.01f);
+	BOOST_CHECK_CLOSE(quad.v3.y, 0.45f, 0.01f);
 
-	BOOST_CHECK_CLOSE(quad.v4.x(), 2.0f, 0.01f);
-	BOOST_CHECK_CLOSE(quad.v4.y(), 0.55f, 0.01f);
+	BOOST_CHECK_CLOSE(quad.v4.x, 2.0f, 0.01f);
+	BOOST_CHECK_CLOSE(quad.v4.y, 0.55f, 0.01f);
 }
 

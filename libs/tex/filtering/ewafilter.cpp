@@ -80,8 +80,8 @@ void CqEwaFilterFactory::computeFilter(const SqSamplePllgram& samplePllgram,
 	// Get Jacobian of the inverse texture warp, and scale it by the resolution
 	// of the base texture.
 	SqMatrix2D invJ = SqMatrix2D(
-				samplePllgram.s1.x(), samplePllgram.s2.x(),
-				samplePllgram.s1.y(), samplePllgram.s2.y()
+				samplePllgram.s1.x, samplePllgram.s2.x,
+				samplePllgram.s1.y, samplePllgram.s2.y
 			);
 
 	// Reconstruction filter variance (conceptually the filter which

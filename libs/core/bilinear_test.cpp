@@ -59,14 +59,14 @@ class IsCloseRelAbs
 				|| diff < m_relTol*std::fabs(f1)
 				|| diff < m_relTol*std::fabs(f2);
 		}
-		bool operator()(CqVector2D v1, CqVector2D v2)
+		bool operator()(Imath::V2f v1, Imath::V2f v2)
 		{
-			return (*this)(v1.x(), v2.x()) && (*this)(v1.y(), v2.y());
+			return (*this)(v1.x, v2.x) && (*this)(v1.y, v2.y);
 		}
 };
 
-void checkLookup(std::vector<CqVector2D> uvInList,
-				 CqVector2D A, CqVector2D B, CqVector2D C, CqVector2D D,
+void checkLookup(std::vector<Imath::V2f> uvInList,
+				 Imath::V2f A, Imath::V2f B, Imath::V2f C, Imath::V2f D,
 				 // The following two tolerances are about right for the
 				 // version using Newton's method.
 				 TqFloat relTol = 1e-3,
@@ -80,21 +80,21 @@ void checkLookup(std::vector<CqVector2D> uvInList,
 	for(int i = 0; i < static_cast<TqInt>(uvInList.size()); ++i)
 	{
 		// Compute interpolated position on patch
-		CqVector2D uvIn = uvInList[i];
-		CqVector2D P = bilerp(A,B,C,D, uvIn);
+		Imath::V2f uvIn = uvInList[i];
+		Imath::V2f P = bilerp(A,B,C,D, uvIn);
 		// Invert that to get the parameter values back.
-		CqVector2D uvOut = invBilerp(P);
+		Imath::V2f uvOut = invBilerp(P);
 		// Check whether it worked.
 		BOOST_CHECK_PREDICATE(close, (uvIn) (uvOut));
-		BOOST_CHECK_PREDICATE(ge, (uvOut.x()) (-absTol));
-		BOOST_CHECK_PREDICATE(le, (uvOut.x()) (1+absTol));
+		BOOST_CHECK_PREDICATE(ge, (uvOut.x) (-absTol));
+		BOOST_CHECK_PREDICATE(le, (uvOut.x) (1+absTol));
 	}
 }
 
 // Fixture struct for holding some (u,v) values to test the inverse mapping at.
 struct UVFixture
 {
-	std::vector<CqVector2D> uvIn;
+	std::vector<Imath::V2f> uvIn;
 
 	// Construct the fixture.
 	//
@@ -140,7 +140,7 @@ struct UVFixture
 			if( (uExclude == -1 || std::fabs(uExclude-u) > 1e-2) &&
 				(vExclude == -1 || std::fabs(vExclude-v) > 1e-2) )
 			{
-				uvIn.push_back(CqVector2D(u,v));
+				uvIn.push_back(Imath::V2f(u,v));
 			}
 		}
 	}
@@ -156,7 +156,7 @@ struct UVFixture
 BOOST_AUTO_TEST_CASE(InvBilinear_convex_irregular)
 {
 	UVFixture f;
-	CqVector2D A(0.1, 0.1),   B(1.1, 0),
+	Imath::V2f A(0.1, 0.1),   B(1.1, 0),
 			   C(-0.1, 1.5),  D(1, 1);
 	checkLookup(f.uvIn, A, B, C, D);
 }
@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE(InvBilinear_convex_irregular)
 BOOST_AUTO_TEST_CASE(InvBilinear_convex_irregular_rot90)
 {
 	UVFixture f;
-	CqVector2D A(-0.1, 1.5), B(0.1, 0.1),
+	Imath::V2f A(-0.1, 1.5), B(0.1, 0.1),
 			   C(1, 1),      D(1.1, 0);
 	checkLookup(f.uvIn, A, B, C, D);
 }
@@ -172,7 +172,7 @@ BOOST_AUTO_TEST_CASE(InvBilinear_convex_irregular_rot90)
 BOOST_AUTO_TEST_CASE(InvBilinear_convex_irregular_rot180)
 {
 	UVFixture f;
-	CqVector2D A(1, 1),   B(-0.1, 1.5),
+	Imath::V2f A(1, 1),   B(-0.1, 1.5),
 			   C(1.1, 0), D(0.1, 0.1);
 	checkLookup(f.uvIn, A, B, C, D);
 }
@@ -180,7 +180,7 @@ BOOST_AUTO_TEST_CASE(InvBilinear_convex_irregular_rot180)
 BOOST_AUTO_TEST_CASE(InvBilinear_convex_irregular_rot270)
 {
 	UVFixture f;
-	CqVector2D A(1.1, 0),   B(1, 1),
+	Imath::V2f A(1.1, 0),   B(1, 1),
 			   C(0.1, 0.1), D(-0.1, 1.5);
 	checkLookup(f.uvIn, A, B, C, D);
 }
@@ -188,8 +188,8 @@ BOOST_AUTO_TEST_CASE(InvBilinear_convex_irregular_rot270)
 BOOST_AUTO_TEST_CASE(InvBilinear_large_offset)
 {
 	UVFixture f;
-	CqVector2D A(0, 0),  B(2, 0),  C(0, 1),  D(2, 1);
-	CqVector2D offset(1000, 2000);
+	Imath::V2f A(0, 0),  B(2, 0),  C(0, 1),  D(2, 1);
+	Imath::V2f offset(1000, 2000);
 	A += offset; B += offset; C += offset; D += offset;
 	// Even for the "exact" analytical solution, we loose about 4 digits of
 	// precision here due to cancellation errors...  so cannot expect better
@@ -202,14 +202,14 @@ BOOST_AUTO_TEST_CASE(InvBilinear_large_offset)
 BOOST_AUTO_TEST_CASE(InvBilinear_exactly_rectangular)
 {
 	UVFixture f;
-	CqVector2D A(0, 0),  B(2, 0),  C(0, 1),  D(2, 1);
+	Imath::V2f A(0, 0),  B(2, 0),  C(0, 1),  D(2, 1);
 	checkLookup(f.uvIn, A, B, C, D);
 }
 
 BOOST_AUTO_TEST_CASE(InvBilinear_almost_rectangular)
 {
 	UVFixture f;
-	CqVector2D A(0.0001, 0.000005), B(2, 0), C(0, 1),  D(2, 1);
+	Imath::V2f A(0.0001, 0.000005), B(2, 0), C(0, 1),  D(2, 1);
 	// The almost-rectangular case uses the lower-precision but _fast_ method
 	// of assuming that the system of equations to be solved are exactly
 	// linear.  This means an increase in relTol and absTol.
@@ -221,7 +221,7 @@ BOOST_AUTO_TEST_CASE(InvBilinear_degenerate_u_verts)
 	// Exclude all test (u,v) coords along the line v = 0 where the points A
 	// and B are coincident.
 	UVFixture f(-1,0);
-	CqVector2D A(0, 0),  B(0, 0),  C(0, 1),  D(1, 1.5);
+	Imath::V2f A(0, 0),  B(0, 0),  C(0, 1),  D(1, 1.5);
 	checkLookup(f.uvIn, A, B, C, D);
 }
 
@@ -230,7 +230,7 @@ BOOST_AUTO_TEST_CASE(InvBilinear_degenerate_u_verts2)
 	// Exclude all test (u,v) coords along the line v = 1 where the points C
 	// and D are coincident.
 	UVFixture f(-1,1);
-	CqVector2D A(0, 0),  B(1.1, 0),  C(0, 1),  D(0, 1);
+	Imath::V2f A(0, 0),  B(1.1, 0),  C(0, 1),  D(0, 1);
 	checkLookup(f.uvIn, A, B, C, D);
 }
 
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(InvBilinear_degenerate_v_verts)
 	// Exclude all test (u,v) coords along the line u = 0 where the points A
 	// and C are coincident.
 	UVFixture f(0,-1);
-	CqVector2D A(0, 0),  B(1, 0),  C(0, 0),  D(1, 1.5);
+	Imath::V2f A(0, 0),  B(1, 0),  C(0, 0),  D(1, 1.5);
 	checkLookup(f.uvIn, A, B, C, D);
 }
 
@@ -250,12 +250,12 @@ BOOST_AUTO_TEST_CASE(InvBilinear_parallel_adjacent_edges)
 	// any good :-(
 	{
 		UVFixture f(1,0);
-		CqVector2D A(0, 0),  B(1, 0),  C(1, 1.5),  D(2, 0.01);
+		Imath::V2f A(0, 0),  B(1, 0),  C(1, 1.5),  D(2, 0.01);
 		checkLookup(f.uvIn, A, B, C, D, 0.03, 0.03);
 	}
 	{
 		UVFixture f;
-		CqVector2D A(0, 0),  B(1, 0),  C(1, 1.5),  D(2, 0.01);
+		Imath::V2f A(0, 0),  B(1, 0),  C(1, 1.5),  D(2, 0.01);
 		checkLookup(f.uvIn, A, B, C, D, 0.2, 0.2);
 	}
 }
@@ -264,7 +264,7 @@ BOOST_AUTO_TEST_CASE(InvBilinear_parallel_adjacent_edges)
 //
 //BOOST_AUTO_TEST_CASE(InvBilinear_nonconvex_irregular)
 //{
-//	CqVector2D A(0.8, 0.8),  B(1.1, 0),  C(-0.1, 1.5),  D(1, 1);
+//	Imath::V2f A(0.8, 0.8),  B(1.1, 0),  C(-0.1, 1.5),  D(1, 1);
 //	checkLookup(uvIn, A, B, C, D);
 //}
 

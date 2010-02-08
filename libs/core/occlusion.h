@@ -137,9 +137,9 @@ class CqOcclusionTree
 		static const TqInt m_subIndexBits = 8;
 
 		/// min (top left) of the area straddled by the tree
-		CqVector2D m_treeBoundMin;
+		Imath::V2f m_treeBoundMin;
 		/// max (bottom right) of the area straddled by the tree
-		CqVector2D m_treeBoundMax;
+		Imath::V2f m_treeBoundMax;
 		/// Binary tree of depths stored in an array.
 		std::vector<TqFloat> m_depthTree;
 		/// The index in the depth tree of the first terminal node.

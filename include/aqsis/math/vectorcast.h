@@ -33,6 +33,8 @@
 #ifndef VECTORCAST_H_INCLUDED
 #define VECTORCAST_H_INCLUDED
 
+#include <ImathVec.h>
+
 #include <aqsis/math/color.h>
 #include <aqsis/math/vector2d.h>
 #include <aqsis/math/vector3d.h>
@@ -84,6 +86,11 @@ inline CqVector3D vectorCast(const CqVector2D& v)
 	return CqVector3D(v.x(), v.y(), 0);
 }
 
+template<>
+inline Imath::V2f vectorCast(const CqVector2D& v)
+{
+	return Imath::V2f(v.x(), v.y());
+}
 
 //----------------------------------------
 // casting from CqVector3D
@@ -103,6 +110,12 @@ template<>
 inline CqVector2D vectorCast(const CqVector3D& v)
 {
 	return CqVector2D(v.x(), v.y());
+}
+
+template<>
+inline Imath::V2f vectorCast(const CqVector3D& v)
+{
+	return Imath::V2f(v.x(), v.y());
 }
 
 template<>
@@ -148,6 +161,20 @@ inline CqVector2D vectorCast(const CqVector4D& v)
 	}
 }
 
+template<>
+inline Imath::V2f vectorCast(const CqVector4D& v)
+{
+	if(v.h() != 1)
+	{
+		TqFloat hInv = 1/v.h();
+		return Imath::V2f(hInv*v.x(), hInv*v.y());
+	}
+	else
+	{
+		return Imath::V2f(v.x(), v.y());
+	}
+}
+
 //----------------------------------------
 // Casting from CqColor
 template<typename T>
@@ -162,6 +189,26 @@ inline CqVector3D vectorCast(const CqColor& c)
 	return CqVector3D(c.r(), c.g(), c.b());
 }
 
+
+//----------------------------------------
+// Casting from Imath::V2f
+template<typename T>
+inline T vectorCast(const Imath::V2f& v)
+{
+	return T(v);
+}
+
+template<>
+inline CqVector2D vectorCast(const Imath::V2f& v)
+{
+	return CqVector2D(v.x, v.y);
+}
+
+template<>
+inline CqVector3D vectorCast(const Imath::V2f& v)
+{
+	return CqVector3D(v.x, v.y, 0);
+}
 
 } // namespace Aqsis
 

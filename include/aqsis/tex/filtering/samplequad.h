@@ -32,6 +32,7 @@
 #include <aqsis/math/vector2d.h>
 #include <aqsis/math/vector3d.h>
 #include <aqsis/math/vectorcast.h>
+#include <ImathVec.h>
 
 namespace Aqsis {
 
@@ -58,14 +59,14 @@ struct Sq3DSampleQuad;
 struct SqSampleQuad
 {
 	/// v1 to v4 are vectors defining the vertices of the quadrilateral.
-	CqVector2D v1;
-	CqVector2D v2;
-	CqVector2D v3;
-	CqVector2D v4;
+	Imath::V2f v1;
+	Imath::V2f v2;
+	Imath::V2f v3;
+	Imath::V2f v4;
 
 	/// Trivial constructor
-	SqSampleQuad(const CqVector2D& v1, const CqVector2D& v2,
-			const CqVector2D& v3, const CqVector2D& v4);
+	SqSampleQuad(const Imath::V2f& v1, const Imath::V2f& v2,
+			const Imath::V2f& v3, const Imath::V2f& v4);
 
 	/** \brief Copy the x and y coordinates from the given 3D sample quad.
 	 *
@@ -97,7 +98,7 @@ struct SqSampleQuad
 	void scaleWidth(TqFloat xWidth, TqFloat yWidth);
 
 	/// Get the center point of the quadrilateral by averaging the vertices.
-	CqVector2D center() const;
+	Imath::V2f center() const;
 };
 
 
@@ -169,14 +170,14 @@ struct Sq3DSampleQuad
 struct SqSamplePllgram
 {
 	/// center point for the sample
-	CqVector2D c;
+	Imath::V2f c;
 	/// first side of parallelogram
-	CqVector2D s1;
+	Imath::V2f s1;
 	/// second side of parallelogram
-	CqVector2D s2;
+	Imath::V2f s2;
 
 	/// Trivial constructor
-	SqSamplePllgram(const CqVector2D& c, const CqVector2D& s1, const CqVector2D s2);
+	SqSamplePllgram(const Imath::V2f& c, const Imath::V2f& s1, const Imath::V2f s2);
 	/// Convert from a sample quad to a sample parallelogram
 	explicit SqSamplePllgram(const SqSampleQuad& quad);
 
@@ -225,8 +226,8 @@ struct Sq3DSamplePllgram
 //==============================================================================
 
 // SqSampleQuad implementation
-inline SqSampleQuad::SqSampleQuad(const CqVector2D& v1, const CqVector2D& v2,
-		const CqVector2D& v3, const CqVector2D& v4)
+inline SqSampleQuad::SqSampleQuad(const Imath::V2f& v1, const Imath::V2f& v2,
+		const Imath::V2f& v3, const Imath::V2f& v4)
 	: v1(v1),
 	v2(v2),
 	v3(v3),
@@ -234,21 +235,21 @@ inline SqSampleQuad::SqSampleQuad(const CqVector2D& v1, const CqVector2D& v2,
 { }
 
 inline SqSampleQuad::SqSampleQuad(const Sq3DSampleQuad& srcQuad)
-	: v1(vectorCast<CqVector2D>(srcQuad.v1)),
-	v2(vectorCast<CqVector2D>(srcQuad.v2)),
-	v3(vectorCast<CqVector2D>(srcQuad.v3)),
-	v4(vectorCast<CqVector2D>(srcQuad.v4))
+	: v1(vectorCast<Imath::V2f>(srcQuad.v1)),
+	v2(vectorCast<Imath::V2f>(srcQuad.v2)),
+	v3(vectorCast<Imath::V2f>(srcQuad.v3)),
+	v4(vectorCast<Imath::V2f>(srcQuad.v4))
 { }
 
 inline void SqSampleQuad::remapPeriodic(bool xPeriodic, bool yPeriodic)
 {
 	if(xPeriodic || yPeriodic)
 	{
-		TqFloat x = xPeriodic ? min(min(min(v1.x(), v2.x()), v3.x()), v4.x()) : 0;
-		TqFloat y = yPeriodic ? min(min(min(v1.y(), v2.y()), v3.y()), v4.y()) : 0;
+		TqFloat x = xPeriodic ? min(min(min(v1.x, v2.x), v3.x), v4.x) : 0;
+		TqFloat y = yPeriodic ? min(min(min(v1.y, v2.y), v3.y), v4.y) : 0;
 		if(x < 0 || y < 0 || x >= 1 || y >= 1)
 		{
-			CqVector2D v(std::floor(x),std::floor(y));
+			Imath::V2f v(std::floor(x),std::floor(y));
 			v1 -= v;
 			v2 -= v;
 			v3 -= v;
@@ -257,9 +258,9 @@ inline void SqSampleQuad::remapPeriodic(bool xPeriodic, bool yPeriodic)
 	}
 }
 
-inline CqVector2D SqSampleQuad::center() const
+inline Imath::V2f SqSampleQuad::center() const
 {
-	return 0.25*(v1+v2+v3+v4);
+	return (v1+v2+v3+v4)*0.25;
 }
 
 
@@ -287,34 +288,34 @@ inline CqVector3D Sq3DSampleQuad::center() const
 
 inline void Sq3DSampleQuad::copy2DCoords(const SqSampleQuad& toCopy)
 {
-	v1.x(toCopy.v1.x());
-	v1.y(toCopy.v1.y());
-	v2.x(toCopy.v2.x());
-	v2.y(toCopy.v2.y());
-	v3.x(toCopy.v3.x());
-	v3.y(toCopy.v3.y());
-	v4.x(toCopy.v4.x());
-	v4.y(toCopy.v4.y());
+	v1.x(toCopy.v1.x);
+	v1.y(toCopy.v1.y);
+	v2.x(toCopy.v2.x);
+	v2.y(toCopy.v2.y);
+	v3.x(toCopy.v3.x);
+	v3.y(toCopy.v3.y);
+	v4.x(toCopy.v4.x);
+	v4.y(toCopy.v4.y);
 }
 
 inline void SqSampleQuad::scaleWidth(TqFloat xWidth, TqFloat yWidth)
 {
 	if(xWidth != 1 || yWidth != 1)
 	{
-		CqVector2D c = center();
-		TqFloat cxWeighted = (1 - xWidth)*c.x();
-		TqFloat cyWeighted = (1 - yWidth)*c.y();
+		Imath::V2f c = center();
+		TqFloat cxWeighted = (1 - xWidth)*c.x;
+		TqFloat cyWeighted = (1 - yWidth)*c.y;
 		// Expand v1...v4 away from the quad center by multiplying the x
 		// and y components of the vectors which point from the quad center to
 		// the vertices by the x and y widths respectively.
-		v1.x(xWidth*v1.x() + cxWeighted);
-		v1.y(yWidth*v1.y() + cyWeighted);
-		v2.x(xWidth*v2.x() + cxWeighted);
-		v2.y(yWidth*v2.y() + cyWeighted);
-		v3.x(xWidth*v3.x() + cxWeighted);
-		v3.y(yWidth*v3.y() + cyWeighted);
-		v4.x(xWidth*v4.x() + cxWeighted);
-		v4.y(yWidth*v4.y() + cyWeighted);
+		v1.x = xWidth*v1.x + cxWeighted;
+		v1.y = yWidth*v1.y + cyWeighted;
+		v2.x = xWidth*v2.x + cxWeighted;
+		v2.y = yWidth*v2.y + cyWeighted;
+		v3.x = xWidth*v3.x + cxWeighted;
+		v3.y = yWidth*v3.y + cyWeighted;
+		v4.x = xWidth*v4.x + cxWeighted;
+		v4.y = yWidth*v4.y + cyWeighted;
 	}
 }
 
@@ -329,8 +330,8 @@ inline void Sq3DSampleQuad::transform(const CqMatrix& mat)
 
 //------------------------------------------------------------------------------
 // SqSamplePllgram implementation
-inline SqSamplePllgram::SqSamplePllgram(const CqVector2D& c, const CqVector2D& s1,
-		const CqVector2D s2)
+inline SqSamplePllgram::SqSamplePllgram(const Imath::V2f& c, const Imath::V2f& s1,
+		const Imath::V2f s2)
 	: c(c),
 	s1(s1),
 	s2(s2)
@@ -338,17 +339,17 @@ inline SqSamplePllgram::SqSamplePllgram(const CqVector2D& c, const CqVector2D& s
 
 inline SqSamplePllgram::SqSamplePllgram(const SqSampleQuad& quad)
 	: c(quad.center()),
-	s1(0.5*(quad.v2 - quad.v1 + quad.v4 - quad.v3)),
-	s2(0.5*(quad.v1 - quad.v3 + quad.v2 - quad.v4))
+	s1((quad.v2 - quad.v1 + quad.v4 - quad.v3)*0.5),
+	s2((quad.v1 - quad.v3 + quad.v2 - quad.v4)*0.5)
 { }
 
 inline void SqSamplePllgram::remapPeriodic(bool xPeriodic, bool yPeriodic)
 {
 	if(xPeriodic || yPeriodic)
 	{
-		if(c.x() < 0 || c.y() < 0 || c.x() >= 1 || c.y() >= 1)
+		if(c.x < 0 || c.y < 0 || c.x >= 1 || c.y >= 1)
 		{
-			CqVector2D v(std::floor(c.x()),std::floor(c.y()));
+			Imath::V2f v(std::floor(c.x),std::floor(c.y));
 			c -= v;
 		}
 	}
@@ -358,10 +359,10 @@ inline void SqSamplePllgram::scaleWidth(TqFloat xWidth, TqFloat yWidth)
 {
 	if(xWidth != 1 || yWidth != 1)
 	{
-		s1.x(s1.x()*xWidth);
-		s1.y(s1.y()*yWidth);
-		s2.x(s1.x()*xWidth);
-		s2.y(s1.y()*yWidth);
+		s1.x *= xWidth;
+		s1.y *= yWidth;
+		s2.x *= xWidth;
+		s2.y *= yWidth;
 	}
 }
 

@@ -75,7 +75,7 @@ void CqImagePixel::swap(CqImagePixel& other)
 	m_hasValidSamples = other.m_hasValidSamples;
 }
 
-void CqImagePixel::setupGridPattern(CqVector2D& offset, TqFloat opentime,
+void CqImagePixel::setupGridPattern(Imath::V2f& offset, TqFloat opentime,
 		TqFloat closetime)
 {
 	TqInt nSamples = numSamples();
@@ -87,7 +87,7 @@ void CqImagePixel::setupGridPattern(CqVector2D& offset, TqFloat opentime,
 		for(TqInt i = 0; i < m_XSamples; i++)
 		{
 			m_samples[j*m_XSamples + i].position =
-				offset + CqVector2D(xScale*(i+0.5), yScale*(j+0.5));
+				offset + Imath::V2f(xScale*(i+0.5), yScale*(j+0.5));
 		}
 	}
 
@@ -331,7 +331,7 @@ void CqImagePixel::Combine( enum EqDepthFilter depthfilter, CqColor zThreshold )
 	}
 }
 
-void CqImagePixel::setSamples(IqSampler* sampler, CqVector2D& offset)
+void CqImagePixel::setSamples(IqSampler* sampler, Imath::V2f& offset)
 {
 	TqInt nSamps = numSamples();
 
@@ -341,8 +341,8 @@ void CqImagePixel::setSamples(IqSampler* sampler, CqVector2D& offset)
 
 	// Get random distributions from the sample generator, and save them into
 	// the pixel sample data structures.
-	const CqVector2D* positions = sampler->get2DSamples();
-	const CqVector2D* dofOffsets = sampler->get2DSamples();
+	const Imath::V2f* positions = sampler->get2DSamples();
+	const Imath::V2f* dofOffsets = sampler->get2DSamples();
 	const TqFloat* times = sampler->get1DSamples();
 	const TqFloat* lods = sampler->get1DSamples();
 
@@ -354,7 +354,7 @@ void CqImagePixel::setSamples(IqSampler* sampler, CqVector2D& offset)
 		m_samples[i].position = offset + positions[i];
 		m_samples[i].time = ( closetime - opentime ) * times[i] + opentime;
 		m_samples[i].detailLevel = lods[i];
-		m_samples[m_DofOffsetIndices[i]].dofOffset = projectToCircle( -1 + 2 * (dofOffsets[i]) );
+		m_samples[m_DofOffsetIndices[i]].dofOffset = projectToCircle( Imath::V2f(-1) + dofOffsets[i]) * 2;
 	}
 }
 

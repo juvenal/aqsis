@@ -34,6 +34,8 @@
 #include	"bilinear.h"
 #include	<aqsis/util/pool.h>
 #include	<aqsis/math/color.h>
+#include	<aqsis/math/vectorcast.h>
+#include	<ImathVec.h>
 #include	<aqsis/util/list.h>
 #include	"bound.h"
 #include	<aqsis/math/vector2d.h>
@@ -537,13 +539,13 @@ struct CqHitTestCache
 
 	// These four vectors hold the circle of confusion dof offset multipliers
 	// for each of the four vertices in the natural order (same as cache.P)
-	CqVector2D cocMult[4];
+	Imath::V2f cocMult[4];
 
 	// These two vectors hold the extents of the circle of confusion
 	// multipliers, used during fast sample rejection based on the bounding
 	// box.
-	CqVector2D cocMultMin;
-	CqVector2D cocMultMax;
+	Imath::V2f cocMultMin;
+	Imath::V2f cocMultMax;
 
 	// Inverse bilinear lookup functor from the (x,y) hit position to the
 	// micropolygon (u,v) coordinates.
@@ -702,9 +704,9 @@ class CqMicroPolygon : boost::noncopyable
 		 * \param D storage to put the depth at the sample point if success.
 		 * \return Boolean success.
 		 */
-		virtual	bool	Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, CqVector2D& uv, TqFloat time, bool UsingDof = false ) const;
+		virtual	bool	Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, Imath::V2f& uv, TqFloat time, bool UsingDof = false ) const;
 
-		virtual bool	fContains( CqHitTestCache& hitTestCache, const CqVector2D& vecP, TqFloat& D, CqVector2D& uv, TqFloat time ) const;
+		virtual bool	fContains( CqHitTestCache& hitTestCache, const Imath::V2f& vecP, TqFloat& D, Imath::V2f& uv, TqFloat time ) const;
 		/** \brief Cache any values which can be reused for all point-in-poly tests.
 		 *
 		 * Child classes should override this function in order to cache any
@@ -735,7 +737,7 @@ class CqMicroPolygon : boost::noncopyable
 		 * \param outOpac - interpolated opacity output will be placed here.
 		 */
 		virtual void InterpolateOutputs(const SqMpgSampleInfo& cache,
-				const CqVector2D& uv, CqColor& outCol, CqColor& outOpac) const;
+				const Imath::V2f& uv, CqColor& outCol, CqColor& outOpac) const;
 
 		/** \brief Initialise some micropolygon member data.
 		 *
@@ -927,7 +929,7 @@ class CqMicroPolygonMotion : public CqMicroPolygon
 		}
 		virtual void	BuildBoundList( TqUint timeRanges );
 
-		virtual	bool	Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, CqVector2D& uv, TqFloat time, bool UsingDof = false ) const;
+		virtual	bool	Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, Imath::V2f& uv, TqFloat time, bool UsingDof = false ) const;
 
 		virtual void CacheHitTestValues(CqHitTestCache& cache, bool usingDof) const;
 

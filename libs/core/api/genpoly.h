@@ -100,23 +100,23 @@ class CqPolygonGeneral2D
 		void	Combine( CqPolygonGeneral2D& polyFrom );
 		void	Triangulate( std::vector<TqInt>& aiList ) const;
 
-		CqVector2D	operator[] ( TqInt index ) const
+		Imath::V2f	operator[] ( TqInt index ) const
 		{
 			switch ( m_Axis )
 			{
 					case Axis_XY:
-					return ( CqVector2D( m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].x(),
-					                     m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].y() ) );
+						return ( Imath::V2f( m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].x(),
+											 m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].y() ) );
 
 					case Axis_XZ:
-					return ( CqVector2D( m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].x(),
-					                     m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].z() ) );
+						return ( Imath::V2f( m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].x(),
+											 m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].z() ) );
 
 					case Axis_YZ:
-					return ( CqVector2D( m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].y(),
-					                     m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].z() ) );
+						return ( Imath::V2f( m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].y(),
+											 m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].z() ) );
 			}
-			return ( CqVector2D( 0, 0 ) );
+			return ( Imath::V2f( 0, 0 ) );
 		}
 		CqPolygonGeneral2D& operator=( const CqPolygonGeneral2D& From );
 

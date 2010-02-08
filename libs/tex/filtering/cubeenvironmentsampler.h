@@ -199,13 +199,13 @@ void CqCubeEnvironmentSampler<LevelCacheT>::sample(
 
 	// Compute center of new parallelogram
 	// centre of the face.
-	CqVector2D st(s*sScale + sOffset, t*tScale + tOffset);
+	Imath::V2f st(s*sScale + sOffset, t*tScale + tOffset);
 	// Compute sides of new parallelogram using the tangent map.
-	CqVector2D side1(
+	Imath::V2f side1(
 		tMap11*region.s1.x() + tMap12*region.s1.y() + tMap13*region.s1.z(),
 		tMap21*region.s1.x() + tMap22*region.s1.y() + tMap23*region.s1.z()
 	);
-	CqVector2D side2(
+	Imath::V2f side2(
 		tMap11*region.s2.x() + tMap12*region.s2.y() + tMap13*region.s2.z(),
 		tMap21*region.s2.x() + tMap22*region.s2.y() + tMap23*region.s2.z()
 	);

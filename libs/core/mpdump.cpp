@@ -101,23 +101,23 @@ void CqMPDump::dumpPixelSamples(const CqBucketProcessor& bp)
 		const CqImagePixel& pixel = **p;
 		for(int i = 0, numSamples = pixel.numSamples(); i < numSamples; ++i)
 		{
-			CqVector2D pos = pixel.SampleData(i).position;
-			if(!(  pos.x() <= bp.SampleRegion().xMin()
-				|| pos.x() > bp.SampleRegion().xMax()
-				|| pos.y() <= bp.SampleRegion().yMin()
-				|| pos.y() > bp.SampleRegion().yMax() ) )
+			Imath::V2f pos = pixel.SampleData(i).position;
+			if(!(  pos.x <= bp.SampleRegion().xMin()
+				|| pos.x > bp.SampleRegion().xMax()
+				|| pos.y <= bp.SampleRegion().yMin()
+				|| pos.y > bp.SampleRegion().yMax() ) )
 			{
 				// Only dump samples which are inside bp.SampleRegion()
 				// this means that only samples which are actually computed for
 				// the current bucket will be considered.
-				dump(lfloor(pos.x()), lfloor(pos.y()), i, pos);
+				dump(lfloor(pos.x), lfloor(pos.y), i, pos);
 			}
 		}
 	}
 }
 
 // Dump a pixel sample
-void CqMPDump::dump(int x, int y, int idx, const CqVector2D& pos)
+void CqMPDump::dump(int x, int y, int idx, const Imath::V2f& pos)
 {
 	short id = 2;
 	TqFloat f;
@@ -132,9 +132,9 @@ void CqMPDump::dump(int x, int y, int idx, const CqVector2D& pos)
 	len_written += fwrite((void*)&x, sizeof(int), 1, m_outFile);
 	len_written += fwrite((void*)&y, sizeof(int), 1, m_outFile);
 	len_written += fwrite((void*)&idx, sizeof(int), 1, m_outFile);
-	f = pos.x();
+	f = pos.x;
 	len_written += fwrite((void*)&f, sizeof(TqFloat), 1, m_outFile);
-	f = pos.y();
+	f = pos.y;
 	len_written += fwrite((void*)&f, sizeof(TqFloat), 1, m_outFile);
 	if(len_written != 6)
 		AQSIS_THROW_XQERROR(XqInvalidFile, EqE_System,

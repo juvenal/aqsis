@@ -1657,7 +1657,7 @@ bool	CqSurfaceNURBS::Diceable()
 
 	// Otherwise we should continue to try to find the most advantageous split direction, OR the dice size.
 	// Convert the control hull to raster space.
-	CqVector2D * avecHull = new CqVector2D[ m_cuVerts * m_cvVerts ];
+	Imath::V2f * avecHull = new Imath::V2f[ m_cuVerts * m_cvVerts ];
 	TqUint i;
 
 	TqFloat gs = 16.0f;
@@ -1673,7 +1673,7 @@ bool	CqSurfaceNURBS::Diceable()
 	CqMatrix matCtoR;
 	QGetRenderContext() ->matSpaceToSpace( "camera", "raster", NULL, pTransform().get(), QGetRenderContext()->Time(), matCtoR );
 	for ( i = 0; i < m_cuVerts*m_cvVerts; i++ )
-		avecHull[i] = vectorCast<CqVector2D>(matCtoR * P()->pValue(i)[0]);
+		avecHull[i] = vectorCast<Imath::V2f>(matCtoR * P()->pValue(i)[0]);
 
 	// Now work out the longest continuous line in raster space for u and v.
 	TqFloat uLen = 0;
@@ -1686,7 +1686,7 @@ bool	CqSurfaceNURBS::Diceable()
 	{
 		TqUint u;
 		for ( u = 0; u < m_cuVerts - 1; u++ )
-			uLen += CqVector2D( avecHull[ ( v * m_cuVerts ) + u + 1 ] - avecHull[ ( v * m_cuVerts ) + u ] ).Magnitude();
+			uLen += Imath::V2f( avecHull[ ( v * m_cuVerts ) + u + 1 ] - avecHull[ ( v * m_cuVerts ) + u ] ).length();
 		if ( uLen > MaxuLen )
 			MaxuLen = uLen;
 		uLen = 0;
@@ -1696,7 +1696,7 @@ bool	CqSurfaceNURBS::Diceable()
 	for ( u = 0; u < m_cuVerts; u++ )
 	{
 		for ( v = 0; v < m_cvVerts - 1; v++ )
-			vLen += CqVector2D( avecHull[ ( ( v + 1 ) * m_cuVerts ) + u ] - avecHull[ ( v * m_cuVerts ) + u ] ).Magnitude();
+			vLen += Imath::V2f( avecHull[ ( ( v + 1 ) * m_cuVerts ) + u ] - avecHull[ ( v * m_cuVerts ) + u ] ).length();
 		if ( vLen > MaxvLen )
 			MaxvLen = vLen;
 		vLen = 0;
@@ -1984,10 +1984,10 @@ void CqSurfaceNURBS::SetDefaultPrimitiveVariables( bool bUseDef_st )
 	}
 
 	const TqFloat* pTC = pAttributes() ->GetFloatAttribute( "System", "TextureCoordinates" );
-	CqVector2D st1( pTC[ 0 ], pTC[ 1 ] );
-	CqVector2D st2( pTC[ 2 ], pTC[ 3 ] );
-	CqVector2D st3( pTC[ 4 ], pTC[ 5 ] );
-	CqVector2D st4( pTC[ 6 ], pTC[ 7 ] );
+	Imath::V2f st1( pTC[ 0 ], pTC[ 1 ] );
+	Imath::V2f st2( pTC[ 2 ], pTC[ 3 ] );
+	Imath::V2f st3( pTC[ 4 ], pTC[ 5 ] );
+	Imath::V2f st4( pTC[ 6 ], pTC[ 7 ] );
 
 	if ( USES( bUses, EnvVars_s ) && !bHasVar(EnvVars_s) && bUseDef_st )
 	{
@@ -2002,7 +2002,7 @@ void CqSurfaceNURBS::SetDefaultPrimitiveVariables( bool bUseDef_st )
 			for ( r = 0; r <= cuSegments(); r++ )
 			{
 				TqFloat u = ( 1.0f / ( cuSegments() ) ) * r;
-				s() ->pValue() [ i++ ] = BilinearEvaluate( st1.x(), st2.x(), st3.x(), st4.x(), u, v );
+				s() ->pValue() [ i++ ] = BilinearEvaluate( st1.x, st2.x, st3.x, st4.x, u, v );
 			}
 		}
 	}
@@ -2020,7 +2020,7 @@ void CqSurfaceNURBS::SetDefaultPrimitiveVariables( bool bUseDef_st )
 			for ( r = 0; r <= cuSegments(); r++ )
 			{
 				TqFloat u = ( 1.0f / ( cuSegments() ) ) * r;
-				t() ->pValue() [ i++ ] = BilinearEvaluate( st1.y(), st2.y(), st3.y(), st4.y(), u, v );
+				t() ->pValue() [ i++ ] = BilinearEvaluate( st1.y, st2.y, st3.y, st4.y, u, v );
 			}
 		}
 	}

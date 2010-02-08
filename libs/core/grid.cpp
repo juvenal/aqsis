@@ -44,7 +44,7 @@ void CqGridSampler::setupGridPattern()
 	{
 		for(TqInt i = 0; i < m_pixelXSamples; i++)
 		{
-			m_2dSamples[j*m_pixelXSamples + i] = CqVector2D(xScale*(i+0.5), yScale*(j+0.5));
+			m_2dSamples[j*m_pixelXSamples + i] = Imath::V2f(xScale*(i+0.5), yScale*(j+0.5));
 		}
 	}
 
@@ -62,7 +62,7 @@ void CqGridSampler::setupGridPattern()
 		m_shuffledIndices[i] = i;
 }
 
-const CqVector2D* CqGridSampler::get2DSamples()		
+const Imath::V2f* CqGridSampler::get2DSamples()		
 {
 	return &m_2dSamples[0];
 }

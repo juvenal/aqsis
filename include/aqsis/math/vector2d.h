@@ -33,6 +33,8 @@
 
 #include <aqsis/math/math.h>
 
+#include <ImathVec.h>
+
 namespace Aqsis {
 
 //----------------------------------------------------------------------
@@ -364,15 +366,31 @@ inline CqVector2D min(const CqVector2D& v1, const CqVector2D& v2)
 	return CqVector2D(min(v1.x(), v2.x()), min(v1.y(), v2.y()));
 }
 
+inline Imath::V2f min(const Imath::V2f& v1, const Imath::V2f& v2)
+{
+	return Imath::V2f(min(v1.x, v2.x), min(v1.y, v2.y));
+}
+
 inline CqVector2D max(const CqVector2D& v1, const CqVector2D& v2)
 {
 	return CqVector2D(max(v1.x(), v2.x()), max(v1.y(), v2.y()));
+}
+
+inline Imath::V2f max(const Imath::V2f& v1, const Imath::V2f& v2)
+{
+	return Imath::V2f(max(v1.x, v2.x), max(v1.y, v2.y));
 }
 
 inline CqVector2D compMul(const CqVector2D& trans, const CqVector2D& v)
 {
 	return CqVector2D(trans.x()*v.x(), trans.y()*v.y());
 }
+
+inline Imath::V2f compMul(const Imath::V2f& trans, const Imath::V2f& v)
+{
+	return Imath::V2f(trans.x*v.x, trans.y*v.y);
+}
+
 
 inline TqFloat cross(const CqVector2D a, const CqVector2D b)
 {
@@ -382,6 +400,11 @@ inline TqFloat cross(const CqVector2D a, const CqVector2D b)
 inline TqFloat maxNorm(CqVector2D v)
 {
 	return max(std::fabs(v.x()), std::fabs(v.y()));
+}
+
+inline TqFloat maxNorm(Imath::V2f v)
+{
+	return max(std::fabs(v.x), std::fabs(v.y));
 }
 
 inline std::ostream &operator<<(std::ostream& out, const CqVector2D& v)

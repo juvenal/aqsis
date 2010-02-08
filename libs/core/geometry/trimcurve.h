@@ -16,6 +16,7 @@
 
 #include <vector>
 
+#include <ImathVec.h>
 #include <aqsis/math/vector2d.h>
 #include <aqsis/math/vector3d.h>
 
@@ -100,7 +101,7 @@ class CqTrimCurve
 
 		TqUint	FindSpan( TqFloat u ) const;
 		void	BasisFunctions( TqFloat u, TqUint span, std::vector<TqFloat>& BasisVals );
-		CqVector2D	Evaluate( TqFloat u );
+		Imath::V2f	Evaluate( TqFloat u );
 		TqUint	InsertKnot( TqFloat u, TqInt r );
 		void	Clamp();
 
@@ -129,12 +130,12 @@ class CqTrimLoop
 		}
 
 		void	Prepare( CqSurface* pSurface );
-		const	TqInt	TrimPoint( const CqVector2D& v ) const;
-		const	bool	LineIntersects(const CqVector2D& v1, const CqVector2D& v2) const;
+		const	TqInt	TrimPoint( const Imath::V2f& v ) const;
+		const	bool	LineIntersects(const Imath::V2f& v1, const Imath::V2f& v2) const;
 
 	private:
 		std::vector<CqTrimCurve>	m_aCurves;
-		std::vector<CqVector2D>	m_aCurvePoints;
+		std::vector<Imath::V2f>	m_aCurvePoints;
 };
 
 
@@ -152,8 +153,8 @@ class CqTrimLoopArray
 		}
 
 		void	Prepare( CqSurface* pSurface );
-		const	bool	TrimPoint( const CqVector2D& v ) const;
-		const	bool	LineIntersects(const CqVector2D& v1, const CqVector2D& v2) const;
+		const	bool	TrimPoint( const Imath::V2f& v ) const;
+		const	bool	LineIntersects(const Imath::V2f& v1, const Imath::V2f& v2) const;
 		void	Clear()
 		{
 			m_aLoops.resize( 0 );

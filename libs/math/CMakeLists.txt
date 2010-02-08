@@ -11,6 +11,9 @@ set(math_srcs
 	spline.cpp
 )
 
+include_directories(
+	${AQSIS_OPENEXR_INCLUDE_DIR})
+
 aqsis_add_library(aqsis_math ${math_srcs} ${math_hdrs}
 	COMPILE_DEFINITIONS AQSIS_MATH_EXPORTS
 )

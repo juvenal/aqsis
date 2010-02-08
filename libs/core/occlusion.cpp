@@ -82,9 +82,9 @@ void CqOcclusionTree::setupTree(CqBucketProcessor& bp)
 	m_depthTree.assign(numTotalNodes, 0);
 
 	// Compute and cache bounds of tree area.
-	m_treeBoundMin = CqVector2D(reg.xMin(), reg.yMin());
-	CqVector2D treeDiag = compMul(reg.diagonal(),
-		CqVector2D(TqFloat(1<<depthX)/numXSubpix, TqFloat(1<<depthY)/numYSubpix));
+	m_treeBoundMin = Imath::V2f(reg.xMin(), reg.yMin());
+	Imath::V2f treeDiag = compMul(vectorCast<Imath::V2f>(reg.diagonal()),
+		Imath::V2f(TqFloat(1<<depthX)/numXSubpix, TqFloat(1<<depthY)/numYSubpix));
 	m_treeBoundMax = m_treeBoundMin + treeDiag;
 
 	// Now associate sample points to the leaf nodes, and initialise the leaf
@@ -161,18 +161,18 @@ struct SqNodeBound
 bool CqOcclusionTree::canCull(const CqBound& bound) const
 {
 	// Crop the input bound to the culling bound.
-	TqFloat tminX = max(bound.vecMin().x(), m_treeBoundMin.x());
-	TqFloat tminY = max(bound.vecMin().y(), m_treeBoundMin.y());
-	TqFloat tmaxX = min(bound.vecMax().x(), m_treeBoundMax.x());
-	TqFloat tmaxY = min(bound.vecMax().y(), m_treeBoundMax.y());
+	TqFloat tminX = max(bound.vecMin().x(), m_treeBoundMin.x);
+	TqFloat tminY = max(bound.vecMin().y(), m_treeBoundMin.y);
+	TqFloat tmaxX = min(bound.vecMax().x(), m_treeBoundMax.x);
+	TqFloat tmaxY = min(bound.vecMax().y(), m_treeBoundMax.y);
 
 	// Auto buffer with enough auto-allocated room for a stack which can
 	// traverse a depth-20 tree (2^20 = 1024 * 1024 samples in a bucket == lots :)
 	CqAutoBuffer<SqNodeBound, 40> stack(2*m_numLevels);
 	TqInt top = -1;
 	// The root node of tree covers the whole bound of the bucket.
-	stack[++top] = SqNodeBound(m_treeBoundMin.x(), m_treeBoundMin.y(),
-			m_treeBoundMax.x(), m_treeBoundMax.y(), 0, m_splitXFirst);
+	stack[++top] = SqNodeBound(m_treeBoundMin.x, m_treeBoundMin.y,
+			m_treeBoundMax.x, m_treeBoundMax.y, 0, m_splitXFirst);
 
 	// Traverse the tree, starting at the root.  We want to find if any of the
 	// leaf nodes are further away than the bound.

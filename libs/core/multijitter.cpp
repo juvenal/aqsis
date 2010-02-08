@@ -136,7 +136,7 @@ void CqMultiJitteredSampler::setupJitterPattern(TqInt offset)
 
 	if( m_pixelXSamples == 1 && m_pixelYSamples == 1)
 	{
-		m_2dSamples[offset] = CqVector2D(random.RandomFloat(), random.RandomFloat());
+		m_2dSamples[offset] = Imath::V2f(random.RandomFloat(), random.RandomFloat());
 		m_1dSamples[offset] = random.RandomFloat();
 	}
 	else
@@ -163,7 +163,7 @@ void CqMultiJitteredSampler::setupJitterPattern(TqInt offset)
 				// within their subcell.  This avoids any remaining aliasing
 				// which would result if we placed the sample positions at the
 				// centre of the subcell.
-				m_2dSamples[offset+which] = CqVector2D(
+				m_2dSamples[offset+which] = Imath::V2f(
 					(xindex+random.RandomFloat())*subcellWidth + ix*subPixelWidth,
 					(yindex+random.RandomFloat())*subcellWidth + iy*subPixelHeight);
 				++which;
@@ -202,7 +202,7 @@ void CqMultiJitteredSampler::setupJitterPattern(TqInt offset)
 }
 
 
-const CqVector2D* CqMultiJitteredSampler::get2DSamples()		
+const Imath::V2f* CqMultiJitteredSampler::get2DSamples()		
 {
 	TqInt jitterIndex = m_random.RandomInt(m_cacheSize);
 	return &m_2dSamples[this->numSamples()*jitterIndex];

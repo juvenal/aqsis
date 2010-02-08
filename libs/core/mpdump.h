@@ -30,11 +30,11 @@
 #include <stdio.h>
 
 #include <aqsis/math/vecfwd.h>
+#include <ImathVec.h>
 
 namespace Aqsis {
 
 class CqBucketProcessor;
-class CqVector2D;
 class CqMicroPolygon;
 
 /**
@@ -113,7 +113,7 @@ class CqMPDump
 		   \param idx Sample index within the pixel (x,y)
 		   \param sd Sample data
 			 */
-		void dump(int x, int y, int idx, const CqVector2D& pos);
+		void dump(int x, int y, int idx, const Imath::V2f& pos);
 
 		/**
 			Dump a micro polygon.

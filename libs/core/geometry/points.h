@@ -357,12 +357,12 @@ class CqMicroPolygonPoints : public CqMicroPolygon
 			m_Bound.vecMin() = pos - CqVector3D(m_radius, m_radius, 0);
 			m_Bound.vecMax() = pos + CqVector3D(m_radius, m_radius, 0);
 		}
-		virtual	bool	Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, CqVector2D& uv, TqFloat time, bool UsingDof = false ) const;
+		virtual	bool	Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, Imath::V2f& uv, TqFloat time, bool UsingDof = false ) const;
 		virtual void CacheHitTestValues(CqHitTestCache& cache, bool usingDof) const;
 
 		virtual void CacheOutputInterpCoeffs(SqMpgSampleInfo& cache) const;
 		virtual void InterpolateOutputs(const SqMpgSampleInfo& cache,
-				const CqVector2D& pos, CqColor& outCol, CqColor& outOpac) const;
+			const Imath::V2f& pos, CqColor& outCol, CqColor& outOpac) const;
 
 	private:
 		TqFloat	m_radius;
@@ -488,11 +488,11 @@ class CqMicroPolygonMotionPoints : public CqMicroPolygon
 		{
 			return true;
 		}
-		virtual	bool	Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, CqVector2D& uv, TqFloat time, bool UsingDof = false ) const;
+		virtual	bool	Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, Imath::V2f& uv, TqFloat time, bool UsingDof = false ) const;
 		virtual void CacheHitTestValues(CqHitTestCache& cache, bool usingDof) const;
 		virtual void CacheOutputInterpCoeffs(SqMpgSampleInfo& cache) const;
 		virtual void InterpolateOutputs(const SqMpgSampleInfo& cache,
-				const CqVector2D& pos, CqColor& outCol, CqColor& outOpac) const;
+				const Imath::V2f& pos, CqColor& outCol, CqColor& outOpac) const;
 	private:
 		CqBoundList	m_BoundList;			///< List of bounds to get a tighter fit.
 		bool	m_BoundReady;				///< Flag indicating the boundary has been initialised.

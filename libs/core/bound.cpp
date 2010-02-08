@@ -25,6 +25,8 @@
 
 #include	<aqsis/aqsis.h>
 #include	<aqsis/math/matrix.h>
+#include	<ImathVec.h>
+#include	<aqsis/math/vectorcast.h>
 #include	"bound.h"
 
 namespace Aqsis {
@@ -145,16 +147,16 @@ void CqBound::Encapsulate( const CqVector3D& v )
 
 //---------------------------------------------------------------------
 /** Expand this bound to encapsulate the specified point.
- * \param v CqVector2D to expand bound to include.
+ * \param v Imath::V2f to expand bound to include.
  */
 
-void CqBound::Encapsulate( const CqVector2D& v )
+void CqBound::Encapsulate( const Imath::V2f& v )
 {
-	m_vecMax.x( max( m_vecMax.x(), v.x() ) );
-	m_vecMax.y( max( m_vecMax.y(), v.y() ) );
+	m_vecMax.x( max( m_vecMax.x(), v.x ) );
+	m_vecMax.y( max( m_vecMax.y(), v.y ) );
 
-	m_vecMin.x( min( m_vecMin.x(), v.x() ) );
-	m_vecMin.y( min( m_vecMin.y(), v.y() ) );
+	m_vecMin.x( min( m_vecMin.x(), v.x ) );
+	m_vecMin.y( min( m_vecMin.y(), v.y ) );
 }
 
 //----------------------------------------------------------------------
