@@ -162,13 +162,13 @@ void CqOptions::InitialiseCamera()
 	CqMatrix dofm;
 	QGetRenderContext() ->matVSpaceToSpace( "camera", "raster", NULL, NULL, QGetRenderContext()->Time(), dofm );
 
-	CqVector3D	dofe( 1, 1, -1 );
-	CqVector3D	dofc( 0, 0, -1 );
+	Imath::V3f	dofe( 1, 1, -1 );
+	Imath::V3f	dofc( 0, 0, -1 );
 
 	dofe = dofm *  dofe;
 	dofc = dofm *  dofc;
 
-	QGetRenderContext() ->SetDepthOfFieldScale( fabs(dofe.x()-dofc.x()), fabs(dofe.y()-dofc.y()) );
+	QGetRenderContext() ->SetDepthOfFieldScale( fabs(dofe.x-dofc.x), fabs(dofe.y-dofc.y) );
 
 	// Setup the cached data for use during DoF calculations.
 	const TqFloat* dofOptions = QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "DepthOfField" );
@@ -490,27 +490,27 @@ CqString* CqOptions::GetStringOptionWrite( const char* strName, const char* strP
 /** Get a point system option parameter.
  * \param strName The name of the attribute.
  * \param strParam The name of the paramter on the attribute.
- * \return CqVector3D pointer 0 if not found.
+ * \return Imath::V3f pointer 0 if not found.
  */
 
-CqVector3D* CqOptions::GetPointOptionWrite( const char* strName, const char* strParam, TqInt arraySize )
+Imath::V3f* CqOptions::GetPointOptionWrite( const char* strName, const char* strParam, TqInt arraySize )
 {
 	CqParameter * pParam = pParameterWrite( strName, strParam );
 	if ( pParam != 0 )
-		return ( static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( pParam ) ->pValue() );
+		return ( static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( pParam ) ->pValue() );
 	else
 	{
 		// As we are getting a writeable copy, we should create if it doesn't exist.
 		CqNamedParameterList* pList = pOptionWrite( strName ).get();
 		if(arraySize <= 1)
 		{
-			CqParameterTypedUniform<CqVector3D, type_point, CqVector3D>* pOpt = new CqParameterTypedUniform<CqVector3D, type_point, CqVector3D>(strParam, arraySize);
+			CqParameterTypedUniform<Imath::V3f, type_point, Imath::V3f>* pOpt = new CqParameterTypedUniform<Imath::V3f, type_point, Imath::V3f>(strParam, arraySize);
 			pList->AddParameter(pOpt);
 			return ( pOpt->pValue() );
 		}
 		else
 		{
-			CqParameterTypedUniformArray<CqVector3D, type_point, CqVector3D>* pOpt = new CqParameterTypedUniformArray<CqVector3D, type_point, CqVector3D>(strParam, arraySize);
+			CqParameterTypedUniformArray<Imath::V3f, type_point, Imath::V3f>* pOpt = new CqParameterTypedUniformArray<Imath::V3f, type_point, Imath::V3f>(strParam, arraySize);
 			pList->AddParameter(pOpt);
 			return ( pOpt->pValue() );
 		}
@@ -605,14 +605,14 @@ const CqString* CqOptions::GetStringOption( const char* strName, const char* str
 /** Get a point system option parameter.
  * \param strName The name of the attribute.
  * \param strParam The name of the paramter on the attribute.
- * \return CqVector3D pointer 0 if not found.
+ * \return Imath::V3f pointer 0 if not found.
  */
 
-const CqVector3D* CqOptions::GetPointOption( const char* strName, const char* strParam ) const
+const Imath::V3f* CqOptions::GetPointOption( const char* strName, const char* strParam ) const
 {
 	const CqParameter * pParam = pParameter( strName, strParam );
 	if ( pParam != 0 )
-		return ( static_cast<const CqParameterTyped<CqVector3D, CqVector3D>*>( pParam ) ->pValue() );
+		return ( static_cast<const CqParameterTyped<Imath::V3f, Imath::V3f>*>( pParam ) ->pValue() );
 	else
 		return ( 0 );
 }

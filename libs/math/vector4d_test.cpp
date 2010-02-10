@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(vector4d_operator_less_or_equal)
 	BOOST_CHECK(vec1 >= vec3);
 }
 
-BOOST_AUTO_TEST_CASE(CqVector3D_isClose)
+BOOST_AUTO_TEST_CASE(Imath::V3f_isClose)
 {
 	// Remeber that these are homogenous vectors, hence the 1 always in the
 	// last place!

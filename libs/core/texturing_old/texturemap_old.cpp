@@ -1888,12 +1888,12 @@ void CqImageDownsampler::computeFilterKernel(TqFloat sWidth, TqFloat tWidth, RtF
 #define COMP_Y 1
 #define COMP_Z 2
 
-void CqEnvironmentMapOld::SampleMap( CqVector3D& R1,
-                                  CqVector3D& R2, CqVector3D& R3, CqVector3D& R4,
+void CqEnvironmentMapOld::SampleMap( Imath::V3f& R1,
+                                  Imath::V3f& R2, Imath::V3f& R3, Imath::V3f& R4,
                                   std::valarray<TqFloat>& val, TqInt index,
                                   TqFloat* average_depth, TqFloat* shadow_depth )
 {
-	CqVector3D D;
+	Imath::V3f D;
 	TqFloat x,y;
 	TqFloat contrib, mul, t, u, v;
 	TqInt i;
@@ -1926,7 +1926,7 @@ void CqEnvironmentMapOld::SampleMap( CqVector3D& R1,
 		m_accum_color = 0.0f;
 		contrib = 0.0f;
 
-		if ((R1 * R1) == 0)
+		if ((R1.dot(R1)) == 0)
 			return;
 
 		TqFloat dfovu = fabs(1.0f - m_fov)/(TqFloat) (m_XRes);

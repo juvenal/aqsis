@@ -621,14 +621,14 @@ void	CqShaderExecEnv::SO_pmin( IqShaderData* a, IqShaderData* b, IqShaderData* R
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_a;
+			Imath::V3f _aq_a;
 			(a)->GetPoint(_aq_a,__iGrid);
-			CqVector3D _aq_b;
+			Imath::V3f _aq_b;
 			(b)->GetPoint(_aq_b,__iGrid);
-			CqVector3D res = min( _aq_a, _aq_b );
+			Imath::V3f res = min( _aq_a, _aq_b );
 			for(TqInt i = 0; i < cParams; ++i)
 			{
-				CqVector3D pn;
+				Imath::V3f pn;
 				apParams[ i ] ->GetPoint( pn, __iGrid );
 				res = Aqsis::min( res, pn );
 			}
@@ -653,14 +653,14 @@ void	CqShaderExecEnv::SO_pmax( IqShaderData* a, IqShaderData* b, IqShaderData* R
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_a;
+			Imath::V3f _aq_a;
 			(a)->GetPoint(_aq_a,__iGrid);
-			CqVector3D _aq_b;
+			Imath::V3f _aq_b;
 			(b)->GetPoint(_aq_b,__iGrid);
-			CqVector3D res = max( _aq_a, _aq_b );
+			Imath::V3f res = max( _aq_a, _aq_b );
 			for(TqInt i = 0; i < cParams; ++i)
 			{
-				CqVector3D pn;
+				Imath::V3f pn;
 				apParams[ i ] ->GetPoint( pn, __iGrid );
 				res = Aqsis::max( res, pn );
 			}
@@ -778,11 +778,11 @@ void	CqShaderExecEnv::SO_pclamp( IqShaderData* a, IqShaderData* _min, IqShaderDa
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_a;
+			Imath::V3f _aq_a;
 			(a)->GetPoint(_aq_a,__iGrid);
-			CqVector3D _aq__min;
+			Imath::V3f _aq__min;
 			(_min)->GetPoint(_aq__min,__iGrid);
-			CqVector3D _aq__max;
+			Imath::V3f _aq__max;
 			(_max)->GetPoint(_aq__max,__iGrid);
 			(Result)->SetPoint(clamp( _aq_a, _aq__min, _aq__max ),__iGrid);
 		}
@@ -900,9 +900,9 @@ void	CqShaderExecEnv::SO_length( IqShaderData* V, IqShaderData* Result, IqShader
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_V;
+			Imath::V3f _aq_V;
 			(V)->GetVector(_aq_V,__iGrid);
-			(Result)->SetFloat(_aq_V.Magnitude(),__iGrid);
+			(Result)->SetFloat(_aq_V.length(),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -923,11 +923,11 @@ void	CqShaderExecEnv::SO_distance( IqShaderData* P1, IqShaderData* P2, IqShaderD
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_P1;
+			Imath::V3f _aq_P1;
 			(P1)->GetPoint(_aq_P1,__iGrid);
-			CqVector3D _aq_P2;
+			Imath::V3f _aq_P2;
 			(P2)->GetPoint(_aq_P2,__iGrid);
-			(Result)->SetFloat(( _aq_P1 - _aq_P2 ).Magnitude(),__iGrid);
+			(Result)->SetFloat(( _aq_P1 - _aq_P2 ).length(),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);

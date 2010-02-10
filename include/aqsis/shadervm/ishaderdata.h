@@ -51,11 +51,11 @@ struct IqShaderData
 	///	Get the data as a string..
 	virtual void GetString( CqString& res, TqInt index = 0 ) const = 0;
 	///	Get the data as a point..
-	virtual void GetPoint( CqVector3D& res, TqInt index = 0 ) const = 0;
+	virtual void GetPoint( Imath::V3f& res, TqInt index = 0 ) const = 0;
 	///	Get the data as a vector..
-	virtual void GetVector( CqVector3D& res, TqInt index = 0 ) const = 0;
+	virtual void GetVector( Imath::V3f& res, TqInt index = 0 ) const = 0;
 	///	Get the data as a normal..
-	virtual void GetNormal( CqVector3D& res, TqInt index = 0 ) const = 0;
+	virtual void GetNormal( Imath::V3f& res, TqInt index = 0 ) const = 0;
 	///	Get the data as a color..
 	virtual void GetColor( CqColor& res, TqInt index = 0 ) const = 0;
 	///	Get the data as a matrix..
@@ -68,11 +68,11 @@ struct IqShaderData
 	///	Get a const pointer to the data as a string..
 	virtual void GetStringPtr( const CqString*& res ) const = 0;
 	///	Get a const pointer to the data as a point..
-	virtual void GetPointPtr( const CqVector3D*& res ) const = 0;
+	virtual void GetPointPtr( const Imath::V3f*& res ) const = 0;
 	///	Get a const pointer to the data as a vector..
-	virtual void GetVectorPtr( const CqVector3D*& res ) const = 0;
+	virtual void GetVectorPtr( const Imath::V3f*& res ) const = 0;
 	///	Get a const pointer to the data as a normal..
-	virtual void GetNormalPtr( const CqVector3D*& res ) const = 0;
+	virtual void GetNormalPtr( const Imath::V3f*& res ) const = 0;
 	///	Get a const pointer to the data as a color..
 	virtual void GetColorPtr( const CqColor*& res ) const = 0;
 	///	Get a const pointer to the data as a matrix..
@@ -85,11 +85,11 @@ struct IqShaderData
 	///	Get a pointer to the data as a string..
 	virtual void GetStringPtr( CqString*& res ) = 0;
 	///	Get a pointer to the data as a point..
-	virtual void GetPointPtr( CqVector3D*& res ) = 0;
+	virtual void GetPointPtr( Imath::V3f*& res ) = 0;
 	///	Get a pointer to the data as a vector..
-	virtual void GetVectorPtr( CqVector3D*& res ) = 0;
+	virtual void GetVectorPtr( Imath::V3f*& res ) = 0;
 	///	Get a pointer to the data as a normal..
-	virtual void GetNormalPtr( CqVector3D*& res ) = 0;
+	virtual void GetNormalPtr( Imath::V3f*& res ) = 0;
 	///	Get a pointer to the data as a color..
 	virtual void GetColorPtr( CqColor*& res ) = 0;
 	///	Get a pointer to the data as a matrix..
@@ -102,11 +102,11 @@ struct IqShaderData
 	///	Set the value to the specified string.
 	virtual void SetString( const CqString& val ) = 0;
 	///	Set the value to the specified point.
-	virtual void SetPoint( const CqVector3D& val ) = 0;
+	virtual void SetPoint( const Imath::V3f& val ) = 0;
 	///	Set the value to the specified vector.
-	virtual void SetVector( const CqVector3D& val ) = 0;
+	virtual void SetVector( const Imath::V3f& val ) = 0;
 	///	Set the value to the specified normal.
-	virtual void SetNormal( const CqVector3D& val ) = 0;
+	virtual void SetNormal( const Imath::V3f& val ) = 0;
 	///	Set the value to the specified color.
 	virtual void SetColor( const CqColor& val ) = 0;
 	///	Set the value to the specified matrix.
@@ -119,11 +119,11 @@ struct IqShaderData
 	///	Set the value to the specified string.
 	virtual void SetString( const CqString& val, TqInt index ) = 0;
 	///	Set the value to the specified point.
-	virtual void SetPoint( const CqVector3D& val, TqInt index ) = 0;
+	virtual void SetPoint( const Imath::V3f& val, TqInt index ) = 0;
 	///	Set the value to the specified vector.
-	virtual void SetVector( const CqVector3D& val, TqInt index ) = 0;
+	virtual void SetVector( const Imath::V3f& val, TqInt index ) = 0;
 	///	Set the value to the specified normal.
-	virtual void SetNormal( const CqVector3D& val, TqInt index ) = 0;
+	virtual void SetNormal( const Imath::V3f& val, TqInt index ) = 0;
 	///	Set the value to the specified color.
 	virtual void SetColor( const CqColor& val, TqInt index ) = 0;
 	///	Set the value to the specified matrix.
@@ -142,7 +142,7 @@ struct IqShaderData
 	{
 		GetString( s, index );
 	}
-	void GetValue( CqVector3D& p, TqInt index = 0 ) const
+	void GetValue( Imath::V3f& p, TqInt index = 0 ) const
 	{
 		GetPoint( p, index );
 	}
@@ -167,7 +167,7 @@ struct IqShaderData
 	{
 		GetStringPtr( s );
 	}
-	void GetValuePtr( const CqVector3D*& p ) const
+	void GetValuePtr( const Imath::V3f*& p ) const
 	{
 		GetPointPtr( p );
 	}
@@ -192,7 +192,7 @@ struct IqShaderData
 	{
 		GetStringPtr( s );
 	}
-	void GetValuePtr( CqVector3D*& p )
+	void GetValuePtr( Imath::V3f*& p )
 	{
 		GetPointPtr( p );
 	}
@@ -221,7 +221,7 @@ struct IqShaderData
 	{
 		SetString( s );
 	}
-	void SetValue( const CqVector3D& p )
+	void SetValue( const Imath::V3f& p )
 	{
 		SetPoint( p );
 	}
@@ -250,7 +250,7 @@ struct IqShaderData
 	{
 		SetString( s, index );
 	}
-	void SetValue( const CqVector3D& p, TqInt index )
+	void SetValue( const Imath::V3f& p, TqInt index )
 	{
 		SetPoint( p, index );
 	}

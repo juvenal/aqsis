@@ -191,17 +191,17 @@ class CqShaderVariableArray: public CqShaderVariable
 			assert( false );
 			m_aVariables[ 0 ] ->GetString( res, index );
 		}
-		virtual	void	GetPoint( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetPoint( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->GetPoint( res, index );
 		}
-		virtual	void	GetVector( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetVector( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->GetVector( res, index );
 		}
-		virtual	void	GetNormal( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetNormal( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->GetNormal( res, index );
@@ -227,17 +227,17 @@ class CqShaderVariableArray: public CqShaderVariable
 			assert( false );
 			m_aVariables[ 0 ] ->GetStringPtr( res );
 		}
-		virtual	void	GetPointPtr( const CqVector3D*& res ) const
+		virtual	void	GetPointPtr( const Imath::V3f*& res ) const
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->GetPointPtr( res );
 		}
-		virtual	void	GetVectorPtr( const CqVector3D*& res ) const
+		virtual	void	GetVectorPtr( const Imath::V3f*& res ) const
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->GetVectorPtr( res );
 		}
-		virtual	void	GetNormalPtr( const CqVector3D*& res ) const
+		virtual	void	GetNormalPtr( const Imath::V3f*& res ) const
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->GetNormalPtr( res );
@@ -263,17 +263,17 @@ class CqShaderVariableArray: public CqShaderVariable
 			assert( false );
 			m_aVariables[ 0 ] ->GetStringPtr( res );
 		}
-		virtual	void	GetPointPtr( CqVector3D*& res )
+		virtual	void	GetPointPtr( Imath::V3f*& res )
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->GetPointPtr( res );
 		}
-		virtual	void	GetVectorPtr( CqVector3D*& res )
+		virtual	void	GetVectorPtr( Imath::V3f*& res )
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->GetVectorPtr( res );
 		}
-		virtual	void	GetNormalPtr( CqVector3D*& res )
+		virtual	void	GetNormalPtr( Imath::V3f*& res )
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->GetNormalPtr( res );
@@ -299,17 +299,17 @@ class CqShaderVariableArray: public CqShaderVariable
 			assert( false );
 			m_aVariables[ 0 ] ->SetString( s );
 		}
-		virtual	void	SetPoint( const CqVector3D& p )
+		virtual	void	SetPoint( const Imath::V3f& p )
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->SetPoint( p );
 		}
-		virtual	void	SetVector( const CqVector3D& v )
+		virtual	void	SetVector( const Imath::V3f& v )
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->SetVector( v );
 		}
-		virtual	void	SetNormal( const CqVector3D& n )
+		virtual	void	SetNormal( const Imath::V3f& n )
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->SetNormal( n );
@@ -335,17 +335,17 @@ class CqShaderVariableArray: public CqShaderVariable
 			assert( false );
 			m_aVariables[ 0 ] ->SetString( s, index );
 		}
-		virtual	void	SetPoint( const CqVector3D& p, TqInt index )
+		virtual	void	SetPoint( const Imath::V3f& p, TqInt index )
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->SetPoint( p, index );
 		}
-		virtual	void	SetVector( const CqVector3D& v, TqInt index )
+		virtual	void	SetVector( const Imath::V3f& v, TqInt index )
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->SetVector( v, index );
 		}
-		virtual	void	SetNormal( const CqVector3D& n, TqInt index )
+		virtual	void	SetNormal( const Imath::V3f& n, TqInt index )
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->SetNormal( n, index );
@@ -483,16 +483,16 @@ class CqShaderVariableUniform : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	GetPoint( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetPoint( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			Aqsis::log() << error << "Accessing " << Type() << " as point" << std::endl;
 			assert( false );
 		}
-		virtual	void	GetVector( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetVector( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			assert( false );
 		}
-		virtual	void	GetNormal( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetNormal( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			assert( false );
 		}
@@ -514,15 +514,15 @@ class CqShaderVariableUniform : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	GetPointPtr( const CqVector3D*& res ) const
+		virtual	void	GetPointPtr( const Imath::V3f*& res ) const
 		{
 			assert( false );
 		}
-		virtual	void	GetVectorPtr( const CqVector3D*& res ) const
+		virtual	void	GetVectorPtr( const Imath::V3f*& res ) const
 		{
 			assert( false );
 		}
-		virtual	void	GetNormalPtr( const CqVector3D*& res ) const
+		virtual	void	GetNormalPtr( const Imath::V3f*& res ) const
 		{
 			assert( false );
 		}
@@ -543,15 +543,15 @@ class CqShaderVariableUniform : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	GetPointPtr( CqVector3D*& res )
+		virtual	void	GetPointPtr( Imath::V3f*& res )
 		{
 			assert( false );
 		}
-		virtual	void	GetVectorPtr( CqVector3D*& res )
+		virtual	void	GetVectorPtr( Imath::V3f*& res )
 		{
 			assert( false );
 		}
-		virtual	void	GetNormalPtr( CqVector3D*& res )
+		virtual	void	GetNormalPtr( Imath::V3f*& res )
 		{
 			assert( false );
 		}
@@ -573,15 +573,15 @@ class CqShaderVariableUniform : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	SetPoint( const CqVector3D& p )
+		virtual	void	SetPoint( const Imath::V3f& p )
 		{
 			assert( false );
 		}
-		virtual	void	SetVector( const CqVector3D& v )
+		virtual	void	SetVector( const Imath::V3f& v )
 		{
 			assert( false );
 		}
-		virtual	void	SetNormal( const CqVector3D& n )
+		virtual	void	SetNormal( const Imath::V3f& n )
 		{
 			assert( false );
 		}
@@ -602,15 +602,15 @@ class CqShaderVariableUniform : public CqShaderVariable
 		{
 			SetString( s );
 		}
-		virtual	void	SetPoint( const CqVector3D& p, TqInt index )
+		virtual	void	SetPoint( const Imath::V3f& p, TqInt index )
 		{
 			SetPoint( p );
 		}
-		virtual	void	SetVector( const CqVector3D& v, TqInt index )
+		virtual	void	SetVector( const Imath::V3f& v, TqInt index )
 		{
 			SetVector( v );
 		}
-		virtual	void	SetNormal( const CqVector3D& n, TqInt index )
+		virtual	void	SetNormal( const Imath::V3f& n, TqInt index )
 		{
 			SetNormal( n );
 		}
@@ -761,58 +761,58 @@ class CqShaderVariableUniformString : public CqShaderVariableUniform<type_string
 		}
 };
 
-class CqShaderVariableUniformPoint : public CqShaderVariableUniform<type_point, CqVector3D>
+class CqShaderVariableUniformPoint : public CqShaderVariableUniform<type_point, Imath::V3f>
 {
 	public:
-		CqShaderVariableUniformPoint() : CqShaderVariableUniform<type_point, CqVector3D>()
+		CqShaderVariableUniformPoint() : CqShaderVariableUniform<type_point, Imath::V3f>()
 		{
 		}
-		CqShaderVariableUniformPoint( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableUniform<type_point, CqVector3D>( strName, storage )
+		CqShaderVariableUniformPoint( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableUniform<type_point, Imath::V3f>( strName, storage )
 		{
 		}
-		virtual	void	GetPoint( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetPoint( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_Value;
 		}
-		virtual	void	GetPointPtr( const CqVector3D*& res ) const
+		virtual	void	GetPointPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_Value;
 		}
-		virtual	void	GetPointPtr( CqVector3D*& res )
+		virtual	void	GetPointPtr( Imath::V3f*& res )
 		{
 			res = &m_Value;
 		}
-		virtual	void	SetPoint( const CqVector3D& p )
+		virtual	void	SetPoint( const Imath::V3f& p )
 		{
 			m_Value = p;
 		}
-		virtual	void	GetVector( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetVector( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_Value;
 		}
-		virtual	void	GetVectorPtr( const CqVector3D*& res ) const
+		virtual	void	GetVectorPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_Value;
 		}
-		virtual	void	SetVector( const CqVector3D& p )
+		virtual	void	SetVector( const Imath::V3f& p )
 		{
 			m_Value = p;
 		}
-		virtual	void	GetNormal( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetNormal( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_Value;
 		}
-		virtual	void	GetNormalPtr( const CqVector3D*& res ) const
+		virtual	void	GetNormalPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_Value;
 		}
-		virtual	void	SetNormal( const CqVector3D& p )
+		virtual	void	SetNormal( const Imath::V3f& p )
 		{
 			m_Value = p;
 		}
 		virtual void	GetBool( bool& res, TqInt index = 0 ) const
 		{
-			res = ( ( m_Value.x() != 0.0f ) || ( m_Value.y() != 0.0f ) || ( m_Value.z() != 0.0f ) );
+			res = ( ( m_Value.x != 0.0f ) || ( m_Value.y != 0.0f ) || ( m_Value.z != 0.0f ) );
 		}
 		/** Copy the values from the passed variable into this, taking into account any class differences.
 		 * \param pVal The variable to copy from.
@@ -830,58 +830,58 @@ class CqShaderVariableUniformPoint : public CqShaderVariableUniform<type_point, 
 		}
 };
 
-class CqShaderVariableUniformVector : public CqShaderVariableUniform<type_vector, CqVector3D>
+class CqShaderVariableUniformVector : public CqShaderVariableUniform<type_vector, Imath::V3f>
 {
 	public:
-		CqShaderVariableUniformVector() : CqShaderVariableUniform<type_vector, CqVector3D>()
+		CqShaderVariableUniformVector() : CqShaderVariableUniform<type_vector, Imath::V3f>()
 		{
 		}
-		CqShaderVariableUniformVector( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableUniform<type_vector, CqVector3D>( strName, storage )
+		CqShaderVariableUniformVector( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableUniform<type_vector, Imath::V3f>( strName, storage )
 		{
 		}
-		virtual	void	GetPoint( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetPoint( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_Value;
 		}
-		virtual	void	GetPointPtr( const CqVector3D*& res ) const
+		virtual	void	GetPointPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_Value;
 		}
-		virtual	void	GetPointPtr( CqVector3D*& res )
+		virtual	void	GetPointPtr( Imath::V3f*& res )
 		{
 			res = &m_Value;
 		}
-		virtual	void	SetPoint( const CqVector3D& p )
+		virtual	void	SetPoint( const Imath::V3f& p )
 		{
 			m_Value = p;
 		}
-		virtual	void	GetVector( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetVector( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_Value;
 		}
-		virtual	void	GetVectorPtr( const CqVector3D*& res ) const
+		virtual	void	GetVectorPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_Value;
 		}
-		virtual	void	SetVector( const CqVector3D& p )
+		virtual	void	SetVector( const Imath::V3f& p )
 		{
 			m_Value = p;
 		}
-		virtual	void	GetNormal( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetNormal( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_Value;
 		}
-		virtual	void	GetNormalPtr( const CqVector3D*& res ) const
+		virtual	void	GetNormalPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_Value;
 		}
-		virtual	void	SetNormal( const CqVector3D& p )
+		virtual	void	SetNormal( const Imath::V3f& p )
 		{
 			m_Value = p;
 		}
 		virtual void	GetBool( bool& res, TqInt index = 0 ) const
 		{
-			res = ( ( m_Value.x() != 0.0f ) || ( m_Value.y() != 0.0f ) || ( m_Value.z() != 0.0f ) );
+			res = ( ( m_Value.x != 0.0f ) || ( m_Value.y != 0.0f ) || ( m_Value.z != 0.0f ) );
 		}
 		/** Copy the values from the passed variable into this, taking into account any class differences.
 		 * \param pVal The variable to copy from.
@@ -899,57 +899,57 @@ class CqShaderVariableUniformVector : public CqShaderVariableUniform<type_vector
 		}
 };
 
-class CqShaderVariableUniformNormal : public CqShaderVariableUniform<type_normal, CqVector3D>
+class CqShaderVariableUniformNormal : public CqShaderVariableUniform<type_normal, Imath::V3f>
 {
 	public:
-		CqShaderVariableUniformNormal() : CqShaderVariableUniform<type_normal, CqVector3D>()
+		CqShaderVariableUniformNormal() : CqShaderVariableUniform<type_normal, Imath::V3f>()
 		{
 		}
-		CqShaderVariableUniformNormal( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableUniform<type_normal, CqVector3D>( strName, storage )
+		CqShaderVariableUniformNormal( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableUniform<type_normal, Imath::V3f>( strName, storage )
 		{}
-		virtual	void	GetPoint( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetPoint( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_Value;
 		}
-		virtual	void	GetPointPtr( const CqVector3D*& res ) const
+		virtual	void	GetPointPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_Value;
 		}
-		virtual	void	GetPointPtr( CqVector3D*& res )
+		virtual	void	GetPointPtr( Imath::V3f*& res )
 		{
 			res = &m_Value;
 		}
-		virtual	void	SetPoint( const CqVector3D& p )
+		virtual	void	SetPoint( const Imath::V3f& p )
 		{
 			m_Value = p;
 		}
-		virtual	void	GetVector( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetVector( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_Value;
 		}
-		virtual	void	GetVectorPtr( const CqVector3D*& res ) const
+		virtual	void	GetVectorPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_Value;
 		}
-		virtual	void	SetVector( const CqVector3D& p )
+		virtual	void	SetVector( const Imath::V3f& p )
 		{
 			m_Value = p;
 		}
-		virtual	void	GetNormal( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetNormal( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_Value;
 		}
-		virtual	void	GetNormalPtr( const CqVector3D*& res ) const
+		virtual	void	GetNormalPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_Value;
 		}
-		virtual	void	SetNormal( const CqVector3D& p )
+		virtual	void	SetNormal( const Imath::V3f& p )
 		{
 			m_Value = p;
 		}
 		virtual void	GetBool( bool& res, TqInt index = 0 ) const
 		{
-			res = ( ( m_Value.x() != 0.0f ) || ( m_Value.y() != 0.0f ) || ( m_Value.z() != 0.0f ) );
+			res = ( ( m_Value.x != 0.0f ) || ( m_Value.y != 0.0f ) || ( m_Value.z != 0.0f ) );
 		}
 		/** Copy the values from the passed variable into this, taking into account any class differences.
 		 * \param pVal The variable to copy from.
@@ -1101,15 +1101,15 @@ class CqShaderVariableVarying : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	GetPoint( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetPoint( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			assert( false );
 		}
-		virtual	void	GetVector( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetVector( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			assert( false );
 		}
-		virtual	void	GetNormal( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetNormal( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			assert( false );
 		}
@@ -1130,15 +1130,15 @@ class CqShaderVariableVarying : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	GetPointPtr( const CqVector3D*& res ) const
+		virtual	void	GetPointPtr( const Imath::V3f*& res ) const
 		{
 			assert( false );
 		}
-		virtual	void	GetVectorPtr( const CqVector3D*& res ) const
+		virtual	void	GetVectorPtr( const Imath::V3f*& res ) const
 		{
 			assert( false );
 		}
-		virtual	void	GetNormalPtr( const CqVector3D*& res ) const
+		virtual	void	GetNormalPtr( const Imath::V3f*& res ) const
 		{
 			assert( false );
 		}
@@ -1159,15 +1159,15 @@ class CqShaderVariableVarying : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	GetPointPtr( CqVector3D*& res )
+		virtual	void	GetPointPtr( Imath::V3f*& res )
 		{
 			assert( false );
 		}
-		virtual	void	GetVectorPtr( CqVector3D*& res )
+		virtual	void	GetVectorPtr( Imath::V3f*& res )
 		{
 			assert( false );
 		}
-		virtual	void	GetNormalPtr( CqVector3D*& res )
+		virtual	void	GetNormalPtr( Imath::V3f*& res )
 		{
 			assert( false );
 		}
@@ -1188,15 +1188,15 @@ class CqShaderVariableVarying : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	SetPoint( const CqVector3D& p )
+		virtual	void	SetPoint( const Imath::V3f& p )
 		{
 			assert( false );
 		}
-		virtual	void	SetVector( const CqVector3D& v )
+		virtual	void	SetVector( const Imath::V3f& v )
 		{
 			assert( false );
 		}
-		virtual	void	SetNormal( const CqVector3D& n )
+		virtual	void	SetNormal( const Imath::V3f& n )
 		{
 			assert( false );
 		}
@@ -1217,15 +1217,15 @@ class CqShaderVariableVarying : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	SetPoint( const CqVector3D& p, TqInt index )
+		virtual	void	SetPoint( const Imath::V3f& p, TqInt index )
 		{
 			assert( false );
 		}
-		virtual	void	SetVector( const CqVector3D& v, TqInt index )
+		virtual	void	SetVector( const Imath::V3f& v, TqInt index )
 		{
 			assert( false );
 		}
-		virtual	void	SetNormal( const CqVector3D& n, TqInt index )
+		virtual	void	SetNormal( const Imath::V3f& n, TqInt index )
 		{
 			assert( false );
 		}
@@ -1414,78 +1414,78 @@ class CqShaderVariableVaryingString : public CqShaderVariableVarying<type_string
 		}
 };
 
-class CqShaderVariableVaryingPoint : public CqShaderVariableVarying<type_point, CqVector3D>
+class CqShaderVariableVaryingPoint : public CqShaderVariableVarying<type_point, Imath::V3f>
 {
 	public:
-		CqShaderVariableVaryingPoint( ) : CqShaderVariableVarying<type_point, CqVector3D>( )
+		CqShaderVariableVaryingPoint( ) : CqShaderVariableVarying<type_point, Imath::V3f>( )
 		{
 		}
-		CqShaderVariableVaryingPoint( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableVarying<type_point, CqVector3D>( strName, storage )
+		CqShaderVariableVaryingPoint( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableVarying<type_point, Imath::V3f>( strName, storage )
 		{
 		}
-		virtual	void	GetPoint( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetPoint( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_aValue[ index ];
 		}
-		virtual	void	GetPointPtr( const CqVector3D*& res ) const
+		virtual	void	GetPointPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	GetPointPtr( CqVector3D*& res )
+		virtual	void	GetPointPtr( Imath::V3f*& res )
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	SetPoint( const CqVector3D& p, TqInt index )
+		virtual	void	SetPoint( const Imath::V3f& p, TqInt index )
 		{
 			m_aValue[ index ] = p;
 		}
-		virtual	void	SetPoint( const CqVector3D& p )
+		virtual	void	SetPoint( const Imath::V3f& p )
 		{
 			m_aValue.assign( m_aValue.size(), p );
 		}
-		virtual	void	GetVector( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetVector( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			GetPoint( res, index );
 		}
-		virtual	void	GetVectorPtr( const CqVector3D*& res ) const
+		virtual	void	GetVectorPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	GetVectorPtr( CqVector3D*& res )
+		virtual	void	GetVectorPtr( Imath::V3f*& res )
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	SetVector( const CqVector3D& p, TqInt index )
+		virtual	void	SetVector( const Imath::V3f& p, TqInt index )
 		{
 			SetPoint( p, index );
 		}
-		virtual	void	SetVector( const CqVector3D& p )
+		virtual	void	SetVector( const Imath::V3f& p )
 		{
 			SetPoint( p );
 		}
-		virtual	void	GetNormal( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetNormal( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			GetPoint( res, index );
 		}
-		virtual	void	GetNormalPtr( const CqVector3D*& res ) const
+		virtual	void	GetNormalPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	GetNormalPtr( CqVector3D*& res )
+		virtual	void	GetNormalPtr( Imath::V3f*& res )
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	SetNormal( const CqVector3D& p, TqInt index )
+		virtual	void	SetNormal( const Imath::V3f& p, TqInt index )
 		{
 			SetPoint( p, index );
 		}
-		virtual	void	SetNormal( const CqVector3D& p )
+		virtual	void	SetNormal( const Imath::V3f& p )
 		{
 			SetPoint( p );
 		}
 		virtual void	GetBool( bool& res, TqInt index = 0 ) const
 		{
-			res = ( ( m_aValue[ index ].x() != 0.0f ) || ( m_aValue[ index ].y() != 0.0f ) || ( m_aValue[ index ].z() != 0.0f ) );
+			res = ( ( m_aValue[ index ].x != 0.0f ) || ( m_aValue[ index ].y != 0.0f ) || ( m_aValue[ index ].z != 0.0f ) );
 		}
 		/** Copy the values from the passed variable into this, taking into account any class differences.
 		 * \param pVal The variable to copy from.
@@ -1495,14 +1495,14 @@ class CqShaderVariableVaryingPoint : public CqShaderVariableVarying<type_point, 
 			TqUint i;
 			if ( pVal->Size() > 1 )
 			{
-				const CqVector3D * pData;
+				const Imath::V3f * pData;
 				pVal->GetPointPtr( pData );
 				for ( i = 0; i < Size(); i++ )
 					m_aValue[ i ] = pData [ i ];
 			}
 			else
 			{
-				CqVector3D temp;
+				Imath::V3f temp;
 				pVal->GetPoint( temp );
 				m_aValue.assign( m_aValue.size(), temp );
 			}
@@ -1524,78 +1524,78 @@ class CqShaderVariableVaryingPoint : public CqShaderVariableVarying<type_point, 
 		}
 };
 
-class CqShaderVariableVaryingVector : public CqShaderVariableVarying<type_vector, CqVector3D>
+class CqShaderVariableVaryingVector : public CqShaderVariableVarying<type_vector, Imath::V3f>
 {
 	public:
-		CqShaderVariableVaryingVector( ) : CqShaderVariableVarying<type_vector, CqVector3D>( )
+		CqShaderVariableVaryingVector( ) : CqShaderVariableVarying<type_vector, Imath::V3f>( )
 		{
 		}
-		CqShaderVariableVaryingVector( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableVarying<type_vector, CqVector3D>( strName, storage )
+		CqShaderVariableVaryingVector( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableVarying<type_vector, Imath::V3f>( strName, storage )
 		{
 		}
-		virtual	void	GetPoint( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetPoint( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_aValue[ index ];
 		}
-		virtual	void	GetPointPtr( const CqVector3D*& res ) const
+		virtual	void	GetPointPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	GetPointPtr( CqVector3D*& res )
+		virtual	void	GetPointPtr( Imath::V3f*& res )
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	SetPoint( const CqVector3D& p, TqInt index )
+		virtual	void	SetPoint( const Imath::V3f& p, TqInt index )
 		{
 			m_aValue[ index ] = p;
 		}
-		virtual	void	SetPoint( const CqVector3D& p )
+		virtual	void	SetPoint( const Imath::V3f& p )
 		{
 			m_aValue.assign( m_aValue.size(), p );
 		}
-		virtual	void	GetVector( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetVector( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			GetPoint( res, index );
 		}
-		virtual	void	GetVectorPtr( const CqVector3D*& res ) const
+		virtual	void	GetVectorPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	GetVectorPtr( CqVector3D*& res )
+		virtual	void	GetVectorPtr( Imath::V3f*& res )
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	SetVector( const CqVector3D& p, TqInt index )
+		virtual	void	SetVector( const Imath::V3f& p, TqInt index )
 		{
 			SetPoint( p, index );
 		}
-		virtual	void	SetVector( const CqVector3D& p )
+		virtual	void	SetVector( const Imath::V3f& p )
 		{
 			SetPoint( p );
 		}
-		virtual	void	GetNormal( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetNormal( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			GetPoint( res, index );
 		}
-		virtual	void	GetNormalPtr( const CqVector3D*& res ) const
+		virtual	void	GetNormalPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	GetNormalPtr( CqVector3D*& res )
+		virtual	void	GetNormalPtr( Imath::V3f*& res )
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	SetNormal( const CqVector3D& p, TqInt index )
+		virtual	void	SetNormal( const Imath::V3f& p, TqInt index )
 		{
 			SetPoint( p, index );
 		}
-		virtual	void	SetNormal( const CqVector3D& p )
+		virtual	void	SetNormal( const Imath::V3f& p )
 		{
 			SetPoint( p );
 		}
 		virtual void	GetBool( bool& res, TqInt index = 0 ) const
 		{
-			res = ( ( m_aValue[ index ].x() != 0.0f ) || ( m_aValue[ index ].y() != 0.0f ) || ( m_aValue[ index ].z() != 0.0f ) );
+			res = ( ( m_aValue[ index ].x != 0.0f ) || ( m_aValue[ index ].y != 0.0f ) || ( m_aValue[ index ].z != 0.0f ) );
 		}
 		/** Copy the values from the passed variable into this, taking into account any class differences.
 		 * \param pVal The variable to copy from.
@@ -1605,14 +1605,14 @@ class CqShaderVariableVaryingVector : public CqShaderVariableVarying<type_vector
 			TqUint i;
 			if ( pVal->Size() > 1 )
 			{
-				const CqVector3D * pData;
+				const Imath::V3f * pData;
 				pVal->GetVectorPtr( pData );
 				for ( i = 0; i < Size(); i++ )
 					m_aValue[ i ] = pData [ i ];
 			}
 			else
 			{
-				CqVector3D temp;
+				Imath::V3f temp;
 				pVal->GetVector( temp );
 				m_aValue.assign( m_aValue.size(), temp );
 			}
@@ -1634,78 +1634,78 @@ class CqShaderVariableVaryingVector : public CqShaderVariableVarying<type_vector
 		}
 };
 
-class CqShaderVariableVaryingNormal : public CqShaderVariableVarying<type_normal, CqVector3D>
+class CqShaderVariableVaryingNormal : public CqShaderVariableVarying<type_normal, Imath::V3f>
 {
 	public:
-		CqShaderVariableVaryingNormal( ) : CqShaderVariableVarying<type_normal, CqVector3D>( )
+		CqShaderVariableVaryingNormal( ) : CqShaderVariableVarying<type_normal, Imath::V3f>( )
 		{
 		}
-		CqShaderVariableVaryingNormal( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableVarying<type_normal, CqVector3D>( strName, storage )
+		CqShaderVariableVaryingNormal( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableVarying<type_normal, Imath::V3f>( strName, storage )
 		{
 		}
-		virtual	void	GetPoint( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetPoint( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_aValue[ index ];
 		}
-		virtual	void	GetPointPtr( const CqVector3D*& res ) const
+		virtual	void	GetPointPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	GetPointPtr( CqVector3D*& res )
+		virtual	void	GetPointPtr( Imath::V3f*& res )
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	SetPoint( const CqVector3D& p, TqInt index )
+		virtual	void	SetPoint( const Imath::V3f& p, TqInt index )
 		{
 			m_aValue[ index ] = p;
 		}
-		virtual	void	SetPoint( const CqVector3D& p )
+		virtual	void	SetPoint( const Imath::V3f& p )
 		{
 			m_aValue.assign( m_aValue.size(), p );
 		}
-		virtual	void	GetVector( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetVector( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			GetPoint( res, index );
 		}
-		virtual	void	GetVectorPtr( const CqVector3D*& res ) const
+		virtual	void	GetVectorPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	GetVectorPtr( CqVector3D*& res )
+		virtual	void	GetVectorPtr( Imath::V3f*& res )
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	SetVector( const CqVector3D& p, TqInt index )
+		virtual	void	SetVector( const Imath::V3f& p, TqInt index )
 		{
 			SetPoint( p, index );
 		}
-		virtual	void	SetVector( const CqVector3D& p )
+		virtual	void	SetVector( const Imath::V3f& p )
 		{
 			SetPoint( p );
 		}
-		virtual	void	GetNormal( CqVector3D& res, TqInt index = 0 ) const
+		virtual	void	GetNormal( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			GetPoint( res, index );
 		}
-		virtual	void	GetNormalPtr( const CqVector3D*& res ) const
+		virtual	void	GetNormalPtr( const Imath::V3f*& res ) const
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	GetNormalPtr( CqVector3D*& res )
+		virtual	void	GetNormalPtr( Imath::V3f*& res )
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	SetNormal( const CqVector3D& p, TqInt index )
+		virtual	void	SetNormal( const Imath::V3f& p, TqInt index )
 		{
 			SetPoint( p, index );
 		}
-		virtual	void	SetNormal( const CqVector3D& p )
+		virtual	void	SetNormal( const Imath::V3f& p )
 		{
 			SetPoint( p );
 		}
 		virtual void	GetBool( bool& res, TqInt index = 0 ) const
 		{
-			res = ( ( m_aValue[ index ].x() != 0.0f ) || ( m_aValue[ index ].y() != 0.0f ) || ( m_aValue[ index ].z() != 0.0f ) );
+			res = ( ( m_aValue[ index ].x != 0.0f ) || ( m_aValue[ index ].y != 0.0f ) || ( m_aValue[ index ].z != 0.0f ) );
 		}
 		/** Copy the values from the passed variable into this, taking into account any class differences.
 		 * \param pVal The variable to copy from.
@@ -1715,14 +1715,14 @@ class CqShaderVariableVaryingNormal : public CqShaderVariableVarying<type_normal
 			TqUint i;
 			if ( pVal->Size() > 1 )
 			{
-				const CqVector3D * pData;
+				const Imath::V3f * pData;
 				pVal->GetNormalPtr( pData );
 				for ( i = 0; i < Size(); i++ )
 					m_aValue[ i ] = pData [ i ];
 			}
 			else
 			{
-				CqVector3D temp;
+				Imath::V3f temp;
 				pVal->GetNormal( temp );
 				m_aValue.assign( m_aValue.size(), temp );
 			}

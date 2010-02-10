@@ -178,11 +178,11 @@ inline T CqGridDiff::diff(const T* data, bool useCentred, TqInt stride,
 		// increasing in different directions, which this is
 		// unavoidable for some surface types like SDS.
 		if(n == 0)
-			return -1.5*data[0] + 2*data[stride] - 0.5*data[2*stride];
+			return data[0]*-1.5 + data[stride]*2 - data[2*stride]*0.5;
 		else if(n == nSize-1)
-			return 1.5*data[0] - 2*data[-1*stride] + 0.5*data[-2*stride];
+			return data[0]*1.5 - data[-1*stride]*2 + data[-2*stride]*0.5;
 		else
-			return 0.5*(data[stride] - data[-stride]);
+			return (data[stride] - data[-stride])*0.5;
 	}
 	else
 	{
@@ -192,9 +192,9 @@ inline T CqGridDiff::diff(const T* data, bool useCentred, TqInt stride,
 		// differece *between* grid points, which corresponds to
 		// micropolygons centres.
 		if(n == nSize-1)
-			return 0.5*(data[0] - data[-stride]);
+			return (data[0] - data[-stride])*0.5;
 		else
-			return 0.5*(data[stride] - data[0]);
+			return (data[stride] - data[0])*0.5;
 	}
 }
 

@@ -41,7 +41,7 @@ class AQSIS_TEX_SHARE CqDummyOcclusionSampler : public IqOcclusionSampler
 	public:
 		/// Return not-occluded always.
 		virtual void sample(const Sq3DSamplePllgram& samplePllgram,
-			const CqVector3D& normal, const CqShadowSampleOptions& sampleOpts,
+			const Imath::V3f& normal, const CqShadowSampleOptions& sampleOpts,
 			TqFloat* outSamps) const;
 };
 
@@ -52,7 +52,7 @@ class AQSIS_TEX_SHARE CqDummyOcclusionSampler : public IqOcclusionSampler
 
 inline void CqDummyOcclusionSampler::sample(
 		const Sq3DSamplePllgram& samplePllgram,
-		const CqVector3D& normal, const CqShadowSampleOptions& sampleOpts,
+		const Imath::V3f& normal, const CqShadowSampleOptions& sampleOpts,
 		TqFloat* outSamps) const
 {
 	for(TqInt i = 0; i < sampleOpts.numChannels(); ++i)

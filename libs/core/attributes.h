@@ -250,18 +250,18 @@ class CqAttributes : public IqAttributes, public boost::enable_shared_from_this<
 		virtual const	TqFloat*	GetFloatAttribute( const char* strName, const char* strParam ) const;
 		virtual const	TqInt*	GetIntegerAttribute( const char* strName, const char* strParam ) const;
 		virtual const	CqString* GetStringAttribute( const char* strName, const char* strParam ) const;
-		virtual const	CqVector3D*	GetPointAttribute( const char* strName, const char* strParam ) const;
-		virtual const	CqVector3D*	GetVectorAttribute( const char* strName, const char* strParam ) const;
-		virtual const	CqVector3D*	GetNormalAttribute( const char* strName, const char* strParam ) const;
+		virtual const	Imath::V3f*	GetPointAttribute( const char* strName, const char* strParam ) const;
+		virtual const	Imath::V3f*	GetVectorAttribute( const char* strName, const char* strParam ) const;
+		virtual const	Imath::V3f*	GetNormalAttribute( const char* strName, const char* strParam ) const;
 		virtual const	CqColor*	GetColorAttribute( const char* strName, const char* strParam ) const;
 		virtual const	CqMatrix*	GetMatrixAttribute( const char* strName, const char* strParam ) const;
 
 		virtual TqFloat*	GetFloatAttributeWrite( const char* strName, const char* strParam );
 		virtual TqInt*	GetIntegerAttributeWrite( const char* strName, const char* strParam );
 		virtual CqString* GetStringAttributeWrite( const char* strName, const char* strParam );
-		virtual CqVector3D*	GetPointAttributeWrite( const char* strName, const char* strParam );
-		virtual CqVector3D*	GetVectorAttributeWrite( const char* strName, const char* strParam );
-		virtual CqVector3D*	GetNormalAttributeWrite( const char* strName, const char* strParam );
+		virtual Imath::V3f*	GetPointAttributeWrite( const char* strName, const char* strParam );
+		virtual Imath::V3f*	GetVectorAttributeWrite( const char* strName, const char* strParam );
+		virtual Imath::V3f*	GetNormalAttributeWrite( const char* strName, const char* strParam );
 		virtual CqColor*	GetColorAttributeWrite( const char* strName, const char* strParam );
 		virtual CqMatrix*	GetMatrixAttributeWrite( const char* strName, const char* strParam );
 

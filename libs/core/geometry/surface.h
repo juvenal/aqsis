@@ -121,9 +121,9 @@ class CqSurface : public IqSurface, private boost::noncopyable, public boost::en
 		 * using "Pz" point specification.
 		 * \todo Review: Unused parameter index
 		 */
-		virtual CqVector3D	SurfaceParametersAtVertex( TqInt index )
+		virtual Imath::V3f	SurfaceParametersAtVertex( TqInt index )
 		{
-			return ( CqVector3D( 0, 0, 0 ) );
+			return ( Imath::V3f( 0, 0, 0 ) );
 		}
 
 		/** Get a pointer to the attributes state associated with this GPrim.
@@ -234,19 +234,19 @@ class CqSurface : public IqSurface, private boost::noncopyable, public boost::en
 
 		/** Get a reference the to P default parameter.
 		 */
-		virtual CqParameterTyped<CqVector4D, CqVector3D>* P()
+		virtual CqParameterTyped<CqVector4D, Imath::V3f>* P()
 		{
 			if ( m_aiStdPrimitiveVars[ EnvVars_P ] >= 0 )
-				return ( static_cast<CqParameterTyped<CqVector4D, CqVector3D>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_P ] ] ) );
+				return ( static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_P ] ] ) );
 			else
 				return ( NULL );
 		}
 		/** Get a reference the to N default parameter.
 		 */
-		virtual CqParameterTyped<CqVector3D, CqVector3D>* N()
+		virtual CqParameterTyped<Imath::V3f, Imath::V3f>* N()
 		{
 			if ( m_aiStdPrimitiveVars[ EnvVars_N ] >= 0 )
-				return ( static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_N ] ] ) );
+				return ( static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_N ] ] ) );
 			else
 				return ( NULL );
 		}
@@ -307,19 +307,19 @@ class CqSurface : public IqSurface, private boost::noncopyable, public boost::en
 
 		/** Get a reference the to P default parameter.
 		 */
-		virtual const	CqParameterTyped<CqVector4D, CqVector3D>* P() const
+		virtual const	CqParameterTyped<CqVector4D, Imath::V3f>* P() const
 		{
 			if ( m_aiStdPrimitiveVars[ EnvVars_P ] >= 0 )
-				return ( static_cast<const CqParameterTyped<CqVector4D, CqVector3D>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_P ] ] ) );
+				return ( static_cast<const CqParameterTyped<CqVector4D, Imath::V3f>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_P ] ] ) );
 			else
 				return ( NULL );
 		}
 		/** Get a reference the to N default parameter.
 		 */
-		virtual const	CqParameterTyped<CqVector3D, CqVector3D>* N() const
+		virtual const	CqParameterTyped<Imath::V3f, Imath::V3f>* N() const
 		{
 			if ( m_aiStdPrimitiveVars[ EnvVars_N ] >= 0 )
-				return ( static_cast<const CqParameterTyped<CqVector3D, CqVector3D>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_N ] ] ) );
+				return ( static_cast<const CqParameterTyped<Imath::V3f, Imath::V3f>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_N ] ] ) );
 			else
 				return ( NULL );
 		}
@@ -624,8 +624,8 @@ class CqDeformingSurface : public CqSurface, public CqMotionSpec<boost::shared_p
 		 */
 		virtual	void	Bound(CqBound* bound) const
 		{
-			bound->vecMin() = CqVector3D(FLT_MAX, FLT_MAX, FLT_MAX);
-			bound->vecMax() = CqVector3D(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+			bound->vecMin() = Imath::V3f(FLT_MAX, FLT_MAX, FLT_MAX);
+			bound->vecMax() = Imath::V3f(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 			CqBound B;
 			TqInt i;
 			for ( i = 0; i < cTimes(); i++ )

@@ -889,8 +889,8 @@ void CqBucketProcessor::CalculateDofBounds()
 				bottomRight.y = minY + dy;
 			}
 
-			m_DofBounds[which].vecMin() = vectorCast<CqVector3D>(topLeft);
-			m_DofBounds[which].vecMax() = vectorCast<CqVector3D>(topLeft);
+			m_DofBounds[which].vecMin() = vectorCast<Imath::V3f>(topLeft);
+			m_DofBounds[which].vecMax() = vectorCast<Imath::V3f>(topLeft);
 			m_DofBounds[which].Encapsulate(topRight);
 			m_DofBounds[which].Encapsulate(bottomLeft);
 			m_DofBounds[which].Encapsulate(bottomRight);
@@ -1050,11 +1050,11 @@ void CqBucketProcessor::RenderMPG_Static( CqMicroPolygon* pMPG)
 
     CqBound Bound = pMPG->GetBound();
 
-	TqFloat bminx = Bound.vecMin().x();
-	TqFloat bmaxx = Bound.vecMax().x();
-	TqFloat bminy = Bound.vecMin().y();
-	TqFloat bmaxy = Bound.vecMax().y();
-	//TqFloat bminz = Bound.vecMin().z();
+	TqFloat bminx = Bound.vecMin().x;
+	TqFloat bmaxx = Bound.vecMax().x;
+	TqFloat bminy = Bound.vecMin().y;
+	TqFloat bmaxy = Bound.vecMax().y;
+	//TqFloat bminz = Bound.vecMin().z;
 
 	// Now go across all pixels touched by the micropolygon bound.
 	// The first pixel position is at (sX, sY), the last one
@@ -1118,7 +1118,7 @@ void CqBucketProcessor::RenderMPG_Static( CqMicroPolygon* pMPG)
 
 					// Occlusion cull the micropoly bound against the current
 					// opaque sample hit.
-					if(isCullable && Bound.vecMin().z() > sampleData.occlZ)
+					if(isCullable && Bound.vecMin().z > sampleData.occlZ)
 						continue;
 
 					// Check to see if the sample is within the sample's level of detail
@@ -1227,12 +1227,12 @@ void CqBucketProcessor::RenderMPG_MBOrDof( CqMicroPolygon* pMPG, bool IsMoving, 
 		TqFloat maxCocX = 0;
 		TqFloat maxCocY = 0;
 
-		TqFloat bminx = Bound.vecMin().x();
-		TqFloat bmaxx = Bound.vecMax().x();
-		TqFloat bminy = Bound.vecMin().y();
-		TqFloat bmaxy = Bound.vecMax().y();
-		TqFloat bminz = Bound.vecMin().z();
-		TqFloat bmaxz = Bound.vecMax().z();
+		TqFloat bminx = Bound.vecMin().x;
+		TqFloat bmaxx = Bound.vecMax().x;
+		TqFloat bminy = Bound.vecMin().y;
+		TqFloat bmaxy = Bound.vecMax().y;
+		TqFloat bminz = Bound.vecMin().z;
+		TqFloat bmaxz = Bound.vecMax().z;
 		// if bounding box is outside our viewing range, then cull it.
 		if ( bminz > m_optCache.clipFar || bmaxz < m_optCache.clipNear )
 			continue;
@@ -1243,8 +1243,8 @@ void CqBucketProcessor::RenderMPG_MBOrDof( CqMicroPolygon* pMPG, bool IsMoving, 
 		TqInt bound_maxDof = 1;
 		if(UsingDof)
 		{
-			const Imath::V2f& minZCoc = QGetRenderContext()->GetCircleOfConfusion( Bound.vecMin().z() );
-			const Imath::V2f& maxZCoc = QGetRenderContext()->GetCircleOfConfusion( Bound.vecMax().z() );
+			const Imath::V2f& minZCoc = QGetRenderContext()->GetCircleOfConfusion( Bound.vecMin().z );
+			const Imath::V2f& maxZCoc = QGetRenderContext()->GetCircleOfConfusion( Bound.vecMax().z );
 			maxCocX = max( minZCoc.x, maxZCoc.x );
 			maxCocY = max( minZCoc.y, maxZCoc.y );
 			bound_maxDof = m_NumDofBounds;
@@ -1261,10 +1261,10 @@ void CqBucketProcessor::RenderMPG_MBOrDof( CqMicroPolygon* pMPG, bool IsMoving, 
 				// now shift the bounding box to cover only a given range of
 				// lens positions.
 				const CqBound DofBound = DofSubBound( bound_numDof );
-				TqFloat leftOffset = DofBound.vecMax().x() * maxCocX;
-				TqFloat rightOffset = DofBound.vecMin().x() * maxCocX;
-				TqFloat topOffset = DofBound.vecMax().y() * maxCocY;
-				TqFloat bottomOffset = DofBound.vecMin().y() * maxCocY;
+				TqFloat leftOffset = DofBound.vecMax().x * maxCocX;
+				TqFloat rightOffset = DofBound.vecMin().x * maxCocX;
+				TqFloat topOffset = DofBound.vecMax().y * maxCocY;
+				TqFloat bottomOffset = DofBound.vecMin().y * maxCocY;
 
 				bminx = mpgbminx - leftOffset;
 				bmaxx = mpgbmaxx - rightOffset;
@@ -1340,7 +1340,7 @@ void CqBucketProcessor::RenderMPG_MBOrDof( CqMicroPolygon* pMPG, bool IsMoving, 
 								continue;
 							// Occlusion cull the micropoly bound against the
 							// current opaque sample hit.
-							if(isCullable && Bound.vecMin().z() > sampleData.occlZ)
+							if(isCullable && Bound.vecMin().z > sampleData.occlZ)
 								continue;
 
 							// Check to see if the sample is within the sample's level of detail
@@ -1375,7 +1375,7 @@ void CqBucketProcessor::RenderMPG_MBOrDof( CqMicroPolygon* pMPG, bool IsMoving, 
 								continue;
 							// Occlusion cull the micropoly bound against the
 							// current opaque sample hit.
-							if(isCullable && Bound.vecMin().z() > sampleData.occlZ)
+							if(isCullable && Bound.vecMin().z > sampleData.occlZ)
 								continue;
 
 							// Check to see if the sample is within the sample's level of detail
@@ -1536,11 +1536,11 @@ void CqBucketProcessor::StoreExtraData( CqMicroPolygon* pMPG, TqFloat* hitData)
 					case type_vector:
 					case type_hpoint:
 					{
-						CqVector3D v;
+						Imath::V3f v;
 						pData->GetPoint( v, pMPG->GetIndex() );
-						hitData[ entry->second.m_Offset ] = v.x();
-						hitData[ entry->second.m_Offset + 1 ] = v.y();
-						hitData[ entry->second.m_Offset + 2 ] = v.z();
+						hitData[ entry->second.m_Offset ] = v.x;
+						hitData[ entry->second.m_Offset + 1 ] = v.y;
+						hitData[ entry->second.m_Offset + 2 ] = v.z;
 						break;
 					}
 					case type_color:

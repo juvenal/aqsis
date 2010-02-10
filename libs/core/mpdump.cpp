@@ -161,7 +161,7 @@ void CqMPDump::dump(const CqMicroPolygon& mp)
 
 	// Dump vertices in a funny circular order for backward-compatibility
 	// rather than in the usual bilinear patch type order.
-	CqVector3D P[4];
+	Imath::V3f P[4];
 	mp.GetVertices(P);
 	dumpVec3(P[0]);
 	dumpVec3(P[1]);
@@ -180,11 +180,11 @@ void CqMPDump::dump(const CqMicroPolygon& mp)
 }
 
 // Dump a 3d vector
-void CqMPDump::dumpVec3(const CqVector3D& v)
+void CqMPDump::dumpVec3(const Imath::V3f& v)
 {
-	TqFloat x = v.x();
-	TqFloat y = v.y();
-	TqFloat z = v.z();
+	TqFloat x = v.x;
+	TqFloat y = v.y;
+	TqFloat z = v.z;
 
 	size_t len_written = fwrite((void*)&x, sizeof(TqFloat), 1, m_outFile);
 	len_written += fwrite((void*)&y, sizeof(TqFloat), 1, m_outFile);

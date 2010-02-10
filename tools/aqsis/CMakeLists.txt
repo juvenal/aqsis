@@ -8,6 +8,9 @@ if(AQSIS_ENABLE_MPDUMP)
 	add_definitions(-DENABLE_MPDUMP)
 endif()
 
+include_directories(
+	${AQSIS_OPENEXR_INCLUDE_DIR})
+
 aqsis_add_executable(aqsis ${aqsis_srcs}
 	LINK_LIBRARIES aqsis_core aqsis_util aqsis_ribparse)
 

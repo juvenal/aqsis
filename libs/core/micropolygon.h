@@ -156,11 +156,11 @@ class CqMicroPolyGridBase : public CqRefCount
 		virtual IqShaderData* pVar(TqInt index) = 0;
 		/** Get the points of the triangle split line if this grid represents a triangle.
 		 */
-		virtual void	TriangleSplitPoints(CqVector3D& v1, CqVector3D& v2, TqFloat Time );
+		virtual void	TriangleSplitPoints(Imath::V3f& v1, Imath::V3f& v2, TqFloat Time );
 
 		struct SqTriangleSplitLine
 		{
-			CqVector3D	m_TriangleSplitPoint1, m_TriangleSplitPoint2;
+			Imath::V3f	m_TriangleSplitPoint1, m_TriangleSplitPoint2;
 		};
 	class CqTriangleSplitLine : public CqMotionSpec<SqTriangleSplitLine>
 		{
@@ -522,7 +522,7 @@ class CqMotionMicroPolyGrid : public CqMicroPolyGridBase, public CqMotionSpec<Cq
 struct CqHitTestCache
 {
 	// Cached vertices for static micropolygons.
-	CqVector3D P[4];
+	Imath::V3f P[4];
 	// Cached depths for bilinear depth lookup.  These are the same as P[i].z()
 	// in some cases, but are filled in by cachePointInPolyTest.
 	TqFloat z[4];
@@ -748,7 +748,7 @@ class CqMicroPolygon : boost::noncopyable
 		/** \brief Get micropolygon vertices in the natural order.
 		 * \param P - output array for vertices.
 		 */
-		void GetVertices(CqVector3D P[4]) const;
+		void GetVertices(Imath::V3f P[4]) const;
 	protected:
 		/** \brief Cache output interpolation coefficients for constant shading
 		 * \see CacheOutputInterpCoeffs
@@ -811,7 +811,7 @@ class CqMicroPolygon : boost::noncopyable
 		 * \param points - Points from which to calculate the point in polygon
 		 *                 test coefficients.
 		 */
-		void cachePointInPolyTest(CqHitTestCache& cache, CqVector3D* points) const;
+		void cachePointInPolyTest(CqHitTestCache& cache, Imath::V3f* points) const;
 
 	private:
 		static	CqObjectPool<CqMicroPolygon> m_thePool;
@@ -828,7 +828,7 @@ class CqMicroPolygon : boost::noncopyable
 class CqMovingMicroPolygonKey
 {
 	public:
-		CqMovingMicroPolygonKey( const CqVector3D& vA, const CqVector3D& vB, const CqVector3D& vC, const CqVector3D& vD )
+		CqMovingMicroPolygonKey( const Imath::V3f& vA, const Imath::V3f& vB, const Imath::V3f& vC, const Imath::V3f& vD )
 			: m_Point0(vA),
 			m_Point1(vB),
 			m_Point2(vC),
@@ -856,10 +856,10 @@ class CqMovingMicroPolygonKey
 	public:
 		const CqBound&	GetBound();
 
-		CqVector3D	m_Point0;
-		CqVector3D	m_Point1;
-		CqVector3D	m_Point2;
-		CqVector3D	m_Point3;
+		Imath::V3f	m_Point0;
+		Imath::V3f	m_Point1;
+		Imath::V3f	m_Point2;
+		Imath::V3f	m_Point3;
 
 	protected:
 		CqBound m_Bound;
@@ -910,7 +910,7 @@ class CqMicroPolygonMotion : public CqMicroPolygon
 
 
 	public:
-		void	AppendKey( const CqVector3D& vA, const CqVector3D& vB, const CqVector3D& vC, const CqVector3D& vD, TqFloat time );
+		void	AppendKey( const Imath::V3f& vA, const Imath::V3f& vB, const Imath::V3f& vC, const Imath::V3f& vD, TqFloat time );
 
 		// Overrides from CqMicroPolygon
 		virtual	TqInt	cSubBounds( TqUint timeRanges )

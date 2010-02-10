@@ -121,29 +121,29 @@ static TqFloat repulsion(TqFloat z, TqFloat A, TqFloat B, TqFloat C, TqFloat D)
 	return (D*bump(z/C)-B/z)*(1.0f-ease(z/A));
 }
 
-/** \fn CqVector3D nearest_segment_point(const CqVector3D& Point, const CqVector3D& S1, const CqVector3D& S2)
+/** \fn Imath::V3f nearest_segment_point(const Imath::V3f& Point, const Imath::V3f& S1, const Imath::V3f& S2)
     \brief From a given 3D point, return a segment's closest point.
     \param Point The point to check the distance from.
     \param S1 The first end of the segment.
     \param S2 The second end of the segment.
     \return One of the points belonging to [S1;S2] segment, the nearest to Point.
  */
-static CqVector3D nearest_segment_point( const CqVector3D& Point, const CqVector3D& S1,
-        const CqVector3D& S2 )
+static Imath::V3f nearest_segment_point( const Imath::V3f& Point, const Imath::V3f& S1,
+        const Imath::V3f& S2 )
 {
-	const CqVector3D vector = S2 - S1;
-	const CqVector3D w = Point - S1;
+	const Imath::V3f vector = S2 - S1;
+	const Imath::V3f w = Point - S1;
 
-	const TqFloat c1 = w * vector;
+	const TqFloat c1 = w.dot(vector);
 	if(c1 <= 0)
 		return S1;
 
-	const TqFloat c2 = vector * vector;
+	const TqFloat c2 = vector.dot(vector);
 	if(c2 <= c1)
 		return S2;
 
 	const TqFloat b = c1 / c2;
-	const CqVector3D middlepoint = S1 + b * vector;
+	const Imath::V3f middlepoint = S1 + b * vector;
 	return middlepoint;
 }
 
@@ -291,13 +291,13 @@ class blobby_vm_assembler
 		std::vector<opcode> opcodes;
 
 		/// Encapsulate a segment into the bounding-box
-		void grow_bound( const CqVector3D& Start, const CqVector3D& End, const TqFloat radius, const CqMatrix& transformation)
+		void grow_bound( const Imath::V3f& Start, const Imath::V3f& End, const TqFloat radius, const CqMatrix& transformation)
 		{
 			const TqFloat r = radius * 0.72;
-			CqBound start_box( Start.x() - r, Start.y() - r, Start.z() - r, Start.x() + r, Start.y() + r, Start.z() + r );
+			CqBound start_box( Start.x - r, Start.y - r, Start.z - r, Start.x + r, Start.y + r, Start.z + r );
 			start_box.Transform( transformation );
 
-			CqBound end_box( End.x() - r, End.y() - r, End.z() - r, End.x() + r, End.y() + r, End.z() + r );
+			CqBound end_box( End.x - r, End.y - r, End.z - r, End.x + r, End.y + r, End.z + r );
 			end_box.Transform( transformation );
 
 			start_box.Encapsulate( &end_box );
@@ -443,9 +443,9 @@ class blobby_vm_assembler
 							                  0, 0);
 						}
 
-						CqVector3D mn = CqVector3D(bounds[0], bounds[2], bounds[4]);
-						CqVector3D mx = CqVector3D(bounds[1], bounds[3], bounds[5]);
-						CqVector3D mid = (mn + mx) / 2.0; 
+						Imath::V3f mn = Imath::V3f(bounds[0], bounds[2], bounds[4]);
+						Imath::V3f mx = Imath::V3f(bounds[1], bounds[3], bounds[5]);
+						Imath::V3f mid = (mn + mx) / 2.0; 
 						grow_bound( mn,
 						            mx,
 						            1.0,
@@ -491,9 +491,9 @@ class blobby_vm_assembler
 					case CqBlobby::SEGMENT:
 					{
 						TqInt f = m_code[op.index];
-						CqVector3D start(m_floats[f], m_floats[f+1], m_floats[f+2]);
+						Imath::V3f start(m_floats[f], m_floats[f+1], m_floats[f+2]);
 						f += 3;
-						CqVector3D end(m_floats[f], m_floats[f+1], m_floats[f+2]);
+						Imath::V3f end(m_floats[f], m_floats[f+1], m_floats[f+2]);
 						f += 3;
 						TqFloat radius = m_floats[f];
 						f++;
@@ -588,7 +588,7 @@ TqInt CqBlobby::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits )
  *  raise the performance significantly.
  */
 /** Blobby virtual machine program execution - calculates the value of an implicit surface at a given 3D point */
-TqFloat CqBlobby::implicit_value( const CqVector3D& Point, TqInt n, std::vector <TqFloat> &splits )
+TqFloat CqBlobby::implicit_value( const Imath::V3f& Point, TqInt n, std::vector <TqFloat> &splits )
 {
 	register TqFloat sum = 0.0f;
 	register TqFloat result;
@@ -615,7 +615,7 @@ TqFloat CqBlobby::implicit_value( const CqVector3D& Point, TqInt n, std::vector 
 
 				case ELLIPSOID:
 				{
-					const TqFloat r2 = (m_instructions[pc++].get_matrix() * Point).Magnitude2();
+					const TqFloat r2 = (m_instructions[pc++].get_matrix() * Point).length2();
 					result = r2 <= 1 ? 1 - 3*r2 + 3*r2*r2 - r2*r2*r2 : 0;
 					sum += result;
 					splits[int_index++] = result;
@@ -638,7 +638,7 @@ TqFloat CqBlobby::implicit_value( const CqVector3D& Point, TqInt n, std::vector 
 					std::valarray<TqFloat> fv;
 					TqFloat avg, depth;
 
-					depth = -Point.z();
+					depth = -Point.z;
 
 					fv.resize(1);
 					fv[0]= 0.0f;
@@ -651,9 +651,9 @@ TqFloat CqBlobby::implicit_value( const CqVector3D& Point, TqInt n, std::vector 
 
 					if ( pMap != 0 && pMap->IsValid() )
 					{
-						CqVector3D swidth(0.0f);
-						CqVector3D twidth(0.0f);
-						CqVector3D aq_P = Point;
+						Imath::V3f swidth(0.0f);
+						Imath::V3f twidth(0.0f);
+						Imath::V3f aq_P = Point;
 						pMap->SampleMap( aq_P, swidth, twidth, fv, 0, &avg, &depth );
 					}
 
@@ -716,16 +716,16 @@ TqFloat CqBlobby::implicit_value( const CqVector3D& Point, TqInt n, std::vector 
 
 					TqFloat point[3];
 					const CqMatrix transformation = m_instructions[pc++].get_matrix();
-					const CqVector3D mid = m_instructions[pc++].get_vector();
-					const CqVector3D mx = m_instructions[pc++].get_vector();
-					const CqVector3D mn = m_instructions[pc++].get_vector();
+					const Imath::V3f mid = m_instructions[pc++].get_vector();
+					const Imath::V3f mx = m_instructions[pc++].get_vector();
+					const Imath::V3f mn = m_instructions[pc++].get_vector();
 					const CqBound bound(mn, mx);
 
 					TqState s;
-					CqVector3D tmp = transformation * Point;
-					point[0] = tmp.x();
-					point[1] = tmp.y();
-					point[2] = tmp.z();
+					Imath::V3f tmp = transformation * Point;
+					point[0] = tmp.x;
+					point[1] = tmp.y;
+					point[2] = tmp.z;
 
 					if ((point[2]>= 0.0) && bound.Contains3D(tmp) && pImplicitValue )
 					{
@@ -744,16 +744,16 @@ TqFloat CqBlobby::implicit_value( const CqVector3D& Point, TqInt n, std::vector 
 				case SEGMENT:
 				{
 					const CqMatrix m = m_instructions[pc++].get_matrix();
-					const CqVector3D start = m_instructions[pc++].get_vector();
-					const CqVector3D end = m_instructions[pc++].get_vector();
+					const Imath::V3f start = m_instructions[pc++].get_vector();
+					const Imath::V3f end = m_instructions[pc++].get_vector();
 					const TqFloat radius = m_instructions[pc++].value;
 
 					// Nearest segment point
-					const CqVector3D segment_point = nearest_segment_point(Point, start, end);
+					const Imath::V3f segment_point = nearest_segment_point(Point, start, end);
 					// Translation( segment_point ) * Scaling ( radius ) * m
 					const CqMatrix transformation = CqMatrix( segment_point ) * CqMatrix( radius, radius, radius ) * m;
 					// Distance
-					const TqFloat r2 = (transformation.Inverse() * Point).Magnitude2();
+					const TqFloat r2 = (transformation.Inverse() * Point).length2();
 					// Value
 					const TqFloat result = (r2 <= 1) ? (1 - 3*r2 + 3*r2*r2 - r2*r2*r2) : 0;
 
@@ -783,7 +783,7 @@ TqFloat CqBlobby::implicit_value( const CqVector3D& Point, TqInt n, std::vector 
  *  This is the most important method it is used by MarchingCubes.cpp to
  *  polygonize the primitives
  */
-TqFloat CqBlobby::implicit_value( const CqVector3D& Point )
+TqFloat CqBlobby::implicit_value( const Imath::V3f& Point )
 {
 	std::stack<TqFloat> stack;
 	stack.push(0);
@@ -805,7 +805,7 @@ TqFloat CqBlobby::implicit_value( const CqVector3D& Point )
 
 				case ELLIPSOID:
 				{
-					const TqFloat r2 = (m_instructions[pc++].get_matrix() * Point).Magnitude2();
+					const TqFloat r2 = (m_instructions[pc++].get_matrix() * Point).length2();
 					result = r2 <= 1 ? 1 - 3*r2 + 3*r2*r2 - r2*r2*r2 : 0;
 
 					//Aqsis::log() << info << "Ellipsoid: result " << result << std::endl;
@@ -828,7 +828,7 @@ TqFloat CqBlobby::implicit_value( const CqVector3D& Point )
 					TqFloat A, B, C, D;
 					std::valarray<TqFloat> fv;
 					TqFloat avg, depth;
-					depth = -Point.z();
+					depth = -Point.z;
 
 					fv.resize(1);
 					fv[0]= 0.0f;
@@ -841,9 +841,9 @@ TqFloat CqBlobby::implicit_value( const CqVector3D& Point )
 
 					if ( pMap != 0 && pMap->IsValid() )
 					{
-						CqVector3D swidth(0.0f);
-						CqVector3D twidth(0.0f);
-						CqVector3D aq_P = Point;
+						Imath::V3f swidth(0.0f);
+						Imath::V3f twidth(0.0f);
+						Imath::V3f aq_P = Point;
 						pMap->SampleMap( aq_P, swidth, twidth, fv, 0, &avg, &depth);
 					}
 
@@ -881,16 +881,16 @@ TqFloat CqBlobby::implicit_value( const CqVector3D& Point )
 
 					TqFloat point[3];
 					const CqMatrix transformation = m_instructions[pc++].get_matrix();
-					const CqVector3D mid = m_instructions[pc++].get_vector();
-					const CqVector3D mx = m_instructions[pc++].get_vector();
-					const CqVector3D mn = m_instructions[pc++].get_vector();
+					const Imath::V3f mid = m_instructions[pc++].get_vector();
+					const Imath::V3f mx = m_instructions[pc++].get_vector();
+					const Imath::V3f mn = m_instructions[pc++].get_vector();
 					const CqBound bound(mn, mx);
 
 					TqState s;
-					CqVector3D tmp = transformation * Point;
-					point[0] = tmp.x();
-					point[1] = tmp.y();
-					point[2] = tmp.z();
+					Imath::V3f tmp = transformation * Point;
+					point[0] = tmp.x;
+					point[1] = tmp.y;
+					point[2] = tmp.z;
 
 					if ((point[2]>= 0.0) && bound.Contains3D(tmp) && pImplicitValue )
 					{
@@ -910,16 +910,16 @@ TqFloat CqBlobby::implicit_value( const CqVector3D& Point )
 				case SEGMENT:
 				{
 					const CqMatrix m = m_instructions[pc++].get_matrix();
-					const CqVector3D start = m_instructions[pc++].get_vector();
-					const CqVector3D end = m_instructions[pc++].get_vector();
+					const Imath::V3f start = m_instructions[pc++].get_vector();
+					const Imath::V3f end = m_instructions[pc++].get_vector();
 					const TqFloat radius = m_instructions[pc++].value;
 
 					// Nearest segment point
-					const CqVector3D segment_point = nearest_segment_point(Point, start, end);
+					const Imath::V3f segment_point = nearest_segment_point(Point, start, end);
 					// Translation( segment_point ) * Scaling ( radius ) * m
 					const CqMatrix transformation = CqMatrix( segment_point ) * CqMatrix( radius, radius, radius ) * m;
 					// Distance
-					const TqFloat r2 = (transformation.Inverse() * Point).Magnitude2();
+					const TqFloat r2 = (transformation.Inverse() * Point).length2();
 
 					// Value
 					result = (r2 <= 1) ? (1 - 3*r2 + 3*r2*r2 - r2*r2*r2) : 0;
@@ -1039,22 +1039,22 @@ TqInt CqBlobby::polygonize( TqInt PixelsWidth, TqInt PixelsHeight, TqInt& NPoint
 
 
 	// Get bounding-box center and sizes
-	const CqVector3D center = ( m_bbox.vecMax() + m_bbox.vecMin() ) / 2.0;
-	const CqVector3D length = ( m_bbox.vecMax() - m_bbox.vecMin() );
+	const Imath::V3f center = ( m_bbox.vecMax() + m_bbox.vecMin() ) / 2.0;
+	const Imath::V3f length = ( m_bbox.vecMax() - m_bbox.vecMin() );
 
 	// Calculate voxel sizes and polygonization resolution
-	const TqFloat x_voxel_size = length.x() /  PixelsWidth;
-	const TqFloat y_voxel_size = length.y() /  PixelsHeight;
+	const TqFloat x_voxel_size = length.x /  PixelsWidth;
+	const TqFloat y_voxel_size = length.y /  PixelsHeight;
 	const TqFloat z_voxel_size = ( x_voxel_size + y_voxel_size ) / 2.0;
 
 	const TqInt x_resolution = PixelsWidth;
 	const TqInt y_resolution = PixelsHeight;
-	const TqInt z_resolution = static_cast<TqInt>( ceil( length.z() / z_voxel_size) );
+	const TqInt z_resolution = static_cast<TqInt>( ceil( length.z / z_voxel_size) );
 
 
-	const TqFloat x_start = center.x() - length.x()/2.0;
-	const TqFloat y_start = center.y() - length.y()/2.0;
-	const TqFloat z_start = center.z() - length.z()/2.0;
+	const TqFloat x_start = center.x - length.x/2.0;
+	const TqFloat y_start = center.y - length.y/2.0;
+	const TqFloat z_start = center.z - length.z/2.0;
 
 	const TqInt div_z = z_resolution/OPTIMUM_GRID_SIZE + 1;
 	const TqInt div_y = y_resolution/OPTIMUM_GRID_SIZE + 1;
@@ -1094,7 +1094,7 @@ TqInt CqBlobby::polygonize( TqInt PixelsWidth, TqInt PixelsHeight, TqInt& NPoint
 						x = x_start + (TqFloat) x1 * (TqFloat)OPTIMUM_GRID_SIZE * x_voxel_size;
 						for( i = 0 ; i < OPTIMUM_GRID_SIZE+1; i++, x += x_voxel_size )
 						{
-							const TqFloat iv = implicit_value( CqVector3D( x, y, z ) );
+							const TqFloat iv = implicit_value( Imath::V3f( x, y, z ) );
 							isrequired |= (iv != 0.0);
 							//Aqsis::log() << info << iv << std::endl;
 							mc.set_data( static_cast<TqFloat>( iv - 0.421875 ), i, j, k );

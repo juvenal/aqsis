@@ -102,10 +102,10 @@ void CqLinearCurveSegment::NaturalSubdivide(
 		case type_point:
 		case type_vector:
 		case type_normal:
-			linCurveNatSubdiv<CqVector3D, CqVector3D>(pParam, pParam1, pParam2);
+			linCurveNatSubdiv<Imath::V3f, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_hpoint:
-			linCurveNatSubdiv<CqVector4D, CqVector3D>(pParam, pParam1, pParam2);
+			linCurveNatSubdiv<CqVector4D, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_color:
 			linCurveNatSubdiv<CqColor, CqColor>(pParam, pParam1, pParam2);
@@ -248,18 +248,18 @@ TqInt CqLinearCurveSegment::SplitToPatch(
 	//                      the first point
 	//  widthOffset1  - offset to account for the width of the patch at
 	//                      the second point
-	CqVector3D direction = vectorCast<CqVector3D>(P()->pValue( 1 )[0] - P()->pValue( 0 )[0]);
-	CqVector3D normal0, normal1;
+	Imath::V3f direction = vectorCast<Imath::V3f>(P()->pValue( 1 )[0] - P()->pValue( 0 )[0]);
+	Imath::V3f normal0, normal1;
 	GetNormal( 0, normal0 );
 	GetNormal( 1, normal1 );
-	normal0.Unit();
-	normal1.Unit();
-	CqVector3D widthOffset0 = normal0 % direction;
-	CqVector3D widthOffset1 = normal1 % direction;
+	normal0.normalize();
+	normal1.normalize();
+	Imath::V3f widthOffset0 = normal0 % direction;
+	Imath::V3f widthOffset1 = normal1 % direction;
 	widthOffset0 *=
-	    width()->pValue( 0 )[0] / widthOffset0.Magnitude() / 2.0;
+	    width()->pValue( 0 )[0] / widthOffset0.length() / 2.0;
 	widthOffset1 *=
-	    width()->pValue( 1 )[0] / widthOffset1.Magnitude() / 2.0;
+	    width()->pValue( 1 )[0] / widthOffset1.length() / 2.0;
 
 	// next, we create the bilinear patch
 	boost::shared_ptr<CqSurfacePatchBilinear> pPatch( new CqSurfacePatchBilinear() );
@@ -269,7 +269,7 @@ TqInt CqLinearCurveSegment::SplitToPatch(
 	// set the points on the patch
 	pPatch->AddPrimitiveVariable(
 	    new CqParameterTypedVertex <
-	    CqVector4D, type_hpoint, CqVector3D
+	    CqVector4D, type_hpoint, Imath::V3f
 	    > ( "P", 1 )
 	);
 	pPatch->P() ->SetSize( 4 );
@@ -281,7 +281,7 @@ TqInt CqLinearCurveSegment::SplitToPatch(
 	// set the normals on the patch
 	/*    pPatch->AddPrimitiveVariable(
 	        new CqParameterTypedVertex <
-	        CqVector3D, type_normal, CqVector3D
+	        Imath::V3f, type_normal, Imath::V3f
 	        > ( "N", 0 )
 	    );
 	    pPatch->N() ->SetSize( 4 );

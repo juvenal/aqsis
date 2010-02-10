@@ -491,14 +491,14 @@ TqUint CqSurfaceNURBS::InsertKnotU( TqFloat u, TqInt r )
 								case type_normal:
 								case type_vector:
 								{
-									CqParameterTyped<CqVector3D, CqVector3D>* pTR = static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( R );
-									( *pTR->pValue( i ) ) = alpha * ( *pTR->pValue( i + 1 ) ) + ( 1.0 - alpha ) * ( *pTR->pValue( i ) );
+									CqParameterTyped<Imath::V3f, Imath::V3f>* pTR = static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( R );
+									( *pTR->pValue( i ) ) = ( *pTR->pValue( i + 1 ) ) * alpha + ( *pTR->pValue( i ) ) * ( 1.0 - alpha );
 									break;
 								}
 
 								case type_hpoint:
 								{
-									CqParameterTyped<CqVector4D, CqVector3D>* pTR = static_cast<CqParameterTyped<CqVector4D, CqVector3D>*>( R );
+									CqParameterTyped<CqVector4D, Imath::V3f>* pTR = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( R );
 									CqVector4D cp( alpha * ( *pTR->pValue( i + 1 ) ).x() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).x(),
 									               alpha * ( *pTR->pValue( i + 1 ) ).y() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).y(),
 									               alpha * ( *pTR->pValue( i + 1 ) ).z() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).z(),
@@ -670,14 +670,14 @@ TqUint CqSurfaceNURBS::InsertKnotV( TqFloat v, TqInt r )
 								case type_normal:
 								case type_vector:
 								{
-									CqParameterTyped<CqVector3D, CqVector3D>* pTR = static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( R );
-									( *pTR->pValue( i ) ) = alpha * ( *pTR->pValue( i + 1 ) ) + ( 1.0 - alpha ) * ( *pTR->pValue( i ) );
+									CqParameterTyped<Imath::V3f, Imath::V3f>* pTR = static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( R );
+									( *pTR->pValue( i ) ) = ( *pTR->pValue( i + 1 ) ) * alpha  + ( *pTR->pValue( i ) ) * ( 1.0 - alpha );
 									break;
 								}
 
 								case type_hpoint:
 								{
-									CqParameterTyped<CqVector4D, CqVector3D>* pTR = static_cast<CqParameterTyped<CqVector4D, CqVector3D>*>( R );
+									CqParameterTyped<CqVector4D, Imath::V3f>* pTR = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( R );
 									CqVector4D cp( alpha * ( *pTR->pValue( i + 1 ) ).x() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).x(),
 									               alpha * ( *pTR->pValue( i + 1 ) ).y() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).y(),
 									               alpha * ( *pTR->pValue( i + 1 ) ).z() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).z(),
@@ -860,7 +860,7 @@ void CqSurfaceNURBS::RefineKnotU( const std::vector<TqFloat>& X )
 								case type_normal:
 								case type_vector:
 								{
-									CqParameterTyped<CqVector3D, CqVector3D>* pTParam = static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( ( *iUP ) );
+									CqParameterTyped<Imath::V3f, Imath::V3f>* pTParam = static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( ( *iUP ) );
 									for ( row = 0; row < static_cast<TqInt>( m_cvVerts ); row++ )
 										pTParam->pValue( ( row * m_cuVerts ) + ind - 1 ) [ 0 ] = alpha * pTParam->pValue() [ ( row * m_cuVerts ) + ind - 1 ] + ( 1.0f - alpha ) * pTParam->pValue() [ ( row * m_cuVerts ) + ind ];
 									break;
@@ -868,7 +868,7 @@ void CqSurfaceNURBS::RefineKnotU( const std::vector<TqFloat>& X )
 
 								case type_hpoint:
 								{
-									CqParameterTyped<CqVector4D, CqVector3D>* pTParam = static_cast<CqParameterTyped<CqVector4D, CqVector3D>*>( ( *iUP ) );
+									CqParameterTyped<CqVector4D, Imath::V3f>* pTParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( ( *iUP ) );
 									for ( row = 0; row < static_cast<TqInt>( m_cvVerts ); row++ )
 									{
 										CqVector4D cp( alpha * pTParam->pValue() [ ( row * m_cuVerts ) + ind - 1 ].x() + ( 1.0f - alpha ) * pTParam->pValue() [ ( row * m_cuVerts ) + ind ].x(),
@@ -1034,7 +1034,7 @@ void CqSurfaceNURBS::RefineKnotV( const std::vector<TqFloat>& X )
 								case type_normal:
 								case type_vector:
 								{
-									CqParameterTyped<CqVector3D, CqVector3D>* pTParam = static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( ( *iUP ) );
+									CqParameterTyped<Imath::V3f, Imath::V3f>* pTParam = static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( ( *iUP ) );
 									for ( col = 0; col < static_cast<TqInt>( m_cuVerts ); col++ )
 										pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ] = alpha * pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ] + ( 1.0f - alpha ) * pTParam->pValue() [ ( ind * m_cuVerts ) + col ];
 									break;
@@ -1042,7 +1042,7 @@ void CqSurfaceNURBS::RefineKnotV( const std::vector<TqFloat>& X )
 
 								case type_hpoint:
 								{
-									CqParameterTyped<CqVector4D, CqVector3D>* pTParam = static_cast<CqParameterTyped<CqVector4D, CqVector3D>*>( ( *iUP ) );
+									CqParameterTyped<CqVector4D, Imath::V3f>* pTParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( ( *iUP ) );
 									for ( col = 0; col < static_cast<TqInt>( m_cuVerts ); col++ )
 									{
 										CqVector4D cp( alpha * pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ].x() + ( 1.0f - alpha ) * pTParam->pValue() [ ( ind * m_cuVerts ) + col ].x(),
@@ -1349,24 +1349,24 @@ void CqSurfaceNURBS::vSubdivide( CqSurfaceNURBS*& pnrbA, CqSurfaceNURBS*& pnrbB 
 void CqSurfaceNURBS::Bound(CqBound* bound) const
 {
 	// Get the boundary in camera space.
-	CqVector3D	vecA( FLT_MAX, FLT_MAX, FLT_MAX );
-	CqVector3D	vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
+	Imath::V3f	vecA( FLT_MAX, FLT_MAX, FLT_MAX );
+	Imath::V3f	vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 	TqUint i;
 	for ( i = 0; i < m_cuVerts*m_cvVerts; i++ )
 	{
-		CqVector3D	vecV = vectorCast<CqVector3D>(P()->pValue( i )[0]);
-		if ( vecV.x() < vecA.x() )
-			vecA.x( vecV.x() );
-		if ( vecV.y() < vecA.y() )
-			vecA.y( vecV.y() );
-		if ( vecV.x() > vecB.x() )
-			vecB.x( vecV.x() );
-		if ( vecV.y() > vecB.y() )
-			vecB.y( vecV.y() );
-		if ( vecV.z() < vecA.z() )
-			vecA.z( vecV.z() );
-		if ( vecV.z() > vecB.z() )
-			vecB.z( vecV.z() );
+		Imath::V3f	vecV = vectorCast<Imath::V3f>(P()->pValue( i )[0]);
+		if ( vecV.x < vecA.x )
+			vecA.x = vecV.x;
+		if ( vecV.y < vecA.y )
+			vecA.y = vecV.y;
+		if ( vecV.x > vecB.x )
+			vecB.x = vecV.x;
+		if ( vecV.y > vecB.y )
+			vecB.y = vecV.y;
+		if ( vecV.z < vecA.z )
+			vecA.z = vecV.z;
+		if ( vecV.z > vecB.z )
+			vecB.z = vecV.z;
 	}
 	bound->vecMin() = vecA;
 	bound->vecMax() = vecB;
@@ -1429,7 +1429,7 @@ void CqSurfaceNURBS::NaturalDice( CqParameter* pParameter, TqInt uDiceSize, TqIn
 					case type_normal:
 					case type_vector:
 					{
-						CqParameterTyped<CqVector3D, CqVector3D>* pTParam = static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( pParameter );
+						CqParameterTyped<Imath::V3f, Imath::V3f>* pTParam = static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( pParameter );
 						IqShaderData* arrayValue;
 						TqInt i;
 						for(i = 0; i<pParameter->Count(); i++)
@@ -1442,13 +1442,13 @@ void CqSurfaceNURBS::NaturalDice( CqParameter* pParameter, TqInt uDiceSize, TqIn
 
 					case type_hpoint:
 					{
-						CqParameterTyped<CqVector4D, CqVector3D>* pTParam = static_cast<CqParameterTyped<CqVector4D, CqVector3D>*>( pParameter );
+						CqParameterTyped<CqVector4D, Imath::V3f>* pTParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( pParameter );
 						IqShaderData* arrayValue;
 						TqInt i;
 						for(i = 0; i<pParameter->Count(); i++)
 						{
 							arrayValue = pData->ArrayEntry(i);
-							arrayValue->SetValue(vectorCast<CqVector3D>(Evaluate(su, sv, pTParam)), igrid);
+							arrayValue->SetValue(vectorCast<Imath::V3f>(Evaluate(su, sv, pTParam)), igrid);
 						}
 						break;
 					}
@@ -1536,7 +1536,7 @@ void CqSurfaceNURBS::GenerateGeometricNormals( TqInt uDiceSize, TqInt vDiceSize,
 	bool CSO = pTransform()->GetHandedness(pTransform()->Time(0));
 	bool O = pAttributes() ->GetIntegerAttribute( "System", "Orientation" ) [ 0 ] != 0;
 
-	CqVector3D	N;
+	Imath::V3f	N;
 	CqVector4D P;
 	TqInt iv, iu;
 	for ( iv = 0; iv <= vDiceSize; iv++ )
@@ -1761,23 +1761,23 @@ TqInt	CqSurfaceNURBS::TrimDecimation( const CqTrimCurve& Curve )
 	{
 		// Get the u,v of the current point.
 		TqFloat u, v;
-		CqVector3D vecCP;
+		Imath::V3f vecCP;
 		vecCP = Curve.CP( iTrimCurvePoint );
-		u = vecCP.x();
-		v = vecCP.y();
+		u = vecCP.x;
+		v = vecCP.y;
 
 		// Get the u,v of the next point.
 		TqFloat u2, v2;
 		vecCP = Curve.CP( iTrimCurvePoint + 1 );
-		u2 = vecCP.x();
-		v2 = vecCP.y();
+		u2 = vecCP.x;
+		v2 = vecCP.y;
 
-		CqVector3D vecP = vectorCast<CqVector3D>(Evaluate( u, v, P() ));
+		Imath::V3f vecP = vectorCast<Imath::V3f>(Evaluate( u, v, P() ));
 		vecP = matCtoR * vecP;
-		CqVector3D vecP2 = vectorCast<CqVector3D>(Evaluate( u2, v2, P() ));
+		Imath::V3f vecP2 = vectorCast<Imath::V3f>(Evaluate( u2, v2, P() ));
 		vecP2 = matCtoR * vecP2;
 
-		Len = ( vecP2 - vecP ).Magnitude();
+		Len = ( vecP2 - vecP ).length();
 		if ( Len > MaxLen )
 			MaxLen = Len;
 		cSegments++;
@@ -1806,7 +1806,7 @@ void CqSurfaceNURBS::OutputMesh()
 	for ( s = 0; s < S.size(); s++ )
 	{
 		fprintf( fp, "Surface_%d\n", s );
-		std::vector<std::vector<CqVector3D> > aaPoints( Granularity + 1 );
+		std::vector<std::vector<Imath::V3f> > aaPoints( Granularity + 1 );
 		TqUint p;
 		for ( p = 0; p <= Granularity; p++ )
 			aaPoints[ p ].resize( Granularity + 1 );
@@ -1828,7 +1828,7 @@ void CqSurfaceNURBS::OutputMesh()
 				            * ( S[ s ] ->m_auKnots[ S[ s ] ->m_cuVerts ] - S[ s ] ->m_auKnots[ S[ s ] ->m_uOrder - 1 ] )
 				            + S[ s ] ->m_auKnots[ S[ s ] ->m_uOrder - 1 ];
 
-				aaPoints[ i ][ j ] = vectorCast<CqVector3D>(S[ s ] ->Evaluate( u, v, P() ));
+				aaPoints[ i ][ j ] = vectorCast<Imath::V3f>(S[ s ] ->Evaluate( u, v, P() ));
 			}
 		}
 
@@ -1839,13 +1839,13 @@ void CqSurfaceNURBS::OutputMesh()
 			for ( j = 0; j < Granularity; j++ )
 			{
 				fprintf( fp, "%f %f %f %f %f %f %f %f %f\n",
-				         aaPoints[ i ][ j ].x(), aaPoints[ i ][ j ].y(), aaPoints[ i ][ j ].z(),
-				         aaPoints[ i + 1 ][ j + 1 ].x(), aaPoints[ i + 1 ][ j + 1 ].y(), aaPoints[ i + 1 ][ j + 1 ].z(),
-				         aaPoints[ i + 1 ][ j ].x(), aaPoints[ i + 1 ][ j ].y(), aaPoints[ i + 1 ][ j ].z() );
+				         aaPoints[ i ][ j ].x, aaPoints[ i ][ j ].y, aaPoints[ i ][ j ].z,
+				         aaPoints[ i + 1 ][ j + 1 ].x, aaPoints[ i + 1 ][ j + 1 ].y, aaPoints[ i + 1 ][ j + 1 ].z,
+				         aaPoints[ i + 1 ][ j ].x, aaPoints[ i + 1 ][ j ].y, aaPoints[ i + 1 ][ j ].z );
 				fprintf( fp, "%f %f %f %f %f %f %f %f %f\n",
-				         aaPoints[ i ][ j ].x(), aaPoints[ i ][ j ].y(), aaPoints[ i ][ j ].z(),
-				         aaPoints[ i ][ j + 1 ].x(), aaPoints[ i ][ j + 1 ].y(), aaPoints[ i ][ j + 1 ].z(),
-				         aaPoints[ i + 1 ][ j + 1 ].x(), aaPoints[ i + 1 ][ j + 1 ].y(), aaPoints[ i + 1 ][ j + 1 ].z() );
+				         aaPoints[ i ][ j ].x, aaPoints[ i ][ j ].y, aaPoints[ i ][ j ].z,
+				         aaPoints[ i ][ j + 1 ].x, aaPoints[ i ][ j + 1 ].y, aaPoints[ i ][ j + 1 ].z,
+				         aaPoints[ i + 1 ][ j + 1 ].x, aaPoints[ i + 1 ][ j + 1 ].y, aaPoints[ i + 1 ][ j + 1 ].z );
 			}
 		}
 	}
@@ -1860,7 +1860,7 @@ void CqSurfaceNURBS::AppendMesh( const char *name, TqInt index )
 	FILE* fp = fopen( name, "a" );
 
 	fprintf( fp, "Surface_%d\n", index );
-	std::vector<std::vector<CqVector3D> > aaPoints( Granularity + 1 );
+	std::vector<std::vector<Imath::V3f> > aaPoints( Granularity + 1 );
 	TqUint p;
 	for ( p = 0; p <= Granularity; p++ )
 		aaPoints[ p ].resize( Granularity + 1 );
@@ -1882,7 +1882,7 @@ void CqSurfaceNURBS::AppendMesh( const char *name, TqInt index )
 			            * ( m_auKnots[ m_cuVerts ] - m_auKnots[ m_uOrder - 1 ] )
 			            + m_auKnots[ m_uOrder - 1 ];
 
-			aaPoints[ i ][ j ] = vectorCast<CqVector3D>(Evaluate( u, v, P() ));
+			aaPoints[ i ][ j ] = vectorCast<Imath::V3f>(Evaluate( u, v, P() ));
 		}
 	}
 
@@ -1893,13 +1893,13 @@ void CqSurfaceNURBS::AppendMesh( const char *name, TqInt index )
 		for ( j = 0; j < Granularity; j++ )
 		{
 			fprintf( fp, "%f %f %f %f %f %f %f %f %f\n",
-			         aaPoints[ i ][ j ].x(), aaPoints[ i ][ j ].y(), aaPoints[ i ][ j ].z(),
-			         aaPoints[ i + 1 ][ j + 1 ].x(), aaPoints[ i + 1 ][ j + 1 ].y(), aaPoints[ i + 1 ][ j + 1 ].z(),
-			         aaPoints[ i + 1 ][ j ].x(), aaPoints[ i + 1 ][ j ].y(), aaPoints[ i + 1 ][ j ].z() );
+			         aaPoints[ i ][ j ].x, aaPoints[ i ][ j ].y, aaPoints[ i ][ j ].z,
+			         aaPoints[ i + 1 ][ j + 1 ].x, aaPoints[ i + 1 ][ j + 1 ].y, aaPoints[ i + 1 ][ j + 1 ].z,
+			         aaPoints[ i + 1 ][ j ].x, aaPoints[ i + 1 ][ j ].y, aaPoints[ i + 1 ][ j ].z );
 			fprintf( fp, "%f %f %f %f %f %f %f %f %f\n",
-			         aaPoints[ i ][ j ].x(), aaPoints[ i ][ j ].y(), aaPoints[ i ][ j ].z(),
-			         aaPoints[ i ][ j + 1 ].x(), aaPoints[ i ][ j + 1 ].y(), aaPoints[ i ][ j + 1 ].z(),
-			         aaPoints[ i + 1 ][ j + 1 ].x(), aaPoints[ i + 1 ][ j + 1 ].y(), aaPoints[ i + 1 ][ j + 1 ].z() );
+			         aaPoints[ i ][ j ].x, aaPoints[ i ][ j ].y, aaPoints[ i ][ j ].z,
+			         aaPoints[ i ][ j + 1 ].x, aaPoints[ i ][ j + 1 ].y, aaPoints[ i ][ j + 1 ].z,
+			         aaPoints[ i + 1 ][ j + 1 ].x, aaPoints[ i + 1 ][ j + 1 ].y, aaPoints[ i + 1 ][ j + 1 ].z );
 		}
 	}
 	fclose( fp );

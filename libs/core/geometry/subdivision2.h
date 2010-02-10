@@ -161,7 +161,7 @@ class CqSubdivision2 : public CqMotionSpec<boost::shared_ptr<CqPolygonPoints> >
 		 *               limit point.
 		 * \return Limit point corresponding to vert.
 		 */
-		CqVector3D limitPoint(CqLath* vert);
+		Imath::V3f limitPoint(CqLath* vert);
 
 		void AddVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFVIndex);
 		void AddEdgeVertex(CqLath* pEdge, TqInt& iVIndex, TqInt& iFVIndex);

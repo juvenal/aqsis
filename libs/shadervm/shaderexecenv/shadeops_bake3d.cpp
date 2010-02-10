@@ -390,9 +390,9 @@ void	CqShaderExecEnv::SO_bake3d( IqShaderData* ptc,
         {
             CqString _aq_format;
             (format)->GetString(_aq_format,__iGrid);
-            CqVector3D _aq_point;
+            Imath::V3f _aq_point;
             (point)->GetPoint(_aq_point,__iGrid);
-            CqVector3D _aq_normal;
+            Imath::V3f _aq_normal;
             (normal)->GetNormal(_aq_normal,__iGrid);
 
             if (!MyCloudWrite && sampleOpts.m_Count < CqBake3DOptionsMaxParams)
@@ -426,7 +426,7 @@ void	CqShaderExecEnv::SO_bake3d( IqShaderData* ptc,
                     where ++;
                 } else if ( strcmp(sampleOpts.m_VarTypes[i], "vector") == 0)
                 {
-                    CqVector3D v;
+                    Imath::V3f v;
                     sampleOpts.m_UserData[ i ]->GetVector( v, __iGrid);
                     for (TqInt j=0; j < 3; j++)
                     {
@@ -444,7 +444,7 @@ void	CqShaderExecEnv::SO_bake3d( IqShaderData* ptc,
                     where +=3;
                 } else if ( strcmp(sampleOpts.m_VarTypes[i], "point") == 0)
                 {
-                    CqVector3D p;
+                    Imath::V3f p;
                     sampleOpts.m_UserData[ i ]->GetPoint( p, __iGrid);
                     for (TqInt j=0; j < 3; j++)
                     {
@@ -453,7 +453,7 @@ void	CqShaderExecEnv::SO_bake3d( IqShaderData* ptc,
                     where +=3;
                 } else if ( strcmp(sampleOpts.m_VarTypes[i], "normal") == 0)
                 {
-                    CqVector3D n;
+                    Imath::V3f n;
                     sampleOpts.m_UserData[ i ]->GetNormal( n, __iGrid);
                     for (TqInt j=0; j < 3; j++)
                     {
@@ -616,9 +616,9 @@ void	CqShaderExecEnv::SO_texture3d(IqShaderData* ptc,
                 TqFloat normalf[3];
                 okay = PtcReadDataPoint(MyCloudRead, pointf, normalf, &radius, userdata);
 
-                CqVector3D _aq_point;
+                Imath::V3f _aq_point;
                 (point)->GetPoint(_aq_point,__iGrid);
-                CqVector3D _aq_normal;
+                Imath::V3f _aq_normal;
                 (normal)->GetPoint(_aq_normal,__iGrid);
                 TqFloat fRes = 0.0f;
 
@@ -637,7 +637,7 @@ void	CqShaderExecEnv::SO_texture3d(IqShaderData* ptc,
                         sampleOpts.m_UserData[ i ]->SetFloat( f, __iGrid);
                     } else if ( strcmp(sampleOpts.m_VarTypes[i], "vector") == 0)
                     {
-                        CqVector3D v;
+                        Imath::V3f v;
 
                         for (TqInt j=0; i < 3; i++)
                         {
@@ -655,7 +655,7 @@ void	CqShaderExecEnv::SO_texture3d(IqShaderData* ptc,
                         sampleOpts.m_UserData[ i ]->SetColor( c, __iGrid);
                     } else if ( strcmp(sampleOpts.m_VarTypes[i], "point") == 0)
                     {
-                        CqVector3D p;
+                        Imath::V3f p;
 
                         for (TqInt j=0; j < 3; j++)
                         {
@@ -664,7 +664,7 @@ void	CqShaderExecEnv::SO_texture3d(IqShaderData* ptc,
                         sampleOpts.m_UserData[ i ]->SetPoint( p, __iGrid);
                     } else if ( strcmp(sampleOpts.m_VarTypes[i], "normal") == 0)
                     {
-                        CqVector3D n;
+                        Imath::V3f n;
 
                         for (TqInt j=0; j < 3; j++)
                         {

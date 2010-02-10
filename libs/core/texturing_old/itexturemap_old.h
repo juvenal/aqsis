@@ -62,7 +62,7 @@ enum EqTexFormat
  * \todo <b>Code Review</b>: This interface is distasteful in a number of ways:
  *   * It's a "fat" interface, providing many methods which are not meaningful
  *     for most of the concrete classes which implement it.  For instance, the
- *     varients of the SampleMap() functions taking CqVector3D are only
+ *     varients of the SampleMap() functions taking Imath::V3f are only
  *     applicable to environment maps.
  *   * It doesn't support RAII, though this might be fair enough.  Does it make
  *     sense to acquire the underlying file resource at construction, rather
@@ -110,9 +110,9 @@ struct IqTextureMapOld
 	virtual	void	SampleMap( TqFloat s1, TqFloat t1, TqFloat swidth, TqFloat twidth, std::valarray<TqFloat>& val) = 0;
 	virtual	void	SampleMap( TqFloat s1, TqFloat t1, TqFloat s2, TqFloat t2, TqFloat s3, TqFloat t3, TqFloat s4, TqFloat t4,
 	                        std::valarray<TqFloat>& val ) = 0;
-	virtual	void	SampleMap( CqVector3D& R, CqVector3D& swidth, CqVector3D& twidth,
+	virtual	void	SampleMap( Imath::V3f& R, Imath::V3f& swidth, Imath::V3f& twidth,
 	                        std::valarray<TqFloat>& val, TqInt index = 0, TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL ) = 0;
-	virtual	void	SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, CqVector3D& R4,
+	virtual	void	SampleMap( Imath::V3f& R1, Imath::V3f& R2, Imath::V3f& R3, Imath::V3f& R4,
 	                        std::valarray<TqFloat>& val, TqInt index = 0, TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL ) = 0;
 	virtual CqMatrix& GetMatrix( TqInt which, TqInt index = 0 ) = 0;
 

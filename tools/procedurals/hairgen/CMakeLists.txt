@@ -14,6 +14,9 @@ if(NOT UNIX OR APPLE)
 	list(APPEND linklibs aqsis_core)
 endif()
 
+include_directories(
+	${AQSIS_OPENEXR_INCLUDE_DIR})
+
 aqsis_add_library(hairgen ${hairgen_srcs} PLUGIN
 	LINK_LIBRARIES ${linklibs})
 

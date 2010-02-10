@@ -145,7 +145,7 @@ CqColor rgbtoYIQ(const CqColor& col)
 	                             0.212, -0.523, 0.311, 0,
 	                             0, 0, 0, 1 );
 
-	return vectorCast<CqColor>(matRGBtoYIQ * vectorCast<CqVector3D>(col));
+	return vectorCast<CqColor>(matRGBtoYIQ * vectorCast<Imath::V3f>(col));
 }
 
 CqColor hsvtorgb(const CqColor& col)
@@ -274,7 +274,7 @@ CqColor YIQtorgb(const CqColor& col)
 	                             1, -1.105, 1.702, 0,
 	                             0, 0, 0, 1 );
 
-	return vectorCast<CqColor>(matYIQtoRGB * vectorCast<CqVector3D>(col));
+	return vectorCast<CqColor>(matYIQtoRGB * vectorCast<Imath::V3f>(col));
 }
 
 //---------------------------------------------------------------------

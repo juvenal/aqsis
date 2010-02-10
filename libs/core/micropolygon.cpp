@@ -181,9 +181,9 @@ void CqMicroPolyGrid::CalcNormals()
 	bool O = pAttributes() ->GetIntegerAttribute( "System", "Orientation" ) [ 0 ] != 0;
 	bool flipNormals = O ^ CSO;
 
-	const CqVector3D* pP = 0;
+	const Imath::V3f* pP = 0;
 	pVar(EnvVars_P)->GetPointPtr(pP);
-	CqVector3D* pNg = 0;
+	Imath::V3f* pNg = 0;
 	pVar(EnvVars_Ng)->GetNormalPtr(pNg);
 
 	TqInt uRes = uGridRes()+1;
@@ -200,7 +200,7 @@ void CqMicroPolyGrid::CalcNormals()
 	//
 	//   length(dP_u) ~ length(dP_v) ~ length_of_grid_diagonal / number_of_micropolys_on_diag
 	//
-	const TqFloat expecNlen = (pP[0] - pP[uRes*vRes-1]).Magnitude2()/(uRes*uRes + vRes*vRes);
+	const TqFloat expecNlen = (pP[0] - pP[uRes*vRes-1]).length2()/(uRes*uRes + vRes*vRes);
 	// Our tolerance scaling for lengths to be considered "too small" is:
 	const TqFloat eps = 100*FLT_EPSILON;
 	// tolerances for N^2 & dP_u^2 / dP_v^2 to be considered too small:
@@ -212,23 +212,23 @@ void CqMicroPolyGrid::CalcNormals()
 	{
 		for(TqInt u = 0; u < uRes; ++u, ++i)
 		{
-			CqVector3D dP_u = d.diffU(pP, u, v);
-			CqVector3D dP_v = d.diffV(pP, u, v);
-			CqVector3D N = dP_u % dP_v;
-			if(N.Magnitude2() < epsNlen2)
+			Imath::V3f dP_u = d.diffU(pP, u, v);
+			Imath::V3f dP_v = d.diffV(pP, u, v);
+			Imath::V3f N = dP_u % dP_v;
+			if(N.length2() < epsNlen2)
 			{
 				// If the normal is too small, the grid is probably locally
 				// degenerate; try some neighbouring points as a fallback to
 				// compute a guess at the normal for the current shading point.
-				if(dP_u.Magnitude2() < epsdPlen2)
+				if(dP_u.length2() < epsdPlen2)
 					dP_u = d.diffU(pP, u, v > 0 ? v-1 : v+1);
-				if(dP_v.Magnitude2() < epsdPlen2)
+				if(dP_v.length2() < epsdPlen2)
 					dP_v = d.diffV(pP, u > 0 ? u-1 : u+1, v);
 				N = dP_u % dP_v;
 			}
 			if(flipNormals)
 				N = -N;
-			N.Unit();
+			N.normalize();
 			pNg[i] = N;
 		}
 	}
@@ -237,13 +237,13 @@ void CqMicroPolyGrid::CalcNormals()
 void CqMicroPolyGrid::CalcSurfaceDerivatives()
 {
 	/// \todo <b>Code review</b>: This function redoes work which is already done in CalcNormals
-	const CqVector3D* pP = 0;
+	const Imath::V3f* pP = 0;
 	pVar(EnvVars_P)->GetPointPtr(pP);
 
 	TqInt lUses = pSurface() ->Uses();
 
 	TqFloat invDu = 1;
-	CqVector3D* dPdu = 0;
+	Imath::V3f* dPdu = 0;
 	if(USES(lUses, EnvVars_dPdu))
 	{
 		pVar(EnvVars_dPdu)->GetVectorPtr(dPdu);
@@ -252,7 +252,7 @@ void CqMicroPolyGrid::CalcSurfaceDerivatives()
 	}
 
 	TqFloat invDv = 1;
-	CqVector3D* dPdv = 0;
+	Imath::V3f* dPdv = 0;
 	if(USES(lUses, EnvVars_dPdv))
 	{
 		pVar(EnvVars_dPdv)->GetVectorPtr(dPdv);
@@ -293,7 +293,7 @@ void CqMicroPolyGrid::ExpandGridBoundaries(TqFloat amount)
 	//  <--   x--x.
 	//        .
 	//
-	CqVector3D* pP;
+	Imath::V3f* pP;
 	pVar(EnvVars_P)->GetPointPtr(pP);
 
 	const TqInt numVertsU = uGridRes() + 1;
@@ -307,29 +307,29 @@ void CqMicroPolyGrid::ExpandGridBoundaries(TqFloat amount)
 	// row.
 	const TqFloat degeneracyRatio = 1e-8;
 
-	if((pP[0] - pP[numVertsU-1]).Magnitude2()
-			> degeneracyRatio*(pP[numVertsU] - pP[2*numVertsU-1]).Magnitude2())
+	if((pP[0] - pP[numVertsU-1]).length2()
+			> degeneracyRatio*(pP[numVertsU] - pP[2*numVertsU-1]).length2())
 	{
 		// Expand first u-row in -v direction.
 		for(TqInt iu = 0; iu < numVertsU; ++iu)
 			pP[iu] = (1+amount)*pP[iu] - amount*pP[iu+numVertsU];
 	}
-	if((pP[totVerts-numVertsU] - pP[totVerts-1]).Magnitude2()
-			> degeneracyRatio*(pP[totVerts-2*numVertsU] - pP[totVerts-numVertsU-1]).Magnitude2())
+	if((pP[totVerts-numVertsU] - pP[totVerts-1]).length2()
+			> degeneracyRatio*(pP[totVerts-2*numVertsU] - pP[totVerts-numVertsU-1]).length2())
 	{
 		// Expand last u-row in +v direction.
 		for(TqInt iu = totVerts-numVertsU; iu < totVerts; ++iu)
 			pP[iu] = (1+amount)*pP[iu] - amount*pP[iu-numVertsU];
 	}
-	if((pP[0] - pP[totVerts-numVertsU]).Magnitude2()
-			> degeneracyRatio*(pP[1] - pP[totVerts-numVertsU+1]).Magnitude2())
+	if((pP[0] - pP[totVerts-numVertsU]).length2()
+			> degeneracyRatio*(pP[1] - pP[totVerts-numVertsU+1]).length2())
 	{
 		// Expand first v-column in -u direction.
 		for(TqInt iv = 0; iv < totVerts; iv += numVertsU)
 			pP[iv] = (1+amount)*pP[iv] - amount*pP[iv+1];
 	}
-	if((pP[numVertsU-1] - pP[totVerts-1]).Magnitude2()
-			> degeneracyRatio*(pP[numVertsU-2] - pP[totVerts-2]).Magnitude2())
+	if((pP[numVertsU-1] - pP[totVerts-1]).length2()
+			> degeneracyRatio*(pP[numVertsU-2] - pP[totVerts-2]).length2())
 	{
 		// Expand last v-column in +u direction.
 		for(TqInt iv = numVertsU-1; iv < totVerts; iv += numVertsU)
@@ -367,7 +367,7 @@ void CqMicroPolyGrid::Shade( bool canCullGrid )
 
 	// Set eye position - always at the origin in the shading coord system.
 	if ( USES( lUses, EnvVars_E ) )
-		pVar(EnvVars_E)->SetVector(CqVector3D(0, 0, 0));
+		pVar(EnvVars_E)->SetVector(Imath::V3f(0, 0, 0));
 
 	// Set du and dv if necessary.  This code assumes that du and dv are
 	// constant across every grid. (Looks to be a good assumption at svn r2117.)
@@ -387,12 +387,12 @@ void CqMicroPolyGrid::Shade( bool canCullGrid )
 				// z-component of P so that it represents the distance from the
 				// ray origin (somewhere on the xy plane) to the current
 				// shading point.
-				const CqVector3D* pP = 0;
+				const Imath::V3f* pP = 0;
 				pVar(EnvVars_P)->GetPointPtr(pP);
-				CqVector3D* pI = 0;
+				Imath::V3f* pI = 0;
 				pVar(EnvVars_I)->GetVectorPtr(pI);
 				for(TqInt i = 0; i < gs; ++i)
-					pI[i] = CqVector3D(0,0,pP[i].z());
+					pI[i] = Imath::V3f(0,0,pP[i].z);
 			}
 			break;
 		case ProjectionPerspective:
@@ -434,12 +434,12 @@ void CqMicroPolyGrid::Shade( bool canCullGrid )
 		AQSIS_TIME_SCOPE(Backface_culling);
 
 		TqInt cCulled = 0;
-		const CqVector3D* pP = NULL;
+		const Imath::V3f* pP = NULL;
 		pVar(EnvVars_P) ->GetPointPtr( pP );
-		const CqVector3D* pN = NULL;
+		const Imath::V3f* pN = NULL;
 		if ( USES( lUses, EnvVars_N ) )
 			pVar(EnvVars_N) ->GetNormalPtr( pN );
-		const CqVector3D* pNg = NULL;
+		const Imath::V3f* pNg = NULL;
 		pVar(EnvVars_Ng) ->GetNormalPtr( pNg );
 		// When backface culling, we must use the geometric normal (Ng) as
 		// this is the normal that properly represents the actual micropolygon
@@ -452,9 +452,9 @@ void CqMicroPolyGrid::Shade( bool canCullGrid )
 		{
 			TqFloat s = 1.0f;
 			if(NULL != pN)
-				s = ( ( pN[i] * pNg[i] ) < 0.0f ) ? -1.0f : 1.0f;
+				s = ( ( pN[i].dot(pNg[i]) ) < 0.0f ) ? -1.0f : 1.0f;
 			// Calulate the direction the MPG is facing.
-			if ( ( ( s * pNg[ i ] ) * pP[ i ] ) >= 0 )
+			if ( ( ( pNg[ i ] * s ).dot(pP[ i ]) ) >= 0 )
 			{
 				cCulled++;
 				STATS_INC( MPG_culled );
@@ -652,7 +652,7 @@ void CqMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 	QGetRenderContext() ->matSpaceToSpace( "camera", "object", NULL, pSurface() ->pTransform().get(), QGetRenderContext()->Time(), matCameraToObject0 );
 
 	// Transform the whole grid to hybrid camera/raster space
-	CqVector3D* pP;
+	Imath::V3f* pP;
 	pVar(EnvVars_P) ->GetPointPtr( pP );
 
 	// Get an array of P's for all time positions, the transformation keyframes take 
@@ -672,7 +672,7 @@ void CqMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 			keyframeTimes[cameraTransform->Time(iTime)] = iTime;
 
 	TqInt tTime = keyframeTimes.size();
-	std::vector<std::vector<CqVector3D> > aaPtimes;
+	std::vector<std::vector<Imath::V3f> > aaPtimes;
 	aaPtimes.resize( tTime );
 
 	CqMatrix matObjectToCameraT;
@@ -688,7 +688,7 @@ void CqMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 
 		for ( i = gsmin1; i >= 0; i-- )
 		{
-			CqVector3D Point( pP[ i ] );
+			Imath::V3f Point( pP[ i ] );
 
 			// Only do the complex transform if motion blurred.
 			//Point = matObjectToCameraT * matCameraToObject0 * Point;
@@ -696,17 +696,17 @@ void CqMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 			Point = matObjectToCameraT * Point;
 
 			// Make sure to retain camera space 'z' coordinate.
-			TqFloat zdepth = Point.z();
+			TqFloat zdepth = Point.z;
 			aaPtimes[ keyFrame->second ][ i ] = matCameraToRaster * Point;
-			aaPtimes[ keyFrame->second ][ i ].z( zdepth );
+			aaPtimes[ keyFrame->second ][ i ].z = zdepth;
 		}
 		SqTriangleSplitLine sl;
-		CqVector3D v0, v1, v2;
+		Imath::V3f v0, v1, v2;
 		v0 = aaPtimes[ keyFrame->second ][ 0 ];
 		v1 = aaPtimes[ keyFrame->second ][ cu ];
 		v2 = aaPtimes[ keyFrame->second ][ cv * ( cu + 1 ) ];
 		// Check for clockwise, swap if not.
-		if( ( ( v1.x() - v0.x() ) * ( v2.y() - v0.y() ) - ( v1.y() - v0.y() ) * ( v2.x() - v0.x() ) ) >= 0 )
+		if( ( ( v1.x - v0.x ) * ( v2.y - v0.y ) - ( v1.y - v0.y ) * ( v2.x - v0.x ) ) >= 0 )
 		{
 			sl.m_TriangleSplitPoint1 = v1;
 			sl.m_TriangleSplitPoint2 = v2;
@@ -723,19 +723,19 @@ void CqMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 	{
 		aaPtimes[ 0 ].resize( gsmin1 + 1 );
 		// Make sure to retain camera space 'z' coordinate.
-		TqFloat zdepth = pP[ i ].z();
+		TqFloat zdepth = pP[ i ].z;
 		aaPtimes[ 0 ][ i ] = matCameraToRaster * pP[ i ];
-		aaPtimes[ 0 ][ i ].z( zdepth );
+		aaPtimes[ 0 ][ i ].z = zdepth;
 		pP[ i ] = aaPtimes[ 0 ][ i ];
 	}
 
 	SqTriangleSplitLine sl;
-	CqVector3D v0, v1, v2;
+	Imath::V3f v0, v1, v2;
 	v0 = aaPtimes[ 0 ][ 0 ];
 	v1 = aaPtimes[ 0 ][ cu ];
 	v2 = aaPtimes[ 0 ][ cv * ( cu + 1 ) ];
 	// Check for clockwise, swap if not.
-	if( ( ( v1.x() - v0.x() ) * ( v2.y() - v0.y() ) - ( v1.y() - v0.y() ) * ( v2.x() - v0.x() ) ) >= 0 )
+	if( ( ( v1.x - v0.x ) * ( v2.y - v0.y ) - ( v1.y - v0.y ) * ( v2.x - v0.x ) ) >= 0 )
 	{
 		sl.m_TriangleSplitPoint1 = v1;
 		sl.m_TriangleSplitPoint2 = v2;
@@ -856,10 +856,10 @@ void CqMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 
 			// Calculate MPG area
 			TqFloat area = 0.0f;
-			area += ( aaPtimes[ 0 ][ iIndex ].x() * aaPtimes[ 0 ][iIndex + 1 ].y() ) - ( aaPtimes[ 0 ][ iIndex ].y() * aaPtimes[ 0 ][ iIndex + 1 ].x() );
-			area += ( aaPtimes[ 0 ][ iIndex + 1].x() * aaPtimes[ 0 ][iIndex + cu + 2 ].y() ) - ( aaPtimes[ 0 ][ iIndex + 1].y() * aaPtimes[ 0 ][ iIndex + cu + 2 ].x() );
-			area += ( aaPtimes[ 0 ][ iIndex + cu + 2].x() * aaPtimes[ 0 ][iIndex + cu + 1 ].y() ) - ( aaPtimes[ 0 ][ iIndex + cu + 2 ].y() * aaPtimes[ 0 ][ iIndex + cu + 1 ].x() );
-			area += ( aaPtimes[ 0 ][ iIndex + cu + 1].x() * aaPtimes[ 0 ][iIndex ].y() ) - ( aaPtimes[ 0 ][ iIndex + cu + 1 ].y() * aaPtimes[ 0 ][ iIndex ].x() );
+			area += ( aaPtimes[ 0 ][ iIndex ].x * aaPtimes[ 0 ][iIndex + 1 ].y ) - ( aaPtimes[ 0 ][ iIndex ].y * aaPtimes[ 0 ][ iIndex + 1 ].x );
+			area += ( aaPtimes[ 0 ][ iIndex + 1].x * aaPtimes[ 0 ][iIndex + cu + 2 ].y ) - ( aaPtimes[ 0 ][ iIndex + 1].y * aaPtimes[ 0 ][ iIndex + cu + 2 ].x );
+			area += ( aaPtimes[ 0 ][ iIndex + cu + 2].x * aaPtimes[ 0 ][iIndex + cu + 1 ].y ) - ( aaPtimes[ 0 ][ iIndex + cu + 2 ].y * aaPtimes[ 0 ][ iIndex + cu + 1 ].x );
+			area += ( aaPtimes[ 0 ][ iIndex + cu + 1].x * aaPtimes[ 0 ][iIndex ].y ) - ( aaPtimes[ 0 ][ iIndex + cu + 1 ].y * aaPtimes[ 0 ][ iIndex ].x );
 			area *= 0.5f;
 			area = fabs(area);
 
@@ -891,7 +891,7 @@ void CqMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 }
 
 
-void CqMicroPolyGridBase::TriangleSplitPoints(CqVector3D& v1, CqVector3D& v2, TqFloat Time)
+void CqMicroPolyGridBase::TriangleSplitPoints(Imath::V3f& v1, Imath::V3f& v2, TqFloat Time)
 {
 	// Workout where in the keyframe sequence the requested point is.
 	SqTriangleSplitLine sl = m_TriangleSplitLine.GetMotionObjectInterpolated( Time );
@@ -960,7 +960,7 @@ void CqMotionMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 	ADDREF( pGridA );
 
 	// Get an array of P's for all time positions.
-	std::vector<std::vector<CqVector3D> > aaPtimes;
+	std::vector<std::vector<Imath::V3f> > aaPtimes;
 	aaPtimes.resize( cTimes() );
 	
 	TqInt tTime = cTimes();
@@ -980,11 +980,11 @@ void CqMotionMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 		aaPtimes[ iTime ].resize( gsmin1 + 1 );
 
 		CqMicroPolyGrid* pg = static_cast<CqMicroPolyGrid*>( GetMotionObject( Time( iTime ) ) );
-		CqVector3D* pP;
+		Imath::V3f* pP;
 		pg->pVar(EnvVars_P) ->GetPointPtr( pP );
-		CqVector3D* pNg;
+		Imath::V3f* pNg;
 		pg->pVar(EnvVars_Ng)->GetNormalPtr(pNg);
-		CqVector3D* pN = NULL;
+		Imath::V3f* pN = NULL;
 		if ( USES( lUses, EnvVars_N ) )
 			pg->pVar(EnvVars_N)->GetNormalPtr(pN);
 
@@ -1012,8 +1012,8 @@ void CqMotionMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 				// match.
 				TqFloat s = 1.0f;
 				if(pN)
-					s = (pN[i] * pNg[i] < 0.0f) ? -1.0f : 1.0f;
-				if(s * pNg[i] * pP[i] >= 0)
+					s = (pN[i].dot(pNg[i]) < 0.0f) ? -1.0f : 1.0f;
+				if((pNg[i]*s).dot(pP[i]) >= 0)
 					totalBFCulled[i]++;
 			}
 		}
@@ -1021,22 +1021,22 @@ void CqMotionMicroPolyGrid::Split( long xmin, long xmax, long ymin, long ymax )
 		// Transform the whole grid to hybrid camera/raster space
 		for ( i = gsmin1; i >= 0; i-- )
 		{
-			CqVector3D Point( pP[ i ] );
+			Imath::V3f Point( pP[ i ] );
 
 			// Make sure to retain camera space 'z' coordinate.
-			TqFloat zdepth = Point.z();
+			TqFloat zdepth = Point.z;
 			aaPtimes[ iTime ][ i ] = matCameraToRaster * Point;
-			aaPtimes[ iTime ][ i ].z( zdepth );
+			aaPtimes[ iTime ][ i ].z = zdepth;
 			pP[ i ] = aaPtimes[ iTime ][ i ];
 		}
 
 		SqTriangleSplitLine sl;
-		CqVector3D v0, v1, v2;
+		Imath::V3f v0, v1, v2;
 		v0 = aaPtimes[ iTime ][ 0 ];
 		v1 = aaPtimes[ iTime ][ cu ];
 		v2 = aaPtimes[ iTime ][ cv * ( cu + 1 ) ];
 		// Check for clockwise, swap if not.
-		if( ( ( v1.x() - v0.x() ) * ( v2.y() - v0.y() ) - ( v1.y() - v0.y() ) * ( v2.x() - v0.x() ) ) >= 0 )
+		if( ( ( v1.x - v0.x ) * ( v2.y - v0.y ) - ( v1.y - v0.y ) * ( v2.x - v0.x ) ) >= 0 )
 		{
 			sl.m_TriangleSplitPoint1 = v1;
 			sl.m_TriangleSplitPoint2 = v2;
@@ -1191,9 +1191,9 @@ void CqMicroPolygon::Initialise()
 	CalculateBound();
 }
 
-void CqMicroPolygon::GetVertices(CqVector3D P[4]) const
+void CqMicroPolygon::GetVertices(Imath::V3f P[4]) const
 {
-	CqVector3D* pP;
+	Imath::V3f* pP;
 	m_pGrid->pVar(EnvVars_P) ->GetPointPtr(pP);
 	TqInt cu = m_pGrid->uGridRes();
 	P[0] = pP[ m_Index ];
@@ -1219,9 +1219,9 @@ void CqMicroPolygon::ComputeVertexOrder()
 	TqShort CodeC = 3;
 	TqShort CodeD = 2;
 
-	const CqVector3D* pP;
+	const Imath::V3f* pP;
 	m_pGrid->pVar(EnvVars_P) ->GetPointPtr( pP );
-	if ( ( pP[ IndexA ] - pP[ IndexB ] ).Magnitude2() < 1e-8 )
+	if ( ( pP[ IndexA ] - pP[ IndexB ] ).length2() < 1e-8 )
 	{
 		// A--B is degenerate
 		IndexB = IndexC;
@@ -1231,7 +1231,7 @@ void CqMicroPolygon::ComputeVertexOrder()
 		IndexD = -1;
 		CodeD = -1;
 	}
-	else if ( ( pP[ IndexB ] - pP[ IndexC ] ).Magnitude2() < 1e-8 )
+	else if ( ( pP[ IndexB ] - pP[ IndexC ] ).length2() < 1e-8 )
 	{
 		// B--C is degenerate
 		IndexB = IndexC;
@@ -1241,7 +1241,7 @@ void CqMicroPolygon::ComputeVertexOrder()
 		IndexD = -1;
 		CodeD = -1;
 	}
-	else if ( ( pP[ IndexC ] - pP[ IndexD ] ).Magnitude2() < 1e-8 )
+	else if ( ( pP[ IndexC ] - pP[ IndexD ] ).length2() < 1e-8 )
 	{
 		// C--D is degenerate
 		IndexC = IndexD;
@@ -1249,7 +1249,7 @@ void CqMicroPolygon::ComputeVertexOrder()
 		IndexD = -1;
 		CodeD = -1;
 	}
-	else if ( ( pP[ IndexD ] - pP[ IndexA ] ).Magnitude2() < 1e-8 )
+	else if ( ( pP[ IndexD ] - pP[ IndexA ] ).length2() < 1e-8 )
 	{
 		// D--A is degenerate
 		IndexD = IndexC;
@@ -1258,12 +1258,12 @@ void CqMicroPolygon::ComputeVertexOrder()
 		CodeD = -1;
 	}
 
-	const CqVector3D& vA2 = pP[ IndexA ];
-	const CqVector3D& vB2 = pP[ IndexB ];
-	const CqVector3D& vC2 = pP[ IndexC ];
+	const Imath::V3f& vA2 = pP[ IndexA ];
+	const Imath::V3f& vB2 = pP[ IndexB ];
+	const Imath::V3f& vC2 = pP[ IndexC ];
 
 	// Determine whether the MPG is CW or CCW, must be CCW for fContains to work.
-	bool fFlip = ( ( vA2.x() - vB2.x() ) * ( vB2.y() - vC2.y() ) ) >= ( ( vA2.y() - vB2.y() ) * ( vB2.x() - vC2.x() ) );
+	bool fFlip = ( ( vA2.x - vB2.x ) * ( vB2.y - vC2.y ) ) >= ( ( vA2.y - vB2.y ) * ( vB2.x - vC2.x ) );
 
 	m_IndexCode = 0;
 
@@ -1342,12 +1342,12 @@ bool CqMicroPolygon::fContains( CqHitTestCache& hitTestCache, const Imath::V2f& 
 //---------------------------------------------------------------------
 
 void CqMicroPolygon::cachePointInPolyTest(CqHitTestCache& cache,
-										  CqVector3D* pointsIn) const
+										  Imath::V3f* pointsIn) const
 {
-	cache.z[0] = pointsIn[0].z();
-	cache.z[1] = pointsIn[1].z();
-	cache.z[2] = pointsIn[2].z();
-	cache.z[3] = pointsIn[3].z();
+	cache.z[0] = pointsIn[0].z;
+	cache.z[1] = pointsIn[1].z;
+	cache.z[2] = pointsIn[2].z;
+	cache.z[3] = pointsIn[3].z;
 	cache.xyToUV.setVertices(vectorCast<Imath::V2f>(pointsIn[0]),
 							 vectorCast<Imath::V2f>(pointsIn[1]),
 							 vectorCast<Imath::V2f>(pointsIn[2]),
@@ -1357,7 +1357,7 @@ void CqMicroPolygon::cachePointInPolyTest(CqHitTestCache& cache,
 	// and special cases when the micropoly is degenerate.  This information is
 	// stored in m_IndexCode and used to reorder the points before calculating
 	// the point-in-poly coefficients.
-	const CqVector3D points[4] = {
+	const Imath::V3f points[4] = {
 		pointsIn[(m_IndexCode >> 2) & 0x3],
 		pointsIn[(m_IndexCode >> 4) & 0x3],
 		pointsIn[(m_IndexCode >> 6) & 0x3],
@@ -1366,10 +1366,10 @@ void CqMicroPolygon::cachePointInPolyTest(CqHitTestCache& cache,
 	int j = 3;
 	for(int i=0; i<4; ++i)
 	{
-		cache.m_YMultiplier[i] = points[i].x() - points[j].x();
-		cache.m_XMultiplier[i] = points[i].y() - points[j].y();
-		cache.m_X[i] = points[j].x();
-		cache.m_Y[i] = points[j].y();
+		cache.m_YMultiplier[i] = points[i].x - points[j].x;
+		cache.m_XMultiplier[i] = points[i].y - points[j].y;
+		cache.m_X[i] = points[j].x;
+		cache.m_Y[i] = points[j].y;
 		j = i;
 	}
 
@@ -1379,10 +1379,10 @@ void CqMicroPolygon::cachePointInPolyTest(CqHitTestCache& cache,
 	{
 		for(int i=2; i<4; ++i)
 		{
-			cache.m_YMultiplier[i] = points[3].x() - points[1].x();
-			cache.m_XMultiplier[i] = points[3].y() - points[1].y();
-			cache.m_X[i] = points[1].x();
-			cache.m_Y[i] = points[1].y();
+			cache.m_YMultiplier[i] = points[3].x - points[1].x;
+			cache.m_XMultiplier[i] = points[3].y - points[1].y;
+			cache.m_X[i] = points[1].x;
+			cache.m_Y[i] = points[1].y;
 		}
 	}
 
@@ -1392,10 +1392,10 @@ void CqMicroPolygon::cachePointInPolyTest(CqHitTestCache& cache,
 void CqMicroPolygon::CacheHitTestValues(CqHitTestCache& cache, bool usingDof) const
 {
 	// First grab and cache the points.
-	const CqVector3D* gridP = 0;
+	const Imath::V3f* gridP = 0;
 	m_pGrid->pVar(EnvVars_P)->GetPointPtr(gridP);
 	TqInt uGridRes = m_pGrid->uGridRes();
-	CqVector3D* P = cache.P;
+	Imath::V3f* P = cache.P;
 	P[0] = gridP[m_Index];
 	P[1] = gridP[m_Index + 1];
 	P[2] = gridP[m_Index + uGridRes + 1];
@@ -1409,10 +1409,10 @@ void CqMicroPolygon::CacheHitTestValues(CqHitTestCache& cache, bool usingDof) co
 		// multipliers can also be cached, and used in the bounding box test
 		// for fast sample rejection.
 		const CqRenderer* renderContext = QGetRenderContext();
-		cache.cocMult[0] = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(P[0].z()));
-		cache.cocMult[1] = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(P[1].z()));
-		cache.cocMult[2] = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(P[2].z()));
-		cache.cocMult[3] = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(P[3].z()));
+		cache.cocMult[0] = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(P[0].z));
+		cache.cocMult[1] = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(P[1].z));
+		cache.cocMult[2] = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(P[2].z));
+		cache.cocMult[3] = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(P[3].z));
 
 		cache.cocMultMin = min(min(cache.cocMult[0], cache.cocMult[1]),
 							   min(cache.cocMult[2], cache.cocMult[3]));
@@ -1544,7 +1544,7 @@ inline bool CqMicroPolygon::dofSampleInBound(const CqBound& bound,
 		std::swap(cocMin.x, cocMax.x);
 	if(dofOffset.y < 0)
 		std::swap(cocMin.y, cocMax.y);
-	return bound.Intersects(vectorCast<Imath::V2f>(cocMin), vectorCast<Imath::V2f>(cocMax));
+	return bound.Intersects(cocMin, cocMax);
 }
 
 //---------------------------------------------------------------------
@@ -1574,12 +1574,12 @@ bool CqMicroPolygon::Sample( CqHitTestCache& hitTestCache, SqSampleData const& s
 		// current sample.
 		Imath::V2f* coc = hitTestCache.cocMult;
 		Imath::V2f dofOffset = sample.dofOffset;
-		CqVector3D* P = hitTestCache.P;
-		CqVector3D points[4] = {
-			P[0] - vectorCast<CqVector3D>(compMul(coc[0], dofOffset)),
-			P[1] - vectorCast<CqVector3D>(compMul(coc[1], dofOffset)),
-			P[2] - vectorCast<CqVector3D>(compMul(coc[2], dofOffset)),
-			P[3] - vectorCast<CqVector3D>(compMul(coc[3], dofOffset))
+		Imath::V3f* P = hitTestCache.P;
+		Imath::V3f points[4] = {
+			P[0] - vectorCast<Imath::V3f>(compMul(coc[0], dofOffset)),
+			P[1] - vectorCast<Imath::V3f>(compMul(coc[1], dofOffset)),
+			P[2] - vectorCast<Imath::V3f>(compMul(coc[2], dofOffset)),
+			P[3] - vectorCast<Imath::V3f>(compMul(coc[3], dofOffset))
 		};
 		// Having displaced and slightly distorted the micropolygon, we now
 		// need to calculate the hit test coefficients.
@@ -1627,12 +1627,12 @@ bool CqMicroPolygon::Sample( CqHitTestCache& hitTestCache, SqSampleData const& s
 
 		if ( pGrid() ->fTriangular() )
 		{
-			CqVector3D vA, vB;
+			Imath::V3f vA, vB;
 			pGrid()->TriangleSplitPoints( vA, vB, time );
-			TqFloat Ax = vA.x();
-			TqFloat Ay = vA.y();
-			TqFloat Bx = vB.x();
-			TqFloat By = vB.y();
+			TqFloat Ax = vA.x;
+			TqFloat Ay = vA.y;
+			TqFloat Bx = vB.x;
+			TqFloat By = vB.y;
 
 			Imath::V2f hitPos = vecSample;
 			if(UsingDof)
@@ -1660,13 +1660,13 @@ bool CqMicroPolygon::Sample( CqHitTestCache& hitTestCache, SqSampleData const& s
 //---------------------------------------------------------------------
 void CqMicroPolygon::CalculateBound()
 {
-	CqVector3D * pP;
+	Imath::V3f * pP;
 	m_pGrid->pVar(EnvVars_P) ->GetPointPtr( pP );
 	TqInt cu = m_pGrid->uGridRes();
-	const CqVector3D& A = pP[ m_Index ];
-	const CqVector3D& B = pP[ m_Index + 1 ];
-	const CqVector3D& C = pP[ m_Index + cu + 2 ];
-	const CqVector3D& D = pP[ m_Index + cu + 1 ];
+	const Imath::V3f& A = pP[ m_Index ];
+	const Imath::V3f& B = pP[ m_Index + 1 ];
+	const Imath::V3f& C = pP[ m_Index + cu + 2 ];
+	const Imath::V3f& D = pP[ m_Index + cu + 1 ];
 	m_Bound = CqBound( min(min(min(A,B),C),D), max(max(max(A,B),C),D) );
 }
 
@@ -1695,8 +1695,8 @@ void CqMicroPolygonMotion::BuildBoundList(TqUint timeRanges)
 
 	// Compute an approximation of the number of micropolygon lengths moved in
 	// raster space.  We use this to guide how many sub-bounds to calcuate.
-	TqFloat polyLen2 = m_Keys.front()->GetBound().vecCross().Magnitude2();
-	TqFloat moveDist2 = (m_Keys.front()->m_Point0 - m_Keys.back()->m_Point0).Magnitude2();
+	TqFloat polyLen2 = m_Keys.front()->GetBound().vecCross().length2();
+	TqFloat moveDist2 = (m_Keys.front()->m_Point0 - m_Keys.back()->m_Point0).length2();
 	TqInt polyLengthsMoved = max<TqInt>(1, lfloor(std::sqrt(moveDist2/polyLen2)));
 
 	TqUint divisions = min<TqInt>(polyLengthsMoved, timeRanges);
@@ -1763,7 +1763,7 @@ void CqMicroPolygonMotion::BuildBoundList(TqUint timeRanges)
 bool CqMicroPolygonMotion::Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, Imath::V2f& uv, TqFloat time, bool UsingDof ) const
 {
 	const Imath::V2f vecSample = sample.position;
-	CqVector3D points[4];
+	Imath::V3f points[4];
 
 	// Calculate the position in time of the MP.
 	TqInt iIndex = 0;
@@ -1855,10 +1855,10 @@ bool CqMicroPolygonMotion::Sample( CqHitTestCache& hitTestCache, SqSampleData co
 		const CqRenderer* renderContext = QGetRenderContext();
 		// Adjust the micropolygon vertices by the DoF offest.
 		Imath::V2f dofOffset = sample.dofOffset;
-		points[0] -= vectorCast<CqVector3D>(compMul(renderContext->GetCircleOfConfusion(points[0].z()), dofOffset));
-		points[1] -= vectorCast<CqVector3D>(compMul(renderContext->GetCircleOfConfusion(points[1].z()), dofOffset));
-		points[2] -= vectorCast<CqVector3D>(compMul(renderContext->GetCircleOfConfusion(points[2].z()), dofOffset));
-		points[3] -= vectorCast<CqVector3D>(compMul(renderContext->GetCircleOfConfusion(points[3].z()), dofOffset));
+		points[0] -= vectorCast<Imath::V3f>(compMul(renderContext->GetCircleOfConfusion(points[0].z), dofOffset));
+		points[1] -= vectorCast<Imath::V3f>(compMul(renderContext->GetCircleOfConfusion(points[1].z), dofOffset));
+		points[2] -= vectorCast<Imath::V3f>(compMul(renderContext->GetCircleOfConfusion(points[2].z), dofOffset));
+		points[3] -= vectorCast<Imath::V3f>(compMul(renderContext->GetCircleOfConfusion(points[3].z), dofOffset));
 	}
 	// Fill in the hit test coefficients for the current sample.
 	cachePointInPolyTest(hitTestCache, points);
@@ -1875,12 +1875,12 @@ bool CqMicroPolygonMotion::Sample( CqHitTestCache& hitTestCache, SqSampleData co
 
 		if ( pGrid() ->fTriangular() )
 		{
-			CqVector3D vA, vB;
+			Imath::V3f vA, vB;
 			pGrid()->TriangleSplitPoints( vA, vB, time );
-			TqFloat Ax = vA.x();
-			TqFloat Ay = vA.y();
-			TqFloat Bx = vB.x();
-			TqFloat By = vB.y();
+			TqFloat Ax = vA.x;
+			TqFloat Ay = vA.y;
+			TqFloat Bx = vB.x;
+			TqFloat By = vB.y;
 
 			Imath::V2f hitPos = vecSample;
 			if(UsingDof)
@@ -1914,8 +1914,8 @@ void CqMicroPolygonMotion::CacheHitTestValues(CqHitTestCache& cache,
 		// for the four corners of the micropolygon like in the static case,
 		// since the depth is a function of time in general.
 		const CqRenderer* renderContext = QGetRenderContext();
-		Imath::V2f coc1 = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(GetBound().vecMin().z()));
-		Imath::V2f coc2 = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(GetBound().vecMax().z()));
+		Imath::V2f coc1 = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(GetBound().vecMin().z));
+		Imath::V2f coc2 = vectorCast<Imath::V2f>(renderContext->GetCircleOfConfusion(GetBound().vecMax().z));
 		if(renderContext->MinCoCForBound(GetBound()) == 0)
 		{
 			// special case for when the bound crosses the focal plane, in
@@ -1940,7 +1940,7 @@ void CqMicroPolygonMotion::CacheHitTestValues(CqHitTestCache& cache,
  * \param time Float shutter time that this MPG represents.
  */
 
-void CqMicroPolygonMotion::AppendKey( const CqVector3D& vA, const CqVector3D& vB, const CqVector3D& vC, const CqVector3D& vD, TqFloat time )
+void CqMicroPolygonMotion::AppendKey( const Imath::V3f& vA, const Imath::V3f& vB, const Imath::V3f& vC, const Imath::V3f& vD, TqFloat time )
 {
 	//	assert( time >= m_Times.back() );
 
@@ -1968,12 +1968,12 @@ const CqBound& CqMovingMicroPolygonKey::GetBound()
 		return m_Bound;
 
 	// Calculate the boundary, and store the indexes in the cache.
-	m_Bound.vecMin().x( min( m_Point0.x(), min( m_Point1.x(), min( m_Point2.x(), m_Point3.x() ) ) ) );
-	m_Bound.vecMin().y( min( m_Point0.y(), min( m_Point1.y(), min( m_Point2.y(), m_Point3.y() ) ) ) );
-	m_Bound.vecMin().z( min( m_Point0.z(), min( m_Point1.z(), min( m_Point2.z(), m_Point3.z() ) ) ) );
-	m_Bound.vecMax().x( max( m_Point0.x(), max( m_Point1.x(), max( m_Point2.x(), m_Point3.x() ) ) ) );
-	m_Bound.vecMax().y( max( m_Point0.y(), max( m_Point1.y(), max( m_Point2.y(), m_Point3.y() ) ) ) );
-	m_Bound.vecMax().z( max( m_Point0.z(), max( m_Point1.z(), max( m_Point2.z(), m_Point3.z() ) ) ) );
+	m_Bound.vecMin().x = min( m_Point0.x, min( m_Point1.x, min( m_Point2.x, m_Point3.x ) ) );
+	m_Bound.vecMin().y = min( m_Point0.y, min( m_Point1.y, min( m_Point2.y, m_Point3.y ) ) );
+	m_Bound.vecMin().z = min( m_Point0.z, min( m_Point1.z, min( m_Point2.z, m_Point3.z ) ) );
+	m_Bound.vecMax().x = max( m_Point0.x, max( m_Point1.x, max( m_Point2.x, m_Point3.x ) ) );
+	m_Bound.vecMax().y = max( m_Point0.y, max( m_Point1.y, max( m_Point2.y, m_Point3.y ) ) );
+	m_Bound.vecMax().z = max( m_Point0.z, max( m_Point1.z, max( m_Point2.z, m_Point3.z ) ) );
 
 	m_BoundReady = true;
 	return ( m_Bound );

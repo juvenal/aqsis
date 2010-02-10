@@ -97,27 +97,27 @@ void CqCurve::Bound(CqBound* bound) const
 {
 
 	// Get the boundary in camera space.
-	CqVector3D vecA( FLT_MAX, FLT_MAX, FLT_MAX );
-	CqVector3D vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
+	Imath::V3f vecA( FLT_MAX, FLT_MAX, FLT_MAX );
+	Imath::V3f vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 	TqFloat maxCameraSpaceWidth = 0;
 	TqUint nWidthParams = cVarying();
 	for ( TqUint i = 0; i < ( *P() ).Size(); i++ )
 	{
 		// expand the boundary if necessary to accomodate the
 		//  current vertex
-		CqVector3D vecV = vectorCast<CqVector3D>(P()->pValue( i )[0]);
-		if ( vecV.x() < vecA.x() )
-			vecA.x( vecV.x() );
-		if ( vecV.y() < vecA.y() )
-			vecA.y( vecV.y() );
-		if ( vecV.x() > vecB.x() )
-			vecB.x( vecV.x() );
-		if ( vecV.y() > vecB.y() )
-			vecB.y( vecV.y() );
-		if ( vecV.z() < vecA.z() )
-			vecA.z( vecV.z() );
-		if ( vecV.z() > vecB.z() )
-			vecB.z( vecV.z() );
+		Imath::V3f vecV = vectorCast<Imath::V3f>(P()->pValue( i )[0]);
+		if ( vecV.x < vecA.x )
+			vecA.x = vecV.x;
+		if ( vecV.y < vecA.y )
+			vecA.y = vecV.y;
+		if ( vecV.x > vecB.x )
+			vecB.x = vecV.x;
+		if ( vecV.y > vecB.y )
+			vecB.y = vecV.y;
+		if ( vecV.z < vecA.z )
+			vecA.z = vecV.z;
+		if ( vecV.z > vecB.z )
+			vecB.z = vecV.z;
 
 		// increase the maximum camera space width of the curve if
 		//  necessary
@@ -134,11 +134,11 @@ void CqCurve::Bound(CqBound* bound) const
 
 	// increase the size of the boundary by half the width of the
 	//  curve in camera space
-	vecA -= ( maxCameraSpaceWidth / 2.0 );
-	vecB += ( maxCameraSpaceWidth / 2.0 );
+	vecA -= Imath::V3f( maxCameraSpaceWidth / 2.0 );
+	vecB += Imath::V3f( maxCameraSpaceWidth / 2.0 );
 
-	bound->vecMin() = vecA;
-	bound->vecMax() = vecB;
+	bound->vecMin() = vectorCast<Imath::V3f>(vecA);
+	bound->vecMax() = vectorCast<Imath::V3f>(vecB);
 	AdjustBoundForTransformationMotion( bound );
 }
 
@@ -285,11 +285,11 @@ bool CqCurve::Diceable()
 }
 
 
-bool CqCurve::GetNormal( TqInt index, CqVector3D& normal ) const
+bool CqCurve::GetNormal( TqInt index, Imath::V3f& normal ) const
 {
 	if ( N() != NULL )
 	{
-		normal = N()->pValue( index )[0];
+		normal = vectorCast<Imath::V3f>(N()->pValue( index )[0]);
 		return true;
 	}
 	else
@@ -297,9 +297,9 @@ bool CqCurve::GetNormal( TqInt index, CqVector3D& normal ) const
 		bool CSO = pTransform()->GetHandedness(pTransform()->Time(0));
 		bool O = pAttributes() ->GetIntegerAttribute( "System", "Orientation" ) [ 0 ] != 0;
 		if ( (O && CSO) || (!O && !CSO) )
-			normal = CqVector3D(0, 0, -1);
+			normal = Imath::V3f(0, 0, -1);
 		else
-			normal = CqVector3D(0, 0, 1);
+			normal = Imath::V3f(0, 0, 1);
 		return false;
 	}
 }
@@ -393,7 +393,7 @@ void CqCurvesGroup::Transform(
 	// The previous algorithm used a very complicated method which boiled down
 	// to scaling the width parameter of curves by the amount
 	//
-	//   1/(matITTx*CqVector3D(1,0,0)).Magnitude()
+	//   1/(matITTx*Imath::V3f(1,0,0)).length()
 	//
 	// If the transformation is an anisotropic scaling transformation (eg,
 	// squashing more in the x-direction than the y-direction), this is rather
@@ -414,8 +414,8 @@ void CqCurvesGroup::Transform(
 	// resulting length used as the scaling factor, independently for each
 	// width on the curve.  This would be more correct, but is much more
 	// complicated to implement correctly!
-	TqFloat widthScale = 2/((matITTx*CqVector3D(1,0,0)).Magnitude()
-			+ (matITTx*CqVector3D(0,1,0)).Magnitude());
+	TqFloat widthScale = 2/((matITTx*Imath::V3f(1,0,0)).length()
+			+ (matITTx*Imath::V3f(0,1,0)).length());
 	CqParameterTypedVarying<TqFloat, type_float, TqFloat>* w = width();
 	for(TqInt i = 0, end = w->Size(); i < end; ++i)
 		w->pValue(i)[0] *= widthScale;

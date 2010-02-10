@@ -82,12 +82,12 @@ class CqQuadric : public CqSurface
 		}
 
 		TqUlong	EstimateGridSize();
-		void	Circle( const CqVector3D& O, const CqVector3D& X, const CqVector3D& Y, TqFloat r, TqFloat as, TqFloat ae, std::vector<CqVector3D>& points ) const;
-		CqBound	RevolveForBound( const std::vector<CqVector3D>& profile, const CqVector3D& S, const CqVector3D& Tvec, TqFloat theta ) const;
+		void	Circle( const Imath::V3f& O, const Imath::V3f& X, const Imath::V3f& Y, TqFloat r, TqFloat as, TqFloat ae, std::vector<Imath::V3f>& points ) const;
+		CqBound	RevolveForBound( const std::vector<Imath::V3f>& profile, const Imath::V3f& S, const Imath::V3f& Tvec, TqFloat theta ) const;
 
 		virtual TqInt DiceAll( CqMicroPolyGrid* pGrid );
 
-		virtual void DicePoints( CqVector3D* pointGrid, CqVector3D* normalGrid ) = 0;
+		virtual void DicePoints( Imath::V3f* pointGrid, Imath::V3f* normalGrid ) = 0;
 
 #ifdef _DEBUG
 
@@ -121,7 +121,7 @@ class CqSphere : public CqQuadric
 
 		virtual	void	Bound(CqBound* bound) const;
 
-		virtual void DicePoints( CqVector3D* pointGrid, CqVector3D* normalGrid );
+		virtual void DicePoints( Imath::V3f* pointGrid, Imath::V3f* normalGrid );
 
 		virtual	TqInt PreSubdivide( std::vector<boost::shared_ptr<CqSurface> >& aSplits, bool u );
 
@@ -158,7 +158,7 @@ class CqCone : public CqQuadric
 
 		virtual	void	Bound(CqBound* bound) const;
 
-		virtual void DicePoints( CqVector3D* pointGrid, CqVector3D* normalGrid );
+		virtual void DicePoints( Imath::V3f* pointGrid, Imath::V3f* normalGrid );
 
 		virtual	TqInt PreSubdivide( std::vector<boost::shared_ptr<CqSurface> >& aSplits, bool u );
 
@@ -196,7 +196,7 @@ class CqCylinder : public CqQuadric
 
 		virtual	void	Bound(CqBound* bound) const;
 
-		virtual void DicePoints( CqVector3D* pointGrid, CqVector3D* normalGrid );
+		virtual void DicePoints( Imath::V3f* pointGrid, Imath::V3f* normalGrid );
 
 		virtual	TqInt PreSubdivide( std::vector<boost::shared_ptr<CqSurface> >& aSplits, bool u );
 
@@ -228,13 +228,13 @@ class CqHyperboloid : public CqQuadric
 {
 	public:
 		CqHyperboloid( );
-		CqHyperboloid( CqVector3D& point1, CqVector3D& point2, TqFloat thetamin, TqFloat thetamax );
+		CqHyperboloid( Imath::V3f& point1, Imath::V3f& point2, TqFloat thetamin, TqFloat thetamax );
 		virtual	~CqHyperboloid()
 		{}
 
 		virtual	void	Bound(CqBound* bound) const;
 
-		virtual void DicePoints( CqVector3D* pointGrid, CqVector3D* normalGrid );
+		virtual void DicePoints( Imath::V3f* pointGrid, Imath::V3f* normalGrid );
 
 		virtual	TqInt PreSubdivide( std::vector<boost::shared_ptr<CqSurface> >& aSplits, bool u );
 
@@ -249,8 +249,8 @@ class CqHyperboloid : public CqQuadric
 		virtual CqSurface* Clone() const;
 
 	private:
-		CqVector3D	m_Point1;		///< Start point of line to revolve.
-		CqVector3D	m_Point2;		///< End point of line to revolve.
+		Imath::V3f	m_Point1;		///< Start point of line to revolve.
+		Imath::V3f	m_Point2;		///< End point of line to revolve.
 		TqFloat	m_ThetaMin;		///< Min angle about z axis.
 		TqFloat	m_ThetaMax;		///< Max angle about z axis.
 };
@@ -270,7 +270,7 @@ class CqParaboloid : public CqQuadric
 
 		virtual	void	Bound(CqBound* bound) const;
 
-		virtual void DicePoints( CqVector3D* pointGrid, CqVector3D* normalGrid );
+		virtual void DicePoints( Imath::V3f* pointGrid, Imath::V3f* normalGrid );
 
 		virtual	TqInt PreSubdivide( std::vector<boost::shared_ptr<CqSurface> >& aSplits, bool u );
 
@@ -307,7 +307,7 @@ class CqTorus : public CqQuadric
 
 		virtual	void	Bound(CqBound* bound) const;
 
-		virtual void DicePoints( CqVector3D* pointGrid, CqVector3D* normalGrid );
+		virtual void DicePoints( Imath::V3f* pointGrid, Imath::V3f* normalGrid );
 
 		virtual	TqInt PreSubdivide( std::vector<boost::shared_ptr<CqSurface> >& aSplits, bool u );
 
@@ -345,7 +345,7 @@ class CqDisk : public CqQuadric
 
 		virtual	void	Bound(CqBound* bound) const;
 
-		virtual void DicePoints( CqVector3D* pointGrid, CqVector3D* normalGrid );
+		virtual void DicePoints( Imath::V3f* pointGrid, Imath::V3f* normalGrid );
 
 		virtual	TqInt PreSubdivide( std::vector<boost::shared_ptr<CqSurface> >& aSplits, bool u );
 

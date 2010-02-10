@@ -286,11 +286,11 @@ CqString* CqAttributes::GetStringAttributeWrite( const char* strName, const char
  * \return CqVetor3D pointer 0 if not found.
  */
 
-CqVector3D* CqAttributes::GetPointAttributeWrite( const char* strName, const char* strParam )
+Imath::V3f* CqAttributes::GetPointAttributeWrite( const char* strName, const char* strParam )
 {
 	CqParameter * pParam = pParameterWrite( strName, strParam );
 	if ( pParam != 0 && pParam->Type() == type_point )
-		return ( static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( pParam ) ->pValue() );
+		return ( static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( pParam ) ->pValue() );
 	else
 		return ( 0 );
 }
@@ -303,11 +303,11 @@ CqVector3D* CqAttributes::GetPointAttributeWrite( const char* strName, const cha
  * \return CqVetor3D pointer 0 if not found.
  */
 
-CqVector3D* CqAttributes::GetVectorAttributeWrite( const char* strName, const char* strParam )
+Imath::V3f* CqAttributes::GetVectorAttributeWrite( const char* strName, const char* strParam )
 {
 	CqParameter * pParam = pParameterWrite( strName, strParam );
 	if ( pParam != 0 && pParam->Type() == type_vector )
-		return ( static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( pParam ) ->pValue() );
+		return ( static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( pParam ) ->pValue() );
 	else
 		return ( 0 );
 }
@@ -320,11 +320,11 @@ CqVector3D* CqAttributes::GetVectorAttributeWrite( const char* strName, const ch
  * \return CqVetor3D pointer 0 if not found.
  */
 
-CqVector3D* CqAttributes::GetNormalAttributeWrite( const char* strName, const char* strParam )
+Imath::V3f* CqAttributes::GetNormalAttributeWrite( const char* strName, const char* strParam )
 {
 	CqParameter * pParam = pParameterWrite( strName, strParam );
 	if ( pParam != 0 && pParam->Type() == type_normal )
-		return ( static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( pParam ) ->pValue() );
+		return ( static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( pParam ) ->pValue() );
 	else
 		return ( 0 );
 }
@@ -419,14 +419,14 @@ const CqString* CqAttributes::GetStringAttribute( const char* strName, const cha
 /** Get a point system attribute parameter.
  * \param strName The name of the attribute.
  * \param strParam The name of the paramter on the attribute.
- * \return CqVector3D pointer 0 if not found.
+ * \return Imath::V3f pointer 0 if not found.
  */
 
-const CqVector3D* CqAttributes::GetPointAttribute( const char* strName, const char* strParam ) const
+const Imath::V3f* CqAttributes::GetPointAttribute( const char* strName, const char* strParam ) const
 {
 	const CqParameter * pParam = pParameter( strName, strParam );
 	if ( pParam != 0 && pParam->Type() == type_point )
-		return ( static_cast<const CqParameterTyped<CqVector3D, CqVector3D>*>( pParam ) ->pValue() );
+		return ( static_cast<const CqParameterTyped<Imath::V3f, Imath::V3f>*>( pParam ) ->pValue() );
 	else
 		return ( 0 );
 }
@@ -436,14 +436,14 @@ const CqVector3D* CqAttributes::GetPointAttribute( const char* strName, const ch
 /** Get a vector system attribute parameter.
  * \param strName The name of the attribute.
  * \param strParam The name of the paramter on the attribute.
- * \return CqVector3D pointer 0 if not found.
+ * \return Imath::V3f pointer 0 if not found.
  */
 
-const CqVector3D* CqAttributes::GetVectorAttribute( const char* strName, const char* strParam ) const
+const Imath::V3f* CqAttributes::GetVectorAttribute( const char* strName, const char* strParam ) const
 {
 	const CqParameter * pParam = pParameter( strName, strParam );
 	if ( pParam != 0 && pParam->Type() == type_vector )
-		return ( static_cast<const CqParameterTyped<CqVector3D, CqVector3D>*>( pParam ) ->pValue() );
+		return ( static_cast<const CqParameterTyped<Imath::V3f, Imath::V3f>*>( pParam ) ->pValue() );
 	else
 		return ( 0 );
 }
@@ -453,14 +453,14 @@ const CqVector3D* CqAttributes::GetVectorAttribute( const char* strName, const c
 /** Get a normal system attribute parameter.
  * \param strName The name of the attribute.
  * \param strParam The name of the paramter on the attribute.
- * \return CqVector3D pointer 0 if not found.
+ * \return Imath::V3f pointer 0 if not found.
  */
 
-const CqVector3D* CqAttributes::GetNormalAttribute( const char* strName, const char* strParam ) const
+const Imath::V3f* CqAttributes::GetNormalAttribute( const char* strName, const char* strParam ) const
 {
 	const CqParameter * pParam = pParameter( strName, strParam );
 	if ( pParam != 0 && pParam->Type() == type_normal )
-		return ( static_cast<const CqParameterTyped<CqVector3D, CqVector3D>*>( pParam ) ->pValue() );
+		return ( static_cast<const CqParameterTyped<Imath::V3f, Imath::V3f>*>( pParam ) ->pValue() );
 	else
 		return ( 0 );
 }

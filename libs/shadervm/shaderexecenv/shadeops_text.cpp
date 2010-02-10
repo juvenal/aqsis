@@ -61,10 +61,10 @@ static	CqString	SO_sprintf( const char* str, int cParams, IqShaderData** apParam
 
 							case 'p':
 							{
-								CqVector3D vec;
+								Imath::V3f vec;
 								apParams[ ivar++ ] ->GetPoint( vec, varyingindex );
 								CqString strVal;
-								strVal.Format( "%f,%f,%f", vec.x(), vec.y(), vec.z() );
+								strVal.Format( "%f,%f,%f", vec.x, vec.y, vec.z );
 								strRes += strVal;
 							}
 							break;

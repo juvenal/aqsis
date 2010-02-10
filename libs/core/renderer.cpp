@@ -1061,7 +1061,7 @@ const	CqString*	CqRenderer::GetStringOption( const char* strName, const char* st
 	return ( poptCurrent()->GetStringOption( strName, strParam ) );
 }
 
-const	CqVector3D*	CqRenderer::GetPointOption( const char* strName, const char* strParam ) const
+const	Imath::V3f*	CqRenderer::GetPointOption( const char* strName, const char* strParam ) const
 {
 	return ( poptCurrent()->GetPointOption( strName, strParam ) );
 }
@@ -1087,7 +1087,7 @@ CqString*	CqRenderer::GetStringOptionWrite( const char* strName, const char* str
 	return ( poptWriteCurrent()->GetStringOptionWrite( strName, strParam ) );
 }
 
-CqVector3D*	CqRenderer::GetPointOptionWrite( const char* strName, const char* strParam )
+Imath::V3f*	CqRenderer::GetPointOptionWrite( const char* strName, const char* strParam )
 {
 	return ( poptWriteCurrent()->GetPointOptionWrite( strName, strParam ) );
 }
@@ -1331,13 +1331,13 @@ void CqRenderer::PostSurface( const boost::shared_ptr<CqSurface>& pSurface )
 	const TqFloat* boundAttr = pSurface->pAttributes()->GetFloatAttribute( "System", "LODBound" );
 
 	CqBound bound(boundAttr);
-	if(bound.vecCross().Magnitude2() > 0)
+	if(bound.vecCross().length2() > 0)
 	{
 		CqMatrix mat;
 		QGetRenderContext() ->matSpaceToSpace( "object", "raster", NULL, pSurface->pTransform().get(), QGetRenderContext()->Time(), mat );
 		bound.Transform( mat );
 
-		TqFloat ruler = fabs( ( bound.vecMax().x() - bound.vecMin().x() ) * ( bound.vecMax().y() - bound.vecMin().y() ) );
+		TqFloat ruler = fabs( ( bound.vecMax().x - bound.vecMin().x ) * ( bound.vecMax().y - bound.vecMin().y ) );
 
 		ruler *= QGetRenderContext() ->poptCurrent()->GetFloatOption( "System", "RelativeDetail" ) [ 0 ];
 
@@ -1652,8 +1652,8 @@ void TIFF_WarnHandler(const char* mdl, const char* fmt, va_list va)
 const TqFloat CqRenderer::MinCoCForBound(const CqBound& bound) const
 {
 	assert(m_UsingDepthOfField);
-	TqFloat z1 = bound.vecMin().z();
-	TqFloat z2 = bound.vecMax().z();
+	TqFloat z1 = bound.vecMin().z;
+	TqFloat z2 = bound.vecMax().z;
 	// First check whether the bound spans the focal plane; if so, return 0.
 	TqFloat focalDist = 1/m_OneOverFocalDistance;
 	if((z1 - focalDist)*(z2 - focalDist) < 0)

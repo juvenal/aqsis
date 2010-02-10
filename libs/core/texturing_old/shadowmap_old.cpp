@@ -333,7 +333,7 @@ void CqShadowMapOld::PrepareSampleOptions( std::map<std::string, IqShaderData*>&
 /** Sample the shadow map data to see if the point vecPoint is in shadow.
  */
 
-void CqShadowMapOld::SampleMap( CqVector3D& vecPoint, CqVector3D& swidth, CqVector3D& twidth, std::valarray<TqFloat>& val, TqInt index, TqFloat* average_depth, TqFloat* shadow_depth )
+void CqShadowMapOld::SampleMap( Imath::V3f& vecPoint, Imath::V3f& swidth, Imath::V3f& twidth, std::valarray<TqFloat>& val, TqInt index, TqFloat* average_depth, TqFloat* shadow_depth )
 {
 	if ( m_pImage != 0 )
 	{
@@ -351,7 +351,7 @@ void CqShadowMapOld::SampleMap( CqVector3D& vecPoint, CqVector3D& swidth, CqVect
 /** Sample the shadow map data using R1, R2, R3, R4.
  */
 
-void	CqShadowMapOld::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, CqVector3D& R4, std::valarray<TqFloat>& val, TqInt index, TqFloat* average_depth, TqFloat* shadow_depth )
+void	CqShadowMapOld::SampleMap( Imath::V3f& R1, Imath::V3f& R2, Imath::V3f& R3, Imath::V3f& R4, std::valarray<TqFloat>& val, TqInt index, TqFloat* average_depth, TqFloat* shadow_depth )
 {
 	// Check the memory and make sure we don't abuse it
 	if (index == 0)
@@ -362,8 +362,8 @@ void	CqShadowMapOld::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, 
 	val.resize( 1 );
 	val[ 0 ] = 0.0f;
 
-	CqVector3D	vecR1l;
-	CqVector3D	vecR1m, vecR2m, vecR3m, vecR4m;
+	Imath::V3f	vecR1l;
+	Imath::V3f	vecR1m, vecR2m, vecR3m, vecR4m;
 
 
 	// Generate a matrix to transform points from camera space into the space of the light source used in the
@@ -379,7 +379,7 @@ void	CqShadowMapOld::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, 
 	else
 		vecR1l = matCameraToLight * ( ( R1 + R2 + R3 + R4 ) * 0.25f );
 
-	TqFloat z = vecR1l.z();
+	TqFloat z = vecR1l.z;
 
 	// If point is behind light, call it not in shadow.
 	if (z <= 0.0f)
@@ -404,14 +404,14 @@ void	CqShadowMapOld::SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, 
 	TqFloat tbo2 = m_tblur * yro2;
 
 
-	TqFloat s1 = vecR1m.x() * xro2 + xro2;
-	TqFloat t1 = m_YRes - ( vecR1m.y() * yro2 + yro2 ) - 1;
-	TqFloat s2 = vecR2m.x() * xro2 + xro2;
-	TqFloat t2 = m_YRes - ( vecR2m.y() * yro2 + yro2 ) - 1;
-	TqFloat s3 = vecR3m.x() * xro2 + xro2;
-	TqFloat t3 = m_YRes - ( vecR3m.y() * yro2 + yro2 ) - 1;
-	TqFloat s4 = vecR4m.x() * xro2 + xro2;
-	TqFloat t4 = m_YRes - ( vecR4m.y() * yro2 + yro2 ) - 1;
+	TqFloat s1 = vecR1m.x * xro2 + xro2;
+	TqFloat t1 = m_YRes - ( vecR1m.y * yro2 + yro2 ) - 1;
+	TqFloat s2 = vecR2m.x * xro2 + xro2;
+	TqFloat t2 = m_YRes - ( vecR2m.y * yro2 + yro2 ) - 1;
+	TqFloat s3 = vecR3m.x * xro2 + xro2;
+	TqFloat t3 = m_YRes - ( vecR3m.y * yro2 + yro2 ) - 1;
+	TqFloat s4 = vecR4m.x * xro2 + xro2;
+	TqFloat t4 = m_YRes - ( vecR4m.y * yro2 + yro2 ) - 1;
 
 	TqFloat smin = ( s1 < s2 ) ? s1 : ( s2 < s3 ) ? s2 : ( s3 < s4 ) ? s3 : s4;
 	TqFloat smax = ( s1 > s2 ) ? s1 : ( s2 > s3 ) ? s2 : ( s3 > s4 ) ? s3 : s4;

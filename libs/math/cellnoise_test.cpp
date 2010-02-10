@@ -37,7 +37,7 @@
 const TqFloat epsilon = 0.1f; 
 
 
-static bool equal(const Aqsis::CqVector3D& a, const Aqsis::CqVector3D& b)
+static bool equal(const Aqsis::Imath::V3f& a, const Aqsis::Imath::V3f& b)
 {
 	return Aqsis::isClose(a, b);
 }
@@ -63,14 +63,14 @@ BOOST_AUTO_TEST_CASE(CqCellNoise_3D_float_cellnoise_test)
 {
 	Aqsis::CqCellNoise cn;
 	
-	BOOST_CHECK_CLOSE(cn.FCellNoise3(Aqsis::CqVector3D(1.0f, 1.0f, 1.0f)), 0.251191825f, epsilon);
+	BOOST_CHECK_CLOSE(cn.FCellNoise3(Aqsis::Imath::V3f(1.0f, 1.0f, 1.0f)), 0.251191825f, epsilon);
 }
 
 BOOST_AUTO_TEST_CASE(CqCellNoise_4D_float_cellnoise_test)
 {
 	Aqsis::CqCellNoise cn;
 	
-	BOOST_CHECK_CLOSE(cn.FCellNoise4(Aqsis::CqVector3D(1.0f, 1.0f, 1.0f), 1.0f), 0.670210421f, epsilon);
+	BOOST_CHECK_CLOSE(cn.FCellNoise4(Aqsis::Imath::V3f(1.0f, 1.0f, 1.0f), 1.0f), 0.670210421f, epsilon);
 }
 
 BOOST_AUTO_TEST_CASE(CqCellNoise_1D_point_cellnoise_test)
@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(CqCellNoise_1D_point_cellnoise_test)
 	Aqsis::CqCellNoise cn;
 	
 	CHECK_VEC_CLOSE(cn.PCellNoise1(1.0f),
-			Aqsis::CqVector3D(0.832859f, 0.782803f, 0.0354029f));
+			Aqsis::Imath::V3f(0.832859f, 0.782803f, 0.0354029f));
 }
 
 BOOST_AUTO_TEST_CASE(CqCellNoise_2D_point_cellnoise_test)
@@ -86,22 +86,22 @@ BOOST_AUTO_TEST_CASE(CqCellNoise_2D_point_cellnoise_test)
 	Aqsis::CqCellNoise cn;
 	
 	CHECK_VEC_CLOSE(cn.PCellNoise2(1.0f, 1.0f),
-			Aqsis::CqVector3D(0.00305118f, 0.327067f, 0.917067f));
+			Aqsis::Imath::V3f(0.00305118f, 0.327067f, 0.917067f));
 }
 
 BOOST_AUTO_TEST_CASE(CqCellNoise_3D_point_cellnoise_test)
 {
 	Aqsis::CqCellNoise cn;
 	
-	CHECK_VEC_CLOSE(cn.PCellNoise3(Aqsis::CqVector3D(1.0f, 1.0f, 1.0f)),
-			Aqsis::CqVector3D(0.251192f, 0.524417f ,0.0602106f));
+	CHECK_VEC_CLOSE(cn.PCellNoise3(Aqsis::Imath::V3f(1.0f, 1.0f, 1.0f)),
+			Aqsis::Imath::V3f(0.251192f, 0.524417f ,0.0602106f));
 }
 
 BOOST_AUTO_TEST_CASE(CqCellNoise_4D_point_cellnoise_test)
 {
 	Aqsis::CqCellNoise cn;
 	
-	CHECK_VEC_CLOSE(cn.PCellNoise4(Aqsis::CqVector3D(1.0f, 1.0f, 1.0f), 1.0f),
-			Aqsis::CqVector3D(0.67021f, 0.930112f, 0.82147f));
+	CHECK_VEC_CLOSE(cn.PCellNoise4(Aqsis::Imath::V3f(1.0f, 1.0f, 1.0f), 1.0f),
+			Aqsis::Imath::V3f(0.67021f, 0.930112f, 0.82147f));
 }
 

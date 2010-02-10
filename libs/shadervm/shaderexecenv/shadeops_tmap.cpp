@@ -622,12 +622,12 @@ void CqShaderExecEnv::SO_fenvironment2( IqShaderData* name, IqShaderData* startC
 		{
 			optExtractor.extractVarying(gridIdx, sampleOpts);
 			// Get texture region to be filtered.
-			CqVector3D RR;
+			Imath::V3f RR;
 			R->GetVector(RR, gridIdx);
 			Sq3DSamplePllgram region(
-				RR,
-				diffU<CqVector3D>(R, gridIdx),
-				diffV<CqVector3D>(R, gridIdx)
+				vectorCast<Imath::V3f>(RR),
+				vectorCast<Imath::V3f>(diffU<Imath::V3f>(R, gridIdx)),
+				vectorCast<Imath::V3f>(diffV<Imath::V3f>(R, gridIdx))
 			);
 			// buffer where filtered results will be placed.
 			TqFloat texSample = 0;
@@ -675,11 +675,14 @@ void CqShaderExecEnv::SO_fenvironment3( IqShaderData* name, IqShaderData* startC
 		{
 			optExtractor.extractVarying(gridIdx, sampleOpts);
 			// Construct the sample quadrilateral
-			CqVector3D r1Val;  R1->GetVector(r1Val, gridIdx);
-			CqVector3D r2Val;  R2->GetVector(r2Val, gridIdx);
-			CqVector3D r3Val;  R3->GetVector(r3Val, gridIdx);
-			CqVector3D r4Val;  R4->GetVector(r4Val, gridIdx);
-			Sq3DSampleQuad sampleQuad(r1Val, r2Val, r3Val, r4Val);
+			Imath::V3f r1Val;  R1->GetVector(r1Val, gridIdx);
+			Imath::V3f r2Val;  R2->GetVector(r2Val, gridIdx);
+			Imath::V3f r3Val;  R3->GetVector(r3Val, gridIdx);
+			Imath::V3f r4Val;  R4->GetVector(r4Val, gridIdx);
+			Sq3DSampleQuad sampleQuad(vectorCast<Imath::V3f>(r1Val), 
+									  vectorCast<Imath::V3f>(r2Val), 
+									  vectorCast<Imath::V3f>(r3Val), 
+									  vectorCast<Imath::V3f>(r4Val));
 			// buffer where filtered results will be placed.
 			TqFloat texSample = 0;
 			texSampler.sample(sampleQuad, sampleOpts, &texSample);
@@ -727,12 +730,12 @@ void CqShaderExecEnv::SO_cenvironment2( IqShaderData* name, IqShaderData* startC
 		{
 			optExtractor.extractVarying(gridIdx, sampleOpts);
 			// Get texture region to be filtered.
-			CqVector3D RR;
+			Imath::V3f RR;
 			R->GetVector(RR, gridIdx);
 			Sq3DSamplePllgram region(
-				RR,
-				diffU<CqVector3D>(R, gridIdx),
-				diffV<CqVector3D>(R, gridIdx)
+				vectorCast<Imath::V3f>(RR),
+				vectorCast<Imath::V3f>(diffU<Imath::V3f>(R, gridIdx)),
+				vectorCast<Imath::V3f>(diffV<Imath::V3f>(R, gridIdx))
 			);
 			// buffer where filtered results will be placed.
 			TqFloat texSample[3] = {0,0,0};
@@ -781,11 +784,14 @@ void CqShaderExecEnv::SO_cenvironment3( IqShaderData* name, IqShaderData* startC
 		{
 			optExtractor.extractVarying(gridIdx, sampleOpts);
 			// Construct the sample quadrilateral
-			CqVector3D r1Val;  R1->GetVector(r1Val, gridIdx);
-			CqVector3D r2Val;  R2->GetVector(r2Val, gridIdx);
-			CqVector3D r3Val;  R3->GetVector(r3Val, gridIdx);
-			CqVector3D r4Val;  R4->GetVector(r4Val, gridIdx);
-			Sq3DSampleQuad sampleQuad(r1Val, r2Val, r3Val, r4Val);
+			Imath::V3f r1Val;  R1->GetVector(r1Val, gridIdx);
+			Imath::V3f r2Val;  R2->GetVector(r2Val, gridIdx);
+			Imath::V3f r3Val;  R3->GetVector(r3Val, gridIdx);
+			Imath::V3f r4Val;  R4->GetVector(r4Val, gridIdx);
+			Sq3DSampleQuad sampleQuad(vectorCast<Imath::V3f>(r1Val), 
+									  vectorCast<Imath::V3f>(r2Val), 
+									  vectorCast<Imath::V3f>(r3Val), 
+									  vectorCast<Imath::V3f>(r4Val));
 			// buffer where filtered results will be placed.
 			TqFloat texSample[3] = {0,0,0};
 			texSampler.sample(sampleQuad, sampleOpts, texSample);
@@ -811,7 +817,7 @@ void CqShaderExecEnv::SO_bump1( IqShaderData* name, IqShaderData* startChannel, 
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			(Result)->SetPoint(CqVector3D( 0, 0, 0 ),__iGrid);
+			(Result)->SetPoint(Imath::V3f( 0, 0, 0 ),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -832,7 +838,7 @@ void CqShaderExecEnv::SO_bump2( IqShaderData* name, IqShaderData* startChannel, 
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			(Result)->SetPoint(CqVector3D( 0, 0, 0 ),__iGrid);
+			(Result)->SetPoint(Imath::V3f( 0, 0, 0 ),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -853,7 +859,7 @@ void CqShaderExecEnv::SO_bump3( IqShaderData* name, IqShaderData* startChannel, 
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			(Result)->SetPoint(CqVector3D( 0, 0, 0 ),__iGrid);
+			(Result)->SetPoint(Imath::V3f( 0, 0, 0 ),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -898,15 +904,17 @@ void CqShaderExecEnv::SO_shadow( IqShaderData* name, IqShaderData* startChannel,
 		{
 			optExtractor.extractVarying(gridIdx, sampleOpts);
 			// Get first differences along U & V directions for the sample quad.
-			CqVector3D dP_uOn2 = 0.5f*diffU<CqVector3D>(P, gridIdx);
-			CqVector3D dP_vOn2 = 0.5f*diffV<CqVector3D>(P, gridIdx);
+			Imath::V3f dP_uOn2 = 0.5f*diffU<Imath::V3f>(P, gridIdx);
+			Imath::V3f dP_vOn2 = 0.5f*diffV<Imath::V3f>(P, gridIdx);
 			// Centre of the texture region to be filtered.
-			CqVector3D centerP;
+			Imath::V3f centerP;
 			P->GetPoint(centerP, gridIdx);
 			// Compute the sample quadrilateral box.
 			Sq3DSampleQuad sampleQuad(
-				centerP - dP_uOn2 - dP_vOn2, centerP + dP_uOn2 - dP_vOn2, 
-				centerP - dP_uOn2 + dP_vOn2, centerP + dP_uOn2 + dP_vOn2);
+				vectorCast<Imath::V3f>(centerP - dP_uOn2 - dP_vOn2), 
+				vectorCast<Imath::V3f>(centerP + dP_uOn2 - dP_vOn2), 
+				vectorCast<Imath::V3f>(centerP - dP_uOn2 + dP_vOn2), 
+				vectorCast<Imath::V3f>(centerP + dP_uOn2 + dP_vOn2));
 			// length-1 "array" where filtered results will be placed.
 			TqFloat shadSample = 0;
 			shadSampler.sample(sampleQuad, sampleOpts, &shadSample);
@@ -958,10 +966,15 @@ void CqShaderExecEnv::SO_shadow1( IqShaderData* name, IqShaderData* startChannel
 
 			// Get sampling quad, explicitly provided by user.
 			Sq3DSampleQuad sampleQuad;
-			P1->GetPoint(sampleQuad.v1, gridIdx);
-			P2->GetPoint(sampleQuad.v2, gridIdx);
-			P3->GetPoint(sampleQuad.v3, gridIdx);
-			P4->GetPoint(sampleQuad.v4, gridIdx);
+			Imath::V3f v;
+			P1->GetPoint(v, gridIdx);
+			sampleQuad.v1 = vectorCast<Imath::V3f>(v); 
+			P2->GetPoint(v, gridIdx);
+			sampleQuad.v2 = vectorCast<Imath::V3f>(v);
+			P3->GetPoint(v, gridIdx);
+			sampleQuad.v3 = vectorCast<Imath::V3f>(v);
+			P4->GetPoint(v, gridIdx);
+			sampleQuad.v4 = vectorCast<Imath::V3f>(v); 
 
 			// length-1 "array" where filtered results will be placed.
 			TqFloat shadSample = 0;
@@ -1216,7 +1229,7 @@ void CqShaderExecEnv::SO_bake_3n( IqShaderData* name, IqShaderData* s, IqShaderD
 			(s)->GetFloat(_aq_s,__iGrid);
 			TqFloat _aq_t;
 			(t)->GetFloat(_aq_t,__iGrid);
-			CqVector3D _aq_f;
+			Imath::V3f _aq_f;
 			(f)->GetNormal(_aq_f,__iGrid);
 			TqFloat rgb[ 3 ];
 			rgb[ 0 ] = _aq_f [ 0 ];
@@ -1257,7 +1270,7 @@ void CqShaderExecEnv::SO_bake_3p( IqShaderData* name, IqShaderData* s, IqShaderD
 			(s)->GetFloat(_aq_s,__iGrid);
 			TqFloat _aq_t;
 			(t)->GetFloat(_aq_t,__iGrid);
-			CqVector3D _aq_f;
+			Imath::V3f _aq_f;
 			(f)->GetPoint(_aq_f,__iGrid);
 			TqFloat rgb[ 3 ];
 			rgb[ 0 ] = _aq_f [ 0 ];
@@ -1297,7 +1310,7 @@ void CqShaderExecEnv::SO_bake_3v( IqShaderData* name, IqShaderData* s, IqShaderD
 			(s)->GetFloat(_aq_s,__iGrid);
 			TqFloat _aq_t;
 			(t)->GetFloat(_aq_t,__iGrid);
-			CqVector3D _aq_f;
+			Imath::V3f _aq_f;
 			(f)->GetVector(_aq_f,__iGrid);
 			TqFloat rgb[ 3 ];
 			rgb[ 0 ] = _aq_f [ 0 ];
@@ -1355,19 +1368,19 @@ void CqShaderExecEnv::SO_occlusion(IqShaderData* name, IqShaderData* startChanne
 		{
 			optExtractor.extractVarying(gridIdx, sampleOpts);
 			// Get normal to region.
-			CqVector3D NN;
+			Imath::V3f NN;
 			N->GetNormal(NN, gridIdx);
 			// Get texture region to be filtered.
-			CqVector3D PP;
+			Imath::V3f PP;
 			P->GetPoint(PP, gridIdx);
 			Sq3DSamplePllgram region(
-				PP,
-				diffU<CqVector3D>(P, gridIdx),
-				diffV<CqVector3D>(P, gridIdx)
+				vectorCast<Imath::V3f>(PP),
+				vectorCast<Imath::V3f>(diffU<Imath::V3f>(P, gridIdx)),
+				vectorCast<Imath::V3f>(diffV<Imath::V3f>(P, gridIdx))	
 			);
 			// length-1 "array" where filtered results will be placed.
 			TqFloat occSample = 0;
-			occSampler.sample(region, NN, sampleOpts, &occSample);
+			occSampler.sample(region, vectorCast<Imath::V3f>(NN), sampleOpts, &occSample);
 			Result->SetFloat(occSample, gridIdx);
 		}
 	}

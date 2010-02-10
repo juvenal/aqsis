@@ -34,6 +34,8 @@
 
 #include <aqsis/math/vector3d.h>
 #include <aqsis/math/vector4d.h>
+#include <aqsis/math/vectorcast.h>
+#include <ImathVec.h>
 
 namespace Aqsis {
 
@@ -69,12 +71,14 @@ class AQSIS_MATH_SHARE CqMatrix
 		 * \param trans - The vector by which to translate.
 		 */
 		CqMatrix( const CqVector3D& trans );
+		CqMatrix( const Imath::V3f& trans );
 		/** \brief Rotation matrix constructor
 		 *
 		 * \param angle - The angle to rotate by.
 		 * \param axis - The axis about which to rotate.
 		 */
 		CqMatrix( const TqFloat angle, const CqVector3D axis );
+		CqMatrix( const TqFloat angle, const Imath::V3f axis );
 		/** \brief Skew matrix constructor
 		 *
 		 * \param angle
@@ -143,10 +147,12 @@ class AQSIS_MATH_SHARE CqMatrix
 		 * \param axis - The axis about which to rotate.
 		 */
 		void Rotate( const TqFloat angle, const CqVector3D axis );
+		void Rotate( const TqFloat angle, const Imath::V3f axis );
 		/** Translates this matrix by a given vector.
 		 * \param trans - The vector by which to translate.
 		 */
 		void Translate( const CqVector3D& trans );
+		void Translate( const Imath::V3f& trans );
 		/** Translates this matrix by three axis distances.
 		 * \param xt - X distance to translate.
 		 * \param yt - Y distance to translate.
@@ -257,6 +263,7 @@ class AQSIS_MATH_SHARE CqMatrix
 		 * \param vec - The vector to multiply.
 		 */
 		CqVector3D operator*(const CqVector3D &vec) const;
+		Imath::V3f operator*(const Imath::V3f &vec) const;
 		/** \brief Add two matrices.
 		 * \param from - The matrix to add.
 		 * \return Result of adding from to this matrix.
@@ -418,6 +425,20 @@ inline CqMatrix::CqMatrix( const CqVector3D& trans )
 		m_elements[ 3 ][ 2 ] = trans.z();
 	}
 }
+inline CqMatrix::CqMatrix( const Imath::V3f& trans)
+{
+	Identity();
+
+	if( trans.x != 0.0f || trans.y != 0.0f || trans.z != 0.0f )
+	{
+		m_fIdentity = false;
+
+		m_elements[ 3 ][ 0 ] = trans.x;
+		m_elements[ 3 ][ 1 ] = trans.y;
+		m_elements[ 3 ][ 2 ] = trans.z;
+	}
+}
+
 
 // Construct a rotation matrix
 inline CqMatrix::CqMatrix( const TqFloat angle, const CqVector3D axis )
@@ -425,6 +446,13 @@ inline CqMatrix::CqMatrix( const TqFloat angle, const CqVector3D axis )
 	Identity();
 
 	if ( angle != 0.0f && axis.Magnitude() != 0.0f )
+		Rotate( angle, axis );
+}
+inline CqMatrix::CqMatrix( const TqFloat angle, const Imath::V3f axis )
+{
+	Identity();
+
+	if ( angle != 0.0f && axis.length() != 0.0f )
 		Rotate( angle, axis );
 }
 
@@ -533,6 +561,11 @@ inline void CqMatrix::Scale( const TqFloat xs, const TqFloat ys, const TqFloat z
 }
 
 inline void CqMatrix::Translate( const CqVector3D& trans )
+{
+	CqMatrix matTrans( trans );
+	this->PreMultiply( matTrans );
+}
+inline void CqMatrix::Translate( const Imath::V3f& trans )
 {
 	CqMatrix matTrans( trans );
 	this->PreMultiply( matTrans );
@@ -735,6 +768,10 @@ inline CqVector3D CqMatrix::operator*( const CqVector3D &vec ) const
 	}
 
 	return Result;
+}
+inline Imath::V3f CqMatrix::operator*( const Imath::V3f& vec) const
+{
+	return vectorCast<Imath::V3f>(operator*(vectorCast<CqVector3D>(vec)));
 }
 
 inline CqMatrix CqMatrix::operator+( const CqMatrix &from ) const

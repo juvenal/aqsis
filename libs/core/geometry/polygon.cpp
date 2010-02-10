@@ -35,25 +35,25 @@ namespace Aqsis {
 
 void CqPolygonBase::Bound(CqBound* bound) const
 {
-	CqVector3D	vecA( FLT_MAX, FLT_MAX, FLT_MAX );
-	CqVector3D	vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
+	Imath::V3f	vecA( FLT_MAX, FLT_MAX, FLT_MAX );
+	Imath::V3f	vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 	TqInt i, n;
 	n = NumVertices();
 	for ( i = 0; i < n; i++ )
 	{
-		CqVector3D	vecV = PolyP( i );
-		if ( vecV.x() < vecA.x() )
-			vecA.x( vecV.x() );
-		if ( vecV.y() < vecA.y() )
-			vecA.y( vecV.y() );
-		if ( vecV.x() > vecB.x() )
-			vecB.x( vecV.x() );
-		if ( vecV.y() > vecB.y() )
-			vecB.y( vecV.y() );
-		if ( vecV.z() < vecA.z() )
-			vecA.z( vecV.z() );
-		if ( vecV.z() > vecB.z() )
-			vecB.z( vecV.z() );
+		Imath::V3f	vecV = PolyP( i );
+		if ( vecV.x < vecA.x )
+			vecA.x = vecV.x;
+		if ( vecV.y < vecA.y )
+			vecA.y = vecV.y;
+		if ( vecV.x > vecB.x )
+			vecB.x = vecV.x;
+		if ( vecV.y > vecB.y )
+			vecB.y = vecV.y;
+		if ( vecV.z < vecA.z )
+			vecA.z = vecV.z;
+		if ( vecV.z > vecB.z )
+			vecB.z = vecV.z;
 	}
 	bound->vecMin() = vecA;
 	bound->vecMax() = vecB;
@@ -70,7 +70,7 @@ void CqPolygonBase::Bound(CqBound* bound) const
 
 TqInt CqPolygonBase::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits )
 {
-	CqVector3D	vecN(0,0,0);
+	Imath::V3f	vecN(0,0,0);
 	TqInt indexA, indexB, indexC, indexD;
 
 	// We need to take into account Orientation here, even though most other
@@ -88,15 +88,15 @@ TqInt CqPolygonBase::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits 
 	// Get the normals, or calculate the facet normal if not specified.
 	if ( !bHasVar(EnvVars_N) )
 	{
-		CqVector3D vecA = PolyP( indexA );
+		Imath::V3f vecA = PolyP( indexA );
 		// Find two suitable vectors, and produce a geometric normal to use.
 		TqInt i = 1;
-		CqVector3D	vecN0, vecN1;
+		Imath::V3f	vecN0(0), vecN1(0);
 
 		while ( i < n )
 		{
 			vecN0 = PolyP(i) - vecA;
-			if ( vecN0.Magnitude() > FLT_EPSILON )
+			if ( vecN0.length() > FLT_EPSILON )
 				break;
 			i++;
 		}
@@ -104,13 +104,13 @@ TqInt CqPolygonBase::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits 
 		while ( i < n )
 		{
 			vecN1 = PolyP(i) - vecA;
-			if ( vecN1.Magnitude() > FLT_EPSILON && vecN1 != vecN0 )
+			if ( vecN1.length() > FLT_EPSILON && vecN1 != vecN0 )
 				break;
 			i++;
 		}
 		vecN = vecN0 % vecN1;
 		vecN = ( (O && CSO) || (!O && !CSO) ) ? vecN : -vecN;
-		vecN.Unit();
+		vecN.normalize();
 	}
 
 	// Start by splitting the polygon into 4 point patches.
@@ -135,9 +135,9 @@ TqInt CqPolygonBase::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits 
 					// Calculate which point in the triangle produces an angle with it's neighbours that is closest to 90 degrees.
 					// Placing the phantom point opposite this point will ensure the best orientation of the final grids, reducing
 					// shading artefacts.
-					CqVector3D pointA = PolyP(indexA);
-					CqVector3D pointB = PolyP(indexB);
-					CqVector3D pointC = PolyP(indexC);
+					Imath::V3f pointA = PolyP(indexA);
+					Imath::V3f pointB = PolyP(indexB);
+					Imath::V3f pointC = PolyP(indexC);
 					TqFloat aA = 1.5707f - acosf((pointB - pointA).Unit()*(pointC - pointA).Unit());
 					TqFloat aB = 1.5707f - acosf((pointA - pointB).Unit()*(pointC - pointB).Unit());
 					TqFloat aC = 1.5707f - acosf((pointA - pointC).Unit()*(pointB - pointC).Unit());
@@ -215,7 +215,7 @@ TqInt CqPolygonBase::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits 
 		// If there are no smooth normals specified, then fill in the facet normal at each vertex.
 		if ( !bHasVar(EnvVars_N) && USES( iUses, EnvVars_N ) )
 		{
-			CqParameterTypedVarying<CqVector3D, type_normal, CqVector3D>* pNewUP = new CqParameterTypedVarying<CqVector3D, type_normal, CqVector3D>( "N", 1 );
+			CqParameterTypedVarying<Imath::V3f, type_normal, Imath::V3f>* pNewUP = new CqParameterTypedVarying<Imath::V3f, type_normal, Imath::V3f>( "N", 1 );
 			pNewUP->SetSize( pNew->cVarying() );
 
 			pNewUP->pValue() [ 0 ] = vecN;
@@ -229,23 +229,23 @@ TqInt CqPolygonBase::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits 
 		// If the shader needs s/t or u/v, and s/t is not specified, then at this point store the object space x,y coordinates.
 		if ( USES( iUses, EnvVars_s ) || USES( iUses, EnvVars_t ) || USES( iUses, EnvVars_u ) || USES( iUses, EnvVars_v ) )
 		{
-			CqVector3D PA, PB, PC, PD;
+			Imath::V3f PA, PB, PC, PD;
 			CqMatrix matCurrentToWorld;
 			QGetRenderContext() ->matSpaceToSpace( "current", "object", NULL, Surface().pTransform().get(), Surface().pTransform() ->Time(0), matCurrentToWorld );
-			PA = matCurrentToWorld * vectorCast<CqVector3D>(pNew->P() ->pValue() [ 0 ]);
-			PB = matCurrentToWorld * vectorCast<CqVector3D>(pNew->P() ->pValue() [ 1 ]);
-			PC = matCurrentToWorld * vectorCast<CqVector3D>(pNew->P() ->pValue() [ 3 ]);
-			PD = matCurrentToWorld * vectorCast<CqVector3D>(pNew->P() ->pValue() [ 2 ]);
+			PA = matCurrentToWorld * vectorCast<Imath::V3f>(pNew->P() ->pValue() [ 0 ]);
+			PB = matCurrentToWorld * vectorCast<Imath::V3f>(pNew->P() ->pValue() [ 1 ]);
+			PC = matCurrentToWorld * vectorCast<Imath::V3f>(pNew->P() ->pValue() [ 3 ]);
+			PD = matCurrentToWorld * vectorCast<Imath::V3f>(pNew->P() ->pValue() [ 2 ]);
 
 			if ( USES( iUses, EnvVars_s ) && !bHasVar(EnvVars_s) )
 			{
 				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "s" );
 				pNewUP->SetSize( pNew->cVarying() );
 
-				pNewUP->pValue() [ 0 ] = PA.x();
-				pNewUP->pValue() [ 1 ] = PB.x();
-				pNewUP->pValue() [ 2 ] = PD.x();
-				pNewUP->pValue() [ 3 ] = PC.x();
+				pNewUP->pValue() [ 0 ] = PA.x;
+				pNewUP->pValue() [ 1 ] = PB.x;
+				pNewUP->pValue() [ 2 ] = PD.x;
+				pNewUP->pValue() [ 3 ] = PC.x;
 
 				pNew->AddPrimitiveVariable( pNewUP );
 			}
@@ -255,10 +255,10 @@ TqInt CqPolygonBase::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits 
 				CqParameterTypedVarying<TqFloat, type_float, TqFloat>* pNewUP = new CqParameterTypedVarying<TqFloat, type_float, TqFloat>( "t" );
 				pNewUP->SetSize( pNew->cVarying() );
 
-				pNewUP->pValue() [ 0 ] = PA.y();
-				pNewUP->pValue() [ 1 ] = PB.y();
-				pNewUP->pValue() [ 2 ] = PD.y();
-				pNewUP->pValue() [ 3 ] = PC.y();
+				pNewUP->pValue() [ 0 ] = PA.y;
+				pNewUP->pValue() [ 1 ] = PB.y;
+				pNewUP->pValue() [ 2 ] = PD.y;
+				pNewUP->pValue() [ 3 ] = PC.y;
 
 				pNew->AddPrimitiveVariable( pNewUP );
 			}
@@ -340,7 +340,7 @@ void CqPolygonBase::CreatePhantomData( CqParameter* pParam )
 			case type_vector:
 			case type_normal:
 			{
-				CqParameterTyped<CqVector3D, CqVector3D>* pTParam = static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( pParam );
+				CqParameterTyped<Imath::V3f, Imath::V3f>* pTParam = static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( pParam );
 				for( iArray = 0; iArray < iArrayCount; iArray++ )
 					pTParam->pValue( 3 ) [ iArray ] = ( pTParam->pValue( 1 ) [ iArray ] - pTParam->pValue( 0 ) [ iArray ] ) + pTParam->pValue( 2 ) [ iArray ];
 				break;
@@ -348,7 +348,7 @@ void CqPolygonBase::CreatePhantomData( CqParameter* pParam )
 
 			case type_hpoint:
 			{
-				CqParameterTyped<CqVector4D, CqVector3D>* pTParam = static_cast<CqParameterTyped<CqVector4D, CqVector3D>*>( pParam );
+				CqParameterTyped<CqVector4D, Imath::V3f>* pTParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( pParam );
 				for( iArray = 0; iArray < iArrayCount; iArray++ )
 					pTParam->pValue( 3 ) [ iArray ] = ( pTParam->pValue( 1 ) [ iArray ] - pTParam->pValue( 0 ) [ iArray ] ) + pTParam->pValue( 2 ) [ iArray ];
 				break;
@@ -431,7 +431,7 @@ bool CqSurfacePolygon::CheckDegenerate() const
 	n = NumVertices();
 	for ( i = 1; i < n; i++ )
 	{
-		if ( ( PolyP( i ) - PolyP( i - 1 ) ).Magnitude() > FLT_EPSILON )
+		if ( ( PolyP( i ) - PolyP( i - 1 ) ).length() > FLT_EPSILON )
 		{
 			fDegen = false;
 			break;
@@ -522,7 +522,7 @@ void	CqSurfacePointsPolygons::Bound(CqBound* bound) const
 	{
 		TqInt PointIndex;
 		for( PointIndex = m_pPoints->P()->Size()-1; PointIndex >= 0; PointIndex-- )
-			bound->Encapsulate( vectorCast<CqVector3D>(m_pPoints->P()->pValue()[PointIndex]) );
+			bound->Encapsulate( vectorCast<Imath::V3f>(m_pPoints->P()->pValue()[PointIndex]) );
 	}
 	AdjustBoundForTransformationMotion( bound );
 }

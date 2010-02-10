@@ -1615,7 +1615,7 @@ void CqShaderVM::SetArgument( const CqString& strName, EqVariableType type, cons
 						case	type_point:
 						{
 							TqFloat* pvecval = reinterpret_cast<TqFloat*>( pval );
-							pVMVal->SetPoint( CqVector3D( pvecval[ index + 0 ], pvecval[ index + 1 ], pvecval[ index + 2 ] ) );
+							pVMVal->SetPoint( Imath::V3f( pvecval[ index + 0 ], pvecval[ index + 1 ], pvecval[ index + 2 ] ) );
 							index += 3;
 						}
 						break;
@@ -1623,7 +1623,7 @@ void CqShaderVM::SetArgument( const CqString& strName, EqVariableType type, cons
 						case	type_normal:
 						{
 							TqFloat* pvecval = reinterpret_cast<TqFloat*>( pval );
-							pVMVal->SetNormal( CqVector3D( pvecval[ index + 0 ], pvecval[ index + 1 ], pvecval[ index + 2 ] ) );
+							pVMVal->SetNormal( Imath::V3f( pvecval[ index + 0 ], pvecval[ index + 1 ], pvecval[ index + 2 ] ) );
 							index += 3;
 						}
 						break;
@@ -1631,7 +1631,7 @@ void CqShaderVM::SetArgument( const CqString& strName, EqVariableType type, cons
 						case	type_vector:
 						{
 							TqFloat* pvecval = reinterpret_cast<TqFloat*>( pval );
-							pVMVal->SetVector( CqVector3D( pvecval[ index + 0 ], pvecval[ index + 1 ], pvecval[ index + 2 ] ) );
+							pVMVal->SetVector( Imath::V3f( pvecval[ index + 0 ], pvecval[ index + 1 ], pvecval[ index + 2 ] ) );
 							index += 3;
 						}
 						break;
@@ -1769,19 +1769,19 @@ void CqShaderVM::InitialiseParameters( )
 			// If it is a color or a point, ensure it is the correct 'space'
 			if ( pVMVal->Type() == type_point || pVMVal->Type() == type_hpoint )
 			{
-				CqVector3D p;
+				Imath::V3f p;
 				m_StoredArguments[i].m_Value->GetPoint( p, 0 );
 				pVMVal->SetPoint( matTrans * p );
 			}
 			else if ( pVMVal->Type() == type_normal )
 			{
-				CqVector3D p;
+				Imath::V3f p;
 				m_StoredArguments[i].m_Value->GetNormal( p, 0 );
 				pVMVal->SetNormal( matTrans * p );
 			}
 			else if ( pVMVal->Type() == type_vector )
 			{
-				CqVector3D p;
+				Imath::V3f p;
 				m_StoredArguments[i].m_Value->GetVector( p, 0 );
 				pVMVal->SetVector( matTrans * p );
 			}

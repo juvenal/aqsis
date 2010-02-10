@@ -12,7 +12,7 @@
 #include <aqsis/math/vector3d.h>
 #include <aqsis/ribparser.h>
 
-/// Alias for the longwinded Aqsis::CqVector3D
+/// Alias for the longwinded Aqsis::Imath::V3f
 typedef Aqsis::CqVector3D Vec3;
 
 /// Alias for longwinded Aqsis::IqRibParser::TqBlahArray

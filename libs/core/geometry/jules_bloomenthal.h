@@ -60,7 +60,7 @@ class implicit_functor
 		virtual ~implicit_functor()
 		{}
 
-		virtual TqFloat implicit_value(const CqVector3D& point) = 0;
+		virtual TqFloat implicit_value(const Imath::V3f& point) = 0;
 };
 
 // Lattice position (centered on (0, 0, 0), signed values)
@@ -179,15 +179,15 @@ class bloomenthal_polygonizer
 		    const TqInt xmin, const TqInt xmax,
 		    const TqInt ymin, const TqInt ymax,
 		    const TqInt zmin, const TqInt zmax,
-		    const CqVector3D& origin,
+		    const Imath::V3f& origin,
 		    implicit_functor& functor,
-		    std::vector<CqVector3D>& surface_vertices,
-		    std::vector<CqVector3D>& surface_normals,
+		    std::vector<Imath::V3f>& surface_vertices,
+		    std::vector<Imath::V3f>& surface_normals,
 		    std::vector<std::vector<TqInt> >& surface_polygons);
 
 		~bloomenthal_polygonizer();
 
-		bool polygonize_from_inside_point(const CqVector3D& startingpoint);
+		bool polygonize_from_inside_point(const Imath::V3f& startingpoint);
 
 		void polygonize_whole_grid();
 
@@ -201,7 +201,7 @@ class bloomenthal_polygonizer
 		{
 			public:
 				Location l;
-				CqVector3D p;
+				Imath::V3f p;
 				TqDouble value;
 
 				Corner(const Location& L) :
@@ -311,12 +311,12 @@ class bloomenthal_polygonizer
 		Location m_MaxCorner;
 		bool m_keep_within_limits;
 		// Grid center ( Location(0, 0, 0) )
-		CqVector3D m_GridOrigin;
+		Imath::V3f m_GridOrigin;
 		// Implicit function
 		implicit_functor& m_FieldFunctor;
 		// Surface storage
-		std::vector<CqVector3D>& m_Vertices;
-		std::vector<CqVector3D>& m_Normals;
+		std::vector<Imath::V3f>& m_Vertices;
+		std::vector<Imath::V3f>& m_Normals;
 		std::vector<std::vector<TqInt> >& m_Polygons;
 
 		/// Temp storage
@@ -358,8 +358,8 @@ class bloomenthal_polygonizer
 		std::vector< std::vector< std::vector<TqInt> > > m_CubeTable;
 
 		// Convert between vertex and Location
-		CqVector3D location_vertex(const Location& l);
-		Location nearest_location(const CqVector3D& p);
+		Imath::V3f location_vertex(const Location& l);
+		Location nearest_location(const Imath::V3f& p);
 
 		void PolygonizeSurface(const Location& startinglocation);
 
@@ -373,7 +373,7 @@ class bloomenthal_polygonizer
 			return i ^ (1 << bit);
 		}
 
-		CqVector3D normal(const CqVector3D& Point);
+		Imath::V3f normal(const Imath::V3f& Point);
 
 		bool SurfaceLocation(Location& startinglocation);
 
@@ -387,7 +387,7 @@ class bloomenthal_polygonizer
 		void TestFace(const Location& facelocation, Cube& old, TqInt face, TqInt c1, TqInt c2, TqInt c3, TqInt c4);
 
 		TqInt VerticeId(Corner *c1, Corner *c2);
-		void Converge(const CqVector3D& p1, const CqVector3D& p2, double v, CqVector3D& p);
+		void Converge(const Imath::V3f& p1, const Imath::V3f& p2, double v, Imath::V3f& p);
 
 		void SaveTriangle(TqInt u, TqInt v, TqInt w);
 };

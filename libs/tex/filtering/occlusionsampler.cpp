@@ -84,7 +84,7 @@ class CqOcclusionSampler::CqOccView
 		 * This is the direction along which the view can evaluate a percentage
 		 * occlusion for a point.
 		 */
-		CqVector3D m_negViewDirec;
+		Imath::V3f m_negViewDirec;
 		/// Pixel data for shadow map.
 		CqTileArray<TqFloat> m_pixels;
 
@@ -142,11 +142,11 @@ class CqOcclusionSampler::CqOccView
 			// addition, the direction of increase of the y-axis should be
 			// swapped, since texture coordinates define the origin to be in
 			// the top left of the texture rather than the bottom right.
-			m_currToRaster.Translate(CqVector3D(1,-1,0));
+			m_currToRaster.Translate(Imath::V3f(1,-1,0));
 			m_currToRaster.Scale(0.5f*header.width(), -0.5f*header.height(), 1);
 			// This extra translation is by half a pixel width - it moves the
 			// raster coordinates 
-			m_currToRaster.Translate(CqVector3D(-0.5,-0.5,0));
+			m_currToRaster.Translate(Imath::V3f(-0.5,-0.5,0));
 
 			// Convert current -> texture transformation into a vector
 			// transform rather than a point transform.
@@ -174,8 +174,8 @@ class CqOcclusionSampler::CqOccView
 			currToLightVec[3][0] = 0;
 			currToLightVec[3][1] = 0;
 			currToLightVec[3][2] = 0;
-			m_negViewDirec = currToLightVec.Transpose()*CqVector3D(0,0,-1);
-			m_negViewDirec.Unit();
+			m_negViewDirec = currToLightVec.Transpose()*Imath::V3f(0,0,-1);
+			m_negViewDirec.normalize();
 		}
 
 		/** \brief Weight for the occlusion which this surface can contribute
@@ -187,9 +187,9 @@ class CqOcclusionSampler::CqOccView
 		 *
 		 * \param N - surface normal.
 		 */
-		TqFloat weight(const CqVector3D& N)
+		TqFloat weight(const Imath::V3f& N)
 		{
-			return N*m_negViewDirec;
+			return N.dot(m_negViewDirec);
 		}
 
 		/** \brief Compute occlusion from the current view direction to the
@@ -210,26 +210,26 @@ class CqOcclusionSampler::CqOccView
 			// Use constant depth approximation for the surface for maximum
 			// sampling speed.  We use the depth from the camera to the centre
 			// of the sample region.
-			CqConstDepthApprox depthFunc((m_currToLight*sampleRegion.c).z());
+			CqConstDepthApprox depthFunc((m_currToLight*sampleRegion.c).z);
 			// Determine rough filter support.  This results in a
 			// texture-aligned box, so doesn't do proper anisotropic filtering.
 			// For occlusion this isn't visible anyway because of the large
 			// amount of averaging.  We also want the filter setup to be as
 			// fast as possible.
-//			CqVector3D side1 = m_currToRasterVec*sampleRegion.s1;
-//			CqVector3D side2 = m_currToRasterVec*sampleRegion.s2;
-//			CqVector3D center = m_currToRaster*sampleRegion.c;
-//			TqFloat sWidthOn2 = max(side1.x(), side2.x())*m_pixels.width()/2;
-//			TqFloat tWidthOn2 = max(side1.y(), side2.y())*m_pixels.height()/2;
+//			Imath::V3f side1 = m_currToRasterVec*sampleRegion.s1;
+//			Imath::V3f side2 = m_currToRasterVec*sampleRegion.s2;
+//			Imath::V3f center = m_currToRaster*sampleRegion.c;
+//			TqFloat sWidthOn2 = max(side1.x, side2.x)*m_pixels.width()/2;
+//			TqFloat tWidthOn2 = max(side1.y, side2.y)*m_pixels.height()/2;
 
 			// TODO: Fix the above calculation so that the width is actually
 			// taken into account properly.
-			CqVector3D center = m_currToRaster*sampleRegion.c;
+			Imath::V3f center = m_currToRaster*sampleRegion.c;
 			TqFloat sWidthOn2 = 0.5*(sampleOpts.sBlur()*m_pixels.width());
 			TqFloat tWidthOn2 = 0.5*(sampleOpts.tBlur()*m_pixels.height());
 			SqFilterSupport support(
-					lround(center.x()-sWidthOn2), lround(center.x()+sWidthOn2) + 1,
-					lround(center.y()-tWidthOn2), lround(center.y()+tWidthOn2) + 1);
+					lround(center.x-sWidthOn2), lround(center.x+sWidthOn2) + 1,
+					lround(center.y-tWidthOn2), lround(center.y+tWidthOn2) + 1);
 			// percentage closer accumulator
 			CqPcfAccum<CqConstFilter, CqConstDepthApprox> accumulator(
 					filterWeights, depthFunc, sampleOpts.startChannel(),
@@ -262,14 +262,14 @@ CqOcclusionSampler::CqOcclusionSampler(
 }
 
 void CqOcclusionSampler::sample(const Sq3DSamplePllgram& samplePllgram,
-		const CqVector3D& normal, const CqShadowSampleOptions& sampleOpts,
+		const Imath::V3f& normal, const CqShadowSampleOptions& sampleOpts,
 		TqFloat* outSamps) const
 {
 	assert(sampleOpts.numChannels() == 1);
 
 	// Unit normal indicating the hemisphere to sample for occlusion.
-	CqVector3D N = normal;
-	N.Unit();
+	Imath::V3f N = normal;
+	N.normalize();
 
 	const TqFloat sampNumMult = 4.0 * sampleOpts.numSamples() / m_maps.size();
 

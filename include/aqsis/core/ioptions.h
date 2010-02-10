@@ -34,6 +34,7 @@
 #include <aqsis/riutil/primvartype.h>
 #include <aqsis/ri/ritypes.h>
 #include <aqsis/math/vecfwd.h>
+#include <ImathVec.h>
 
 namespace Aqsis {
 
@@ -88,13 +89,13 @@ struct IqOptions
 	virtual const	TqFloat*	GetFloatOption( const char* strName, const char* strParam ) const = 0;
 	virtual const	TqInt*	GetIntegerOption( const char* strName, const char* strParam ) const = 0;
 	virtual const	CqString* GetStringOption( const char* strName, const char* strParam ) const = 0;
-	virtual const	CqVector3D*	GetPointOption( const char* strName, const char* strParam ) const = 0;
+	virtual const	Imath::V3f*	GetPointOption( const char* strName, const char* strParam ) const = 0;
 	virtual const	CqColor*	GetColorOption( const char* strName, const char* strParam ) const = 0;
 
 	virtual TqFloat*	GetFloatOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 ) = 0;
 	virtual TqInt*	GetIntegerOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 ) = 0;
 	virtual CqString* GetStringOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 ) = 0;
-	virtual CqVector3D*	GetPointOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 ) = 0;
+	virtual Imath::V3f*	GetPointOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 ) = 0;
 	virtual CqColor*	GetColorOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 ) = 0;
 
 	virtual EqVariableType getParameterType(const char* strName, const char* strParam) const = 0;

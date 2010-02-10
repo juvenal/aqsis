@@ -56,15 +56,15 @@ CqBound& CqBound::operator=( const CqBound& From )
 /**
  * Fills \param cuboid with the 8 points of a bounding box
 */
-void CqBound::getBoundCuboid(CqVector3D cuboid[8])
+void CqBound::getBoundCuboid(Imath::V3f cuboid[8])
 {
 	cuboid[ 0 ] = m_vecMin;
-	cuboid[ 1 ] = CqVector3D( m_vecMax.x(), m_vecMin.y(), m_vecMin.z() );
-	cuboid[ 2 ] = CqVector3D( m_vecMin.x(), m_vecMax.y(), m_vecMin.z() );
-	cuboid[ 3 ] = CqVector3D( m_vecMin.x(), m_vecMin.y(), m_vecMax.z() );
-	cuboid[ 4 ] = CqVector3D( m_vecMax.x(), m_vecMax.y(), m_vecMin.z() );
-	cuboid[ 5 ] = CqVector3D( m_vecMin.x(), m_vecMax.y(), m_vecMax.z() );
-	cuboid[ 6 ] = CqVector3D( m_vecMax.x(), m_vecMin.y(), m_vecMax.z() );
+	cuboid[ 1 ] = Imath::V3f( m_vecMax.x, m_vecMin.y, m_vecMin.z );
+	cuboid[ 2 ] = Imath::V3f( m_vecMin.x, m_vecMax.y, m_vecMin.z );
+	cuboid[ 3 ] = Imath::V3f( m_vecMin.x, m_vecMin.y, m_vecMax.z );
+	cuboid[ 4 ] = Imath::V3f( m_vecMax.x, m_vecMax.y, m_vecMin.z );
+	cuboid[ 5 ] = Imath::V3f( m_vecMin.x, m_vecMax.y, m_vecMax.z );
+	cuboid[ 6 ] = Imath::V3f( m_vecMax.x, m_vecMin.y, m_vecMax.z );
 	cuboid[ 7 ] = m_vecMax;
 }
 
@@ -77,36 +77,36 @@ void CqBound::getBoundCuboid(CqVector3D cuboid[8])
 void CqBound::Transform( const CqMatrix& matTransform )
 {
 	// Transform the cuboid points.
-	CqVector3D	avecCuboid[ 8 ];
+	Imath::V3f	avecCuboid[ 8 ];
 	avecCuboid[ 0 ] = m_vecMin;
-	avecCuboid[ 1 ] = CqVector3D( m_vecMax.x(), m_vecMin.y(), m_vecMin.z() );
-	avecCuboid[ 2 ] = CqVector3D( m_vecMin.x(), m_vecMax.y(), m_vecMin.z() );
-	avecCuboid[ 3 ] = CqVector3D( m_vecMin.x(), m_vecMin.y(), m_vecMax.z() );
-	avecCuboid[ 4 ] = CqVector3D( m_vecMax.x(), m_vecMax.y(), m_vecMin.z() );
-	avecCuboid[ 5 ] = CqVector3D( m_vecMin.x(), m_vecMax.y(), m_vecMax.z() );
-	avecCuboid[ 6 ] = CqVector3D( m_vecMax.x(), m_vecMin.y(), m_vecMax.z() );
+	avecCuboid[ 1 ] = Imath::V3f( m_vecMax.x, m_vecMin.y, m_vecMin.z );
+	avecCuboid[ 2 ] = Imath::V3f( m_vecMin.x, m_vecMax.y, m_vecMin.z );
+	avecCuboid[ 3 ] = Imath::V3f( m_vecMin.x, m_vecMin.y, m_vecMax.z );
+	avecCuboid[ 4 ] = Imath::V3f( m_vecMax.x, m_vecMax.y, m_vecMin.z );
+	avecCuboid[ 5 ] = Imath::V3f( m_vecMin.x, m_vecMax.y, m_vecMax.z );
+	avecCuboid[ 6 ] = Imath::V3f( m_vecMax.x, m_vecMin.y, m_vecMax.z );
 	avecCuboid[ 7 ] = m_vecMax;
 
-	m_vecMin = CqVector3D( FLT_MAX, FLT_MAX, FLT_MAX );
-	m_vecMax = CqVector3D( -FLT_MAX, -FLT_MAX, -FLT_MAX );
+	m_vecMin = Imath::V3f( FLT_MAX, FLT_MAX, FLT_MAX );
+	m_vecMax = Imath::V3f( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 
 	TqInt i;
 	for ( i = 0; i < 8; i++ )
 	{
 		avecCuboid[ i ] = matTransform * avecCuboid[ i ];
-		if ( avecCuboid[ i ].x() < m_vecMin.x() )
-			m_vecMin.x( avecCuboid[ i ].x() );
-		if ( avecCuboid[ i ].y() < m_vecMin.y() )
-			m_vecMin.y( avecCuboid[ i ].y() );
-		if ( avecCuboid[ i ].z() < m_vecMin.z() )
-			m_vecMin.z( avecCuboid[ i ].z() );
+		if ( avecCuboid[ i ].x < m_vecMin.x )
+			m_vecMin.x = avecCuboid[ i ].x;
+		if ( avecCuboid[ i ].y < m_vecMin.y )
+			m_vecMin.y = avecCuboid[ i ].y;
+		if ( avecCuboid[ i ].z < m_vecMin.z )
+			m_vecMin.z = avecCuboid[ i ].z;
 
-		if ( avecCuboid[ i ].x() > m_vecMax.x() )
-			m_vecMax.x( avecCuboid[ i ].x() );
-		if ( avecCuboid[ i ].y() > m_vecMax.y() )
-			m_vecMax.y( avecCuboid[ i ].y() );
-		if ( avecCuboid[ i ].z() > m_vecMax.z() )
-			m_vecMax.z( avecCuboid[ i ].z() );
+		if ( avecCuboid[ i ].x > m_vecMax.x )
+			m_vecMax.x = avecCuboid[ i ].x;
+		if ( avecCuboid[ i ].y > m_vecMax.y )
+			m_vecMax.y = avecCuboid[ i ].y;
+		if ( avecCuboid[ i ].z > m_vecMax.z )
+			m_vecMax.z = avecCuboid[ i ].z;
 	}
 }
 
@@ -118,30 +118,30 @@ void CqBound::Transform( const CqMatrix& matTransform )
 
 void CqBound::Encapsulate( const CqBound* const bound )
 {
-	m_vecMax.x( max( m_vecMax.x(), bound->vecMax().x() ) );
-	m_vecMax.y( max( m_vecMax.y(), bound->vecMax().y() ) );
-	m_vecMax.z( max( m_vecMax.z(), bound->vecMax().z() ) );
+	m_vecMax.x = max( m_vecMax.x, bound->vecMax().x );
+	m_vecMax.y = max( m_vecMax.y, bound->vecMax().y );
+	m_vecMax.z = max( m_vecMax.z, bound->vecMax().z );
 
-	m_vecMin.x( min( m_vecMin.x(), bound->vecMin().x() ) );
-	m_vecMin.y( min( m_vecMin.y(), bound->vecMin().y() ) );
-	m_vecMin.z( min( m_vecMin.z(), bound->vecMin().z() ) );
+	m_vecMin.x = min( m_vecMin.x, bound->vecMin().x );
+	m_vecMin.y = min( m_vecMin.y, bound->vecMin().y );
+	m_vecMin.z = min( m_vecMin.z, bound->vecMin().z );
 }
 
 
 //---------------------------------------------------------------------
 /** Expand this bound to encapsulate the specified point.
- * \param v CqVector3D to expand bound to include.
+ * \param v Imath::V3f to expand bound to include.
  */
 
-void CqBound::Encapsulate( const CqVector3D& v )
+void CqBound::Encapsulate( const Imath::V3f& v )
 {
-	m_vecMax.x( max( m_vecMax.x(), v.x() ) );
-	m_vecMax.y( max( m_vecMax.y(), v.y() ) );
-	m_vecMax.z( max( m_vecMax.z(), v.z() ) );
+	m_vecMax.x = max( m_vecMax.x, v.x );
+	m_vecMax.y = max( m_vecMax.y, v.y );
+	m_vecMax.z = max( m_vecMax.z, v.z );
 
-	m_vecMin.x( min( m_vecMin.x(), v.x() ) );
-	m_vecMin.y( min( m_vecMin.y(), v.y() ) );
-	m_vecMin.z( min( m_vecMin.z(), v.z() ) );
+	m_vecMin.x = min( m_vecMin.x, v.x );
+	m_vecMin.y = min( m_vecMin.y, v.y );
+	m_vecMin.z = min( m_vecMin.z, v.z );
 }
 
 
@@ -152,11 +152,11 @@ void CqBound::Encapsulate( const CqVector3D& v )
 
 void CqBound::Encapsulate( const Imath::V2f& v )
 {
-	m_vecMax.x( max( m_vecMax.x(), v.x ) );
-	m_vecMax.y( max( m_vecMax.y(), v.y ) );
+	m_vecMax.x = max( m_vecMax.x, v.x );
+	m_vecMax.y = max( m_vecMax.y, v.y );
 
-	m_vecMin.x( min( m_vecMin.x(), v.x ) );
-	m_vecMin.y( min( m_vecMin.y(), v.y ) );
+	m_vecMin.x = min( m_vecMin.x, v.x );
+	m_vecMin.y = min( m_vecMin.y, v.y );
 }
 
 //----------------------------------------------------------------------
@@ -168,9 +168,9 @@ void CqBound::Encapsulate( const Imath::V2f& v )
 
 std::ostream &operator<<( std::ostream &Stream, const CqBound &Bound )
 {
-	CqVector3D min = Bound.vecMin();
-	CqVector3D max = Bound.vecMax();
-	CqVector3D cross = Bound.vecCross();
+	Imath::V3f min = Bound.vecMin();
+	Imath::V3f max = Bound.vecMax();
+	Imath::V3f cross = Bound.vecCross();
 
 	Stream << min << "-->" << max << "  |  Cross: " << cross << std::ends;
 	return ( Stream );

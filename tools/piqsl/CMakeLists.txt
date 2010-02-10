@@ -34,7 +34,9 @@ set(piqsl_hdrs
 )
 source_group("Header Files" FILES ${piqsl_hdrs})
 
-include_directories(${AQSIS_FLTK_INCLUDE_DIR})
+include_directories(
+	${AQSIS_FLTK_INCLUDE_DIR}
+	${AQSIS_OPENEXR_INCLUDE_DIR})
 
 aqsis_add_executable(piqsl ${piqsl_srcs} ${piqsl_hdrs} GUIAPP
     LINK_LIBRARIES aqsis_util aqsis_tex ${AQSIS_FLTK_LIBRARIES}

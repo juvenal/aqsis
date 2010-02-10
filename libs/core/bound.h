@@ -52,26 +52,26 @@ class CqBound
 		{
 			if ( pBounds )
 			{
-				m_vecMin.x( pBounds[ 0 ] );
-				m_vecMin.y( pBounds[ 2 ] );
-				m_vecMin.z( pBounds[ 4 ] );
-				m_vecMax.x( pBounds[ 1 ] );
-				m_vecMax.y( pBounds[ 3 ] );
-				m_vecMax.z( pBounds[ 5 ] );
+				m_vecMin.x = pBounds[ 0 ];
+				m_vecMin.y = pBounds[ 2 ];
+				m_vecMin.z = pBounds[ 4 ];
+				m_vecMax.x = pBounds[ 1 ];
+				m_vecMax.y = pBounds[ 3 ];
+				m_vecMax.z = pBounds[ 5 ];
 			}
 		}
 
 		CqBound( TqFloat XMin = FLT_MAX, TqFloat YMin = FLT_MAX, TqFloat ZMin = FLT_MAX, TqFloat XMax = -FLT_MAX, TqFloat YMax = -FLT_MAX, TqFloat ZMax = -FLT_MAX )
 		{
-			m_vecMin.x( XMin );
-			m_vecMin.y( YMin );
-			m_vecMin.z( ZMin );
-			m_vecMax.x( XMax );
-			m_vecMax.y( YMax );
-			m_vecMax.z( ZMax );
+			m_vecMin.x = XMin;
+			m_vecMin.y = YMin;
+			m_vecMin.z = ZMin;
+			m_vecMax.x = XMax;
+			m_vecMax.y = YMax;
+			m_vecMax.z = ZMax;
 		}
 
-		CqBound( const CqVector3D& vecMin, const CqVector3D& vecMax )
+		CqBound( const Imath::V3f& vecMin, const Imath::V3f& vecMax )
 		{
 			m_vecMin = vecMin;
 			m_vecMax = vecMax;
@@ -81,27 +81,27 @@ class CqBound
 		~CqBound()
 		{}
 
-		const	CqVector3D&	vecMin() const
+		const	Imath::V3f&	vecMin() const
 		{
 			return ( m_vecMin );
 		}
 
-		CqVector3D&	vecMin()
+		Imath::V3f&	vecMin()
 		{
 			return ( m_vecMin );
 		}
 
-		const	CqVector3D&	vecMax() const
+		const	Imath::V3f&	vecMax() const
 		{
 			return ( m_vecMax );
 		}
 
-		CqVector3D&	vecMax()
+		Imath::V3f&	vecMax()
 		{
 			return ( m_vecMax );
 		}
 
-		CqVector3D vecCross() const
+		Imath::V3f vecCross() const
 		{
 			return( m_vecMax - m_vecMin );
 		}
@@ -113,40 +113,40 @@ class CqBound
 
 		TqFloat Volume2() const
 		{
-			return( vecCross().Magnitude2() );
+			return( vecCross().length2() );
 		}
 
 		CqBound&	operator=( const CqBound& From );
 
 		// Fills passed vector array with the 8 points of a bounding box
-		void 		getBoundCuboid(CqVector3D cuboid[8]);
+		void 		getBoundCuboid(Imath::V3f cuboid[8]);
 
 		void		Transform( const CqMatrix&	matTransform );
 		void		Encapsulate( const CqBound* const bound );
-		void		Encapsulate( const CqVector3D& v );
+		void		Encapsulate( const Imath::V3f& v );
 		void		Encapsulate( const Imath::V2f& v );
 
 		bool	Contains2D( const CqBound* const b ) const
 		{
-			if ( ( b->vecMin().x() >= vecMin().x() && b->vecMax().x() <= vecMax().x() ) &&
-			        ( b->vecMin().y() >= vecMin().y() && b->vecMax().y() <= vecMax().y() ) )
+			if ( ( b->vecMin().x >= vecMin().x && b->vecMax().x <= vecMax().x ) &&
+			        ( b->vecMin().y >= vecMin().y && b->vecMax().y <= vecMax().y ) )
 				return ( true );
 			else
 				return ( false );
 		}
-		bool	Contains3D( const CqVector3D& v ) const
+		bool	Contains3D( const Imath::V3f& v ) const
 		{
-			if ( ( v.x() >= m_vecMin.x() && v.x() <= m_vecMax.x() ) &&
-			        ( v.y() >= m_vecMin.y() && v.y() <= m_vecMax.y() ) &&
-			        ( v.z() >= m_vecMin.z() && v.z() <= m_vecMax.z() ) )
+			if ( ( v.x >= m_vecMin.x && v.x <= m_vecMax.x ) &&
+			        ( v.y >= m_vecMin.y && v.y <= m_vecMax.y ) &&
+			        ( v.z >= m_vecMin.z && v.z <= m_vecMax.z ) )
 				return ( true );
 			else
 				return ( false );
 		}
 		bool	Contains2D( const Imath::V2f& v ) const
 		{
-			if ( ( v.x < m_vecMin.x() || v.x > m_vecMax.x() ) ||
-			     ( v.y < m_vecMin.y() || v.y > m_vecMax.y() ) )
+			if ( ( v.x < m_vecMin.x || v.x > m_vecMax.x ) ||
+			     ( v.y < m_vecMin.y || v.y > m_vecMax.y ) )
 				return ( false );
 			else
 				return ( true );
@@ -154,8 +154,8 @@ class CqBound
 
 		bool	Intersects( const Imath::V2f& min, const Imath::V2f& max ) const
 		{
-			if( min.x > m_vecMax.x() || min.y > m_vecMax.y() ||
-			    max.x < m_vecMin.x() || max.y < m_vecMin.y() )
+			if( min.x > m_vecMax.x || min.y > m_vecMax.y ||
+			    max.x < m_vecMin.x || max.y < m_vecMin.y )
 				return ( false );
 			else
 				return ( true );
@@ -174,13 +174,13 @@ class CqBound
 			bool outside = false;
 
 
-			CqVector3D p(m_vecMin.x(), m_vecMin.y(), m_vecMin.z());
+			Imath::V3f p(m_vecMin.x, m_vecMin.y, m_vecMin.z);
 			if (plane->whichSide(p) == CqPlane::Space_Positive)
 				inside = true;
 			else
 				outside = true;
 
-			p.z(m_vecMax.z());	// xmin, ymin, zmax
+			p.z = m_vecMax.z;	// xmin, ymin, zmax
 			if (plane->whichSide(p) == CqPlane::Space_Positive)
 			{
 				inside = true;
@@ -194,8 +194,8 @@ class CqBound
 					return(Side_Both);	// Both sides
 			}
 
-			p.z(m_vecMin.z());
-			p.y(m_vecMax.y());	// xmin, ymax, zmin
+			p.z = m_vecMin.z;
+			p.y = m_vecMax.y;	// xmin, ymax, zmin
 			if (plane->whichSide(p) == CqPlane::Space_Positive)
 			{
 				inside = true;
@@ -208,7 +208,7 @@ class CqBound
 				if (inside)
 					return(Side_Both);	// Both sides
 			}
-			p.z(m_vecMax.z());	// xmin, ymax, zmax
+			p.z = m_vecMax.z;	// xmin, ymax, zmax
 			if (plane->whichSide(p) == CqPlane::Space_Positive)
 			{
 				inside = true;
@@ -221,9 +221,9 @@ class CqBound
 				if (inside)
 					return(Side_Both);
 			}
-			p.x(m_vecMax.x());
-			p.y(m_vecMin.y());
-			p.z(m_vecMin.z());	// xmax, ymin, zmin
+			p.x = m_vecMax.x;
+			p.y = m_vecMin.y;
+			p.z = m_vecMin.z;	// xmax, ymin, zmin
 			if (plane->whichSide(p) == CqPlane::Space_Positive)
 			{
 				inside = true;
@@ -236,7 +236,7 @@ class CqBound
 				if (inside)
 					return(Side_Both);
 			}
-			p.z(m_vecMax.z());	// xmax, ymin, zmax
+			p.z = m_vecMax.z;	// xmax, ymin, zmax
 			if (plane->whichSide(p) == CqPlane::Space_Positive)
 			{
 				inside = true;
@@ -249,8 +249,8 @@ class CqBound
 				if (inside)
 					return(Side_Both);
 			}
-			p.z(m_vecMin.z());
-			p.y(m_vecMax.y());	// xmax, ymax, zmin
+			p.z = m_vecMin.z;
+			p.y = m_vecMax.y;	// xmax, ymax, zmin
 			if (plane->whichSide(p) == CqPlane::Space_Positive)
 			{
 				inside = true;
@@ -263,7 +263,7 @@ class CqBound
 				if (inside)
 					return(Side_Both);
 			}
-			p.z(m_vecMax.z());	// xmax, ymax, zmax
+			p.z = m_vecMax.z;	// xmax, ymax, zmax
 			if (plane->whichSide(p) == CqPlane::Space_Positive)
 			{
 				inside = true;
@@ -282,8 +282,8 @@ class CqBound
 		friend std::ostream &operator<<( std::ostream &Stream, const CqBound &Bound );
 
 	private:
-		CqVector3D	m_vecMin;
-		CqVector3D	m_vecMax;
+		Imath::V3f	m_vecMin;
+		Imath::V3f	m_vecMax;
 };
 
 //----------------------------------------------------------------------

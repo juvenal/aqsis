@@ -1822,30 +1822,30 @@ RtVoid	RiOptionV( RtToken name, PARAMETERLIST )
 			case type_point:
 			{
 				RtFloat* pc = reinterpret_cast<RtFloat*>( value );
-				CqVector3D* pOpt = QGetRenderContext()->poptWriteCurrent()->GetPointOptionWrite(name, undecoratedName, Count);
+				Imath::V3f* pOpt = QGetRenderContext()->poptWriteCurrent()->GetPointOptionWrite(name, undecoratedName, Count);
 				RtInt j;
 				for ( j = 0; j < Count; ++j )
-					pOpt[ j ] = CqVector3D(pc[ (j*3) ], pc[ (j*3)+1 ], pc[ (j*3)+2 ]);
+					pOpt[ j ] = Imath::V3f(pc[ (j*3) ], pc[ (j*3)+1 ], pc[ (j*3)+2 ]);
 			}
 			break;
 
 			case type_normal:
 			{
 				RtFloat* pc = reinterpret_cast<RtFloat*>( value );
-				CqVector3D* pOpt = QGetRenderContext()->poptWriteCurrent()->GetPointOptionWrite(name, undecoratedName, Count);
+				Imath::V3f* pOpt = QGetRenderContext()->poptWriteCurrent()->GetPointOptionWrite(name, undecoratedName, Count);
 				RtInt j;
 				for ( j = 0; j < Count; ++j )
-					pOpt[ j ] = CqVector3D(pc[ (j*3) ], pc[ (j*3)+1 ], pc[ (j*3)+2 ]);
+					pOpt[ j ] = Imath::V3f(pc[ (j*3) ], pc[ (j*3)+1 ], pc[ (j*3)+2 ]);
 			}
 			break;
 
 			case type_vector:
 			{
 				RtFloat* pc = reinterpret_cast<RtFloat*>( value );
-				CqVector3D* pOpt = QGetRenderContext()->poptWriteCurrent()->GetPointOptionWrite(name, undecoratedName, Count);
+				Imath::V3f* pOpt = QGetRenderContext()->poptWriteCurrent()->GetPointOptionWrite(name, undecoratedName, Count);
 				RtInt j;
 				for ( j = 0; j < Count; ++j )
-					pOpt[ j ] = CqVector3D(pc[ (j*3) ], pc[ (j*3)+1 ], pc[ (j*3)+2 ]);
+					pOpt[ j ] = Imath::V3f(pc[ (j*3) ], pc[ (j*3)+1 ], pc[ (j*3)+2 ]);
 			}
 			break;
 
@@ -2738,7 +2738,7 @@ RtVoid	RiTranslate( RtFloat dx, RtFloat dy, RtFloat dz )
 
 	DEBUG_RITRANSLATE
 
-	CqMatrix	matTrans( CqVector3D( dx, dy, dz ) );
+	CqMatrix	matTrans( Imath::V3f( dx, dy, dz ) );
 	// Check if this transformation results in a change in orientation.
 	//    if ( matTrans.Determinant() < 0 && ( QGetRenderContext()->pconCurrent()->Type() != Motion || QGetRenderContext()->pconCurrent()->TimeIndex() == 0 ) )
 	//        QGetRenderContext() ->pattrWriteCurrent() ->FlipeCoordsysOrientation( QGetRenderContext() ->Time() );
@@ -2766,7 +2766,7 @@ RtVoid	RiRotate( RtFloat angle, RtFloat dx, RtFloat dy, RtFloat dz )
 
 	DEBUG_RIROTATE
 
-	CqMatrix	matRot( degToRad( angle ), CqVector3D( dx, dy, dz ) );
+	CqMatrix	matRot( degToRad( angle ), Imath::V3f( dx, dy, dz ) );
 	// Check if this transformation results in a change in orientation.
 	//    if ( matRot.Determinant() < 0 && ( QGetRenderContext()->pconCurrent()->Type() != Motion || QGetRenderContext()->pconCurrent()->TimeIndex() == 0 ) )
 	//        QGetRenderContext() ->pattrWriteCurrent() ->FlipeCoordsysOrientation( QGetRenderContext() ->Time() );
@@ -3003,11 +3003,11 @@ RtPoint*	RiTransformPoints( RtToken fromspace, RtToken tospace, RtInt npoints, R
 		{
 			for(TqInt i =0; i< npoints; i++)
 			{
-				CqVector3D tmp(points[i]);
+				Imath::V3f tmp(points[i][0], points[i][1], points[i][2]);
 				tmp = matCToW * tmp;
-				points[i][0] = tmp.x();
-				points[i][1] = tmp.y();
-				points[i][2] = tmp.z();
+				points[i][0] = tmp.x;
+				points[i][1] = tmp.y;
+				points[i][2] = tmp.z;
 			}
 		}
 
@@ -3323,10 +3323,10 @@ RtVoid	RiGeneralPolygonV( RtInt nloops, RtInt nverts[], PARAMETERLIST )
 		TqFloat	MinX, MaxX;
 		TqFloat	MinY, MaxY;
 		TqFloat	MinZ, MaxZ;
-		CqVector3D vecTemp = vectorCast<CqVector3D>(pPointsClass->P()->pValue(0)[0]);
-		MinX = MaxX = vecTemp.x();
-		MinY = MaxY = vecTemp.y();
-		MinZ = MaxZ = vecTemp.z();
+		Imath::V3f vecTemp = vectorCast<Imath::V3f>(pPointsClass->P()->pValue(0)[0]);
+		MinX = MaxX = vecTemp.x;
+		MinY = MaxY = vecTemp.y;
+		MinZ = MaxZ = vecTemp.z;
 
 		// We need to take into account Orientation here.
 		bool O = QGetRenderContext()->pattrCurrent() ->GetIntegerAttribute( "System", "Orientation" ) [ 0 ] != 0;
@@ -3334,13 +3334,13 @@ RtVoid	RiGeneralPolygonV( RtInt nloops, RtInt nverts[], PARAMETERLIST )
 		TqUint iVert;
 		for ( iVert = 1; iVert < pPointsClass->P() ->Size(); ++iVert )
 		{
-			vecTemp = vectorCast<CqVector3D>(pPointsClass->P()->pValue(iVert)[0]);
-			MinX = ( MinX < vecTemp.x() ) ? MinX : vecTemp.x();
-			MinY = ( MinY < vecTemp.y() ) ? MinY : vecTemp.y();
-			MinZ = ( MinZ < vecTemp.z() ) ? MinZ : vecTemp.z();
-			MaxX = ( MaxX > vecTemp.x() ) ? MaxX : vecTemp.x();
-			MaxY = ( MaxY > vecTemp.y() ) ? MaxY : vecTemp.y();
-			MaxZ = ( MaxZ > vecTemp.z() ) ? MaxZ : vecTemp.z();
+			vecTemp = vectorCast<Imath::V3f>(pPointsClass->P()->pValue(iVert)[0]);
+			MinX = ( MinX < vecTemp.x ) ? MinX : vecTemp.x;
+			MinY = ( MinY < vecTemp.y ) ? MinY : vecTemp.y;
+			MinZ = ( MinZ < vecTemp.z ) ? MinZ : vecTemp.z;
+			MaxX = ( MaxX > vecTemp.x ) ? MaxX : vecTemp.x;
+			MaxY = ( MaxY > vecTemp.y ) ? MaxY : vecTemp.y;
+			MaxZ = ( MaxZ > vecTemp.z ) ? MaxZ : vecTemp.z;
 		}
 		TqFloat	DiffX = MaxX - MinX;
 		TqFloat	DiffY = MaxY - MinY;
@@ -3467,13 +3467,13 @@ RtVoid RiBlobbyV( RtInt nleaf, RtInt ncode, RtInt code[], RtInt nflt, RtFloat fl
 
 	// The bounding-box stops at camera's plane
 	TqFloat camera_z = QGetRenderContext() ->poptCurrent() ->GetFloatOption( "System", "Clipping" ) [ 0 ];
-	if(Bound.vecMax().z() < camera_z)
+	if(Bound.vecMax().z < camera_z)
 		// Blobby's behind the camera
 		return;
 
-	if(Bound.vecMin().z() < camera_z)
+	if(Bound.vecMin().z < camera_z)
 		// Cut the bounding-box with camera's plane
-		Bound = CqBound(CqVector3D(Bound.vecMin().x(), Bound.vecMin().y(), camera_z), Bound.vecMax());
+		Bound = CqBound(Imath::V3f(Bound.vecMin().x, Bound.vecMin().y, camera_z), Bound.vecMax());
 
 	// Transform the bounding box into raster coordinates
 	CqMatrix matCamToRaster;
@@ -3481,8 +3481,8 @@ RtVoid RiBlobbyV( RtInt nleaf, RtInt ncode, RtInt code[], RtInt nflt, RtFloat fl
 	Bound.Transform( matCamToRaster );
 
 	// Get bounding-box size in pixels
-	TqInt  pixels_w = static_cast<TqInt> ( Bound.vecCross().x() );
-	TqInt  pixels_h = static_cast<TqInt> ( Bound.vecCross().y() );
+	TqInt  pixels_w = static_cast<TqInt> ( Bound.vecCross().x );
+	TqInt  pixels_h = static_cast<TqInt> ( Bound.vecCross().y );
 
 	// Adjust to shading rate
 	// TODO: Blobbies should be CqSurfaces - in that case they could make of
@@ -3514,7 +3514,7 @@ RtVoid RiBlobbyV( RtInt nleaf, RtInt ncode, RtInt code[], RtInt nflt, RtFloat fl
 		if (strstr(tokens[c], RI_CS))
 		{
 
-			CqVector3D cg;
+			Imath::V3f cg;
 
 			for( int i = 0; i < npoints; i++ )
 			{
@@ -4477,12 +4477,12 @@ RtVoid	RiTrimCurve( RtInt nloops, RtInt ncurves[], RtInt order[], RtFloat knot[]
 				Curve.aKnots() [ i ] = knot[ iknot++ ];
 
 			// Copy the vertices from the u,v,w arrays.
-			CqVector3D vec( 0, 0, 1 );
+			Imath::V3f vec( 0, 0, 1 );
 			for ( i = 0; i < cverts; ++i )
 			{
-				vec.x( u[ ivert ] );
-				vec.y( v[ ivert ] );
-				vec.z( w[ ivert++ ] );
+				vec.x = u[ ivert ];
+				vec.y = v[ ivert ];
+				vec.z = w[ ivert++ ];
 				Curve.CP( i ) = vec;
 			}
 			Loop.aCurves().push_back( Curve );
@@ -4675,8 +4675,8 @@ RtVoid	RiHyperboloidV( RtPoint point1, RtPoint point2, RtFloat thetamax, PARAMET
 	DEBUG_RIHYPERBOLOID
 
 	// Create a hyperboloid
-	CqVector3D v0( point1[ 0 ], point1[ 1 ], point1[ 2 ] );
-	CqVector3D v1( point2[ 0 ], point2[ 1 ], point2[ 2 ] );
+	Imath::V3f v0( point1[ 0 ], point1[ 1 ], point1[ 2 ] );
+	Imath::V3f v1( point2[ 0 ], point2[ 1 ], point2[ 2 ] );
 	boost::shared_ptr<CqHyperboloid> pSurface( new CqHyperboloid( v0, v1, 0, thetamax ) );
 	ProcessPrimitiveVariables( pSurface.get(), count, tokens, values );
 	pSurface->SetDefaultPrimitiveVariables();
@@ -6017,8 +6017,8 @@ static RtBoolean ProcessPrimitiveVariables( CqSurface * pSurface, PARAMETERLIST 
 	// Fill in the position variable according to type.
 	if ( fP != RIL_NONE )
 	{
-		CqParameterTypedVertex<CqVector4D, type_hpoint, CqVector3D>* P
-			= new CqParameterTypedVertex<CqVector4D, type_hpoint, CqVector3D>("P", 1);
+		CqParameterTypedVertex<CqVector4D, type_hpoint, Imath::V3f>* P
+			= new CqParameterTypedVertex<CqVector4D, type_hpoint, Imath::V3f>("P", 1);
 		TqInt cVertex = pSurface->cVertex();
 		P->SetSize(cVertex);
 		switch ( fP )
@@ -6031,8 +6031,8 @@ static RtBoolean ProcessPrimitiveVariables( CqSurface * pSurface, PARAMETERLIST 
 			case RIL_Pz:
 				for (TqInt i = 0; i < cVertex; ++i )
 				{
-					CqVector3D vecP = pSurface->SurfaceParametersAtVertex( i );
-					vecP.z( pPoints[ i ] );
+					Imath::V3f vecP = pSurface->SurfaceParametersAtVertex( i );
+					vecP.z = pPoints[ i ];
 					P->pValue( i )[0] = vectorCast<CqVector4D>(vecP);
 				}
 				break;
@@ -6114,13 +6114,13 @@ static RtBoolean ProcessPrimitiveVariables( CqSurface * pSurface, PARAMETERLIST 
 					case type_normal:
 					case type_vector:
 					{
-						CqParameterTyped<CqVector3D, CqVector3D>* pVectorParam = static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( pNewParam );
+						CqParameterTyped<Imath::V3f, Imath::V3f>* pVectorParam = static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( pNewParam );
 						TqFloat* pValue = reinterpret_cast<TqFloat*>( values[ *iUserParam ] );
 						TqInt iArrayIndex, iValIndex;
 						i = 0;
 						for ( iValIndex = 0; iValIndex < cValues; ++iValIndex )
 							for ( iArrayIndex = 0; iArrayIndex < tok.count(); ++iArrayIndex, ++i )
-								pVectorParam->pValue( iValIndex ) [ iArrayIndex ] = CqVector3D( pValue[ ( i * 3 ) ], pValue[ ( i * 3 ) + 1 ], pValue[ ( i * 3 ) + 2 ] );
+								pVectorParam->pValue( iValIndex ) [ iArrayIndex ] = Imath::V3f( pValue[ ( i * 3 ) ], pValue[ ( i * 3 ) + 1 ], pValue[ ( i * 3 ) + 2 ] );
 					}
 					break;
 
@@ -6150,7 +6150,7 @@ static RtBoolean ProcessPrimitiveVariables( CqSurface * pSurface, PARAMETERLIST 
 
 					case type_hpoint:
 					{
-						CqParameterTyped<CqVector4D, CqVector3D>* pVectorParam = static_cast<CqParameterTyped<CqVector4D, CqVector3D>*>( pNewParam );
+						CqParameterTyped<CqVector4D, Imath::V3f>* pVectorParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( pNewParam );
 						TqFloat* pValue = reinterpret_cast<TqFloat*>( values[ *iUserParam ] );
 						TqInt iArrayIndex, iValIndex;
 						i = 0;

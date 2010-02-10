@@ -70,7 +70,7 @@ class AQSIS_TEX_SHARE CqOcclusionSampler : public IqOcclusionSampler
 
 		// inherited
 		virtual void sample(const Sq3DSamplePllgram& samplePllgram,
-				const CqVector3D& normal, const CqShadowSampleOptions& sampleOpts,
+				const Imath::V3f& normal, const CqShadowSampleOptions& sampleOpts,
 				TqFloat* outSamps) const;
 		virtual const CqShadowSampleOptions& defaultSampleOptions() const;
 	private:

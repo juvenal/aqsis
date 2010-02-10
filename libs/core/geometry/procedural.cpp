@@ -81,7 +81,7 @@ TqInt CqProcedural::Split( std::vector<boost::shared_ptr<CqSurface> >& aSplits )
 	/// the the Culling routines do the job for us, see CqSurface::CacheRasterBound.
 	CqBound bound = m_Bound;
 	//    bound.Transform(QGetRenderContext()->matSpaceToSpace("camera", "raster"));
-	float detail = ( bound.vecMax().x() - bound.vecMin().x() ) * ( bound.vecMax().y() - bound.vecMin().y() );
+	float detail = ( bound.vecMax().x - bound.vecMin().x ) * ( bound.vecMax().y - bound.vecMin().y );
 	//std::cout << "detail: " << detail << std::endl;
 
 	// Call the procedural secific Split()

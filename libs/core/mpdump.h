@@ -130,7 +130,7 @@ class CqMPDump
 		   \pre m_outFile must not be NULL
 		   \param v Vector that should be dumped
 		*/
-		void dumpVec3(const CqVector3D& v);
+		void dumpVec3(const Imath::V3f& v);
 
 		/**
 		   Dump a color.

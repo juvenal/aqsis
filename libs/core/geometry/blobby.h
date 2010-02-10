@@ -88,9 +88,9 @@ class CqBlobby : public CqSurface
 		/** Return CqBlobby's implicit value.
 		 * \param World position to compute implicit value from.
 		 */
-		TqFloat implicit_value(const CqVector3D& Point, TqInt n, std::vector <TqFloat>& splits);
+		TqFloat implicit_value(const Imath::V3f& Point, TqInt n, std::vector <TqFloat>& splits);
 
-		TqFloat implicit_value(const CqVector3D& Point);
+		TqFloat implicit_value(const Imath::V3f& Point);
 
 		TqInt polygonize(TqInt PixelsWidth, TqInt PixelsHeight, TqInt& NPoints, TqInt& NPolys, TqInt*& NVertices, TqInt*& Vertices, TqFloat*& Points);
 
@@ -121,7 +121,7 @@ class CqBlobby : public CqSurface
 			{}
 			instruction(const TqFloat Value) : value(Value)
 			{}
-			instruction(const CqVector3D& Vector)
+			instruction(const Imath::V3f& Vector)
 			{
 				vector[0] = Vector[0];
 				vector[1] = Vector[1];
@@ -157,9 +157,9 @@ class CqBlobby : public CqSurface
 			TqFloat vector[3];
 			TqFloat matrix[16];
 
-			CqVector3D get_vector() const
+			Imath::V3f get_vector() const
 			{
-				return CqVector3D(vector[0], vector[1], vector[2]);
+				return Imath::V3f(vector[0], vector[1], vector[2]);
 			}
 
 			CqMatrix get_matrix() const

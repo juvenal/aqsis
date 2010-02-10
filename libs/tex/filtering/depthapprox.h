@@ -63,26 +63,26 @@ class CqSampleQuadDepthApprox
 			m_z0(0)
 		{
 			// Compute an approximate normal for the sample quad
-			CqVector3D quadNormal = (sampleQuad.v4 - sampleQuad.v1)
+			Imath::V3f quadNormal = (sampleQuad.v4 - sampleQuad.v1)
 									% (sampleQuad.v3 - sampleQuad.v2);
 			// Center of the sample quad.  We need the extra factor of 0.5
 			// divided by the base texture dimensions so that pixel sample
 			// positions are *centered* on the unit square.
-			CqVector3D quadCenter = sampleQuad.center()
-				+ CqVector3D(-0.5/baseTexWidth, -0.5/baseTexHeight, 0);
+			Imath::V3f quadCenter = sampleQuad.center()
+				+ Imath::V3f(-0.5/baseTexWidth, -0.5/baseTexHeight, 0);
 
 			// A normal and a point define a plane; here we use this fact to
 			// compute the appropriate coefficients for the linear
 			// approximation to the surface depth.
-			if(quadNormal.z() != 0)
+			if(quadNormal.z != 0)
 			{
-				m_xMult = -quadNormal.x()/(quadNormal.z()*baseTexWidth);
-				m_yMult = -quadNormal.y()/(quadNormal.z()*baseTexHeight);
-				m_z0 = quadNormal*quadCenter/quadNormal.z();
+				m_xMult = -quadNormal.x/(quadNormal.z*baseTexWidth);
+				m_yMult = -quadNormal.y/(quadNormal.z*baseTexHeight);
+				m_z0 = quadNormal.dot(quadCenter)/quadNormal.z;
 			}
 			else
 			{
-				m_z0 = quadCenter.z();
+				m_z0 = quadCenter.z;
 			}
 		}
 		/// Compute the depth of the surface at the given raster coordinates.

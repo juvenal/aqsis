@@ -352,10 +352,10 @@ class CqMicroPolygonPoints : public CqMicroPolygon
 			m_radius = radius;
 
 			// compute the bound.
-			CqVector3D pos;
+			Imath::V3f pos;
 			pGrid()->pVar(EnvVars_P)->GetPoint(pos, m_Index);
-			m_Bound.vecMin() = pos - CqVector3D(m_radius, m_radius, 0);
-			m_Bound.vecMax() = pos + CqVector3D(m_radius, m_radius, 0);
+			m_Bound.vecMin() = pos - Imath::V3f(m_radius, m_radius, 0);
+			m_Bound.vecMax() = pos + Imath::V3f(m_radius, m_radius, 0);
 		}
 		virtual	bool	Sample( CqHitTestCache& hitTestCache, SqSampleData const& sample, TqFloat& D, Imath::V2f& uv, TqFloat time, bool UsingDof = false ) const;
 		virtual void CacheHitTestValues(CqHitTestCache& cache, bool usingDof) const;
@@ -381,7 +381,7 @@ class CqMovingMicroPolygonKeyPoints
 	public:
 		CqMovingMicroPolygonKeyPoints()
 		{}
-		CqMovingMicroPolygonKeyPoints( const CqVector3D& vA, TqFloat radius)
+		CqMovingMicroPolygonKeyPoints( const Imath::V3f& vA, TqFloat radius)
 		{
 			Initialise( vA, radius );
 		}
@@ -405,22 +405,22 @@ class CqMovingMicroPolygonKeyPoints
 	public:
 		CqBound	GetBound() const
 		{
-			CqVector3D Pmin, Pmax;
+			Imath::V3f Pmin, Pmax;
 			Pmin = Pmax = m_Point0;
-			Pmin.x( Pmin.x() - m_radius );
-			Pmin.y( Pmin.y() - m_radius );
-			Pmax.x( Pmax.x() + m_radius );
-			Pmax.y( Pmax.y() + m_radius );
+			Pmin.x = Pmin.x - m_radius;
+			Pmin.y = Pmin.y - m_radius;
+			Pmax.x = Pmax.x + m_radius;
+			Pmax.y = Pmax.y + m_radius;
 			return( CqBound( Pmin, Pmax ) );
 		}
 
-		void	Initialise( const CqVector3D& vA, TqFloat radius )
+		void	Initialise( const Imath::V3f& vA, TqFloat radius )
 		{
 			m_Point0 = vA;
 			m_radius = radius;
 		}
 
-		CqVector3D	m_Point0;
+		Imath::V3f	m_Point0;
 		TqFloat		m_radius;
 
 		static	CqObjectPool<CqMovingMicroPolygonKeyPoints>	m_thePool;
@@ -461,7 +461,7 @@ class CqMicroPolygonMotionPoints : public CqMicroPolygon
 		}
 
 	public:
-		void	AppendKey( const CqVector3D& vA, TqFloat radius, TqFloat time );
+		void	AppendKey( const Imath::V3f& vA, TqFloat radius, TqFloat time );
 		void	DeleteVariables( bool all )
 		{}
 

@@ -617,10 +617,10 @@ class CqTextureMapOld : public IqTextureMapOld
 		virtual	void	SampleMap( TqFloat s1, TqFloat t1, TqFloat swidth, TqFloat twidth, std::valarray<TqFloat>& val);
 		virtual	void	SampleMap( TqFloat s1, TqFloat t1, TqFloat s2, TqFloat t2, TqFloat s3, TqFloat t3, TqFloat s4, TqFloat t4,
 		                        std::valarray<TqFloat>& val);
-		virtual	void	SampleMap( CqVector3D& R, CqVector3D& swidth, CqVector3D& twidth,
+		virtual	void	SampleMap( Imath::V3f& R, Imath::V3f& swidth, Imath::V3f& twidth,
 		                        std::valarray<TqFloat>& val, TqInt index = 0, TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL)
 	{}
-		virtual	void	SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, CqVector3D& R4,
+		virtual	void	SampleMap( Imath::V3f& R1, Imath::V3f& R2, Imath::V3f& R3, Imath::V3f& R4,
 		                        std::valarray<TqFloat>& val, TqInt index = 0, TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL)
 		{}
 
@@ -792,9 +792,9 @@ class CqEnvironmentMapOld : public CqTextureMapOld
 			return ( IsValid() ? MapType_Environment : MapType_Invalid );
 		}
 
-		virtual	void	SampleMap( CqVector3D& R, CqVector3D& swidth, CqVector3D& twidth,
+		virtual	void	SampleMap( Imath::V3f& R, Imath::V3f& swidth, Imath::V3f& twidth,
 		                        std::valarray<TqFloat>& val, TqInt index = 0, TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL);
-		virtual	void	SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, CqVector3D& R4,
+		virtual	void	SampleMap( Imath::V3f& R1, Imath::V3f& R2, Imath::V3f& R3, Imath::V3f& R4,
 		                        std::valarray<TqFloat>& val, TqInt index = 0, TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL);
 
 		virtual CqMatrix& GetMatrix( TqInt which, TqInt index = 0 )
@@ -809,7 +809,7 @@ class CqEnvironmentMapOld : public CqTextureMapOld
 
 
 	private:
-		void	Getst( CqVector3D& R, TqUlong fullwidth, TqUlong fulllength, TqFloat& s, TqFloat& t );
+		void	Getst( Imath::V3f& R, TqUlong fullwidth, TqUlong fulllength, TqFloat& s, TqFloat& t );
 		CqMatrix	m_matWorldToScreen;		///< Matrix to convert points from world space to screen space.
 		TqFloat m_fov;                  ///< cotangent()
 
@@ -875,7 +875,7 @@ class CqShadowMapOld : public CqTextureMapOld
 
 
 		void	AllocateMap( TqInt XRes, TqInt YRes );
-		TqFloat	Sample( const CqVector3D&	vecPoint );
+		TqFloat	Sample( const Imath::V3f&	vecPoint );
 		void	SaveZFile();
 		void	LoadZFile();
 		void	SaveShadowMapOld( const CqString& strShadowName, bool append = false );
@@ -891,8 +891,8 @@ class CqShadowMapOld : public CqTextureMapOld
 
 		virtual void	PrepareSampleOptions(std::map<std::string, IqShaderData*>& paramMap );
 
-		virtual	void	SampleMap( CqVector3D& R, CqVector3D& swidth, CqVector3D& twidth, std::valarray<TqFloat>& val, TqInt index = 0, TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL);
-		virtual	void	SampleMap( CqVector3D& R1, CqVector3D& R2, CqVector3D& R3, CqVector3D& R4, std::valarray<TqFloat>& val, TqInt index = 0, TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL);
+		virtual	void	SampleMap( Imath::V3f& R, Imath::V3f& swidth, Imath::V3f& twidth, std::valarray<TqFloat>& val, TqInt index = 0, TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL);
+		virtual	void	SampleMap( Imath::V3f& R1, Imath::V3f& R2, Imath::V3f& R3, Imath::V3f& R4, std::valarray<TqFloat>& val, TqInt index = 0, TqFloat* average_depth = NULL, TqFloat* shadow_depth = NULL);
 		virtual TqDouble MinZ( TqInt index = 0 )
                 {
  			if (m_MinZ.size() > 0)

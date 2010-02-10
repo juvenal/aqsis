@@ -29,6 +29,7 @@
 
 #include        <aqsis/aqsis.h>
 #include        <aqsis/math/matrix.h>
+#include		<ImathVec.h>
 #include        "surface.h"
 #include        "patch.h"
 
@@ -108,7 +109,7 @@ class CqCurve : public CqSurface
 		}
 
 		/** Returns a normal to the curve. */
-		bool GetNormal( TqInt index, CqVector3D& normal ) const;
+		bool GetNormal( TqInt index, Imath::V3f& normal ) const;
 
 		/** Returns a string name of the class. */
 		virtual CqString strName() const
@@ -292,7 +293,7 @@ class CqCubicCurveSegment : public CqCurve
 		 * \param u - curve parameter
 		 * \return the tangent vector at u.
 		 */
-		CqVector3D	CalculateTangent(TqFloat u);
+		Imath::V3f	CalculateTangent(TqFloat u);
 		//---------------------------------------------- Inlined Public Methods
 	public:
 #ifdef _DEBUG

@@ -13,6 +13,7 @@
 #include	"trimcurve.h"
 #include	"surface.h"
 
+
 namespace Aqsis {
 
 
@@ -80,7 +81,7 @@ Imath::V2f	CqTrimCurve::Evaluate( TqFloat u )
 {
 	std::vector<TqFloat> basis( m_Order );
 
-	CqVector3D r( 0, 0, 0 );
+	Imath::V3f r( 0, 0, 0 );
 
 	/* Evaluate non-uniform basis functions (and derivatives) */
 
@@ -95,14 +96,14 @@ Imath::V2f	CqTrimCurve::Evaluate( TqFloat u )
 		TqUint rj = m_Order - 1L - j;
 
 		TqFloat tmp = basis[ rj ];
-		CqVector3D& cp = CP( j + first );
+		Imath::V3f& cp = CP( j + first );
 
-		r.x( r.x() + cp.x() * tmp );
-		r.y( r.y() + cp.y() * tmp );
-		r.z( r.z() + cp.z() * tmp );
+		r.x = r.x + cp.x * tmp;
+		r.y = r.y + cp.y * tmp;
+		r.z = r.z + cp.z * tmp;
 	}
 
-	return ( Imath::V2f( r.x() / r.z(), r.y() / r.z() ) );
+	return ( Imath::V2f( r.x / r.z, r.y / r.z ) );
 }
 
 
@@ -302,7 +303,7 @@ TqUint CqTrimCurve::InsertKnot( TqFloat u, TqInt r )
 		nS.m_aKnots[ i + r ] = m_aKnots[ i ];
 
 	// Save unaltered control points
-	std::vector<CqVector3D> R( p + 1 );
+	std::vector<Imath::V3f> R( p + 1 );
 
 	// Insert control points as required on each row.
 	for ( i = 0; i <= k - p; i++ )
@@ -325,9 +326,9 @@ TqUint CqTrimCurve::InsertKnot( TqFloat u, TqInt r )
 		{
 			i1 = i + 1;
 			alpha = ( u - m_aKnots[ L + i ] ) / ( m_aKnots[ k + i1 ] - m_aKnots[ L + i ] );
-			R[ i ] = CqVector3D( alpha * R[ i1 ].x() + ( 1.0 - alpha ) * R[ i ].x(),
-			                     alpha * R[ i1 ].y() + ( 1.0 - alpha ) * R[ i ].y(),
-			                     alpha * R[ i1 ].z() + ( 1.0 - alpha ) * R[ i ].z() );
+			R[ i ] = Imath::V3f( alpha * R[ i1 ].x + ( 1.0 - alpha ) * R[ i ].x,
+			                     alpha * R[ i1 ].y + ( 1.0 - alpha ) * R[ i ].y,
+			                     alpha * R[ i1 ].z + ( 1.0 - alpha ) * R[ i ].z );
 		}
 		nS.CP( L ) = R[ 0 ];
 		if ( p - j - s > 0 )

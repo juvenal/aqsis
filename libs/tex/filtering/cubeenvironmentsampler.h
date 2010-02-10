@@ -119,10 +119,10 @@ void CqCubeEnvironmentSampler<LevelCacheT>::sample(
 	TqFloat tMap11 = 0, tMap12 = 0, tMap13 = 0; 
 	TqFloat tMap21 = 0, tMap22 = 0, tMap23 = 0; 
 
-	const CqVector3D R = region.c;
-	const TqFloat absRx = std::fabs(R.x());
-	const TqFloat absRy = std::fabs(R.y());
-	const TqFloat absRz = std::fabs(R.z());
+	const Imath::V3f R = region.c;
+	const TqFloat absRx = std::fabs(R.x);
+	const TqFloat absRy = std::fabs(R.y);
+	const TqFloat absRz = std::fabs(R.z);
 	// Determine which axis we're pointing along, and map (s,t) onto the
 	// appropriate cube face with the range [-1,1].  Also compute the
 	// appropriate tangent map coefficients.  The orientation of faces is
@@ -132,12 +132,12 @@ void CqCubeEnvironmentSampler<LevelCacheT>::sample(
 	{
 		// x-axis
 		// cube face map parameters
-		TqFloat invRx = 1/R.x();
-		s = R.z()*invRx;
-		t = R.y()*invRx;
+		TqFloat invRx = 1/R.x;
+		s = R.z*invRx;
+		t = R.y*invRx;
 		sScale *= -1;
 		sOffset = 1.0/6;
-		if(R.x() < 0)
+		if(R.x < 0)
 		{
 			tScale *= -1;
 			tOffset = 0.75;
@@ -151,11 +151,11 @@ void CqCubeEnvironmentSampler<LevelCacheT>::sample(
 	else if(absRy >= absRx && absRy >= absRz)
 	{
 		// y-axis
-		TqFloat invRy = 1/R.y();
-		s = R.x()*invRy;
-		t = R.z()*invRy;
+		TqFloat invRy = 1/R.y;
+		s = R.x*invRy;
+		t = R.z*invRy;
 		sOffset = 0.5;
-		if(R.y() < 0)
+		if(R.y < 0)
 		{
 			sScale *= -1;
 			tOffset = 0.75;
@@ -170,11 +170,11 @@ void CqCubeEnvironmentSampler<LevelCacheT>::sample(
 	else
 	{
 		// z-axis
-		TqFloat invRz = 1/R.z();
-		s = R.x()*invRz;
-		t = R.y()*invRz;
+		TqFloat invRz = 1/R.z;
+		s = R.x*invRz;
+		t = R.y*invRz;
 		sOffset = 5.0/6;
-		if(R.z() < 0)
+		if(R.z < 0)
 		{
 			tScale *= -1;
 			tOffset = 0.75;
@@ -202,12 +202,12 @@ void CqCubeEnvironmentSampler<LevelCacheT>::sample(
 	Imath::V2f st(s*sScale + sOffset, t*tScale + tOffset);
 	// Compute sides of new parallelogram using the tangent map.
 	Imath::V2f side1(
-		tMap11*region.s1.x() + tMap12*region.s1.y() + tMap13*region.s1.z(),
-		tMap21*region.s1.x() + tMap22*region.s1.y() + tMap23*region.s1.z()
+		tMap11*region.s1.x + tMap12*region.s1.y + tMap13*region.s1.z,
+		tMap21*region.s1.x + tMap22*region.s1.y + tMap23*region.s1.z
 	);
 	Imath::V2f side2(
-		tMap11*region.s2.x() + tMap12*region.s2.y() + tMap13*region.s2.z(),
-		tMap21*region.s2.x() + tMap22*region.s2.y() + tMap23*region.s2.z()
+		tMap11*region.s2.x + tMap12*region.s2.y + tMap13*region.s2.z,
+		tMap21*region.s2.x + tMap22*region.s2.y + tMap23*region.s2.z
 	);
 	// Construct the mapped 2D sample parallelogram.
 	SqSamplePllgram region2d(st, side1, side2);

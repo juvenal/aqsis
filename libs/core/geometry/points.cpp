@@ -201,7 +201,7 @@ CqMicroPolyGridBase* CqPoints::Dice()
 
 	if ( USES( lUses, EnvVars_Ng ) )
 	{
-		CqVector3D	N(0,0,-1);
+		Imath::V3f	N(0,0,-1);
 		//N = QGetRenderContext() ->matSpaceToSpace( "camera", "object", NULL, pGrid->pTransform() ) * N;
 		TqUint u;
 		for ( u = 0; u < nVertices(); u++ )
@@ -302,10 +302,10 @@ void CqPoints::NaturalDice(CqParameter* pParam, TqInt uDiceSize, TqInt vDiceSize
 		case type_point:
 		case type_vector:
 		case type_normal:
-			pointsNaturalDice<CqVector3D, CqVector3D>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
+			pointsNaturalDice<Imath::V3f, Imath::V3f>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
 			break;
 		case type_hpoint:
-			pointsNaturalDice<CqVector4D, CqVector3D>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
+			pointsNaturalDice<CqVector4D, Imath::V3f>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
 			break;
 		case type_color:
 			pointsNaturalDice<CqColor, CqColor>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
@@ -350,11 +350,11 @@ void	CqPoints::Bound(CqBound* bound) const
 	CqVector4D* P = m_pPoints->P()->pValue();
 	std::vector<TqInt>::const_iterator idx = m_KDTree.aLeaves().begin();
 	for(TqInt i = 0; i < m_nVertices; i++)
-		bound->Encapsulate( vectorCast<CqVector3D>( P[idx[i]] ) );
+		bound->Encapsulate( vectorCast<Imath::V3f>( P[idx[i]] ) );
 
 	// Expand the bound to take into account the width of the particles.
-	bound->vecMax() += CqVector3D( m_MaxWidth, m_MaxWidth, m_MaxWidth );
-	bound->vecMin() -= CqVector3D( m_MaxWidth, m_MaxWidth, m_MaxWidth );
+	bound->vecMax() += Imath::V3f( m_MaxWidth, m_MaxWidth, m_MaxWidth );
+	bound->vecMin() -= Imath::V3f( m_MaxWidth, m_MaxWidth, m_MaxWidth );
 
 	AdjustBoundForTransformationMotion( bound );
 }
@@ -439,7 +439,7 @@ void CqPoints::InitialiseMaxWidth()
 	QGetRenderContext() ->matSpaceToSpace( "object", "camera", NULL, pTransform().get(), QGetRenderContext()->Time(), matObjectToCamera );
 	const CqParameterTypedConstant<TqFloat, type_float, TqFloat>* pConstantWidthParam = constantwidth( );
 
-	CqVector3D Point0 = matObjectToCamera * CqVector3D(0,0,0);
+	Imath::V3f Point0 = matObjectToCamera * Imath::V3f(0,0,0);
 
 	TqFloat i_radius = 1.0f;
 	if( NULL != pConstantWidthParam )
@@ -455,8 +455,8 @@ void CqPoints::InitialiseMaxWidth()
 
 		radius = i_radius;
 		// Get point in camera space.
-		CqVector3D Point1 = matObjectToCamera * CqVector3D(radius,0,0);
-		radius = (Point1-Point0).Magnitude();
+		Imath::V3f Point1 = matObjectToCamera * Imath::V3f(radius,0,0);
+		radius = (Point1-Point0).length();
 
 		m_MaxWidth = max(m_MaxWidth, radius );
 	}
@@ -491,7 +491,7 @@ void CqMicroPolyGridPoints::Split( long xmin, long xmax, long ymin, long ymax )
 
 	const CqParameterTypedConstant<TqFloat, type_float, TqFloat>* pConstantWidthParam = pPoints->constantwidth( );
 
-	CqVector3D* pP;
+	Imath::V3f* pP;
 	pVar(EnvVars_P) ->GetPointPtr( pP );
 
 	// Ugh, this static_cast is pretty awful.  We really should either enhance
@@ -507,7 +507,7 @@ void CqMicroPolyGridPoints::Split( long xmin, long xmax, long ymin, long ymax )
 		TqInt totTimes = keyTimes.size();
 
 		// Get an array of P's for all time positions.
-		std::vector<std::vector<CqVector3D> > aaPtimes(totTimes);
+		std::vector<std::vector<Imath::V3f> > aaPtimes(totTimes);
 
 		// Array of cached object to camera matrices for each time slot.
 		std::vector<CqMatrix>	amatObjectToCameraT(totTimes);
@@ -549,35 +549,35 @@ void CqMicroPolyGridPoints::Split( long xmin, long xmax, long ymin, long ymax )
 			{
 				radius = i_radius;
 				// Get point in camera space.
-				CqVector3D Point, pt, vecCamP;
+				Imath::V3f Point, pt, vecCamP;
 				Point = pt = vecCamP = amatObjectToCameraT[ iTime ] * aaPtimes[ iTime ][ iu ];
 				// Ensure z is retained in camera space when we convert to raster.
-				TqFloat ztemp = Point.z();
+				TqFloat ztemp = Point.z;
 				Point = matCameraToRaster * Point;
-				Point.z( ztemp );
+				Point.z = ztemp;
 				pP[ iu ] = Point;
 
 				// first, create a horizontal vector in object space which is
 				//  the length of the current width.
-				CqVector3D horiz( 1, 0, 0 );
+				Imath::V3f horiz( 1, 0, 0 );
 				horiz = amatNObjectToCameraT[ iTime ] * horiz;
-				horiz *= radius / horiz.Magnitude();
+				horiz *= radius / horiz.length();
 
 				// Get the current point in object space.
-				CqVector3D pt_delta = pt + horiz;
+				Imath::V3f pt_delta = pt + horiz;
 				pt = amatObjectToCameraT[ iTime ] * pt;
 				pt_delta = amatObjectToCameraT[ iTime ] * pt_delta;
 
 				// finally, find the difference between the two points in
 				//  the new space - this is the transformed width
-				CqVector3D widthVector = pt_delta - pt;
-				radius = widthVector.Magnitude();
+				Imath::V3f widthVector = pt_delta - pt;
+				radius = widthVector.length();
 
-				CqVector3D vecCamP2 = vecCamP + CqVector3D( radius, 0.0f, 0.0f );
-				ztemp = vecCamP2.z();
-				CqVector3D vecRasP2 = matCameraToRaster * vecCamP2;
-				vecRasP2.z( ztemp );
-				TqFloat ras_radius = ( vecRasP2 - Point ).Magnitude();
+				Imath::V3f vecCamP2 = vecCamP + Imath::V3f( radius, 0.0f, 0.0f );
+				ztemp = vecCamP2.z;
+				Imath::V3f vecRasP2 = matCameraToRaster * vecCamP2;
+				vecRasP2.z = ztemp;
+				TqFloat ras_radius = ( vecRasP2 - Point ).length();
 				radius = ras_radius * 0.5f;
 
 				pNew->AppendKey( Point, radius, keyTimes[iTime] );
@@ -598,12 +598,12 @@ void CqMicroPolyGridPoints::Split( long xmin, long xmax, long ymin, long ymax )
 		for ( TqInt iu = 0; iu < cu; iu++ )
 		{
 			// Get point in camera space.
-			CqVector3D Point, pt, vecCamP;
+			Imath::V3f Point, pt, vecCamP;
 			Point = pt = vecCamP = pP[ iu ];
 			// Ensure z is retained in camera space when we convert to raster.
-			TqFloat ztemp = Point.z();
+			TqFloat ztemp = Point.z;
 			Point = matCameraToRaster * Point;
-			Point.z( ztemp );
+			Point.z = ztemp;
 			pP[ iu ] = Point;
 
 			TqFloat radius = 1.0f;
@@ -617,25 +617,25 @@ void CqMicroPolyGridPoints::Split( long xmin, long xmax, long ymin, long ymax )
 
 			// first, create a horizontal vector in camera space which is
 			//  the length of the current width in current space
-			CqVector3D horiz( 1, 0, 0 );
+			Imath::V3f horiz( 1, 0, 0 );
 			horiz = matNObjectToCameraT * horiz;
-			horiz *= radius / horiz.Magnitude();
+			horiz *= radius / horiz.length();
 
 			// Get the current point in object space.
-			CqVector3D pt_delta = pt + horiz;
+			Imath::V3f pt_delta = pt + horiz;
 			pt = matObjectToCameraT * pt;
 			pt_delta = matObjectToCameraT * pt_delta;
 
 			// finally, find the difference between the two points in
 			//  the new space - this is the transformed width
-			CqVector3D widthVector = pt_delta - pt;
-			radius = widthVector.Magnitude();
+			Imath::V3f widthVector = pt_delta - pt;
+			radius = widthVector.length();
 
-			CqVector3D vecCamP2 = vecCamP + CqVector3D( radius, 0.0f, 0.0f );
-			ztemp = vecCamP2.z();
-			CqVector3D vecRasP2 = matCameraToRaster * vecCamP2;
-			vecRasP2.z( ztemp );
-			TqFloat ras_radius = ( vecRasP2 - Point ).Magnitude();
+			Imath::V3f vecCamP2 = vecCamP + Imath::V3f( radius, 0.0f, 0.0f );
+			ztemp = vecCamP2.z;
+			Imath::V3f vecRasP2 = matCameraToRaster * vecCamP2;
+			vecRasP2.z = ztemp;
+			TqFloat ras_radius = ( vecRasP2 - Point ).length();
 			radius = ras_radius * 0.5f;
 
 			CqMicroPolygonPoints* pNew = new CqMicroPolygonPoints(this, iu);
@@ -657,7 +657,7 @@ bool CqMicroPolygonPoints::Sample( CqHitTestCache& cache, SqSampleData const& sa
 		sampPos += compMul(sample.dofOffset, cache.cocMult[0]);
 	if((vectorCast<Imath::V2f>(cache.P[0]) - sampPos).length2() < m_radius*m_radius)
 	{
-		D = cache.P[0].z();
+		D = cache.P[0].z;
 		return true;
 	}
 	return false;
@@ -667,7 +667,7 @@ void CqMicroPolygonPoints::CacheHitTestValues(CqHitTestCache& cache, bool usingD
 {
 	pGrid()->pVar(EnvVars_P)->GetPoint(cache.P[0], m_Index);
 	if(usingDof)
-		cache.cocMult[0] = vectorCast<Imath::V2f>(QGetRenderContext()->GetCircleOfConfusion(cache.P[0].z()));
+		cache.cocMult[0] = vectorCast<Imath::V2f>(QGetRenderContext()->GetCircleOfConfusion(cache.P[0].z));
 }
 
 void CqMicroPolygonPoints::CacheOutputInterpCoeffs(SqMpgSampleInfo& cache) const
@@ -715,12 +715,12 @@ void CqMotionMicroPolyGridPoints::Split( long xmin, long xmax, long ymin, long y
 	CqMatrix matITTx;
 	QGetRenderContext() ->matNSpaceToSpace( "object", "camera", NULL, pSurface()->pTransform().get(), pSurface()->pTransform()->Time(0), matITTx );
 
-	CqVector3D vecdefOriginRaster = matCameraToRaster * CqVector3D( 0.0f,0.0f,0.0f );
+	Imath::V3f vecdefOriginRaster = matCameraToRaster * Imath::V3f( 0.0f,0.0f,0.0f );
 
 	TqInt NumTimes = cTimes();
 
 	// Get an array of P's for all time positions.
-	std::vector<std::vector<CqVector3D> > aaPtimes;
+	std::vector<std::vector<Imath::V3f> > aaPtimes;
 	aaPtimes.resize( NumTimes );
 
 	// Array of cached object to camera matrices for each time slot.
@@ -744,7 +744,7 @@ void CqMotionMicroPolyGridPoints::Split( long xmin, long xmax, long ymin, long y
 
 		CqMicroPolyGridPoints* pGridT = static_cast<CqMicroPolyGridPoints*>( GetMotionObject( Time( iTime ) ) );
 
-		CqVector3D* pP;
+		Imath::V3f* pP;
 		pGridT->pVar(EnvVars_P) ->GetPointPtr( pP );
 
 		for ( i = gsmin1; i >= 0; i-- )
@@ -783,34 +783,34 @@ void CqMotionMicroPolyGridPoints::Split( long xmin, long xmax, long ymin, long y
 				radius = pWidthParam->pValue( pPoints->KDTree().aLeaves()[ iu ] )[ 0 ];
 
 			// Get point in camera space.
-			CqVector3D Point, pt, vecCamP;
+			Imath::V3f Point, pt, vecCamP;
 			Point = pt = vecCamP = amatObjectToCameraT[ iTime ] * aaPtimes[ iTime ][ iu ];
 			// Ensure z is retained in camera space when we convert to raster.
-			TqFloat ztemp = Point.z();
+			TqFloat ztemp = Point.z;
 			Point = matCameraToRaster * Point;
-			Point.z( ztemp );
+			Point.z = ztemp;
 
 			// first, create a horizontal vector in object space which is
 			//  the length of the current width.
-			CqVector3D horiz( 1, 0, 0 );
+			Imath::V3f horiz( 1, 0, 0 );
 			horiz = amatNObjectToCameraT[ iTime ] * horiz;
-			horiz *= radius / horiz.Magnitude();
+			horiz *= radius / horiz.length();
 
 			// Get the current point in object space.
-			CqVector3D pt_delta = pt + horiz;
+			Imath::V3f pt_delta = pt + horiz;
 			pt = amatObjectToCameraT[ iTime ] * pt;
 			pt_delta = amatObjectToCameraT[ iTime ] * pt_delta;
 
 			// finally, find the difference between the two points in
 			//  the new space - this is the transformed width
-			CqVector3D widthVector = pt_delta - pt;
-			radius = widthVector.Magnitude();
+			Imath::V3f widthVector = pt_delta - pt;
+			radius = widthVector.length();
 
-			CqVector3D vecCamP2 = vecCamP + CqVector3D( radius, 0.0f, 0.0f );
-			ztemp = vecCamP2.z();
-			CqVector3D vecRasP2 = matCameraToRaster * vecCamP2;
-			vecRasP2.z( ztemp );
-			TqFloat ras_radius = ( vecRasP2 - Point ).Magnitude();
+			Imath::V3f vecCamP2 = vecCamP + Imath::V3f( radius, 0.0f, 0.0f );
+			ztemp = vecCamP2.z;
+			Imath::V3f vecRasP2 = matCameraToRaster * vecCamP2;
+			vecRasP2.z = ztemp;
+			TqFloat ras_radius = ( vecRasP2 - Point ).length();
 			radius = ras_radius * 0.5f;
 
 			pNew->AppendKey( Point, radius, Time( iTime ) );
@@ -906,7 +906,7 @@ bool CqMicroPolygonMotionPoints::Sample( CqHitTestCache& hitTestCache, SqSampleD
 	}
 
 	TqFloat r = 0;
-	CqVector3D pos;
+	Imath::V3f pos;
 	if( Exact )
 	{
 		CqMovingMicroPolygonKeyPoints* pMP1 = m_Keys[ iIndex ];
@@ -924,11 +924,11 @@ bool CqMicroPolygonMotionPoints::Sample( CqHitTestCache& hitTestCache, SqSampleD
 	Imath::V2f sampPos = sample.position;
 	if(UsingDof)
 	{
-		sampPos += compMul(sample.dofOffset, QGetRenderContext()->GetCircleOfConfusion(pos.z()));
+		sampPos += compMul(sample.dofOffset, QGetRenderContext()->GetCircleOfConfusion(pos.z));
 	}
 	if( (vectorCast<Imath::V2f>(pos) - sampPos).length2() < r*r )
 	{
-		D = pos.z();
+		D = pos.z;
 		return true;
 	}
 	return false;
@@ -958,7 +958,7 @@ void CqMicroPolygonMotionPoints::InterpolateOutputs(const SqMpgSampleInfo& cache
  * \param time Float shutter time that this MPG represents.
  */
 
-void CqMicroPolygonMotionPoints::AppendKey( const CqVector3D& vA, TqFloat radius, TqFloat time )
+void CqMicroPolygonMotionPoints::AppendKey( const Imath::V3f& vA, TqFloat radius, TqFloat time )
 {
 	//	assert( time >= m_Times.back() );
 

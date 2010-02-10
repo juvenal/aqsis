@@ -48,7 +48,7 @@ namespace Aqsis {
 
 #define DECLARE_SHADERSTACK_TEMPS \
 static TqFloat temp_float; \
-static CqVector3D temp_point; \
+static Imath::V3f temp_point; \
 static CqColor temp_color; \
 static CqString temp_string; \
 static CqMatrix temp_matrix; 
@@ -90,7 +90,7 @@ static CqMatrix temp_matrix;
 #define	OpADD_PP(a,b,Res,State)		OpADD(temp_point,temp_point,temp_point,a,b,Res,State)
 #define	OpSUB_PP(a,b,Res,State)		OpSUB(temp_point,temp_point,temp_point,a,b,Res,State)
 #define	OpCRS_PP(a,b,Res,State)		OpCRS(temp_point,temp_point,temp_point,a,b,Res,State)
-#define	OpDOT_PP(a,b,Res,State)		OpDOT(temp_point,temp_point,temp_float,a,b,Res,State)
+#define	OpDOT_PP(a,b,Res,State)		OpDOTM(temp_point,temp_point,temp_float,a,b,Res,State)
 #define	OpNEG_P(a,Res,State)		OpNEG(temp_point,a,Res,State)
 
 #define	OpMUL_CC(a,b,Res,State)		OpMUL(temp_color,temp_color,temp_color,a,b,Res,State)
@@ -209,6 +209,75 @@ static CqMatrix temp_matrix;
 				pA->GetValue( vA ); \
 				pB->GetValue( vB ); \
 				pRes->SetValue( vA OP vB ); \
+			} \
+		}
+
+#define OpABRS_METHOD(METHOD, NAME) \
+		template <class A, class B, class R>	\
+		inline void	Op##NAME( A& a, B&b, R& r, IqShaderData* pA, IqShaderData* pB, IqShaderData* pRes, const CqBitVector& RunningState ) \
+		{ \
+			A vA; \
+			B vB; \
+			A* pdA; \
+			B* pdB; \
+			R* pdR; \
+			TqInt i, ii; \
+			\
+			bool fAVar = pA->Size() > 1; \
+			bool fBVar = pB->Size() > 1; \
+			\
+			if( fAVar && fBVar )\
+			{ \
+				/* Both are varying, must go accross all processing each element. */ \
+				pA->GetValuePtr( pdA ); \
+				pB->GetValuePtr( pdB ); \
+				pRes->GetValuePtr( pdR ); \
+				ii = pA->Size(); \
+				for ( i = 0; i < ii; i++ ) \
+				{ \
+					if ( RunningState.Value( i ) ) \
+						(*pdR) = ( (*pdA).METHOD((*pdB)) ); \
+					pdA++; \
+					pdB++; \
+					pdR++; \
+				} \
+			} \
+			else if( !fBVar && fAVar) \
+			{ \
+				/* A is varying, can just get B's value once. */ \
+				ii = pA->Size(); \
+				pA->GetValuePtr( pdA ); \
+				pB->GetValue( vB ); \
+				pRes->GetValuePtr( pdR ); \
+				for ( i = 0; i < ii; i++ ) \
+				{ \
+					if ( RunningState.Value( i ) ) \
+						(*pdR) = ( (*pdA).METHOD(vB) ); \
+					pdA++; \
+					pdR++; \
+				} \
+			} \
+			else if( !fAVar && fBVar) \
+			{ \
+				/* B is varying, can just get A's value once. */ \
+				ii = pB->Size(); \
+				pB->GetValuePtr( pdB ); \
+				pA->GetValue( vA ); \
+				pRes->GetValuePtr( pdR ); \
+				for ( i = 0; i < ii; i++ ) \
+				{ \
+					if ( RunningState.Value( i ) ) \
+						(*pdR) = ( vA.METHOD((*pdB)) ); \
+					pdB++; \
+					pdR++; \
+				} \
+			} \
+			else \
+			{ \
+				/* Both are uniform, simple one shot case. */ \
+				pA->GetValue( vA ); \
+				pB->GetValue( vB ); \
+				pRes->SetValue( vA.METHOD(vB) ); \
 			} \
 		}
 
@@ -401,9 +470,9 @@ OpABRS( *, MUL )
 inline void	OpMULV( IqShaderData* pA, IqShaderData* pB, IqShaderData* pRes,
 		const CqBitVector& RunningState )
 {
-	CqVector3D vA, vB;
-	CqVector3D* pdA;
-	CqVector3D* pdB;
+	Imath::V3f vA, vB;
+	Imath::V3f* pdA;
+	Imath::V3f* pdB;
 	TqInt i, ii;
 
 	bool fAVar = pA->Size() > 1;
@@ -418,9 +487,9 @@ inline void	OpMULV( IqShaderData* pA, IqShaderData* pB, IqShaderData* pRes,
 		for ( i = 0; i < ii; i++ )
 		{
 			if ( RunningState.Value( i ) )
-				pRes->SetValue( CqVector3D( pdA->x() * pdB->x(),
-				                            pdA->y() * pdB->y(),
-				                            pdA->z() * pdB->z() ), i );
+				pRes->SetValue( Imath::V3f( pdA->x * pdB->x,
+				                            pdA->y * pdB->y,
+				                            pdA->z * pdB->z ), i );
 			pdA++;
 			pdB++;
 		}
@@ -434,9 +503,9 @@ inline void	OpMULV( IqShaderData* pA, IqShaderData* pB, IqShaderData* pRes,
 		for ( i = 0; i < ii; i++ )
 		{
 			if ( RunningState.Value( i ) )
-				pRes->SetValue( CqVector3D( pdA->x() * vB.x(),
-				                            pdA->y() * vB.y(),
-				                            pdA->z() * vB.z() ), i );
+				pRes->SetValue( Imath::V3f( pdA->x * vB.x,
+				                            pdA->y * vB.y,
+				                            pdA->z * vB.z ), i );
 			pdA++;
 		}
 	}
@@ -450,9 +519,9 @@ inline void	OpMULV( IqShaderData* pA, IqShaderData* pB, IqShaderData* pRes,
 		for ( i = 0; i < ii; i++ )
 		{
 			if ( RunningState.Value( i ) )
-				pRes->SetValue( CqVector3D( vA.x() * pdB->x(),
-				                            vA.y() * pdB->y(),
-				                            vA.z() * pdB->z() ), i );
+				pRes->SetValue( Imath::V3f( vA.x * pdB->x,
+				                            vA.y * pdB->y,
+				                            vA.z * pdB->z ), i );
 			pdB++;
 		}
 	}
@@ -461,9 +530,9 @@ inline void	OpMULV( IqShaderData* pA, IqShaderData* pB, IqShaderData* pRes,
 		/* Both are uniform, simple one shot case. */
 		pA->GetValue( vA );
 		pB->GetValue( vB );
-		pRes->SetValue( CqVector3D( vA.x() * vB.x(),
-		                            vA.y() * vB.y(),
-		                            vA.z() * vB.z() ) );
+		pRes->SetValue( Imath::V3f( vA.x * vB.x,
+		                            vA.y * vB.y,
+		                            vA.z * vB.z ) );
 	}
 }
 /* Templatised division operator.
@@ -549,6 +618,7 @@ OpABRS( -, SUB )
  * The template classes decide the cast used, there must be an appropriate operator between the two types.
  */
 OpABRS( *, DOT )
+OpABRS_METHOD( dot, DOTM )
 /* Templatised cross product operator.
  * The template classes decide the cast used, there must be an appropriate operator between the two types.
  */
@@ -606,13 +676,13 @@ inline T2 castShaderVar(const T1& t1)
 	return static_cast<T2>(t1);
 }
 
-template<> inline CqColor castShaderVar(const CqVector3D& v)
+template<> inline CqColor castShaderVar(const Imath::V3f& v)
 {
 	return vectorCast<CqColor>(v);
 }
-template<> inline CqVector3D castShaderVar(const CqColor& c)
+template<> inline Imath::V3f castShaderVar(const CqColor& c)
 {
-	return vectorCast<CqVector3D>(c);
+	return vectorCast<Imath::V3f>(c);
 }
 
 } // namespace detail

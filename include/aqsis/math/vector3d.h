@@ -36,6 +36,7 @@
 #include <aqsis/math/math.h>
 #include <aqsis/math/vecfwd.h>
 #include <aqsis/math/vectorstorage.h>
+#include <ImathVec.h>
 
 namespace Aqsis {
 
@@ -632,6 +633,68 @@ inline bool isClose(const CqBasicVec3<T1>& v1, const CqBasicVec3<T2>& v2, TqFloa
 
 
 //-----------------------------------------------------------------------
+//
+
+inline bool operator<(const Imath::V3f& v1, const Imath::V3f& v2)
+{
+	return (v1.x < v2.x) && (v1.y < v2.y) && (v1.z < v2.z);
+}
+
+inline bool operator<=(const Imath::V3f& v1, const Imath::V3f& v2)
+{
+	return (v1.x <= v2.x) && (v1.y <= v2.y) && (v1.z <= v2.z);
+}
+
+inline bool operator>(const Imath::V3f& v1, const Imath::V3f& v2)
+{
+	return (v1.x > v2.x) && (v1.y > v2.y) && (v1.z > v2.z);
+}
+
+inline bool operator>=(const Imath::V3f& v1, const Imath::V3f& v2)
+{
+	return (v1.x >= v2.x) && (v1.y >= v2.y) && (v1.z >= v2.z);
+}
+
+inline Imath::V3f operator/(TqFloat f, const Imath::V3f& v)
+{
+	return Imath::V3f(f/v.x, f/v.y, f/v.z);
+}
+	
+inline Imath::V3f operator+(TqFloat f, const Imath::V3f& v)
+{
+	return Imath::V3f(f+v.x, f+v.y, f+v.z);
+}
+
+inline Imath::V3f operator-(TqFloat f, const Imath::V3f& v)
+{
+	return Imath::V3f(f-v.x, f-v.y, f-v.z);
+}
+
+
+inline Imath::V3f min(const Imath::V3f& a, const Imath::V3f& b)
+{
+	return Imath::V3f(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z));
+}
+
+inline Imath::V3f max(const Imath::V3f& a, const Imath::V3f& b)
+{
+	return Imath::V3f(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z));
+}
+
+inline Imath::V3f clamp(const Imath::V3f& v, const Imath::V3f& min,
+		const Imath::V3f& max)
+{
+	return Imath::V3f(clamp(v.x, min.x, max.x),
+			clamp(v.y, min.y, max.y),
+			clamp(v.z, min.z, max.z));
+}
+
+inline Imath::V3f lerp(TqFloat t, const Imath::V3f& v0, const Imath::V3f& v1)
+{
+	return Imath::V3f((1-t)*v0.x + t*v1.x,
+					  (1-t)*v0.y + t*v1.y,
+					  (1-t)*v0.z + t*v1.z);
+}
 
 } // namespace Aqsis
 

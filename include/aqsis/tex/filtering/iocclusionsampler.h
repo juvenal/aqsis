@@ -52,7 +52,7 @@ class AQSIS_TEX_SHARE IqOcclusionSampler
 		 * \param outSamps - the outSamps samples will be placed here.  
 		 */
 		virtual void sample(const Sq3DSamplePllgram& samplePllgram,
-				const CqVector3D& normal, const CqShadowSampleOptions& sampleOpts,
+				const Imath::V3f& normal, const CqShadowSampleOptions& sampleOpts,
 				TqFloat* outSamps) const = 0;
 
 		/** \brief Get the default sample options for this texture.

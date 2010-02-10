@@ -160,7 +160,7 @@ class CqBucket
 			{
 				if ( s1->fCachedBound() && s2->fCachedBound() )
 				{
-					return ( s1->GetCachedRasterBound().vecMin().z() > s2->GetCachedRasterBound().vecMin().z() );
+					return ( s1->GetCachedRasterBound().vecMin().z > s2->GetCachedRasterBound().vecMin().z );
 				}
 
 				// don't have bounds for the surface(s). I suspect we should assert here.

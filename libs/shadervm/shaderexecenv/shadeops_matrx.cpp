@@ -60,7 +60,7 @@ void CqShaderExecEnv::SO_transform( IqShaderData* fromspace, IqShaderData* tospa
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D _aq_p;
+				Imath::V3f _aq_p;
 				(p)->GetPoint(_aq_p,__iGrid);
 				(Result)->SetPoint(mat * _aq_p,__iGrid);
 			}
@@ -75,7 +75,7 @@ void CqShaderExecEnv::SO_transform( IqShaderData* fromspace, IqShaderData* tospa
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D _aq_p;
+				Imath::V3f _aq_p;
 				(p)->GetPoint(_aq_p,__iGrid);
 				(Result)->SetPoint(_aq_p,__iGrid);
 			}
@@ -112,7 +112,7 @@ void CqShaderExecEnv::SO_transform( IqShaderData* tospace, IqShaderData* p, IqSh
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D _aq_p;
+				Imath::V3f _aq_p;
 				(p)->GetPoint(_aq_p,__iGrid);
 				(Result)->SetPoint(mat * _aq_p,__iGrid);
 			}
@@ -127,7 +127,7 @@ void CqShaderExecEnv::SO_transform( IqShaderData* tospace, IqShaderData* p, IqSh
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D _aq_p;
+				Imath::V3f _aq_p;
 				(p)->GetPoint(_aq_p,__iGrid);
 				(Result)->SetPoint(_aq_p,__iGrid);
 			}
@@ -157,7 +157,7 @@ void CqShaderExecEnv::SO_transformm( IqShaderData* tospace, IqShaderData* p, IqS
 		{
 			CqMatrix _aq_tospace;
 			(tospace)->GetMatrix(_aq_tospace,__iGrid);
-			CqVector3D _aq_p;
+			Imath::V3f _aq_p;
 			(p)->GetPoint(_aq_p,__iGrid);
 			(Result)->SetPoint(_aq_tospace * _aq_p,__iGrid);
 		}
@@ -195,7 +195,7 @@ void CqShaderExecEnv::SO_vtransform( IqShaderData* fromspace, IqShaderData* tosp
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D _aq_p;
+				Imath::V3f _aq_p;
 				(p)->GetVector(_aq_p,__iGrid);
 				(Result)->SetVector(mat * _aq_p,__iGrid);
 			}
@@ -210,7 +210,7 @@ void CqShaderExecEnv::SO_vtransform( IqShaderData* fromspace, IqShaderData* tosp
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D _aq_p;
+				Imath::V3f _aq_p;
 				(p)->GetVector(_aq_p,__iGrid);
 				(Result)->SetVector(_aq_p,__iGrid);
 			}
@@ -247,7 +247,7 @@ void CqShaderExecEnv::SO_vtransform( IqShaderData* tospace, IqShaderData* p, IqS
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D _aq_p;
+				Imath::V3f _aq_p;
 				(p)->GetVector(_aq_p,__iGrid);
 				(Result)->SetVector(mat * _aq_p,__iGrid);
 			}
@@ -262,7 +262,7 @@ void CqShaderExecEnv::SO_vtransform( IqShaderData* tospace, IqShaderData* p, IqS
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D _aq_p;
+				Imath::V3f _aq_p;
 				(p)->GetVector(_aq_p,__iGrid);
 				(Result)->SetVector(_aq_p,__iGrid);
 			}
@@ -292,7 +292,7 @@ void CqShaderExecEnv::SO_vtransformm( IqShaderData* tospace, IqShaderData* p, Iq
 		{
 			CqMatrix _aq_tospace;
 			(tospace)->GetMatrix(_aq_tospace,__iGrid);
-			CqVector3D _aq_p;
+			Imath::V3f _aq_p;
 			(p)->GetVector(_aq_p,__iGrid);
 			(Result)->SetVector(_aq_tospace * _aq_p,__iGrid);
 		}
@@ -330,7 +330,7 @@ void CqShaderExecEnv::SO_ntransform( IqShaderData* fromspace, IqShaderData* tosp
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D _aq_p;
+				Imath::V3f _aq_p;
 				(p)->GetNormal(_aq_p,__iGrid);
 				(Result)->SetNormal(mat * _aq_p,__iGrid);
 			}
@@ -345,7 +345,7 @@ void CqShaderExecEnv::SO_ntransform( IqShaderData* fromspace, IqShaderData* tosp
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D _aq_p;
+				Imath::V3f _aq_p;
 				(p)->GetNormal(_aq_p,__iGrid);
 				(Result)->SetNormal(_aq_p,__iGrid);
 			}
@@ -382,7 +382,7 @@ void CqShaderExecEnv::SO_ntransform( IqShaderData* tospace, IqShaderData* p, IqS
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D _aq_p;
+				Imath::V3f _aq_p;
 				(p)->GetNormal(_aq_p,__iGrid);
 				(Result)->SetNormal(mat * _aq_p,__iGrid);
 			}
@@ -397,7 +397,7 @@ void CqShaderExecEnv::SO_ntransform( IqShaderData* tospace, IqShaderData* p, IqS
 		{
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
-				CqVector3D _aq_p;
+				Imath::V3f _aq_p;
 				(p)->GetNormal(_aq_p,__iGrid);
 				(Result)->SetNormal(_aq_p,__iGrid);
 			}
@@ -427,7 +427,7 @@ void CqShaderExecEnv::SO_ntransformm( IqShaderData* tospace, IqShaderData* p, Iq
 		{
 			CqMatrix _aq_tospace;
 			(tospace)->GetMatrix(_aq_tospace,__iGrid);
-			CqVector3D _aq_p;
+			Imath::V3f _aq_p;
 			(p)->GetNormal(_aq_p,__iGrid);
 			(Result)->SetNormal(_aq_tospace * _aq_p,__iGrid);
 		}
@@ -538,13 +538,13 @@ void    CqShaderExecEnv::SO_pmix( IqShaderData* p0, IqShaderData* p1, IqShaderDa
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_p0;
+			Imath::V3f _aq_p0;
 			(p0)->GetPoint(_aq_p0,__iGrid);
-			CqVector3D _aq_p1;
+			Imath::V3f _aq_p1;
 			(p1)->GetPoint(_aq_p1,__iGrid);
 			TqFloat _aq_value;
 			(value)->GetFloat(_aq_value,__iGrid);
-			CqVector3D p( ( 1.0f - _aq_value ) * _aq_p0 + _aq_value * _aq_p1 );
+			Imath::V3f p( ( 1.0f - _aq_value ) * _aq_p0 + _aq_value * _aq_p1 );
 			(Result)->SetPoint(p,__iGrid);
 		}
 	}
@@ -566,16 +566,16 @@ void	CqShaderExecEnv::SO_pmixc( IqShaderData* p0, IqShaderData* p1, IqShaderData
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_p0;
+			Imath::V3f _aq_p0;
 			(p0)->GetPoint(_aq_p0,__iGrid);
-			CqVector3D _aq_p1;
+			Imath::V3f _aq_p1;
 			(p1)->GetPoint(_aq_p1,__iGrid);
 			CqColor _aq_value;
 			(value)->GetColor(_aq_value,__iGrid);
 			TqFloat p1 = ( 1.0f - _aq_value[0] ) * _aq_p0[0] + _aq_value[0] * _aq_p1[0] ;
 			TqFloat p2 = ( 1.0f - _aq_value[1] ) * _aq_p0[1] + _aq_value[1] * _aq_p1[1] ;
 			TqFloat p3 = ( 1.0f - _aq_value[2] ) * _aq_p0[2] + _aq_value[2] * _aq_p1[2] ;
-			(Result)->SetPoint(CqVector3D(p1,p2,p3),__iGrid);
+			(Result)->SetPoint(Imath::V3f(p1,p2,p3),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -596,13 +596,13 @@ void    CqShaderExecEnv::SO_vmix( IqShaderData* v0, IqShaderData* v1, IqShaderDa
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_v0;
+			Imath::V3f _aq_v0;
 			(v0)->GetVector(_aq_v0,__iGrid);
-			CqVector3D _aq_v1;
+			Imath::V3f _aq_v1;
 			(v1)->GetVector(_aq_v1,__iGrid);
 			TqFloat _aq_value;
 			(value)->GetFloat(_aq_value,__iGrid);
-			CqVector3D v( ( 1.0f - _aq_value ) * _aq_v0 + _aq_value * _aq_v1 );
+			Imath::V3f v( ( 1.0f - _aq_value ) * _aq_v0 + _aq_value * _aq_v1 );
 			(Result)->SetVector(v,__iGrid);
 		}
 	}
@@ -624,16 +624,16 @@ void	CqShaderExecEnv::SO_vmixc( IqShaderData* v0, IqShaderData* v1, IqShaderData
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_v0;
+			Imath::V3f _aq_v0;
 			(v0)->GetVector(_aq_v0,__iGrid);
-			CqVector3D _aq_v1;
+			Imath::V3f _aq_v1;
 			(v1)->GetVector(_aq_v1,__iGrid);
 			CqColor _aq_value;
 			(value)->GetColor(_aq_value,__iGrid);
                         TqFloat v1 = ( 1.0f - _aq_value[0] ) * _aq_v0[0] + _aq_value[0] * _aq_v1[0] ;
                         TqFloat v2 = ( 1.0f - _aq_value[1] ) * _aq_v0[1] + _aq_value[1] * _aq_v1[1] ;
                         TqFloat v3 = ( 1.0f - _aq_value[2] ) * _aq_v0[2] + _aq_value[2] * _aq_v1[2] ;
-                        (Result)->SetVector(CqVector3D(v1,v2,v3),__iGrid);
+                        (Result)->SetVector(Imath::V3f(v1,v2,v3),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -654,13 +654,13 @@ void	CqShaderExecEnv::SO_nmix( IqShaderData* n0, IqShaderData* n1, IqShaderData*
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_n0;
+			Imath::V3f _aq_n0;
 			(n0)->GetNormal(_aq_n0,__iGrid);
-			CqVector3D _aq_n1;
+			Imath::V3f _aq_n1;
 			(n1)->GetNormal(_aq_n1,__iGrid);
 			TqFloat _aq_value;
 			(value)->GetFloat(_aq_value,__iGrid);
-			CqVector3D n( ( 1.0f - _aq_value ) * _aq_n0 + _aq_value * _aq_n1 );
+			Imath::V3f n( ( 1.0f - _aq_value ) * _aq_n0 + _aq_value * _aq_n1 );
 			(Result)->SetNormal(n,__iGrid);
 		}
 	}
@@ -682,16 +682,16 @@ void	CqShaderExecEnv::SO_nmixc( IqShaderData* n0, IqShaderData* n1, IqShaderData
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_n0;
+			Imath::V3f _aq_n0;
 			(n0)->GetNormal(_aq_n0,__iGrid);
-			CqVector3D _aq_n1;
+			Imath::V3f _aq_n1;
 			(n1)->GetNormal(_aq_n1,__iGrid);
                         CqColor _aq_value;
                         (value)->GetColor(_aq_value,__iGrid);
                         TqFloat n1 = ( 1.0f - _aq_value[0] ) * _aq_n0[0] + _aq_value[0] * _aq_n1[0] ;
                         TqFloat n2 = ( 1.0f - _aq_value[1] ) * _aq_n0[1] + _aq_value[1] * _aq_n1[1] ;
                         TqFloat n3 = ( 1.0f - _aq_value[2] ) * _aq_n0[2] + _aq_value[2] * _aq_n1[2] ;
-                        (Result)->SetNormal(CqVector3D(n1,n2,n3),__iGrid);
+                        (Result)->SetNormal(Imath::V3f(n1,n2,n3),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -769,21 +769,21 @@ void CqShaderExecEnv::SO_ptlined( IqShaderData* P0, IqShaderData* P1, IqShaderDa
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_P0;
+			Imath::V3f _aq_P0;
 			(P0)->GetPoint(_aq_P0,__iGrid);
-			CqVector3D _aq_P1;
+			Imath::V3f _aq_P1;
 			(P1)->GetPoint(_aq_P1,__iGrid);
-			CqVector3D _aq_Q;
+			Imath::V3f _aq_Q;
 			(Q)->GetPoint(_aq_Q,__iGrid);
-			CqVector3D kDiff = _aq_Q - _aq_P0;
-			CqVector3D vecDir = _aq_P1 - _aq_P0;
-			TqFloat fT = kDiff * vecDir;
+			Imath::V3f kDiff = _aq_Q - _aq_P0;
+			Imath::V3f vecDir = _aq_P1 - _aq_P0;
+			TqFloat fT = kDiff.dot(vecDir);
 
 			if ( fT <= 0.0f )
 				fT = 0.0f;
 			else
 			{
-				TqFloat fSqrLen = vecDir.Magnitude2();
+				TqFloat fSqrLen = vecDir.length2();
 				if ( fT >= fSqrLen )
 				{
 					fT = 1.0f;
@@ -795,7 +795,7 @@ void CqShaderExecEnv::SO_ptlined( IqShaderData* P0, IqShaderData* P1, IqShaderDa
 					kDiff -= fT * vecDir;
 				}
 			}
-			(Result)->SetFloat(kDiff.Magnitude(),__iGrid);
+			(Result)->SetFloat(kDiff.length(),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -952,7 +952,7 @@ void CqShaderExecEnv::SO_mtranslate( IqShaderData* M, IqShaderData* V, IqShaderD
 		{
 			CqMatrix _aq_M;
 			(M)->GetMatrix(_aq_M,__iGrid);
-			CqVector3D _aq_V;
+			Imath::V3f _aq_V;
 			(V)->GetVector(_aq_V,__iGrid);
 			_aq_M.Translate( _aq_V );
 			(Result)->SetMatrix(_aq_M,__iGrid);
@@ -983,7 +983,7 @@ void CqShaderExecEnv::SO_mrotate( IqShaderData* M, IqShaderData* angle, IqShader
 			(M)->GetMatrix(_aq_M,__iGrid);
 			TqFloat _aq_angle;
 			(angle)->GetFloat(_aq_angle,__iGrid);
-			CqVector3D _aq_axis;
+			Imath::V3f _aq_axis;
 			(axis)->GetVector(_aq_axis,__iGrid);
 			_aq_M.Rotate( _aq_angle, _aq_axis );
 			(Result)->SetMatrix(_aq_M,__iGrid);
@@ -1009,11 +1009,11 @@ void CqShaderExecEnv::SO_mscale( IqShaderData* M, IqShaderData* S, IqShaderData*
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_S;
+			Imath::V3f _aq_S;
 			(S)->GetPoint(_aq_S,__iGrid);
 			CqMatrix _aq_M;
 			(M)->GetMatrix(_aq_M,__iGrid);
-			_aq_M.Scale( _aq_S.x(), _aq_S.y(), _aq_S.z() );
+			_aq_M.Scale( _aq_S.x, _aq_S.y, _aq_S.z );
 			(Result)->SetMatrix(_aq_M,__iGrid);
 		}
 	}
@@ -1077,15 +1077,15 @@ void CqShaderExecEnv::SO_rotate( IqShaderData* Q, IqShaderData* angle, IqShaderD
 		{
 			TqFloat _aq_angle;
 			(angle)->GetFloat(_aq_angle,__iGrid);
-			CqVector3D _aq_Q;
+			Imath::V3f _aq_Q;
 			(Q)->GetVector(_aq_Q,__iGrid);
-			CqVector3D _aq_P0;
+			Imath::V3f _aq_P0;
 			(P0)->GetPoint(_aq_P0,__iGrid);
-			CqVector3D _aq_P1;
+			Imath::V3f _aq_P1;
 			(P1)->GetPoint(_aq_P1,__iGrid);
 			CqMatrix matR( _aq_angle, _aq_P1 - _aq_P0 );
 
-			CqVector3D	Res( _aq_Q );
+			Imath::V3f	Res( _aq_Q );
 			Res = matR * Res;
 
 			(Result)->SetPoint(Res,__iGrid);

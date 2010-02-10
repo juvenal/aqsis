@@ -73,10 +73,10 @@ bloomenthal_polygonizer::bloomenthal_polygonizer(
     const TqInt xmin, const TqInt xmax,
     const TqInt ymin, const TqInt ymax,
     const TqInt zmin, const TqInt zmax,
-    const CqVector3D& origin,
+    const Imath::V3f& origin,
     implicit_functor& functor,
-    std::vector<CqVector3D>& surface_vertices,
-    std::vector<CqVector3D>& surface_normals,
+    std::vector<Imath::V3f>& surface_vertices,
+    std::vector<Imath::V3f>& surface_normals,
     std::vector<std::vector<TqInt> >& surface_polygons) :
 		m_Decomposition(polygonization_type),
 		m_VoxelSize(voxel_size),
@@ -107,16 +107,16 @@ bloomenthal_polygonizer::~bloomenthal_polygonizer()
 	// Delete corners
 }
 
-// Return the CqVector3D corresponding to the Location
-CqVector3D bloomenthal_polygonizer::location_vertex(const Location& l)
+// Return the Imath::V3f corresponding to the Location
+Imath::V3f bloomenthal_polygonizer::location_vertex(const Location& l)
 {
-	return m_GridOrigin + m_VoxelSize * CqVector3D((TqDouble)l.i, (TqDouble)l.j, (TqDouble)l.k);
+	return m_GridOrigin + Imath::V3f((TqDouble)l.i, (TqDouble)l.j, (TqDouble)l.k) * m_VoxelSize;
 }
 
-// Return the nearest location corresponding to the CqVector3D
-Location bloomenthal_polygonizer::nearest_location(const CqVector3D& point)
+// Return the nearest location corresponding to the Imath::V3f
+Location bloomenthal_polygonizer::nearest_location(const Imath::V3f& point)
 {
-	CqVector3D vertex_position = (point - m_GridOrigin) / m_VoxelSize;
+	Imath::V3f vertex_position = (point - m_GridOrigin) / m_VoxelSize;
 
 	TqInt i = static_cast<TqInt>(vertex_position[0]);
 	TqInt j = static_cast<TqInt>(vertex_position[1]);
@@ -143,7 +143,7 @@ void bloomenthal_polygonizer::polygonize_whole_grid()
 }
 
 // Find surface and polygonize from a known inside point
-bool bloomenthal_polygonizer::polygonize_from_inside_point(const CqVector3D& starting_point)
+bool bloomenthal_polygonizer::polygonize_from_inside_point(const Imath::V3f& starting_point)
 {
 	Location starting_location = nearest_location(starting_point);
 
@@ -544,14 +544,14 @@ void bloomenthal_polygonizer::TestFace(const Location& facelocation, Cube& old, 
 }
 
 // Return the gradient at Location l
-CqVector3D bloomenthal_polygonizer::normal(const CqVector3D& Point)
+Imath::V3f bloomenthal_polygonizer::normal(const Imath::V3f& Point)
 {
 	TqDouble delta = m_VoxelSize / static_cast<TqDouble>(RES*RES);
 
 	TqDouble f = m_FieldFunctor.implicit_value(Point);
-	TqDouble gx = m_FieldFunctor.implicit_value(Point + CqVector3D(delta, 0, 0)) - f;
-	TqDouble gy = m_FieldFunctor.implicit_value(Point + CqVector3D(0, delta, 0)) - f;
-	TqDouble gz = m_FieldFunctor.implicit_value(Point + CqVector3D(0, 0, delta)) - f;
+	TqDouble gx = m_FieldFunctor.implicit_value(Point + Imath::V3f(delta, 0, 0)) - f;
+	TqDouble gy = m_FieldFunctor.implicit_value(Point + Imath::V3f(0, delta, 0)) - f;
+	TqDouble gz = m_FieldFunctor.implicit_value(Point + Imath::V3f(0, 0, delta)) - f;
 	f = sqrt(gx*gx + gy*gy + gz*gz);
 	if(f != 0)
 	{
@@ -560,7 +560,7 @@ CqVector3D bloomenthal_polygonizer::normal(const CqVector3D& Point)
 		gz /= f;
 	}
 
-	return CqVector3D(gx, gy, gz);
+	return Imath::V3f(gx, gy, gz);
 }
 
 // Return cached corner with the given lattice Location
@@ -602,7 +602,7 @@ TqInt bloomenthal_polygonizer::VerticeId(Corner *c1, Corner *c2)
 	}
 
 	// Compute index, save and return it
-	CqVector3D p;
+	Imath::V3f p;
 	Converge(c1->p, c2->p, c1->value, p);
 	m_Vertices.push_back(p);
 	m_Normals.push_back(normal(p));
@@ -614,15 +614,15 @@ TqInt bloomenthal_polygonizer::VerticeId(Corner *c1, Corner *c2)
 }
 
 // From two points of differing sign, converge to zero crossing
-void bloomenthal_polygonizer::Converge(const CqVector3D& p1, const CqVector3D& p2, TqDouble v, CqVector3D& point)
+void bloomenthal_polygonizer::Converge(const Imath::V3f& p1, const Imath::V3f& p2, TqDouble v, Imath::V3f& point)
 {
-	CqVector3D pos = p1;
-	CqVector3D neg = p2;
+	Imath::V3f pos = p1;
+	Imath::V3f neg = p2;
 
 	if(v < m_Threshold)
 		std::swap(pos, neg);
 
-	point = 0.5 * (pos + neg);
+	point = (pos + neg) * 0.5;
 
 	for(TqInt iter = 0; iter < RES; iter++)
 	{
@@ -631,7 +631,7 @@ void bloomenthal_polygonizer::Converge(const CqVector3D& p1, const CqVector3D& p
 		else
 			neg = point;
 
-		point = 0.5 * (pos + neg);
+		point = (pos + neg) * 0.5;
 	}
 }
 

@@ -77,11 +77,11 @@ void	CqShaderExecEnv::SO_setxcomp( IqShaderData* p, IqShaderData* v, IqShader* p
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_p;
+			Imath::V3f _aq_p;
 			(p)->GetPoint(_aq_p,__iGrid);
 			TqFloat _aq_v;
 			(v)->GetFloat(_aq_v,__iGrid);
-			_aq_p.x( _aq_v );
+			_aq_p.x = _aq_v;
 			(p)->SetPoint(_aq_p,__iGrid);
 		}
 	}
@@ -104,11 +104,11 @@ void	CqShaderExecEnv::SO_setycomp( IqShaderData* p, IqShaderData* v, IqShader* p
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_p;
+			Imath::V3f _aq_p;
 			(p)->GetPoint(_aq_p,__iGrid);
 			TqFloat _aq_v;
 			(v)->GetFloat(_aq_v,__iGrid);
-			_aq_p.y( _aq_v );
+			_aq_p.y = _aq_v;
 			(p)->SetPoint(_aq_p,__iGrid);
 		}
 	}
@@ -131,11 +131,11 @@ void	CqShaderExecEnv::SO_setzcomp( IqShaderData* p, IqShaderData* v, IqShader* p
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_p;
+			Imath::V3f _aq_p;
 			(p)->GetPoint(_aq_p,__iGrid);
 			TqFloat _aq_v;
 			(v)->GetFloat(_aq_v,__iGrid);
-			_aq_p.z( _aq_v );
+			_aq_p.z = _aq_v;
 			(p)->SetPoint(_aq_p,__iGrid);
 		}
 	}

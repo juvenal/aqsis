@@ -95,23 +95,23 @@ namespace detail {
 inline SqSamplePllgram directionToLatLong(const Sq3DSamplePllgram& region,
 		TqFloat& sBlur)
 {
-	CqVector3D R = region.c;
+	Imath::V3f R = region.c;
 	// First compute the position of the parallelogram centre.  This is
 	// relatively expensive, since it involves calling atan2(), sqrt() and
 	// acos().
-	TqFloat phi = 0.5 + std::atan2(R.y(), R.x())*(1.0/(2*M_PI));
+	TqFloat phi = 0.5 + std::atan2(R.y, R.x)*(1.0/(2*M_PI));
 	TqFloat theta = 0;
-	TqFloat R2 = R.Magnitude2();
+	TqFloat R2 = R.length2();
 	TqFloat RLen = std::sqrt(R2);
 	if(R2 != 0)
-		theta = std::acos(R.z()/RLen)*(1.0/M_PI);
+		theta = std::acos(R.z/RLen)*(1.0/M_PI);
 	// (s,t) coordinates of parallelogram center
 	Imath::V2f st(phi, theta);
 
 	// Next compute the coefficients of the tangent map.  That is, the
 	// coefficients of the linear function which take the sides of the 3D
 	// sampling parallelogram into the sides of the 2D one.
-	TqFloat Rxy2 = R.x()*R.x() + R.y()*R.y();
+	TqFloat Rxy2 = R.x*R.x + R.y*R.y;
 	TqFloat RxyLen = std::sqrt(Rxy2);
 
 	// Coefficents of the tangent map (note: tMap13 = 0 always)
@@ -123,15 +123,15 @@ inline SqSamplePllgram directionToLatLong(const Sq3DSamplePllgram& region,
 	if(Rxy2 != 0)
 	{
 		TqFloat mult1 = 1/(2*M_PI*Rxy2);
-		tMap11 = -R.y()*mult1;
-		tMap12 = R.x()*mult1;
+		tMap11 = -R.y*mult1;
+		tMap12 = R.x*mult1;
 
 		if(R2 != 0)
 		{
 			TqFloat mult2 = 1/(M_PI*R2*RxyLen);
-			tMap21 = R.x()*R.z() * mult2;
-			tMap22 = R.y()*R.z() * mult2;
-			tMap23 = (R.z()*R.z() - R2) * mult2;
+			tMap21 = R.x*R.z * mult2;
+			tMap22 = R.y*R.z * mult2;
+			tMap23 = (R.z*R.z - R2) * mult2;
 		}
 	}
 
@@ -141,12 +141,12 @@ inline SqSamplePllgram directionToLatLong(const Sq3DSamplePllgram& region,
 
 	// Apply the tangent map to the parallelogram sides
 	Imath::V2f side1(
-		tMap11*region.s1.x() + tMap12*region.s1.y(),
-		tMap21*region.s1.x() + tMap22*region.s1.y() + tMap23*region.s1.z()
+		tMap11*region.s1.x + tMap12*region.s1.y,
+		tMap21*region.s1.x + tMap22*region.s1.y + tMap23*region.s1.z
 	);
 	Imath::V2f side2(
-		tMap11*region.s2.x() + tMap12*region.s2.y(),
-		tMap21*region.s2.x() + tMap22*region.s2.y() + tMap23*region.s2.z()
+		tMap11*region.s2.x + tMap12*region.s2.y,
+		tMap21*region.s2.x + tMap22*region.s2.y + tMap23*region.s2.z
 	);
 	return SqSamplePllgram(st, side1, side2);
 }

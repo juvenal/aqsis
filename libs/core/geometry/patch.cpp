@@ -143,10 +143,10 @@ void CqSurfacePatchBicubic::NaturalSubdivide( CqParameter* pParam, CqParameter* 
 		case type_point:
 		case type_vector:
 		case type_normal:
-			bicubicPatchNatSubdiv<CqVector3D, CqVector3D>(pParam, pParam1, pParam2, u);
+			bicubicPatchNatSubdiv<Imath::V3f, Imath::V3f>(pParam, pParam1, pParam2, u);
 			break;
 		case type_hpoint:
-			bicubicPatchNatSubdiv<CqVector4D, CqVector3D>(pParam, pParam1, pParam2, u);
+			bicubicPatchNatSubdiv<CqVector4D, Imath::V3f>(pParam, pParam1, pParam2, u);
 			break;
 		case type_color:
 			bicubicPatchNatSubdiv<CqColor, CqColor>(pParam, pParam1, pParam2, u);
@@ -172,24 +172,24 @@ void CqSurfacePatchBicubic::NaturalSubdivide( CqParameter* pParam, CqParameter* 
 void CqSurfacePatchBicubic::Bound(CqBound* bound) const
 {
 	// Get the boundary in camera space.
-	CqVector3D	vecA( FLT_MAX, FLT_MAX, FLT_MAX );
-	CqVector3D	vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
+	Imath::V3f	vecA( FLT_MAX, FLT_MAX, FLT_MAX );
+	Imath::V3f	vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 	TqInt i;
 	for ( i = 0; i < 16; i++ )
 	{
-		CqVector3D	vecV = vectorCast<CqVector3D>(P()->pValue( i )[0]);
-		if ( vecV.x() < vecA.x() )
-			vecA.x( vecV.x() );
-		if ( vecV.y() < vecA.y() )
-			vecA.y( vecV.y() );
-		if ( vecV.x() > vecB.x() )
-			vecB.x( vecV.x() );
-		if ( vecV.y() > vecB.y() )
-			vecB.y( vecV.y() );
-		if ( vecV.z() < vecA.z() )
-			vecA.z( vecV.z() );
-		if ( vecV.z() > vecB.z() )
-			vecB.z( vecV.z() );
+		Imath::V3f	vecV = vectorCast<Imath::V3f>(P()->pValue( i )[0]);
+		if ( vecV.x < vecA.x )
+			vecA.x = vecV.x;
+		if ( vecV.y < vecA.y )
+			vecA.y = vecV.y;
+		if ( vecV.x > vecB.x )
+			vecB.x = vecV.x;
+		if ( vecV.y > vecB.y )
+			vecB.y = vecV.y;
+		if ( vecV.z < vecA.z )
+			vecA.z = vecV.z;
+		if ( vecV.z > vecB.z )
+			vecB.z = vecV.z;
 	}
 	bound->vecMin() = vecA;
 	bound->vecMax() = vecB;
@@ -260,10 +260,10 @@ void CqSurfacePatchBicubic::NaturalDice(CqParameter* pParam, TqInt uDiceSize,
 		case type_point:
 		case type_vector:
 		case type_normal:
-			bicubicPatchNatDice<CqVector3D, CqVector3D>( uDiceSize, vDiceSize, pParam, pData );
+			bicubicPatchNatDice<Imath::V3f, Imath::V3f>( uDiceSize, vDiceSize, pParam, pData );
 			break;
 		case type_hpoint:
-			bicubicPatchNatDice<CqVector4D, CqVector3D>(uDiceSize, vDiceSize, pParam, pData);
+			bicubicPatchNatDice<CqVector4D, Imath::V3f>(uDiceSize, vDiceSize, pParam, pData);
 			break;
 		case type_color:
 			bicubicPatchNatDice<CqColor, CqColor>(uDiceSize, vDiceSize, pParam, pData);
@@ -419,7 +419,7 @@ void CqSurfacePatchBicubic::ConvertToBezierBasis( CqMatrix& matuBasis, CqMatrix&
 					case type_normal:	///! \todo Not sure if this is correct, do vectors and normals need to be treated differently?
 					{
 						// Get the parameter pointer as the correct type.
-						CqParameterTyped<CqVector3D, CqVector3D>* pParam = static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( ( *iUP ) );
+						CqParameterTyped<Imath::V3f, Imath::V3f>* pParam = static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( ( *iUP ) );
 
 						// Store the data into a matrix for conversion.
 						CqMatrix matCPx, matCPy, matCPz, matCPh;
@@ -458,7 +458,7 @@ void CqSurfacePatchBicubic::ConvertToBezierBasis( CqMatrix& matuBasis, CqMatrix&
 					case type_hpoint:
 					{
 						// Get the parameter pointer as the correct type.
-						CqParameterTyped<CqVector4D, CqVector3D>* pParam = static_cast<CqParameterTyped<CqVector4D, CqVector3D>*>( ( *iUP ) );
+						CqParameterTyped<CqVector4D, Imath::V3f>* pParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( ( *iUP ) );
 
 						// Store the data into a matrix for conversion.
 						CqMatrix matCPx, matCPy, matCPz, matCPh;
@@ -627,24 +627,24 @@ void CqSurfacePatchBilinear::Bound(CqBound* bound) const
 	assert( NULL != P() );
 
 	// Get the boundary in camera space.
-	CqVector3D	vecA( FLT_MAX, FLT_MAX, FLT_MAX );
-	CqVector3D	vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
+	Imath::V3f	vecA( FLT_MAX, FLT_MAX, FLT_MAX );
+	Imath::V3f	vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 	TqInt i;
 	for ( i = 0; i < ( m_fHasPhantomFourthVertex ? 3 : 4 ); i++ )
 	{
-		CqVector3D	vecV = vectorCast<CqVector3D>(P()->pValue( i )[0]);
-		if ( vecV.x() < vecA.x() )
-			vecA.x( vecV.x() );
-		if ( vecV.y() < vecA.y() )
-			vecA.y( vecV.y() );
-		if ( vecV.x() > vecB.x() )
-			vecB.x( vecV.x() );
-		if ( vecV.y() > vecB.y() )
-			vecB.y( vecV.y() );
-		if ( vecV.z() < vecA.z() )
-			vecA.z( vecV.z() );
-		if ( vecV.z() > vecB.z() )
-			vecB.z( vecV.z() );
+		Imath::V3f	vecV = vectorCast<Imath::V3f>(P()->pValue( i )[0]);
+		if ( vecV.x < vecA.x )
+			vecA.x = vecV.x;
+		if ( vecV.y < vecA.y )
+			vecA.y = vecV.y;
+		if ( vecV.x > vecB.x )
+			vecB.x = vecV.x;
+		if ( vecV.y > vecB.y )
+			vecB.y = vecV.y;
+		if ( vecV.z < vecA.z )
+			vecA.z = vecV.z;
+		if ( vecV.z > vecB.z )
+			vecB.z = vecV.z;
 	}
 	bound->vecMin() = vecA;
 	bound->vecMax() = vecB;
@@ -877,24 +877,24 @@ void CqSurfacePatchMeshBicubic::Bound(CqBound* bound) const
 	assert( NULL != P() );
 
 	// Get the boundary in camera space.
-	CqVector3D	vecA( FLT_MAX, FLT_MAX, FLT_MAX );
-	CqVector3D	vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
+	Imath::V3f	vecA( FLT_MAX, FLT_MAX, FLT_MAX );
+	Imath::V3f	vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 	TqUint i;
 	for ( i = 0; i < P() ->Size(); i++ )
 	{
-		CqVector3D	vecV = vectorCast<CqVector3D>(P()->pValue( i )[0]);
-		if ( vecV.x() < vecA.x() )
-			vecA.x( vecV.x() );
-		if ( vecV.y() < vecA.y() )
-			vecA.y( vecV.y() );
-		if ( vecV.x() > vecB.x() )
-			vecB.x( vecV.x() );
-		if ( vecV.y() > vecB.y() )
-			vecB.y( vecV.y() );
-		if ( vecV.z() < vecA.z() )
-			vecA.z( vecV.z() );
-		if ( vecV.z() > vecB.z() )
-			vecB.z( vecV.z() );
+		Imath::V3f	vecV = vectorCast<Imath::V3f>(P()->pValue( i )[0]);
+		if ( vecV.x < vecA.x )
+			vecA.x = vecV.x;
+		if ( vecV.y < vecA.y )
+			vecA.y = vecV.y;
+		if ( vecV.x > vecB.x )
+			vecB.x = vecV.x;
+		if ( vecV.y > vecB.y )
+			vecB.y = vecV.y;
+		if ( vecV.z < vecA.z )
+			vecA.z = vecV.z;
+		if ( vecV.z > vecB.z )
+			vecB.z = vecV.z;
 	}
 	bound->vecMin() = vecA;
 	bound->vecMax() = vecB;
@@ -1108,24 +1108,24 @@ void CqSurfacePatchMeshBilinear::Bound(CqBound* bound) const
 	assert( NULL != P() );
 
 	// Get the boundary in camera space.
-	CqVector3D	vecA( FLT_MAX, FLT_MAX, FLT_MAX );
-	CqVector3D	vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
+	Imath::V3f	vecA( FLT_MAX, FLT_MAX, FLT_MAX );
+	Imath::V3f	vecB( -FLT_MAX, -FLT_MAX, -FLT_MAX );
 	TqUint i;
 	for ( i = 0; i < P() ->Size(); i++ )
 	{
-		CqVector3D	vecV = vectorCast<CqVector3D>(P()->pValue( i )[0]);
-		if ( vecV.x() < vecA.x() )
-			vecA.x( vecV.x() );
-		if ( vecV.y() < vecA.y() )
-			vecA.y( vecV.y() );
-		if ( vecV.x() > vecB.x() )
-			vecB.x( vecV.x() );
-		if ( vecV.y() > vecB.y() )
-			vecB.y( vecV.y() );
-		if ( vecV.z() < vecA.z() )
-			vecA.z( vecV.z() );
-		if ( vecV.z() > vecB.z() )
-			vecB.z( vecV.z() );
+		Imath::V3f	vecV = vectorCast<Imath::V3f>(P()->pValue( i )[0]);
+		if ( vecV.x < vecA.x )
+			vecA.x = vecV.x;
+		if ( vecV.y < vecA.y )
+			vecA.y = vecV.y;
+		if ( vecV.x > vecB.x )
+			vecB.x = vecV.x;
+		if ( vecV.y > vecB.y )
+			vecB.y = vecV.y;
+		if ( vecV.z < vecA.z )
+			vecA.z = vecV.z;
+		if ( vecV.z > vecB.z )
+			vecB.z = vecV.z;
 	}
 	bound->vecMin() = vecA;
 	bound->vecMax() = vecB;

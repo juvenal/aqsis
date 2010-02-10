@@ -35,12 +35,12 @@ namespace Aqsis {
 class CqPlane
 {
 	public:
-		CqPlane(const CqVector3D& point, const CqVector3D& normal)
+		CqPlane(const Imath::V3f& point, const Imath::V3f& normal)
 		{
-			m_a = normal.x();
-			m_b = normal.y();
-			m_c = normal.z();
-			m_d = -(normal*point);
+			m_a = normal.x;
+			m_b = normal.y;
+			m_c = normal.z;
+			m_d = -(normal.dot(point));
 		}
 
 		CqPlane(TqFloat a, TqFloat b, TqFloat c, TqFloat d)
@@ -61,9 +61,9 @@ class CqPlane
 	};
 
 
-		EqHalfSpace whichSide(const CqVector3D& p) const
+		EqHalfSpace whichSide(const Imath::V3f& p) const
 		{
-			TqFloat d = m_a*p.x() + m_b*p.y() + m_c*p.z() + m_d;
+			TqFloat d = m_a*p.x + m_b*p.y + m_c*p.z + m_d;
 			if(d < 0)
 				return(Space_Negative);
 			if(d > 0)

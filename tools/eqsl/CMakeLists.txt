@@ -14,7 +14,9 @@ if(WIN32)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS")
 endif()
 
-include_directories(${AQSIS_FLTK_INCLUDE_DIR})
+include_directories(
+	${AQSIS_FLTK_INCLUDE_DIR}
+	${AQSIS_OPENEXR_INCLUDE_DIR})
 
 aqsis_add_executable(eqsl ${eqsl_srcs} GUIAPP
 	LINK_LIBRARIES aqsis_util ${AQSIS_FLTK_LIBRARIES} 

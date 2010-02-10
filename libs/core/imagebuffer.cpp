@@ -268,8 +268,8 @@ void	CqImageBuffer::Release()
 bool CqImageBuffer::CullSurface( CqBound& Bound, const boost::shared_ptr<CqSurface>& pSurface )
 {
 	// If the primitive is completely outside of the hither-yon z range, cull it.
-	if ( Bound.vecMin().z() >= m_optCache.clipFar ||
-	     Bound.vecMax().z() <= m_optCache.clipNear )
+	if ( Bound.vecMin().z >= m_optCache.clipFar ||
+	     Bound.vecMax().z <= m_optCache.clipNear )
 		return true;
 
 	// This needs to be re-enabled when the RiClippingPlane code is wired up.
@@ -281,7 +281,7 @@ bool CqImageBuffer::CullSurface( CqBound& Bound, const boost::shared_ptr<CqSurfa
 #endif
 
 	// If the primitive spans the epsilon plane and the hither plane and can be split,
-	if ( Bound.vecMin().z() <= FLT_EPSILON )
+	if ( Bound.vecMin().z <= FLT_EPSILON )
 	{
 		// Mark the primitive as not dicable.
 		pSurface->ForceUndiceable();
@@ -300,8 +300,8 @@ bool CqImageBuffer::CullSurface( CqBound& Bound, const boost::shared_ptr<CqSurfa
 		return ( false );
 	}
 
-	TqFloat minz = Bound.vecMin().z();
-	TqFloat maxz = Bound.vecMax().z();
+	TqFloat minz = Bound.vecMin().z;
+	TqFloat maxz = Bound.vecMax().z;
 
 
 	// Convert the bounds to raster space.
@@ -316,28 +316,28 @@ bool CqImageBuffer::CullSurface( CqBound& Bound, const boost::shared_ptr<CqSurfa
 		const Imath::V2f maxZCoc = QGetRenderContext()->GetCircleOfConfusion( maxz );
 		TqFloat cocX = max( minZCoc.x, maxZCoc.x );
 		TqFloat cocY = max( minZCoc.y, maxZCoc.y );
-		Bound.vecMin().x( Bound.vecMin().x() - cocX );
-		Bound.vecMin().y( Bound.vecMin().y() - cocY );
-		Bound.vecMax().x( Bound.vecMax().x() + cocX );
-		Bound.vecMax().y( Bound.vecMax().y() + cocY );
+		Bound.vecMin().x = Bound.vecMin().x - cocX;
+		Bound.vecMin().y = Bound.vecMin().y - cocY;
+		Bound.vecMax().x = Bound.vecMax().x + cocX;
+		Bound.vecMax().y = Bound.vecMax().y + cocY;
 	}
 
 	// And expand to account for filter size.
-	Bound.vecMin().x( Bound.vecMin().x() - m_optCache.xFiltSize / 2.0f );
-	Bound.vecMin().y( Bound.vecMin().y() - m_optCache.yFiltSize / 2.0f );
-	Bound.vecMax().x( Bound.vecMax().x() + m_optCache.xFiltSize / 2.0f );
-	Bound.vecMax().y( Bound.vecMax().y() + m_optCache.yFiltSize / 2.0f );
+	Bound.vecMin().x = Bound.vecMin().x - m_optCache.xFiltSize / 2.0f;
+	Bound.vecMin().y = Bound.vecMin().y - m_optCache.yFiltSize / 2.0f;
+	Bound.vecMax().x = Bound.vecMax().x + m_optCache.xFiltSize / 2.0f;
+	Bound.vecMax().y = Bound.vecMax().y + m_optCache.yFiltSize / 2.0f;
 
 	// If the bounds are completely outside the viewing frustum, cull the primitive.
-	if( Bound.vecMin().x() > QGetRenderContext()->cropWindowXMax() ||
-		Bound.vecMin().y() > QGetRenderContext()->cropWindowYMax() ||
-		Bound.vecMax().x() < QGetRenderContext()->cropWindowXMin() ||
-		Bound.vecMax().y() < QGetRenderContext()->cropWindowYMin() )
+	if( Bound.vecMin().x > QGetRenderContext()->cropWindowXMax() ||
+		Bound.vecMin().y > QGetRenderContext()->cropWindowYMax() ||
+		Bound.vecMax().x < QGetRenderContext()->cropWindowXMin() ||
+		Bound.vecMax().y < QGetRenderContext()->cropWindowYMin() )
 		return ( true );
 
 	// Restore Z-Values to camera space.
-	Bound.vecMin().z( minz );
-	Bound.vecMax().z( maxz );
+	Bound.vecMin().z = minz;
+	Bound.vecMax().z = maxz;
 
 	// Cache the Bound.
 	pSurface->CacheRasterBound( Bound );
@@ -372,7 +372,7 @@ void CqImageBuffer::PostSurface( const boost::shared_ptr<CqSurface>& pSurface )
 
 	if ( db != 0.0f )
 	{
-		CqVector3D	vecDB( db, 0, 0 );
+		Imath::V3f	vecDB( db, 0, 0 );
 		const IqTransform* transShaderToWorld = NULL;
 		// Default "shader" space to the displacement shader, unless there isn't one, in which
 		// case use the surface shader.
@@ -383,10 +383,10 @@ void CqImageBuffer::PostSurface( const boost::shared_ptr<CqSurface>& pSurface )
 		CqMatrix mat;
 		QGetRenderContext() ->matVSpaceToSpace( strCoordinateSystem.c_str(), "camera", transShaderToWorld, pSurface->pTransform().get(), QGetRenderContextI()->Time(), mat );
 		vecDB = mat * vecDB;
-		db = vecDB.Magnitude();
+		db = vecDB.length();
 
-		Bound.vecMax() += db;
-		Bound.vecMin() -= db;
+		Bound.vecMax() += Imath::V3f(db);
+		Bound.vecMin() -= Imath::V3f(db);
 	}
 
 	// Check if the surface can be culled. (also adjusts for DOF and converts Bound to raster space).
@@ -405,10 +405,10 @@ void CqImageBuffer::PostSurface( const boost::shared_ptr<CqSurface>& pSurface )
 	TqInt YMaxb = 0;
 	if (! pSurface->IsUndiceable() )
 	{
-		XMinb = static_cast<TqInt>( Bound.vecMin().x() ) / m_optCache.xBucketSize;
-		YMinb = static_cast<TqInt>( Bound.vecMin().y() ) / m_optCache.yBucketSize;
-		XMaxb = static_cast<TqInt>( Bound.vecMax().x() ) / m_optCache.xBucketSize;
-		YMaxb = static_cast<TqInt>( Bound.vecMax().y() ) / m_optCache.yBucketSize;
+		XMinb = static_cast<TqInt>( Bound.vecMin().x ) / m_optCache.xBucketSize;
+		YMinb = static_cast<TqInt>( Bound.vecMin().y ) / m_optCache.yBucketSize;
+		XMaxb = static_cast<TqInt>( Bound.vecMax().x ) / m_optCache.xBucketSize;
+		YMaxb = static_cast<TqInt>( Bound.vecMax().y ) / m_optCache.yBucketSize;
 	}
 	XMinb = clamp( XMinb, m_bucketRegion.xMin(), m_bucketRegion.xMax()-1 );
 	YMinb = clamp( YMinb, m_bucketRegion.yMin(), m_bucketRegion.yMax()-1 );
@@ -459,7 +459,7 @@ void CqImageBuffer::RepostSurface(const CqBucket& oldBucket,
 	TqInt nextBucketX = oldBucket.getCol() + 1;
 	TqInt nextBucketY = oldBucket.getRow();
 	TqInt xpos = oldBucket.getXPosition() + oldBucket.getXSize();
-	if ( nextBucketX < m_bucketRegion.xMax() && rasterBound.vecMax().x() >= xpos )
+	if ( nextBucketX < m_bucketRegion.xMax() && rasterBound.vecMax().x >= xpos )
 	{
 		Bucket( nextBucketX, nextBucketY ).AddGPrim( surface );
 		wasPosted = true;
@@ -470,12 +470,12 @@ void CqImageBuffer::RepostSurface(const CqBucket& oldBucket,
 		++nextBucketY;
 		// find bucket containing left side of bound
 		nextBucketX = max<TqInt>(m_bucketRegion.xMin(),
-				lfloor(rasterBound.vecMin().x())/m_optCache.xBucketSize);
+				lfloor(rasterBound.vecMin().x)/m_optCache.xBucketSize);
 		TqInt ypos = oldBucket.getYPosition() + oldBucket.getYSize();
 
 		if ( ( nextBucketX < m_bucketRegion.xMax() ) &&
 			( nextBucketY  < m_bucketRegion.yMax() ) &&
-			( rasterBound.vecMax().y() >= ypos ) )
+			( rasterBound.vecMax().y >= ypos ) )
 		{
 			Bucket( nextBucketX, nextBucketY ).AddGPrim( surface );
 			wasPosted = true;
@@ -521,19 +521,19 @@ void CqImageBuffer::AddMPG( boost::shared_ptr<CqMicroPolygon>& pmpgNew )
 	{
 		// Get the maximum CoC multiplier for the micropolygon depth.
 		const Imath::V2f maxCoC = max(
-			renderContext->GetCircleOfConfusion(B.vecMin().z()),
-			renderContext->GetCircleOfConfusion(B.vecMax().z())
+			renderContext->GetCircleOfConfusion(B.vecMin().z),
+			renderContext->GetCircleOfConfusion(B.vecMax().z)
 		);
 		// Expand the bound by the CoC radius
-		B.vecMin() -= vectorCast<CqVector3D>(maxCoC);
-		B.vecMax() += vectorCast<CqVector3D>(maxCoC);
+		B.vecMin() -= vectorCast<Imath::V3f>(maxCoC);
+		B.vecMax() += vectorCast<Imath::V3f>(maxCoC);
 	}
 
 	// Discard when outside the crop window.
-	if ( B.vecMax().x() < renderContext->cropWindowXMin() - m_optCache.xFiltSize / 2.0f ||
-	     B.vecMax().y() < renderContext->cropWindowYMin() - m_optCache.yFiltSize / 2.0f ||
-	     B.vecMin().x() > renderContext->cropWindowXMax() + m_optCache.xFiltSize / 2.0f ||
-	     B.vecMin().y() > renderContext->cropWindowYMax() + m_optCache.yFiltSize / 2.0f )
+	if ( B.vecMax().x < renderContext->cropWindowXMin() - m_optCache.xFiltSize / 2.0f ||
+	     B.vecMax().y < renderContext->cropWindowYMin() - m_optCache.yFiltSize / 2.0f ||
+	     B.vecMin().x > renderContext->cropWindowXMax() + m_optCache.xFiltSize / 2.0f ||
+	     B.vecMin().y > renderContext->cropWindowYMax() + m_optCache.yFiltSize / 2.0f )
 	{
 		return;
 	}
@@ -548,15 +548,15 @@ void CqImageBuffer::AddMPG( boost::shared_ptr<CqMicroPolygon>& pmpgNew )
 
 	// Find out the minimum bucket touched by the micropoly bound.
 
-	B.vecMin().x( B.vecMin().x() - (lfloor(m_optCache.xFiltSize / 2.0f)) );
-	B.vecMin().y( B.vecMin().y() - (lfloor(m_optCache.yFiltSize / 2.0f)) );
-	B.vecMax().x( B.vecMax().x() + (lfloor(m_optCache.xFiltSize / 2.0f)) );
-	B.vecMax().y( B.vecMax().y() + (lfloor(m_optCache.yFiltSize / 2.0f)) );
+	B.vecMin().x = B.vecMin().x - (lfloor(m_optCache.xFiltSize / 2.0f));
+	B.vecMin().y = B.vecMin().y - (lfloor(m_optCache.yFiltSize / 2.0f));
+	B.vecMax().x = B.vecMax().x + (lfloor(m_optCache.xFiltSize / 2.0f));
+	B.vecMax().y = B.vecMax().y + (lfloor(m_optCache.yFiltSize / 2.0f));
 
-	TqInt iXBa = static_cast<TqInt>( B.vecMin().x() / m_optCache.xBucketSize );
-	TqInt iYBa = static_cast<TqInt>( B.vecMin().y() / m_optCache.yBucketSize );
-	TqInt iXBb = static_cast<TqInt>( B.vecMax().x() / m_optCache.xBucketSize );
-	TqInt iYBb = static_cast<TqInt>( B.vecMax().y() / m_optCache.yBucketSize );
+	TqInt iXBa = static_cast<TqInt>( B.vecMin().x / m_optCache.xBucketSize );
+	TqInt iYBa = static_cast<TqInt>( B.vecMin().y / m_optCache.yBucketSize );
+	TqInt iXBb = static_cast<TqInt>( B.vecMax().x / m_optCache.xBucketSize );
+	TqInt iYBb = static_cast<TqInt>( B.vecMax().y / m_optCache.yBucketSize );
 
 	if ( ( iXBb < m_bucketRegion.xMin() ) || ( iYBb < m_bucketRegion.yMin() ) ||
 	        ( iXBa >= m_bucketRegion.xMax() ) || ( iYBa >= m_bucketRegion.yMax() ) )

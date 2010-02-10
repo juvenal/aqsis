@@ -429,7 +429,7 @@ static void AddShaderVar( IqShaderData * shaderVar,
 				break;
 				case type_point:
 				{
-					CqVector3D	aCqVector3D;
+					Imath::V3f	aCqVector3D;
 					RtPoint	aRtPoint;
 					slxType = SLX_TYPE_POINT;
 					if ( !shaderVar->isArray() )
@@ -469,7 +469,7 @@ static void AddShaderVar( IqShaderData * shaderVar,
 				break;
 				case type_normal:
 				{
-					CqVector3D	aCqVector3D;
+					Imath::V3f	aCqVector3D;
 					RtPoint	aRtPoint;
 					slxType = SLX_TYPE_NORMAL;
 					if ( !shaderVar->isArray() )
@@ -509,7 +509,7 @@ static void AddShaderVar( IqShaderData * shaderVar,
 				break;
 				case type_vector:
 				{
-					CqVector3D	aCqVector3D;
+					Imath::V3f	aCqVector3D;
 					RtPoint	aRtPoint;
 					slxType = SLX_TYPE_VECTOR;
 					if ( !shaderVar->isArray() )

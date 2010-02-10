@@ -98,13 +98,13 @@ class CqShadowSampler::CqShadowView
 		 * This is used to determine how visible the point being shadowed is
 		 * in relation to this view.
 		 */
-		CqVector3D m_viewDirec;
+		Imath::V3f m_viewDirec;
 		/** \brief point of origin of the lightsource in "current" space.
 		 *
 		 * This is used to transform the point being shaded to calculate
 		 * how visible it is to this light view.
 		 */
-		CqVector3D m_lightPos;
+		Imath::V3f m_lightPos;
 		/// Pixel data for shadow map.
 		CqTileArray<TqFloat> m_pixels;
 
@@ -162,12 +162,12 @@ class CqShadowSampler::CqShadowView
 			// addition, the direction of increase of the y-axis should be
 			// swapped, since texture coordinates define the origin to be in
 			// the top left of the texture rather than the bottom right.
-			m_currToRaster.Translate(CqVector3D(1,-1,0));
+			m_currToRaster.Translate(Imath::V3f(1,-1,0));
 			m_currToRaster.Scale(0.5f, -0.5f, 1);
 
 			// Transform the light origin to "current" space to use
 			// when checking the visibility of a point.
-			m_lightPos = m_currToLight.Inverse()*CqVector3D(0,0,0);
+			m_lightPos = m_currToLight.Inverse()*Imath::V3f(0,0,0);
 			// Transform the normal (0,0,1) in light space into a normal in
 			// "current" space.  The appropriate matrix is the inverse of the
 			// cam -> light normal transformation, which itself is the inverse
@@ -176,8 +176,8 @@ class CqShadowSampler::CqShadowView
 			currToLightVec[3][0] = 0;
 			currToLightVec[3][1] = 0;
 			currToLightVec[3][2] = 0;
-			m_viewDirec = currToLightVec.Transpose()*CqVector3D(0,0,1);
-			m_viewDirec.Unit();
+			m_viewDirec = currToLightVec.Transpose()*Imath::V3f(0,0,1);
+			m_viewDirec.normalize();
 		}
 
 		/** \brief Visibility of the specified point to the lightsource.
@@ -189,9 +189,9 @@ class CqShadowSampler::CqShadowView
 		 *
 		 * \param P - point being shaded in "current" coordinates.
 		 */
-		TqFloat weight(const CqVector3D& P)
+		TqFloat weight(const Imath::V3f& P)
 		{
-			return m_viewDirec*(P-m_lightPos);
+			return m_viewDirec.dot(P-m_lightPos);
 		}
 
 		/** \brief Compute occlusion from the current view direction to the
@@ -240,7 +240,7 @@ class CqShadowSampler::CqShadowView
 				if(sampleOpts.depthApprox() == DApprox_Constant)
 				{
 					// Functor which approximates the surface depth using a constant.
-					CqConstDepthApprox depthFunc(quadLightCoord.center().z());
+					CqConstDepthApprox depthFunc(quadLightCoord.center().z);
 					applyPCF(m_pixels, sampleOpts, support, ewaWeights, depthFunc, outSamps);
 				}
 				else
@@ -293,7 +293,7 @@ void CqShadowSampler::sample(const Sq3DSampleQuad& sampleQuad,
 	{
 		// Get the center of the sample region, we'll use
 		// this to determine which is the best view to use.
-		CqVector3D PC = sampleQuad.center();
+		Imath::V3f PC = sampleQuad.center();
 
 		// Choose the shadow view that sees the point most clearly,
 		// the more the point is in the periphery of a view, the

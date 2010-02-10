@@ -172,8 +172,8 @@ IqTextureMapOld* CqTextureMapOld::GetEnvironmentMap( const CqString& strName )
  * Filtering is done using swidth, twidth and nsamples.
  */
 
-void CqEnvironmentMapOld::SampleMap( CqVector3D& R1,
-                                  CqVector3D& swidth, CqVector3D& twidth,
+void CqEnvironmentMapOld::SampleMap( Imath::V3f& R1,
+                                  Imath::V3f& swidth, Imath::V3f& twidth,
                                   std::valarray<TqFloat>& val, TqInt index,
                                   TqFloat* average_depth, TqFloat* shadow_depth )
 {
@@ -185,7 +185,7 @@ void CqEnvironmentMapOld::SampleMap( CqVector3D& R1,
 
 		if ( Type() != MapType_LatLong )
 		{
-			CqVector3D	R2, R3, R4;
+			Imath::V3f	R2, R3, R4;
 			R2 = R1 + swidth;
 			R3 = R1 + twidth;
 			R4 = R1 + swidth + twidth;
@@ -193,14 +193,14 @@ void CqEnvironmentMapOld::SampleMap( CqVector3D& R1,
 		}
 		else if ( Type() == MapType_LatLong )
 		{
-			CqVector3D V = R1;
-			V.Unit();
-			TqFloat sswidth = swidth.Magnitude();
-			TqFloat stwidth = twidth.Magnitude();
+			Imath::V3f V = R1;
+			V.normalize();
+			TqFloat sswidth = swidth.length();
+			TqFloat stwidth = twidth.length();
 
-			TqFloat ss1 = atan2( V.y(), V.x() ) / ( 2.0 * RI_PI );  // -.5 -> .5
+			TqFloat ss1 = atan2( V.y, V.x ) / ( 2.0 * RI_PI );  // -.5 -> .5
 			ss1 = ss1 + 0.5; // remaps to 0 -> 1
-			TqFloat tt1 = acos( V.z() ) / RI_PI;
+			TqFloat tt1 = acos( V.z ) / RI_PI;
 
 			CqTextureMapOld::SampleMap( ss1, tt1, sswidth/RI_PI, stwidth/RI_PI, val );
 		}

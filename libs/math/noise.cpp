@@ -103,29 +103,29 @@ TqFloat CqNoise::FGPNoise2( TqFloat x, TqFloat y, TqFloat pfx, TqFloat pfy )
 //---------------------------------------------------------------------
 /** 3D float Perlin noise.
  */
-TqFloat	CqNoise::FGNoise3( const CqVector3D& v )
+TqFloat	CqNoise::FGNoise3( const Imath::V3f& v )
 {
 	TqFloat x, y, z;
-	x = v.x();
-	y = v.y();
-	z = v.z();
+	x = v.x;
+	y = v.y;
+	z = v.z;
 	return ( 0.5f * ( 1.0f + CqNoise1234::noise( x, y, z ) ) );
 }
 
 //---------------------------------------------------------------------
 /** 3D float Perlin periodic noise.
  */
-TqFloat	CqNoise::FGPNoise3( const CqVector3D& v, const CqVector3D& pv )
+TqFloat	CqNoise::FGPNoise3( const Imath::V3f& v, const Imath::V3f& pv )
 {
 	TqFloat x, y, z;
 	TqFloat pfx, pfy, pfz;
 	TqInt px, py, pz;
-	x = v.x();
-	y = v.y();
-	z = v.z();
-	pfx = pv.x() + 0.5f; // Temp variables to avoid having the FASTFLOOR() macro
-	pfy = pv.y() + 0.5f; // expand to something that is difficult to optimise.
-	pfz = pv.z() + 0.5f; // (An inline function fastfloor() would be nicer.)
+	x = v.x;
+	y = v.y;
+	z = v.z;
+	pfx = pv.x + 0.5f; // Temp variables to avoid having the FASTFLOOR() macro
+	pfy = pv.y + 0.5f; // expand to something that is difficult to optimise.
+	pfz = pv.z + 0.5f; // (An inline function fastfloor() would be nicer.)
 	px = FASTFLOOR( pfx );
 	py = FASTFLOOR( pfy );
 	pz = FASTFLOOR( pfz );
@@ -135,29 +135,29 @@ TqFloat	CqNoise::FGPNoise3( const CqVector3D& v, const CqVector3D& pv )
 //---------------------------------------------------------------------
 /** 4D float Perlin noise.
  */
-TqFloat	CqNoise::FGNoise4( const CqVector3D& v, TqFloat t )
+TqFloat	CqNoise::FGNoise4( const Imath::V3f& v, TqFloat t )
 {
 	TqFloat x, y, z;
-	x = v.x();
-	y = v.y();
-	z = v.z();
+	x = v.x;
+	y = v.y;
+	z = v.z;
 	return ( 0.5f * ( 1.0f + CqNoise1234::noise( x, y, z, t ) ) );
 }
 
 //---------------------------------------------------------------------
 /** 4D float Perlin periodic noise.
  */
-TqFloat	CqNoise::FGPNoise4( const CqVector3D& v, TqFloat t, const CqVector3D& pv, TqFloat pft )
+TqFloat	CqNoise::FGPNoise4( const Imath::V3f& v, TqFloat t, const Imath::V3f& pv, TqFloat pft )
 {
 	TqFloat x, y, z;
 	TqFloat pfx, pfy, pfz;
 	TqInt px, py, pz, pt;
-	x = v.x();
-	y = v.y();
-	z = v.z();
-	pfx = pv.x() + 0.5f; // Temp variables to avoid having the FASTFLOOR() macro
-	pfy = pv.y() + 0.5f; // expand to something that is difficult to optimise.
-	pfz = pv.z() + 0.5f;
+	x = v.x;
+	y = v.y;
+	z = v.z;
+	pfx = pv.x + 0.5f; // Temp variables to avoid having the FASTFLOOR() macro
+	pfy = pv.y + 0.5f; // expand to something that is difficult to optimise.
+	pfz = pv.z + 0.5f;
 	pft = pft + 0.5f;
 	px = FASTFLOOR( pfx );
 	py = FASTFLOOR( pfy );
@@ -169,19 +169,19 @@ TqFloat	CqNoise::FGPNoise4( const CqVector3D& v, TqFloat t, const CqVector3D& pv
 //---------------------------------------------------------------------
 /** Vector-valued 1D Perlin noise.
  */
-CqVector3D CqNoise::PGNoise1( TqFloat x )
+Imath::V3f CqNoise::PGNoise1( TqFloat x )
 {
 	TqFloat a, b, c;
 	a = 0.5f * ( 1.0f + CqNoise1234::noise( x ) );
 	b = 0.5f * ( 1.0f + CqNoise1234::noise( x + O1x ) );
 	c = 0.5f * ( 1.0f + CqNoise1234::noise( x + O2x ) );
-	return ( CqVector3D( a, b, c ) );
+	return ( Imath::V3f( a, b, c ) );
 }
 
 //---------------------------------------------------------------------
 /** Vector-valued 1D Perlin periodic noise.
  */
-CqVector3D CqNoise::PGPNoise1( TqFloat x, TqFloat pfx )
+Imath::V3f CqNoise::PGPNoise1( TqFloat x, TqFloat pfx )
 {
 	TqFloat a, b, c;
 	TqInt px;
@@ -190,25 +190,25 @@ CqVector3D CqNoise::PGPNoise1( TqFloat x, TqFloat pfx )
 	a = 0.5f * ( 1.0f + CqNoise1234::pnoise( x, px ) );
 	b = 0.5f * ( 1.0f + CqNoise1234::pnoise( x + O1x, px ) );
 	c = 0.5f * ( 1.0f + CqNoise1234::pnoise( x + O2x, px ) );
-	return ( CqVector3D( a, b, c ) );
+	return ( Imath::V3f( a, b, c ) );
 }
 
 //---------------------------------------------------------------------
 /** Vector-valued 2D Perlin noise.
  */
-CqVector3D CqNoise::PGNoise2( TqFloat x, TqFloat y )
+Imath::V3f CqNoise::PGNoise2( TqFloat x, TqFloat y )
 {
 	TqFloat a, b, c;
 	a = 0.5f * ( 1.0f + CqNoise1234::noise( x, y ) );
 	b = 0.5f * ( 1.0f + CqNoise1234::noise( x + O1x, y + O1y ) );
 	c = 0.5f * ( 1.0f + CqNoise1234::noise( x + O2x, y + O2y ) );
-	return ( CqVector3D( a, b, c ) );
+	return ( Imath::V3f( a, b, c ) );
 }
 
 //---------------------------------------------------------------------
 /** Vector-valued 2D Perlin periodic noise.
  */
-CqVector3D CqNoise::PGPNoise2( TqFloat x, TqFloat y, TqFloat pfx, TqFloat pfy )
+Imath::V3f CqNoise::PGPNoise2( TqFloat x, TqFloat y, TqFloat pfx, TqFloat pfy )
 {
 	TqInt px, py;
 	TqFloat a, b, c;
@@ -219,80 +219,80 @@ CqVector3D CqNoise::PGPNoise2( TqFloat x, TqFloat y, TqFloat pfx, TqFloat pfy )
 	a = 0.5f * ( 1.0f + CqNoise1234::pnoise( x, y, px, py ) );
 	b = 0.5f * ( 1.0f + CqNoise1234::pnoise( x + O1x, y + O1y, px, py ) );
 	c = 0.5f * ( 1.0f + CqNoise1234::pnoise( x + O2x, y + O2y, px, py ) );
-	return ( CqVector3D( a, b, c ) );
+	return ( Imath::V3f( a, b, c ) );
 }
 
 //---------------------------------------------------------------------
 /** Vector-valued 3D Perlin noise.
  */
-CqVector3D CqNoise::PGNoise3( const CqVector3D& v )
+Imath::V3f CqNoise::PGNoise3( const Imath::V3f& v )
 {
 	TqFloat x, y, z;
 	TqFloat a, b, c;
-	x = v.x();
-	y = v.y();
-	z = v.z();
+	x = v.x;
+	y = v.y;
+	z = v.z;
 	a = 0.5f * ( 1.0f + CqNoise1234::noise( x, y, z ) );
 	b = 0.5f * ( 1.0f + CqNoise1234::noise( x + O1x, y + O1y, z + O1z ) );
 	c = 0.5f * ( 1.0f + CqNoise1234::noise( x + O2x, y + O2y, z + O2z ) );
-	return ( CqVector3D( a, b, c ) );
+	return ( Imath::V3f( a, b, c ) );
 }
 
 //---------------------------------------------------------------------
 /** Vector-valued 3D Perlin periodic noise.
  */
-CqVector3D CqNoise::PGPNoise3( const CqVector3D& v, const CqVector3D& pv )
+Imath::V3f CqNoise::PGPNoise3( const Imath::V3f& v, const Imath::V3f& pv )
 {
 	TqFloat x, y, z;
 	TqFloat a, b, c;
 	TqFloat pfx, pfy, pfz;
 	TqInt px, py, pz;
-	x = v.x();
-	y = v.y();
-	z = v.z();
-	pfx = pv.x() + 0.5f; // Temp variables to avoid having the FASTFLOOR() macro
-	pfy = pv.y() + 0.5f; // expand to something that is difficult to optimise.
-	pfz = pv.z() + 0.5f; // This might seem stupid, but it *is* actually faster.
+	x = v.x;
+	y = v.y;
+	z = v.z;
+	pfx = pv.x + 0.5f; // Temp variables to avoid having the FASTFLOOR() macro
+	pfy = pv.y + 0.5f; // expand to something that is difficult to optimise.
+	pfz = pv.z + 0.5f; // This might seem stupid, but it *is* actually faster.
 	px = FASTFLOOR(pfx);
 	py = FASTFLOOR(pfy);
 	pz = FASTFLOOR(pfz);
 	a = 0.5f * ( 1.0f + CqNoise1234::pnoise( x, y, z, px, py, pz ) );
 	b = 0.5f * ( 1.0f + CqNoise1234::pnoise( x + O1x, y + O1y, z + O1z, px, py, pz ) );
 	c = 0.5f * ( 1.0f + CqNoise1234::pnoise( x + O2x, y + O2y, z + O2z, px, py, pz ) );
-	return ( CqVector3D ( a, b, c ) );
+	return ( Imath::V3f ( a, b, c ) );
 }
 
 //---------------------------------------------------------------------
 /** Vector-valued 4D Perlin noise.
  */
-CqVector3D CqNoise::PGNoise4( const CqVector3D& v, TqFloat t )
+Imath::V3f CqNoise::PGNoise4( const Imath::V3f& v, TqFloat t )
 {
 	TqFloat x, y, z;
 	TqFloat a, b, c;
-	x = v.x();
-	y = v.y();
-	z = v.z();
+	x = v.x;
+	y = v.y;
+	z = v.z;
 	a = 0.5f * ( 1.0f + CqNoise1234::noise( x, y, z, t ) );
 	b = 0.5f * ( 1.0f + CqNoise1234::noise( x + O1x, y + O1y, z + O1z, t + O1t ) );
 	c = 0.5f * ( 1.0f + CqNoise1234::noise( x + O2x, y + O2y, z + O2z, t + O2t ) );
-	return ( CqVector3D( a, b, c ) );
+	return ( Imath::V3f( a, b, c ) );
 }
 
 //---------------------------------------------------------------------
 /** Vector-valued 4D Perlin periodic noise.
  */
-CqVector3D	CqNoise::PGPNoise4( const CqVector3D& v, TqFloat t, const CqVector3D& pv, TqFloat pft )
+Imath::V3f	CqNoise::PGPNoise4( const Imath::V3f& v, TqFloat t, const Imath::V3f& pv, TqFloat pft )
 {
 	TqFloat x, y, z;
 	TqFloat a, b, c;
 	TqFloat pfx, pfy, pfz;
 	TqInt px, py, pz, pt;
-	x = v.x();
-	y = v.y();
-	z = v.z();
-	pfx = pv.x() + 0.5f; // Temp variables to avoid having the FASTFLOOR() macro
-	pfy = pv.y() + 0.5f; // expand to something that is difficult to optimise.
-	pfz = pv.z() + 0.5f;
+	x = v.x;
+	y = v.y;
+	z = v.z;
+	pfx = pv.x + 0.5f; // Temp variables to avoid having the FASTFLOOR() macro
+	pfy = pv.y + 0.5f; // expand to something that is difficult to optimise.
+	pfz = pv.z + 0.5f;
 	pft = pft + 0.5f;
 	px = FASTFLOOR( pfx );
 	py = FASTFLOOR( pfy );
@@ -301,7 +301,7 @@ CqVector3D	CqNoise::PGPNoise4( const CqVector3D& v, TqFloat t, const CqVector3D&
 	a = 0.5f * ( 1.0f + CqNoise1234::pnoise( x, y, z, t, px, py, pz, pt ) );
 	b = 0.5f * ( 1.0f + CqNoise1234::pnoise( x + O1x, y + O1y, z + O1z, t + O1t, px, py, pz, pt ) );
 	c = 0.5f * ( 1.0f + CqNoise1234::pnoise( x + O2x, y + O2y, z + O2z, t + O2t, px, py, pz, pt ) );
-	return ( CqVector3D( a, b, c ) );
+	return ( Imath::V3f( a, b, c ) );
 }
 
 
@@ -346,7 +346,7 @@ CqColor	CqNoise::CGPNoise2( TqFloat x, TqFloat y, TqFloat px, TqFloat py )
 //---------------------------------------------------------------------
 /** Color-valued 3D Perlin noise.
  */
-CqColor	CqNoise::CGNoise3( const CqVector3D& v )
+CqColor	CqNoise::CGNoise3( const Imath::V3f& v )
 {
 	return vectorCast<CqColor>( PGNoise3( v ) );
 }
@@ -354,7 +354,7 @@ CqColor	CqNoise::CGNoise3( const CqVector3D& v )
 //---------------------------------------------------------------------
 /** Color-valued 3D Perlin periodic noise.
  */
-CqColor	CqNoise::CGPNoise3( const CqVector3D& v, const CqVector3D& pv )
+CqColor	CqNoise::CGPNoise3( const Imath::V3f& v, const Imath::V3f& pv )
 {
 	return vectorCast<CqColor>( PGPNoise3( v, pv ) );
 }
@@ -362,7 +362,7 @@ CqColor	CqNoise::CGPNoise3( const CqVector3D& v, const CqVector3D& pv )
 //---------------------------------------------------------------------
 /** Color-valued 4D Perlin noise.
  */
-CqColor	CqNoise::CGNoise4( const CqVector3D& v, TqFloat t )
+CqColor	CqNoise::CGNoise4( const Imath::V3f& v, TqFloat t )
 {
 	return vectorCast<CqColor>( PGNoise4( v, t ) );
 }
@@ -370,7 +370,7 @@ CqColor	CqNoise::CGNoise4( const CqVector3D& v, TqFloat t )
 //---------------------------------------------------------------------
 /** Color-valued 4D Perlin periodic noise.
  */
-CqColor	CqNoise::CGPNoise4( const CqVector3D& v, TqFloat t, const CqVector3D& pv, TqFloat pt )
+CqColor	CqNoise::CGPNoise4( const Imath::V3f& v, TqFloat t, const Imath::V3f& pv, TqFloat pt )
 {
 	return vectorCast<CqColor>( PGPNoise4( v, t, pv, pt ) );
 }

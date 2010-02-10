@@ -263,15 +263,15 @@ class CqSurfacePatchMeshBicubic : public CqSurface
 		}
 		virtual CqSurface* Clone() const;
 
-		virtual CqVector3D	SurfaceParametersAtVertex( TqInt index )
+		virtual Imath::V3f	SurfaceParametersAtVertex( TqInt index )
 		{
-			CqVector3D	vec( 0, 0, 0 );
+			Imath::V3f	vec( 0, 0, 0 );
 			TqFloat u = static_cast<TqFloat>( index % m_nu );
 			u /= ( m_nu - 1 );
 			TqFloat v = static_cast<TqFloat>( index / m_nu );
 			v /= ( m_nv - 1 );
-			vec.x( u );
-			vec.y( v );
+			vec.x = u;
+			vec.y = v;
 			return ( vec );
 		}
 
@@ -362,15 +362,15 @@ class CqSurfacePatchMeshBilinear : public CqSurface
 		}
 		virtual CqSurface* Clone() const;
 
-		virtual CqVector3D	SurfaceParametersAtVertex( TqInt index )
+		virtual Imath::V3f	SurfaceParametersAtVertex( TqInt index )
 		{
-			CqVector3D	vec( 0, 0, 0 );
+			Imath::V3f	vec( 0, 0, 0 );
 			TqFloat u = static_cast<TqFloat>( index % m_nu );
 			u /= ( m_nu - 1 );
 			TqFloat v = static_cast<TqFloat>( index / m_nu );
 			v /= ( m_nv - 1 );
-			vec.x( u );
-			vec.y( v );
+			vec.x = u;
+			vec.y = v;
 			return ( vec );
 		}
 

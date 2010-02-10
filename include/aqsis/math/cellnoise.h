@@ -49,13 +49,13 @@ class AQSIS_MATH_SHARE CqCellNoise
 
 		TqFloat	FCellNoise1( TqFloat u );
 		TqFloat	FCellNoise2( TqFloat u, TqFloat v );
-		TqFloat	FCellNoise3( const CqVector3D& P );
-		TqFloat	FCellNoise4( const CqVector3D& P, TqFloat v );
+		TqFloat	FCellNoise3( const Imath::V3f& P );
+		TqFloat	FCellNoise4( const Imath::V3f& P, TqFloat v );
 
-		CqVector3D	PCellNoise1( TqFloat u );
-		CqVector3D	PCellNoise2( TqFloat u, TqFloat v );
-		CqVector3D	PCellNoise3( const CqVector3D& P );
-		CqVector3D	PCellNoise4( const CqVector3D& P, TqFloat v );
+		Imath::V3f	PCellNoise1( TqFloat u );
+		Imath::V3f	PCellNoise2( TqFloat u, TqFloat v );
+		Imath::V3f	PCellNoise3( const Imath::V3f& P );
+		Imath::V3f	PCellNoise4( const Imath::V3f& P, TqFloat v );
 
 	private:
 		static TqInt	m_PermuteTable[ 2*2048 ];		///< static permutation table.

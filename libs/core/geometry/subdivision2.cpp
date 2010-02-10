@@ -169,7 +169,7 @@ void CqSubdivision2::Prepare(TqInt cVerts)
 	m_fFinalised=false;
 }
 
-CqVector3D CqSubdivision2::limitPoint(CqLath* vert)
+Imath::V3f CqSubdivision2::limitPoint(CqLath* vert)
 {
 	// To compute the limit point, we make use of a limit mask for
 	// Catmull-Clark subdivision.  For the standard Catmull-Clark scheme this
@@ -196,7 +196,7 @@ CqVector3D CqSubdivision2::limitPoint(CqLath* vert)
 	// * For sharp corners the vertex is stationary under subdivision so this
 	//   case is trivial.
 
-	const CqVector3D vPos = vectorCast<CqVector3D>(
+	const Imath::V3f vPos = vectorCast<Imath::V3f>(
 			pPoints()->P()->pValue()[vert->VertexIndex()]);
 
 	// Sharp corners don't move under subdivision; just return them.
@@ -284,15 +284,15 @@ CqVector3D CqSubdivision2::limitPoint(CqLath* vert)
 		const CqLath* v = vert;
 		while(v->cv())
 			v = v->cv();
-		CqVector3D edgeSum = vectorCast<CqVector3D>(P[v->ccf()->VertexIndex()]);
+		Imath::V3f edgeSum = vectorCast<Imath::V3f>(P[v->ccf()->VertexIndex()]);
 
 		// get anticlocwise edge vertex, e2
 		v = vert;
 		while(v->ccv())
 			v = v->ccv();
-		edgeSum += vectorCast<CqVector3D>(P[v->cf()->VertexIndex()]);
+		edgeSum += vectorCast<Imath::V3f>(P[v->cf()->VertexIndex()]);
 
-		return (4.0/6)*vPos + (1.0/6)*edgeSum;
+		return vPos*(4.0/6) + edgeSum*(1.0/6);
 	}
 	else
 	{
@@ -346,40 +346,40 @@ CqVector3D CqSubdivision2::limitPoint(CqLath* vert)
 		//
 
 		const CqLath* faceVert = vert;
-		CqVector3D eSum;
-		CqVector3D fSum;
+		Imath::V3f eSum(0);
+		Imath::V3f fSum(0);
 		TqInt numEdges = 0;
 		do
 		{
 			// Add edge onto edge sum.
 			const CqLath* const e = faceVert->cf();
-			eSum += vectorCast<CqVector3D>(P[e->VertexIndex()]);
+			eSum += vectorCast<Imath::V3f>(P[e->VertexIndex()]);
 			// Add up remaining face verts.  For a quad mesh there will only be
 			// one of these.
 			// Add face vert to face sum.
 			const CqLath* f = e->cf();
 			if(f->cf()->cf() == faceVert)
 			{
-				fSum += vectorCast<CqVector3D>(P[f->VertexIndex()]);
+				fSum += vectorCast<Imath::V3f>(P[f->VertexIndex()]);
 			}
 			else
 			{
 				// This is the special case of a non-quadrilateral face.  As
 				// described abeove, we need to compute the sum of the
 				// additional vertices.
-				CqVector3D gSum;
+				Imath::V3f gSum(0);
 				TqInt numVerts = 3;
 				const CqLath* const eNext = faceVert->ccf();
 				while(f != eNext)
 				{
-					gSum += vectorCast<CqVector3D>(P[f->VertexIndex()]);
+					gSum += vectorCast<Imath::V3f>(P[f->VertexIndex()]);
 					++numVerts;
 					f = f->cf();
 				}
-				fSum += (4.0/numVerts - 1) * ( vPos
-						+ vectorCast<CqVector3D>(P[e->VertexIndex()])
-						+ vectorCast<CqVector3D>(P[eNext->VertexIndex()]) )
-					+ 4.0/numVerts*gSum;
+				fSum += ( vPos
+						+ vectorCast<Imath::V3f>(P[e->VertexIndex()])
+						+ vectorCast<Imath::V3f>(P[eNext->VertexIndex()]) ) * (4.0/numVerts - 1) 
+					+ gSum*4.0/numVerts;
 			}
 
 			faceVert = faceVert->cv();
@@ -387,7 +387,7 @@ CqVector3D CqSubdivision2::limitPoint(CqLath* vert)
 		}
 		while(faceVert != vert);
 
-		return 1.0/(numEdges*(numEdges+5)) * (numEdges*numEdges*vPos + 4*eSum + fSum);
+		return (vPos*numEdges*numEdges + eSum*4 + fSum) * 1.0/(numEdges*(numEdges+5));
 	}
 }
 
@@ -768,13 +768,13 @@ void CqSubdivision2::AddVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFVIndex)
 				case type_point:
 				case type_normal:
 				case type_vector:
-					CreateVertex<CqVector3D, CqVector3D>(*iUP, pVertex, iIndex);
+					CreateVertex<Imath::V3f, Imath::V3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_color:
 					CreateVertex<CqColor, CqColor>(*iUP, pVertex, iIndex);
 					break;
 				case type_hpoint:
-					CreateVertex<CqVector4D, CqVector3D>(*iUP, pVertex, iIndex);
+					CreateVertex<CqVector4D, Imath::V3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_string:
 					//CreateVertex<CqString, CqString>(*iUP, pVertex, iIndex);
@@ -847,13 +847,13 @@ void CqSubdivision2::DuplicateVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFV
 				case type_point:
 				case type_normal:
 				case type_vector:
-					DuplicateVertex<CqVector3D, CqVector3D>(*iUP, pVertex, iIndex);
+					DuplicateVertex<Imath::V3f, Imath::V3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_color:
 					DuplicateVertex<CqColor, CqColor>(*iUP, pVertex, iIndex);
 					break;
 				case type_hpoint:
-					DuplicateVertex<CqVector4D, CqVector3D>(*iUP, pVertex, iIndex);
+					DuplicateVertex<CqVector4D, Imath::V3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_string:
 					//DuplicateVertex<CqString, CqString>(*iUP, pVertex, iIndex);
@@ -1012,13 +1012,13 @@ void CqSubdivision2::AddEdgeVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFVIn
 				case type_point:
 				case type_normal:
 				case type_vector:
-					CreateEdgeVertex<CqVector3D, CqVector3D>(*iUP, pVertex, iIndex);
+					CreateEdgeVertex<Imath::V3f, Imath::V3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_color:
 					CreateEdgeVertex<CqColor, CqColor>(*iUP, pVertex, iIndex);
 					break;
 				case type_hpoint:
-					CreateEdgeVertex<CqVector4D, CqVector3D>(*iUP, pVertex, iIndex);
+					CreateEdgeVertex<CqVector4D, Imath::V3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_string:
 					//CreateEdgeVertex<CqString, CqString>(*iUP, pVertex, iIndex);
@@ -1116,13 +1116,13 @@ void CqSubdivision2::AddFaceVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFVIn
 				case type_point:
 				case type_normal:
 				case type_vector:
-					CreateFaceVertex<CqVector3D, CqVector3D>(*iUP, pVertex, iIndex );
+					CreateFaceVertex<Imath::V3f, Imath::V3f>(*iUP, pVertex, iIndex );
 					break;
 				case type_color:
 					CreateFaceVertex<CqColor, CqColor>(*iUP, pVertex, iIndex );
 					break;
 				case type_hpoint:
-					CreateFaceVertex<CqVector4D, CqVector3D>(*iUP, pVertex, iIndex );
+					CreateFaceVertex<CqVector4D, Imath::V3f>(*iUP, pVertex, iIndex );
 					break;
 				case type_string:
 					//CreateFaceVertex<CqString, CqString>(*iUP, pVertex, iIndex );
@@ -1672,8 +1672,8 @@ void CqSubdivision2::OutputMesh(const char* fname, std::vector<CqLath*>* paFaces
 	TqInt i;
 	for( i = 0; i < cVertices(); i++ )
 	{
-		CqVector3D vec = vectorCast<CqVector3D>(pPoints()->P()->pValue()[ pVertex( i )->VertexIndex() ]);
-		file << "v " << vec.x() << " " << vec.y() << " " << vec.z() << std::endl;
+		Imath::V3f vec = vectorCast<Imath::V3f>(pPoints()->P()->pValue()[ pVertex( i )->VertexIndex() ]);
+		file << "v " << vec.x << " " << vec.y << " " << vec.z << std::endl;
 	}
 
 
@@ -1742,7 +1742,7 @@ void CqSubdivision2::OutputInfo(const char* fname, std::vector<CqLath*>* paFaces
 		else
 			file << "***";
 
-		CqVector3D vecP = vectorCast<CqVector3D>(pPoints()->P()->pValue(pL->VertexIndex())[0]);
+		Imath::V3f vecP = vectorCast<Imath::V3f>(pPoints()->P()->pValue(pL->VertexIndex())[0]);
 		vecP = matCameraToObject0 * vecP;
 		file << "[P=" << vecP << "]";
 
@@ -1791,7 +1791,7 @@ void	CqSurfaceSubdivisionPatch::Bound(CqBound* bound) const
 		{
 			TqInt iTime;
 			for( iTime = 0; iTime < pTopology()->cTimes(); iTime++ )
-				bound->Encapsulate(vectorCast<CqVector3D>(pTopology()->pPoints( iTime )->P()->pValue((*iQfv)->VertexIndex())[0]));
+				bound->Encapsulate(vectorCast<Imath::V3f>(pTopology()->pPoints( iTime )->P()->pValue((*iQfv)->VertexIndex())[0]));
 		}
 	}
 
@@ -2037,15 +2037,15 @@ void CqSurfaceSubdivisionPatch::StoreDiceAPVar(
 				case type_vector:
 				case type_normal:
 				{
-					CqParameterTyped<CqVector3D, CqVector3D>* pNParam = static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( pParam );
+					CqParameterTyped<Imath::V3f, Imath::V3f>* pNParam = static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( pParam );
 					pArg->SetValue( *pNParam->pValue( index ), indexA );
 				}
 				break;
 
 				case type_hpoint:
 				{
-					CqParameterTyped<CqVector4D, CqVector3D>* pNParam = static_cast<CqParameterTyped<CqVector4D, CqVector3D>*>( pParam );
-					pArg->SetValue( vectorCast<CqVector3D>(*pNParam->pValue( index )), indexA );
+					CqParameterTyped<CqVector4D, Imath::V3f>* pNParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( pParam );
+					pArg->SetValue( vectorCast<Imath::V3f>(*pNParam->pValue( index )), indexA );
 				}
 				break;
 
@@ -2716,13 +2716,13 @@ bool CqSubdivision2::CanUsePatch( CqLath* pFace )
 				case type_point:
 				case type_normal:
 				case type_vector:
-					cont = allFvertContinuous<CqVector3D, CqVector3D>(**par, pairsToCheck, numPairs);
+					cont = allFvertContinuous<Imath::V3f, Imath::V3f>(**par, pairsToCheck, numPairs);
 					break;
 				case type_color:
 					cont = allFvertContinuous<CqColor, CqColor>(**par, pairsToCheck, numPairs);
 					break;
 				case type_hpoint:
-					cont = allFvertContinuous<CqVector4D, CqVector3D>(**par, pairsToCheck, numPairs);
+					cont = allFvertContinuous<CqVector4D, Imath::V3f>(**par, pairsToCheck, numPairs);
 					break;
 				case type_matrix:
 					cont = allFvertContinuous<CqMatrix, CqMatrix>(**par, pairsToCheck, numPairs);
@@ -2747,7 +2747,7 @@ void	CqSurfaceSubdivisionMesh::Bound(CqBound* bound) const
 	{
 		TqInt PointIndex;
 		for( PointIndex = m_pTopology->pPoints()->P()->Size()-1; PointIndex >= 0; PointIndex-- )
-			bound->Encapsulate( vectorCast<CqVector3D>(m_pTopology->pPoints()->P()->pValue()[PointIndex]) );
+			bound->Encapsulate( vectorCast<Imath::V3f>(m_pTopology->pPoints()->P()->pValue()[PointIndex]) );
 	}
 	AdjustBoundForTransformationMotion( bound );
 }

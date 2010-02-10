@@ -339,10 +339,10 @@ void CqSurface::NaturalSubdivide( CqParameter* pParam, CqParameter* pParam1, CqP
 		case type_point:
 		case type_vector:
 		case type_normal:
-			surfaceNaturalSubdivide<CqVector3D, CqVector3D>(pParam, pParam1, pParam2, u);
+			surfaceNaturalSubdivide<Imath::V3f, Imath::V3f>(pParam, pParam1, pParam2, u);
 			break;
 		case type_hpoint:
-			surfaceNaturalSubdivide<CqVector4D, CqVector3D>(pParam, pParam1, pParam2, u);
+			surfaceNaturalSubdivide<CqVector4D, Imath::V3f>(pParam, pParam1, pParam2, u);
 			break;
 		case type_color:
 			surfaceNaturalSubdivide<CqColor, CqColor>(pParam, pParam1, pParam2, u);
@@ -403,10 +403,10 @@ void CqSurface::NaturalDice( CqParameter* pParam, TqInt uDiceSize,
 		case type_point:
 		case type_vector:
 		case type_normal:
-			surfaceNaturalDice<CqVector3D, CqVector3D>(uDiceSize, vDiceSize, pParam, pData);
+			surfaceNaturalDice<Imath::V3f, Imath::V3f>(uDiceSize, vDiceSize, pParam, pData);
 			break;
 		case type_hpoint:
-			surfaceNaturalDice<CqVector4D, CqVector3D>(uDiceSize, vDiceSize, pParam, pData);
+			surfaceNaturalDice<CqVector4D, Imath::V3f>(uDiceSize, vDiceSize, pParam, pData);
 			break;
 		case type_color:
 			surfaceNaturalDice<CqColor, CqColor>(uDiceSize, vDiceSize, pParam, pData);
@@ -632,28 +632,28 @@ void	CqSurface::Transform( const CqMatrix& matTx, const CqMatrix& matITTx, const
 
 		if ( ( *iUP ) ->Type() == type_point )
 		{
-			CqParameterTyped<CqVector3D, CqVector3D>* pTPV = static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( ( *iUP ) );
+			CqParameterTyped<Imath::V3f, Imath::V3f>* pTPV = static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( ( *iUP ) );
 			TqInt size = ( *iUP ) ->Size();
 			for ( i = 0; i < size; i++ )
 				pTPV->pValue() [ i ] = matTx * pTPV->pValue() [ i ];
 		}
 		else if ( ( *iUP ) ->Type() == type_normal )
 		{
-			CqParameterTyped<CqVector3D, CqVector3D>* pTPV = static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( ( *iUP ) );
+			CqParameterTyped<Imath::V3f, Imath::V3f>* pTPV = static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( ( *iUP ) );
 			TqInt size = ( *iUP ) ->Size();
 			for ( i = 0; i < size; i++ )
 				pTPV->pValue() [ i ] = matITTx * pTPV->pValue() [ i ];
 		}
 		if ( ( *iUP ) ->Type() == type_vector )
 		{
-			CqParameterTyped<CqVector3D, CqVector3D>* pTPV = static_cast<CqParameterTyped<CqVector3D, CqVector3D>*>( ( *iUP ) );
+			CqParameterTyped<Imath::V3f, Imath::V3f>* pTPV = static_cast<CqParameterTyped<Imath::V3f, Imath::V3f>*>( ( *iUP ) );
 			TqInt size = ( *iUP ) ->Size();
 			for ( i = 0; i < size; i++ )
 				pTPV->pValue() [ i ] = matRTx * pTPV->pValue() [ i ];
 		}
 		if ( ( *iUP ) ->Type() == type_hpoint )
 		{
-			CqParameterTyped<CqVector4D, CqVector3D>* pTPV = static_cast<CqParameterTyped<CqVector4D, CqVector3D>*>( ( *iUP ) );
+			CqParameterTyped<CqVector4D, Imath::V3f>* pTPV = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( ( *iUP ) );
 			TqInt size = ( *iUP ) ->Size();
 			for ( i = 0; i < size; i++ )
 				pTPV->pValue() [ i ] = matTx * pTPV->pValue() [ i ];
@@ -680,7 +680,7 @@ CqParameter* CqSurface::FindUserParam( const char* name ) const
 
 
 /// Transform the bound cuboid in into out via the transformation trans.
-static void transformCuboid(CqVector3D out[8], const CqVector3D in[8],
+static void transformCuboid(Imath::V3f out[8], const Imath::V3f in[8],
 							const CqMatrix& trans)
 {
 	for(int i = 0; i < 8; ++i)
@@ -771,7 +771,7 @@ TqFloat CqSurface::AdjustedShadingRate() const
 			// MB, as returned by the Bound() function.
 			CqBound bound;
 			Bound(&bound);
-			CqVector3D boundVerts[8];
+			Imath::V3f boundVerts[8];
 			bound.getBoundCuboid(boundVerts);
 			// Now get the cuboid corresponding to the bound (in camera space
 			// at time = 0), and transform to object space.  In object space,
@@ -793,8 +793,8 @@ TqFloat CqSurface::AdjustedShadingRate() const
 									 0, camToRast);
 
 			TqFloat minSpeed = FLT_MAX;
-			CqVector3D prevVerts[8];
-			CqVector3D currVerts[8];
+			Imath::V3f prevVerts[8];
+			Imath::V3f currVerts[8];
 
 			// Get raster space bound at start of first motion segment.
 			CqMatrix objToCam;
@@ -814,7 +814,7 @@ TqFloat CqSurface::AdjustedShadingRate() const
 				TqFloat minDist = FLT_MAX;
 				for (int i = 0; i < 8; i++)
 				{
-					TqFloat dist = (currVerts[i] - prevVerts[i]).Magnitude2();
+					TqFloat dist = (currVerts[i] - prevVerts[i]).length2();
 					if (dist < minDist)
 						minDist = dist;
 				}

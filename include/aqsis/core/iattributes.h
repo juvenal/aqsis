@@ -52,13 +52,13 @@ struct IqAttributes
 	virtual	const	CqString* GetStringAttribute( const char* strName, const char* strParam ) const = 0;
 	/** Get a named point attribute as read only
 	 */
-	virtual	const	CqVector3D*	GetPointAttribute( const char* strName, const char* strParam ) const = 0;
+	virtual	const	Imath::V3f*	GetPointAttribute( const char* strName, const char* strParam ) const = 0;
 	/** Get a named point attribute as read only
 	 */
-	virtual	const	CqVector3D*	GetVectorAttribute( const char* strName, const char* strParam ) const = 0;
+	virtual	const	Imath::V3f*	GetVectorAttribute( const char* strName, const char* strParam ) const = 0;
 	/** Get a named point attribute as read only
 	 */
-	virtual	const	CqVector3D*	GetNormalAttribute( const char* strName, const char* strParam ) const = 0;
+	virtual	const	Imath::V3f*	GetNormalAttribute( const char* strName, const char* strParam ) const = 0;
 	/** Get a named color attribute as read only
 	 */
 	virtual	const	CqColor*	GetColorAttribute( const char* strName, const char* strParam ) const = 0;
@@ -77,13 +77,13 @@ struct IqAttributes
 	virtual	CqString* GetStringAttributeWrite( const char* strName, const char* strParam ) = 0;
 	/** Get a named point attribute as writable
 	 */
-	virtual	CqVector3D*	GetPointAttributeWrite( const char* strName, const char* strParam ) = 0;
+	virtual	Imath::V3f*	GetPointAttributeWrite( const char* strName, const char* strParam ) = 0;
 	/** Get a named point attribute as writable
 	 */
-	virtual	CqVector3D*	GetVectorAttributeWrite( const char* strName, const char* strParam ) = 0;
+	virtual	Imath::V3f*	GetVectorAttributeWrite( const char* strName, const char* strParam ) = 0;
 	/** Get a named point attribute as writable
 	 */
-	virtual	CqVector3D*	GetNormalAttributeWrite( const char* strName, const char* strParam ) = 0;
+	virtual	Imath::V3f*	GetNormalAttributeWrite( const char* strName, const char* strParam ) = 0;
 	/** Get a named color attribute as writable
 	 */
 	virtual	CqColor*	GetColorAttributeWrite( const char* strName, const char* strParam ) = 0;

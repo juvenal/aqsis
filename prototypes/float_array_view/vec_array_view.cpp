@@ -244,7 +244,7 @@ int main()
 	return 0;
 }
 
-//##description vecArray Computation with array of vectors owning their underlying represnetation (like CqVector3D)
+//##description vecArray Computation with array of vectors owning their underlying represnetation (like Imath::V3f)
 //##description refVecArray Computation with vectors which are just a view onto an underlying float array.
 //##description CArray Reference computation using plain old C-arrays 
 

@@ -44,13 +44,13 @@ CqMatrix::CqMatrix( const TqFloat angle,
 	// There are some more optimizations that can be done.
 
 	// Normalize the two vectors, and construct a third perpendicular
-	CqVector3D d1( dx1, dy1, dz1 ), d2( dx2, dy2, dz2 );
-	d1.Unit();
-	d2.Unit();
+	Imath::V3f d1( dx1, dy1, dz1 ), d2( dx2, dy2, dz2 );
+	d1.normalize();
+	d2.normalize();
 
 	// Assumes angle already changed to radians.
 
-	TqFloat d1d2dot = d1 * d2;
+	TqFloat d1d2dot = d1.dot(d2);
 	TqFloat axisangle = static_cast<TqFloat>(acos( d1d2dot ));
 	if ( angle >= axisangle || angle <= ( axisangle - M_PI ) )
 	{
@@ -64,12 +64,12 @@ CqMatrix::CqMatrix( const TqFloat angle,
 	}
 	else
 	{
-		CqVector3D right = d1 % d2;
-		right.Unit();
+		Imath::V3f right = d1 % d2;
+		right.normalize();
 
 		// d1ortho will be perpendicular to <d2> and <right> and can be
 		// used to construct a rotation matrix
-		CqVector3D d1ortho = d2 % right;
+		Imath::V3f d1ortho = d2 % right;
 
 
 		// 1) Rotate to a space where the skew operation is in a major plane.
@@ -132,6 +132,10 @@ void CqMatrix::Rotate( const TqFloat angle, const CqVector3D axis )
 
 		this->PreMultiply( R );
 	}
+}
+void CqMatrix::Rotate( const TqFloat angle, const Imath::V3f axis )
+{
+	Rotate(angle, vectorCast<CqVector3D>(axis));
 }
 
 //---------------------------------------------------------------------

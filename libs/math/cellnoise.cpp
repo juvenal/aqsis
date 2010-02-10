@@ -87,11 +87,11 @@ TqFloat CqCellNoise::FCellNoise2( TqFloat u, TqFloat v )
 /** 3D float cell noise.
  */
 
-TqFloat CqCellNoise::FCellNoise3( const CqVector3D& P )
+TqFloat CqCellNoise::FCellNoise3( const Imath::V3f& P )
 {
-	TqFloat x = P.x();
-	TqFloat y = P.x();
-	TqFloat z = P.z();
+	TqFloat x = P.x;
+	TqFloat y = P.x;
+	TqFloat z = P.z;
 
 	if ( x < 0.0 )
 		x -= 1;
@@ -112,11 +112,11 @@ TqFloat CqCellNoise::FCellNoise3( const CqVector3D& P )
 /** 4D float cell noise.
  */
 
-TqFloat CqCellNoise::FCellNoise4( const CqVector3D& P, TqFloat v )
+TqFloat CqCellNoise::FCellNoise4( const Imath::V3f& P, TqFloat v )
 {
-	TqFloat x = P.x();
-	TqFloat y = P.y();
-	TqFloat z = P.z();
+	TqFloat x = P.x;
+	TqFloat y = P.y;
+	TqFloat z = P.z;
 
 	if ( x < 0.0 )
 		x -= 1;
@@ -140,20 +140,20 @@ TqFloat CqCellNoise::FCellNoise4( const CqVector3D& P, TqFloat v )
 /** 1D point cell noise.
  */
 
-CqVector3D CqCellNoise::PCellNoise1( TqFloat u )
+Imath::V3f CqCellNoise::PCellNoise1( TqFloat u )
 {
-	CqVector3D result;
+	Imath::V3f result;
 
 	if ( u < 0.0 )
 		u -= 1;
 
 	TqInt i = m_PermuteTable[permTableIndex(u)];
 
-	result.x( m_RandomTable[ i ] );
+	result.x = m_RandomTable[ i ];
 	i = m_PermuteTable[ i ];
-	result.y( m_RandomTable[ i ] );
+	result.y = m_RandomTable[ i ];
 	i = m_PermuteTable[ i ];
-	result.z( m_RandomTable[ i ] );
+	result.z = m_RandomTable[ i ];
 
 	return ( result );
 }
@@ -163,9 +163,9 @@ CqVector3D CqCellNoise::PCellNoise1( TqFloat u )
 /** 2D float cell noise.
  */
 
-CqVector3D CqCellNoise::PCellNoise2( TqFloat u, TqFloat v )
+Imath::V3f CqCellNoise::PCellNoise2( TqFloat u, TqFloat v )
 {
-	CqVector3D result;
+	Imath::V3f result;
 
 	if ( u < 0.0 )
 		u -= 1;
@@ -175,11 +175,11 @@ CqVector3D CqCellNoise::PCellNoise2( TqFloat u, TqFloat v )
 	TqInt i = m_PermuteTable[permTableIndex(u)];
 	i = m_PermuteTable[i + permTableIndex(v)];
 
-	result.x( m_RandomTable[ i ] );
+	result.x = m_RandomTable[ i ];
 	i = m_PermuteTable[ i ];
-	result.y( m_RandomTable[ i ] );
+	result.y = m_RandomTable[ i ];
 	i = m_PermuteTable[ i ];
-	result.z( m_RandomTable[ i ] );
+	result.z = m_RandomTable[ i ];
 
 	return ( result );
 }
@@ -189,13 +189,13 @@ CqVector3D CqCellNoise::PCellNoise2( TqFloat u, TqFloat v )
 /** 3D float cell noise.
  */
 
-CqVector3D CqCellNoise::PCellNoise3( const CqVector3D& P )
+Imath::V3f CqCellNoise::PCellNoise3( const Imath::V3f& P )
 {
-	CqVector3D result;
+	Imath::V3f result;
 
-	TqFloat x = P.x();
-	TqFloat y = P.y();
-	TqFloat z = P.z();
+	TqFloat x = P.x;
+	TqFloat y = P.y;
+	TqFloat z = P.z;
 
 	if ( x < 0.0 )
 		x -= 1;
@@ -208,11 +208,11 @@ CqVector3D CqCellNoise::PCellNoise3( const CqVector3D& P )
 	i = m_PermuteTable[i + permTableIndex(y)];
 	i = m_PermuteTable[i + permTableIndex(z)];
 
-	result.x( m_RandomTable[ i ] );
+	result.x = m_RandomTable[ i ];
 	i = m_PermuteTable[ i ];
-	result.y( m_RandomTable[ i ] );
+	result.y = m_RandomTable[ i ];
 	i = m_PermuteTable[ i ];
-	result.z( m_RandomTable[ i ] );
+	result.z = m_RandomTable[ i ];
 
 	return ( result );
 }
@@ -222,13 +222,13 @@ CqVector3D CqCellNoise::PCellNoise3( const CqVector3D& P )
 /** 4D float cell noise.
  */
 
-CqVector3D CqCellNoise::PCellNoise4( const CqVector3D& P, TqFloat v )
+Imath::V3f CqCellNoise::PCellNoise4( const Imath::V3f& P, TqFloat v )
 {
-	CqVector3D result;
+	Imath::V3f result;
 
-	TqFloat x = P.x();
-	TqFloat y = P.y();
-	TqFloat z = P.z();
+	TqFloat x = P.x;
+	TqFloat y = P.y;
+	TqFloat z = P.z;
 
 	if ( x < 0.0 )
 		x -= 1;
@@ -244,11 +244,11 @@ CqVector3D CqCellNoise::PCellNoise4( const CqVector3D& P, TqFloat v )
 	i = m_PermuteTable[i + permTableIndex(z)];
 	i = m_PermuteTable[i + permTableIndex(v)];
 
-	result.x( m_RandomTable[ i ] );
+	result.x = m_RandomTable[ i ];
 	i = m_PermuteTable[ i ];
-	result.y( m_RandomTable[ i ] );
+	result.y = m_RandomTable[ i ];
 	i = m_PermuteTable[ i ];
-	result.z( m_RandomTable[ i ] );
+	result.z = m_RandomTable[ i ];
 
 	return ( result );
 }

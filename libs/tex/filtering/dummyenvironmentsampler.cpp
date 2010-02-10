@@ -102,9 +102,9 @@ TqFloat minusGlyph(TqFloat x, TqFloat y)
 void CqDummyEnvironmentSampler::sample(const Sq3DSamplePllgram& samplePllgram,
 		const CqTextureSampleOptions& sampleOpts, TqFloat* outSamps) const
 {
-	TqFloat cx = samplePllgram.c.x();
-	TqFloat cy = samplePllgram.c.y();
-	TqFloat cz = samplePllgram.c.z();
+	TqFloat cx = samplePllgram.c.x;
+	TqFloat cy = samplePllgram.c.y;
+	TqFloat cz = samplePllgram.c.z;
 	TqFloat absCx = std::fabs(cx);
 	TqFloat absCy = std::fabs(cy);
 	TqFloat absCz = std::fabs(cz);

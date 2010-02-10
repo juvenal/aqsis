@@ -17,8 +17,8 @@
 #include <vector>
 
 #include <ImathVec.h>
-#include <aqsis/math/vector2d.h>
 #include <aqsis/math/vector3d.h>
+#include <ImathVec.h>
 
 namespace Aqsis {
 
@@ -73,7 +73,7 @@ class CqTrimCurve
 		 * \param u Index in the u direction.
 		 * \return Reference to the 4D homogenous control point.
 		 */
-		CqVector3D&	CP( const TqUint u )
+		Imath::V3f&	CP( const TqUint u )
 		{
 			return ( m_aVerts[ u ] );
 		}
@@ -81,7 +81,7 @@ class CqTrimCurve
 		 * \param u Index in the u direction.
 		 * \return Reference to the 4D homogenous control point.
 		 */
-		const	CqVector3D&	CP( const TqUint u ) const
+		const	Imath::V3f&	CP( const TqUint u ) const
 		{
 			return ( m_aVerts[ u ] );
 		}
@@ -109,7 +109,7 @@ class CqTrimCurve
 		std::vector<TqFloat>	m_aKnots;	///< Knot vector.
 		TqUint	m_Order;	///< Surface order.
 		TqUint	m_cVerts;	///< Control point.
-		std::vector<CqVector3D>	m_aVerts;	///< Nurbs control points.
+		std::vector<Imath::V3f>	m_aVerts;	///< Nurbs control points.
 }
 ;
 

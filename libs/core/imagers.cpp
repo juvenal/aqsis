@@ -116,7 +116,7 @@ void CqImagersource::Initialise( const CqRegion& DRegion, IqChannelBuffer* buffe
 		for ( i = 0; i < uGridRes+1; i++ )
 		{
 			TqInt off = j * ( uGridRes + 1 ) + i;
-			P() ->SetPoint( CqVector3D( x + i, y + j, 0.0 ), off );
+			P() ->SetPoint( Imath::V3f( x + i, y + j, 0.0 ), off );
 			Ci() ->SetColor( CqColor((*buffer)(i, j, CiIndex)[0], (*buffer)(i, j, CiIndex)[1], (*buffer)(i, j, CiIndex)[2]), off );
 			CqColor opa((*buffer)(i, j, OiIndex)[0], (*buffer)(i, j, OiIndex)[1], (*buffer)(i, j, OiIndex)[2]);
 			Oi() ->SetColor( opa, off );

@@ -86,7 +86,7 @@ void CqLightsource::Initialise( TqInt uGridRes, TqInt vGridRes, TqInt microPolyg
 	{
 		CqMatrix mat;
 		QGetRenderContext() ->matSpaceToSpace( "shader", "current", m_pShader->getTransform(), NULL, QGetRenderContextI()->Time(), mat );
-		P() ->SetPoint( mat * CqVector3D( 0.0f, 0.0f, 0.0f ) );
+		P() ->SetPoint( mat * Imath::V3f( 0.0f, 0.0f, 0.0f ) );
 	}
 	if ( USES( Uses, EnvVars_u ) )
 		u() ->SetFloat( 0.0f );
@@ -101,7 +101,7 @@ void CqLightsource::Initialise( TqInt uGridRes, TqInt vGridRes, TqInt microPolyg
 	if ( USES( Uses, EnvVars_t ) )
 		t() ->SetFloat( 0.0f );
 	if ( USES( Uses, EnvVars_N ) )
-		N() ->SetNormal( CqVector3D( 0.0f, 0.0f, 0.0f ) );
+		N() ->SetNormal( Imath::V3f( 0.0f, 0.0f, 0.0f ) );
 }
 
 

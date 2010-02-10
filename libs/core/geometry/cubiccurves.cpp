@@ -130,10 +130,10 @@ void CqCubicCurveSegment::NaturalSubdivide(
 		case type_point:
 		case type_vector:
 		case type_normal:
-			cubicCurveNatSubdiv<CqVector3D, CqVector3D>(pParam, pParam1, pParam2);
+			cubicCurveNatSubdiv<Imath::V3f, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_hpoint:
-			cubicCurveNatSubdiv<CqVector4D, CqVector3D>(pParam, pParam1, pParam2);
+			cubicCurveNatSubdiv<CqVector4D, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_color:
 			cubicCurveNatSubdiv<CqColor, CqColor>(pParam, pParam1, pParam2);
@@ -192,10 +192,10 @@ void CqCubicCurveSegment::VaryingNaturalSubdivide(
 		case type_point:
 		case type_vector:
 		case type_normal:
-			cubicCurveVaryingNatSubdiv<CqVector3D, CqVector3D>(pParam, pParam1, pParam2);
+			cubicCurveVaryingNatSubdiv<Imath::V3f, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_hpoint:
-			cubicCurveVaryingNatSubdiv<CqVector4D, CqVector3D>(pParam, pParam1, pParam2);
+			cubicCurveVaryingNatSubdiv<CqVector4D, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_color:
 			cubicCurveVaryingNatSubdiv<CqColor, CqColor>(pParam, pParam1, pParam2);
@@ -331,13 +331,13 @@ namespace {
  *
  * tangent1 is considered first, followed by tangent2 and finally tangent3.
  */
-CqVector3D chooseEndpointTangent(const CqVector3D& tangent1, const CqVector3D& tangent2,
-		const CqVector3D& tangent3)
+Imath::V3f chooseEndpointTangent(const Imath::V3f& tangent1, const Imath::V3f& tangent2,
+		const Imath::V3f& tangent3)
 {
 	// Determine the "too small" length scale for the curve.
-	TqFloat len1Sqd = tangent1.Magnitude2();
-	TqFloat len2Sqd = tangent2.Magnitude2();
-	TqFloat len3Sqd = tangent3.Magnitude2();
+	TqFloat len1Sqd = tangent1.length2();
+	TqFloat len2Sqd = tangent2.length2();
+	TqFloat len3Sqd = tangent3.length2();
 	// If tangents are shorter than a given small multiple of the overall curve size,
 	// we will call them degenerate, and pass on to the next candidate tangent.
 	TqFloat tooSmallLen = 1e-6 * max(max(len1Sqd, len2Sqd), len3Sqd);
@@ -353,12 +353,12 @@ CqVector3D chooseEndpointTangent(const CqVector3D& tangent1, const CqVector3D& t
 
 } // unnamed namespace
 
-CqVector3D	CqCubicCurveSegment::CalculateTangent(TqFloat u)
+Imath::V3f	CqCubicCurveSegment::CalculateTangent(TqFloat u)
 {
 	// Read 3D vertices into the array pg.
-	CqVector3D pg[4];
+	Imath::V3f pg[4];
 	for(TqInt i=0; i <= 3; i++)
-		pg[i] = vectorCast<CqVector3D>(*P()->pValue(i));
+		pg[i] = vectorCast<Imath::V3f>(*P()->pValue(i));
 
 	if(u == 0.0f)
 		return chooseEndpointTangent(pg[1] - pg[0], pg[2] - pg[0], pg[3] - pg[0]);
@@ -400,22 +400,22 @@ TqInt CqCubicCurveSegment::SplitToPatch(
 	//  widthOffset1  - offset to account for the width of the patch at
 	//                      the second point
 
-	CqVector3D direction0 = CalculateTangent(0.00);
-	CqVector3D direction3 = CalculateTangent(1.00);
+	Imath::V3f direction0 = CalculateTangent(0.00);
+	Imath::V3f direction3 = CalculateTangent(1.00);
 
-	CqVector3D direction1 = CalculateTangent(0.333);
-	CqVector3D direction2 = CalculateTangent(0.666);
+	Imath::V3f direction1 = CalculateTangent(0.333);
+	Imath::V3f direction2 = CalculateTangent(0.666);
 
-	CqVector3D normal0, normal1, normal2, normal3;
+	Imath::V3f normal0, normal1, normal2, normal3;
 	GetNormal( 0, normal0 );
 	GetNormal( 1, normal3 );
 	normal1 = ( ( normal3 - normal0 ) / 3.0f ) + normal0;
 	normal2 = ( ( ( normal3 - normal0 ) / 3.0f ) * 2.0f ) + normal0;
 
-	CqVector3D widthOffset02 = (normal0 % direction0).Unit();
-	CqVector3D widthOffset12 = (normal1 % direction1).Unit();
-	CqVector3D widthOffset22 = (normal2 % direction2).Unit();
-	CqVector3D widthOffset32 = (normal3 % direction3).Unit();
+	Imath::V3f widthOffset02 = (normal0 % direction0).normalize();
+	Imath::V3f widthOffset12 = (normal1 % direction1).normalize();
+	Imath::V3f widthOffset22 = (normal2 % direction2).normalize();
+	Imath::V3f widthOffset32 = (normal3 % direction3).normalize();
 
 	TqFloat width0 = width()->pValue( 0 )[0];
 	TqFloat width3 = width()->pValue( 1 )[0];
@@ -427,10 +427,10 @@ TqInt CqCubicCurveSegment::SplitToPatch(
 	widthOffset22 *= width2 / 6.0;
 	widthOffset32 *= width3 / 6.0;
 
-	CqVector3D widthOffset0 = widthOffset02 * 3;
-	CqVector3D widthOffset1 = widthOffset12 * 3;
-	CqVector3D widthOffset2 = widthOffset22 * 3;
-	CqVector3D widthOffset3 = widthOffset32 * 3;
+	Imath::V3f widthOffset0 = widthOffset02 * 3;
+	Imath::V3f widthOffset1 = widthOffset12 * 3;
+	Imath::V3f widthOffset2 = widthOffset22 * 3;
+	Imath::V3f widthOffset3 = widthOffset32 * 3;
 
 	// next, we create the bilinear patch
 	boost::shared_ptr<CqSurfacePatchBicubic> pPatch( new CqSurfacePatchBicubic() );
@@ -440,7 +440,7 @@ TqInt CqCubicCurveSegment::SplitToPatch(
 	// set the points on the patch
 	pPatch->AddPrimitiveVariable(
 	    new CqParameterTypedVertex <
-	    CqVector4D, type_hpoint, CqVector3D
+	    CqVector4D, type_hpoint, Imath::V3f
 	    > ( "P", 1 )
 	);
 	pPatch->P() ->SetSize( 16 );
@@ -467,7 +467,7 @@ TqInt CqCubicCurveSegment::SplitToPatch(
 	// set the normals on the patch
 	//	pPatch->AddPrimitiveVariable(
 	//	    new CqParameterTypedVertex <
-	//	    CqVector3D, type_normal, CqVector3D
+	//	    Imath::V3f, type_normal, Imath::V3f
 	//	    > ( "N", 0 )
 	//	);
 	//	pPatch->N() ->SetSize( 16 );
@@ -758,10 +758,10 @@ void CqCubicCurvesGroup::AddPrimitiveVariable(CqParameter* param)
 			case type_point:
 			case type_normal:
 			case type_vector:
-				newParam = convertToBezierBasis<CqVector3D, CqVector3D>(param);
+				newParam = convertToBezierBasis<Imath::V3f, Imath::V3f>(param);
 				break;
 			case type_hpoint:
-				newParam = convertToBezierBasis<CqVector4D, CqVector3D>(param);
+				newParam = convertToBezierBasis<CqVector4D, Imath::V3f>(param);
 				break;
 			case type_color:
 				newParam = convertToBezierBasis<CqColor, CqColor>(param);
@@ -1021,13 +1021,13 @@ TqInt CqCubicCurvesGroup::Split(
 void CqCubicCurvesGroup::Bound(CqBound* bound) const
 {
 	// Start with an empty bound
-	CqVector3D boundMin(FLT_MAX, FLT_MAX, FLT_MAX);
-	CqVector3D boundMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	Imath::V3f boundMin(FLT_MAX, FLT_MAX, FLT_MAX);
+	Imath::V3f boundMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 
 	// Get bounds of Bezier control hull.
 	for(TqInt i = 0, end = P()->Size(); i < end; ++i)
 	{
-		CqVector3D p = vectorCast<CqVector3D>(P()->pValue(i)[0]);
+		Imath::V3f p = vectorCast<Imath::V3f>(P()->pValue(i)[0]);
 		boundMin = min(boundMin, p);
 		boundMax = max(boundMax, p);
 	}
@@ -1038,8 +1038,8 @@ void CqCubicCurvesGroup::Bound(CqBound* bound) const
 		maxWidth = max(maxWidth, width()->pValue(i)[0]);
 
 	// Expand bound by max curve width
-	bound->vecMin() = boundMin - maxWidth/2;
-	bound->vecMax() = boundMax + maxWidth/2;
+	bound->vecMin() = boundMin - Imath::V3f(maxWidth/2);
+	bound->vecMax() = boundMax + Imath::V3f(maxWidth/2);
 
 	AdjustBoundForTransformationMotion( bound );
 }

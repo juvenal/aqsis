@@ -115,16 +115,16 @@ struct SqSampleQuad
 struct Sq3DSampleQuad
 {
 	/// v1 to v4 are vectors defining the vertices of the quadrilateral.
-	CqVector3D v1;
-	CqVector3D v2;
-	CqVector3D v3;
-	CqVector3D v4;
+	Imath::V3f v1;
+	Imath::V3f v2;
+	Imath::V3f v3;
+	Imath::V3f v4;
 
 	/// Default constructor - set all corner vectors to 0.
 	Sq3DSampleQuad();
 	/// Trivial constructor
-	Sq3DSampleQuad(const CqVector3D& v1, const CqVector3D& v2,
-			const CqVector3D& v3, const CqVector3D& v4);
+	Sq3DSampleQuad(const Imath::V3f& v1, const Imath::V3f& v2,
+			const Imath::V3f& v3, const Imath::V3f& v4);
 
 	/** \brief Multiply all the vectors in the quad by the specified matrix.
 	 *
@@ -137,7 +137,7 @@ struct Sq3DSampleQuad
 	void transform(const CqMatrix& mat);
 
 	/// Get the center point of the quadrilateral by averaging the vertices.
-	CqVector3D center() const;
+	Imath::V3f center() const;
 
 	/** \brief Assign the first two coordinates of a 2D sample quad to this quad.
 	 *
@@ -208,14 +208,14 @@ struct SqSamplePllgram
 struct Sq3DSamplePllgram
 {
 	/// center point for the sample
-	CqVector3D c;
+	Imath::V3f c;
 	/// first side of parallelogram
-	CqVector3D s1;
+	Imath::V3f s1;
 	/// second side of parallelogram
-	CqVector3D s2;
+	Imath::V3f s2;
 
 	/// Trivial constructor
-	Sq3DSamplePllgram(const CqVector3D& c, const CqVector3D& s1, const CqVector3D s2);
+	Sq3DSamplePllgram(const Imath::V3f& c, const Imath::V3f& s1, const Imath::V3f s2);
 	/// Convert from a sample quad to a sample parallelogram
 	explicit Sq3DSamplePllgram(const Sq3DSampleQuad& quad);
 };
@@ -273,29 +273,29 @@ inline Sq3DSampleQuad::Sq3DSampleQuad()
 	v4(0,0,0)
 { }
 
-inline Sq3DSampleQuad::Sq3DSampleQuad(const CqVector3D& v1, const CqVector3D& v2,
-		const CqVector3D& v3, const CqVector3D& v4)
+inline Sq3DSampleQuad::Sq3DSampleQuad(const Imath::V3f& v1, const Imath::V3f& v2,
+		const Imath::V3f& v3, const Imath::V3f& v4)
 	: v1(v1),
 	v2(v2),
 	v3(v3),
 	v4(v4)
 { }
 
-inline CqVector3D Sq3DSampleQuad::center() const
+inline Imath::V3f Sq3DSampleQuad::center() const
 {
-	return 0.25*(v1+v2+v3+v4);
+	return (v1+v2+v3+v4)*0.25;
 }
 
 inline void Sq3DSampleQuad::copy2DCoords(const SqSampleQuad& toCopy)
 {
-	v1.x(toCopy.v1.x);
-	v1.y(toCopy.v1.y);
-	v2.x(toCopy.v2.x);
-	v2.y(toCopy.v2.y);
-	v3.x(toCopy.v3.x);
-	v3.y(toCopy.v3.y);
-	v4.x(toCopy.v4.x);
-	v4.y(toCopy.v4.y);
+	v1.x = toCopy.v1.x;
+	v1.y = toCopy.v1.y;
+	v2.x = toCopy.v2.x;
+	v2.y = toCopy.v2.y;
+	v3.x = toCopy.v3.x;
+	v3.y = toCopy.v3.y;
+	v4.x = toCopy.v4.x;
+	v4.y = toCopy.v4.y;
 }
 
 inline void SqSampleQuad::scaleWidth(TqFloat xWidth, TqFloat yWidth)
@@ -369,8 +369,8 @@ inline void SqSamplePllgram::scaleWidth(TqFloat xWidth, TqFloat yWidth)
 
 //------------------------------------------------------------------------------
 // Sq3DSamplePllgram implementation
-inline Sq3DSamplePllgram::Sq3DSamplePllgram(const CqVector3D& c,
-		const CqVector3D& s1, const CqVector3D s2)
+inline Sq3DSamplePllgram::Sq3DSamplePllgram(const Imath::V3f& c,
+		const Imath::V3f& s1, const Imath::V3f s2)
 	: c(c),
 	s1(s1),
 	s2(s2)
@@ -378,8 +378,8 @@ inline Sq3DSamplePllgram::Sq3DSamplePllgram(const CqVector3D& c,
 
 inline Sq3DSamplePllgram::Sq3DSamplePllgram(const Sq3DSampleQuad& quad)
 	: c(quad.center()),
-	s1(0.5*(quad.v2 - quad.v1 + quad.v4 - quad.v3)),
-	s2(0.5*(quad.v1 - quad.v3 + quad.v2 - quad.v4))
+	s1((quad.v2 - quad.v1 + quad.v4 - quad.v3)*0.5),
+	s2((quad.v1 - quad.v3 + quad.v2 - quad.v4)*0.5)
 { }
 
 

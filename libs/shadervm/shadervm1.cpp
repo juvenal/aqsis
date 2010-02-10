@@ -71,7 +71,7 @@ void CqShaderVM::SO_puship()
 	RESULT(type_point, class_uniform);
 	if(m_pEnv->IsRunning())
 	{
-		CqVector3D v(f,f2,f3);
+		Imath::V3f v(f,f2,f3);
 		pResult->SetValue(v);
 	}
 	Push( pResult );
@@ -263,7 +263,7 @@ void CqShaderVM::SO_mergep()
 		for ( i = 0; i < ext; i++ )
 		{
 			bool _aq_A;
-			CqVector3D _aq_T, _aq_F;
+			Imath::V3f _aq_T, _aq_F;
 			A->GetBool( _aq_A, i );
 			T->GetPoint( _aq_T, i );
 			F->GetPoint( _aq_F, i );

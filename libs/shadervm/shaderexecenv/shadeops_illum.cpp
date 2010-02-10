@@ -176,12 +176,12 @@ void CqShaderExecEnv::SO_reflect( IqShaderData* I, IqShaderData* N, IqShaderData
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_I;
+			Imath::V3f _aq_I;
 			(I)->GetVector(_aq_I,__iGrid);
-			CqVector3D _aq_N;
+			Imath::V3f _aq_N;
 			(N)->GetNormal(_aq_N,__iGrid);
-			TqFloat idn = 2.0f * ( _aq_I * _aq_N );
-			CqVector3D res = _aq_I - ( idn * _aq_N );
+			TqFloat idn = 2.0f * ( _aq_I.dot(_aq_N) );
+			Imath::V3f res = _aq_I - ( _aq_N * idn );
 			(Result)->SetVector(res,__iGrid);
 		}
 	}
@@ -207,16 +207,17 @@ void CqShaderExecEnv::SO_refract( IqShaderData* I, IqShaderData* N, IqShaderData
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_I;
+			Imath::V3f _aq_I;
 			(I)->GetVector(_aq_I,__iGrid);
-			CqVector3D _aq_N;
+			Imath::V3f _aq_N;
 			(N)->GetNormal(_aq_N,__iGrid);
 			TqFloat _aq_eta;
 			(eta)->GetFloat(_aq_eta,__iGrid);
-			TqFloat IdotN = _aq_I * _aq_N;
+			TqFloat IdotN = _aq_I.dot(_aq_N);
 			TqFloat feta = _aq_eta;
 			TqFloat k = 1 - feta * feta * ( 1 - IdotN * IdotN );
-			(Result)->SetVector(( k < 0.0f ) ? CqVector3D( 0, 0, 0 ) : CqVector3D( feta * _aq_I - ( feta * IdotN + sqrt( k ) ) * _aq_N ),__iGrid);
+			(Result)->SetVector(( k < 0.0f ) ? Imath::V3f( 0, 0, 0 ) : 
+					Imath::V3f( ( _aq_I * feta ) - ( _aq_N * ( feta * IdotN + sqrt( k ) ) ) ),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -243,9 +244,9 @@ void CqShaderExecEnv::SO_fresnel( IqShaderData* I, IqShaderData* N, IqShaderData
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_I;
+			Imath::V3f _aq_I;
 			(I)->GetVector(_aq_I,__iGrid);
-			CqVector3D _aq_N;
+			Imath::V3f _aq_N;
 			(N)->GetNormal(_aq_N,__iGrid);
 			TqFloat _aq_eta;
 			(eta)->GetFloat(_aq_eta,__iGrid);
@@ -253,7 +254,7 @@ void CqShaderExecEnv::SO_fresnel( IqShaderData* I, IqShaderData* N, IqShaderData
 			(Kr)->GetFloat(_aq_Kr,__iGrid);
 			TqFloat _aq_Kt;
 			(Kt)->GetFloat(_aq_Kt,__iGrid);
-			TqFloat cos_theta = -_aq_I * _aq_N;
+			TqFloat cos_theta = -_aq_I.dot(_aq_N);
 			TqFloat fuvA = ((1.0f / _aq_eta)*(1.0f / _aq_eta)) - ( 1.0f - ((cos_theta)*(cos_theta)) );
 			TqFloat fuvB = fabs( fuvA );
 			TqFloat fu2 = ( fuvA + fuvB ) / 2;
@@ -294,9 +295,9 @@ void CqShaderExecEnv::SO_fresnel( IqShaderData* I, IqShaderData* N, IqShaderData
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_I;
+			Imath::V3f _aq_I;
 			(I)->GetVector(_aq_I,__iGrid);
-			CqVector3D _aq_N;
+			Imath::V3f _aq_N;
 			(N)->GetNormal(_aq_N,__iGrid);
 			TqFloat _aq_eta;
 			(eta)->GetFloat(_aq_eta,__iGrid);
@@ -304,11 +305,11 @@ void CqShaderExecEnv::SO_fresnel( IqShaderData* I, IqShaderData* N, IqShaderData
 			(Kr)->GetFloat(_aq_Kr,__iGrid);
 			TqFloat _aq_Kt;
 			(Kt)->GetFloat(_aq_Kt,__iGrid);
-			CqVector3D _aq_R;
+			Imath::V3f _aq_R;
 			(R)->GetVector(_aq_R,__iGrid);
-			CqVector3D _aq_T;
+			Imath::V3f _aq_T;
 			(T)->GetVector(_aq_T,__iGrid);
-			TqFloat cos_theta = -_aq_I * _aq_N;
+			TqFloat cos_theta = -_aq_I.dot(_aq_N);
 			TqFloat fuvA = ((1.0f / _aq_eta)*(1.0f / _aq_eta)) - ( 1.0f - ((cos_theta)*(cos_theta)) );
 			TqFloat fuvB = fabs( fuvA );
 			TqFloat fu2 = ( fuvA + fuvB ) / 2;
@@ -355,9 +356,9 @@ void CqShaderExecEnv::SO_depth( IqShaderData* p, IqShaderData* Result, IqShader*
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_p;
+			Imath::V3f _aq_p;
 			(p)->GetPoint(_aq_p,__iGrid);
-			TqFloat d = _aq_p.z();
+			TqFloat d = _aq_p.z;
 			d = ( d - ClippingNear)/DeltaClipping;
 			(Result)->SetFloat(d,__iGrid);
 		}
@@ -485,18 +486,18 @@ void CqShaderExecEnv::SO_diffuse( IqShaderData* N, IqShaderData* Result, IqShade
 				{
 
 					// Get the light vector and color from the lightsource.
-					CqVector3D Ln;
+					Imath::V3f Ln;
 					L() ->GetVector( Ln, __iGrid );
-					Ln.Unit();
+					Ln.normalize();
 
 					// Combine the light color into the result
 					CqColor _aq_Result;
 					(Result)->GetColor(_aq_Result,__iGrid);
-					CqVector3D _aq_N;
+					Imath::V3f _aq_N;
 					(N)->GetNormal(_aq_N,__iGrid);
 					CqColor colCl;
 					Cl() ->GetColor( colCl, __iGrid );
-					(Result)->SetColor(_aq_Result + colCl * ( Ln * _aq_N ),__iGrid);
+					(Result)->SetColor(_aq_Result + colCl * ( Ln.dot(_aq_N) ),__iGrid);
 
 				}
 			}
@@ -571,26 +572,26 @@ void CqShaderExecEnv::SO_specular( IqShaderData* N, IqShaderData* V, IqShaderDat
 				if(!__fVarying || RS.Value( __iGrid ) )
 				{
 
-					CqVector3D _aq_V;
+					Imath::V3f _aq_V;
 					(V)->GetVector(_aq_V,__iGrid);
 					// Get the ligth vector and color from the lightsource
-					CqVector3D Ln;
+					Imath::V3f Ln;
 					L() ->GetVector( Ln, __iGrid );
-					Ln.Unit();
-					CqVector3D	H = Ln + _aq_V;
-					H.Unit();
+					Ln.normalize();
+					Imath::V3f	H = Ln + _aq_V;
+					H.normalize();
 
 					// Combine the color into the result.
 					/// \note The (roughness/8) term emulates the BMRT behaviour for prmanspecular.
 					CqColor _aq_Result;
 					(Result)->GetColor(_aq_Result,__iGrid);
-					CqVector3D _aq_N;
+					Imath::V3f _aq_N;
 					(N)->GetNormal(_aq_N,__iGrid);
 					TqFloat _aq_roughness;
 					(roughness)->GetFloat(_aq_roughness,__iGrid);
 					CqColor colCl;
 					Cl() ->GetColor( colCl, __iGrid );
-					(Result)->SetColor(_aq_Result + colCl * pow( max( 0.0f, _aq_N * H ), 1.0f / ( _aq_roughness / 8.0f ) ),__iGrid);
+					(Result)->SetColor(_aq_Result + colCl * pow( max( 0.0f, _aq_N.dot(H) ), 1.0f / ( _aq_roughness / 8.0f ) ),__iGrid);
 
 				}
 			}
@@ -632,7 +633,7 @@ void CqShaderExecEnv::SO_phong( IqShaderData* N, IqShaderData* V, IqShaderData* 
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D vecnV;
+			Imath::V3f vecnV;
 			pnV->GetVector( vecnV, __iGrid );
 			pnV->SetVector( -vecnV, __iGrid );
 		}
@@ -678,20 +679,20 @@ void CqShaderExecEnv::SO_phong( IqShaderData* N, IqShaderData* V, IqShaderData* 
 				{
 
 					// Get the light vector and color from the light source.
-					CqVector3D Ln;
+					Imath::V3f Ln;
 					L() ->GetVector( Ln, __iGrid );
-					Ln.Unit();
+					Ln.normalize();
 
 					// Now combine the color into the result.
 					CqColor _aq_Result;
 					(Result)->GetColor(_aq_Result,__iGrid);
-					CqVector3D vecR;
+					Imath::V3f vecR;
 					pR->GetVector( vecR, __iGrid );
 					TqFloat _aq_size;
 					(size)->GetFloat(_aq_size,__iGrid);
 					CqColor colCl;
 					Cl() ->GetColor( colCl, __iGrid );
-					(Result)->SetColor(_aq_Result + colCl * pow( max( 0.0f, vecR * Ln ), _aq_size ),__iGrid);
+					(Result)->SetColor(_aq_Result + colCl * pow( max( 0.0f, vecR.dot(Ln) ), _aq_size ),__iGrid);
 
 				}
 			}
@@ -813,7 +814,7 @@ void CqShaderExecEnv::SO_illuminance( IqShaderData* Category, IqShaderData* P, I
 				if(!__fVarying || RS.Value( __iGrid ) )
 				{
 
-					CqVector3D Ln;
+					Imath::V3f Ln;
 					lp->L() ->GetVector( Ln, __iGrid );
 					Ln = -Ln;
 
@@ -824,15 +825,15 @@ void CqShaderExecEnv::SO_illuminance( IqShaderData* Category, IqShaderData* P, I
 					Cl() ->SetColor( colCl, __iGrid );
 
 					// Check if its within the cone.
-					Ln.Unit();
-					CqVector3D vecAxis( 0, 1, 0 );
+					Ln.normalize();
+					Imath::V3f vecAxis( 0, 1, 0 );
 					if ( NULL != Axis )
 						Axis->GetVector( vecAxis, __iGrid );
 					TqFloat fAngle = M_PI;
 					if ( NULL != Angle )
 						Angle->GetFloat( fAngle, __iGrid );
 
-					TqFloat cosangle = Ln * vecAxis;
+					TqFloat cosangle = Ln.dot(vecAxis);
 					cosangle = clamp(cosangle, -1.0f, 1.0f);
 					if ( acos( cosangle ) > fAngle )
 						m_CurrentState.SetValue( __iGrid, false );
@@ -873,24 +874,24 @@ void CqShaderExecEnv::SO_illuminate( IqShaderData* P, IqShaderData* Axis, IqShad
 			if(!__fVarying || RS.Value( __iGrid ) )
 			{
 				// Get the point being lit and set the ligth vector.
-				CqVector3D _aq_P;
+				Imath::V3f _aq_P;
 				(P)->GetPoint(_aq_P,__iGrid);
-				CqVector3D vecPs;
+				Imath::V3f vecPs;
 				Ps() ->GetPoint( vecPs, __iGrid );
 				L() ->SetVector( vecPs - _aq_P, __iGrid );
 
 				// Check if its within the cone.
-				CqVector3D Ln;
+				Imath::V3f Ln;
 				L() ->GetVector( Ln, __iGrid );
-				Ln.Unit();
+				Ln.normalize();
 
-				CqVector3D vecAxis( 0.0f, 1.0f, 0.0f );
+				Imath::V3f vecAxis( 0.0f, 1.0f, 0.0f );
 				if ( NULL != Axis )
 					Axis->GetVector( vecAxis, __iGrid );
 				TqFloat fAngle = M_PI;
 				if ( NULL != Angle )
 					Angle->GetFloat( fAngle, __iGrid );
-				TqFloat cosangle = Ln * vecAxis;
+				TqFloat cosangle = Ln.dot(vecAxis);
 				cosangle = clamp(cosangle, -1.0f, 1.0f);
 				if ( acos( cosangle ) > fAngle )
 				{
@@ -936,7 +937,7 @@ void CqShaderExecEnv::SO_solar( IqShaderData* Axis, IqShaderData* Angle, IqShade
 		{
 			if ( res )
 			{
-				CqVector3D vecAxis;
+				Imath::V3f vecAxis;
 				Ns()->GetNormal(vecAxis,__iGrid);
 				vecAxis = -vecAxis;
 				if ( NULL != Axis )
@@ -1023,22 +1024,22 @@ void CqShaderExecEnv::SO_specularbrdf( IqShaderData* L, IqShaderData* N, IqShade
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_L;
+			Imath::V3f _aq_L;
 			(L)->GetVector(_aq_L,__iGrid);
-			CqVector3D _aq_V;
+			Imath::V3f _aq_V;
 			(V)->GetVector(_aq_V,__iGrid);
-			_aq_L.Unit();
+			_aq_L.normalize();
 
-			CqVector3D	H = _aq_L + _aq_V;
-			H.Unit();
+			Imath::V3f	H = _aq_L + _aq_V;
+			H.normalize();
 			/// \note The (roughness/8) term emulates the BMRT behaviour for prmanspecular.
-			CqVector3D _aq_N;
+			Imath::V3f _aq_N;
 			(N)->GetNormal(_aq_N,__iGrid);
 			TqFloat _aq_rough;
 			(rough)->GetFloat(_aq_rough,__iGrid);
 			CqColor colCl;
 			Cl() ->GetColor( colCl, __iGrid );
-			(Result)->SetColor(colCl * pow( max( 0.0f, _aq_N * H ), 1.0f / ( _aq_rough / 8.0f ) ),__iGrid);
+			(Result)->SetColor(colCl * pow( max( 0.0f, _aq_N.dot(H) ), 1.0f / ( _aq_rough / 8.0f ) ),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -1069,9 +1070,9 @@ void CqShaderExecEnv::SO_calculatenormal( IqShaderData* p, IqShaderData* Result,
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D N = diffU<CqVector3D>(p, __iGrid)
-				% diffV<CqVector3D>(p, __iGrid);
-			N.Unit();
+			Imath::V3f N = diffU<Imath::V3f>(p, __iGrid)
+				% diffV<Imath::V3f>(p, __iGrid);
+			N.normalize();
 			N *= neg;
 			(Result)->SetNormal(N,__iGrid);
 		}

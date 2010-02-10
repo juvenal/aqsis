@@ -161,10 +161,10 @@ struct SqNodeBound
 bool CqOcclusionTree::canCull(const CqBound& bound) const
 {
 	// Crop the input bound to the culling bound.
-	TqFloat tminX = max(bound.vecMin().x(), m_treeBoundMin.x);
-	TqFloat tminY = max(bound.vecMin().y(), m_treeBoundMin.y);
-	TqFloat tmaxX = min(bound.vecMax().x(), m_treeBoundMax.x);
-	TqFloat tmaxY = min(bound.vecMax().y(), m_treeBoundMax.y);
+	TqFloat tminX = max(bound.vecMin().x, m_treeBoundMin.x);
+	TqFloat tminY = max(bound.vecMin().y, m_treeBoundMin.y);
+	TqFloat tmaxX = min(bound.vecMax().x, m_treeBoundMax.x);
+	TqFloat tmaxY = min(bound.vecMax().y, m_treeBoundMax.y);
 
 	// Auto buffer with enough auto-allocated room for a stack which can
 	// traverse a depth-20 tree (2^20 = 1024 * 1024 samples in a bucket == lots :)
@@ -186,7 +186,7 @@ bool CqOcclusionTree::canCull(const CqBound& bound) const
 		{
 			// If the depth stored at the node is closer than the minimum Z of
 			// the bound, this node won't cause the surface to be rendered.
-			if(m_depthTree[node.index] < bound.vecMin().z()) 
+			if(m_depthTree[node.index] < bound.vecMin().z) 
 				continue;
 
 			// If the node is a leaf node and is behind the bound, the surface

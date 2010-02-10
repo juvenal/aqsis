@@ -243,7 +243,7 @@ void	CqShaderExecEnv::SO_pspline( IqShaderData* value, IqShaderData* Result, IqS
 	bool __fVarying;
 	TqUint __iGrid;
 
-	CqCubicSpline<CqVector3D> spline( SplineBasis_CatmullRom, cParams );
+	CqCubicSpline<Imath::V3f> spline( SplineBasis_CatmullRom, cParams );
 
 	__fVarying=(value)->Class()==class_varying;
 	TqInt v;
@@ -263,13 +263,13 @@ void	CqShaderExecEnv::SO_pspline( IqShaderData* value, IqShaderData* Result, IqS
 			(value)->GetFloat(_aq_value,__iGrid);
 			if ( _aq_value >= 1.0f )
 			{
-				CqVector3D pl;
+				Imath::V3f pl;
 				apParams[ cParams - 2 ] ->GetPoint( pl, __iGrid );
 				(Result)->SetPoint(pl,__iGrid);
 			}
 			else if ( _aq_value <= 0.0f )
 			{
-				CqVector3D pf;
+				Imath::V3f pf;
 				apParams[ 1 ] ->GetPoint( pf, __iGrid );
 				(Result)->SetPoint(pf,__iGrid);
 			}
@@ -278,7 +278,7 @@ void	CqShaderExecEnv::SO_pspline( IqShaderData* value, IqShaderData* Result, IqS
 				TqInt j;
 				for ( j = 0; j < cParams; j++ )
 				{
-					CqVector3D pn;
+					Imath::V3f pn;
 					apParams[ j ] ->GetPoint( pn, __iGrid );
 					spline.pushBack( pn );
 				}
@@ -428,7 +428,7 @@ void	CqShaderExecEnv::SO_spspline( IqShaderData* basis, IqShaderData* value, IqS
 	__iGrid = 0;
 	CqString _aq_basis;
 	(basis)->GetString(_aq_basis,__iGrid);
-	CqCubicSpline<CqVector3D> spline( _aq_basis, cParams );
+	CqCubicSpline<Imath::V3f> spline( _aq_basis, cParams );
 
 	__iGrid = 0;
 	const CqBitVector& RS = RunningState();
@@ -440,13 +440,13 @@ void	CqShaderExecEnv::SO_spspline( IqShaderData* basis, IqShaderData* value, IqS
 			(value)->GetFloat(_aq_value,__iGrid);
 			if ( _aq_value >= 1.0f )
 			{
-				CqVector3D pl;
+				Imath::V3f pl;
 				apParams[ cParams - 2 ] ->GetPoint( pl, __iGrid );
 				(Result)->SetPoint(pl,__iGrid);
 			}
 			else if ( _aq_value <= 0.0f )
 			{
-				CqVector3D pf;
+				Imath::V3f pf;
 				apParams[ 1 ] ->GetPoint( pf, __iGrid );
 				(Result)->SetPoint(pf,__iGrid);
 			}
@@ -455,7 +455,7 @@ void	CqShaderExecEnv::SO_spspline( IqShaderData* basis, IqShaderData* value, IqS
 				TqInt j;
 				for ( j = 0; j < cParams; j++ )
 				{
-					CqVector3D pn;
+					Imath::V3f pn;
 					apParams[ j ] ->GetPoint( pn, __iGrid );
 					spline.pushBack( pn );
 				}
@@ -611,7 +611,7 @@ void	CqShaderExecEnv::SO_pDu( IqShaderData* p, IqShaderData* Result, IqShader* p
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			Result->SetPoint(derivU<CqVector3D>(p, __iGrid), __iGrid);
+			Result->SetPoint(derivU<Imath::V3f>(p, __iGrid), __iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -632,7 +632,7 @@ void	CqShaderExecEnv::SO_pDv( IqShaderData* p, IqShaderData* Result, IqShader* p
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			Result->SetPoint(derivV<CqVector3D>(p, __iGrid),__iGrid);
+			Result->SetPoint(derivV<Imath::V3f>(p, __iGrid),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -654,7 +654,7 @@ void	CqShaderExecEnv::SO_pDeriv( IqShaderData* p, IqShaderData* den, IqShaderDat
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			(Result)->SetPoint(deriv<CqVector3D>(p, den, __iGrid), __iGrid);
+			(Result)->SetPoint(deriv<Imath::V3f>(p, den, __iGrid), __iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -676,8 +676,8 @@ void CqShaderExecEnv::SO_area( IqShaderData* p, IqShaderData* Result, IqShader* 
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			(Result)->SetFloat( (diffU<CqVector3D>(p, __iGrid)
-					% diffV<CqVector3D>(p, __iGrid)).Magnitude() ,__iGrid);
+			(Result)->SetFloat( 
+				(diffU<Imath::V3f>(p, __iGrid) % diffV<Imath::V3f>(p, __iGrid)).length() ,__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -694,13 +694,13 @@ void	CqShaderExecEnv::SO_normalize( IqShaderData* V, IqShaderData* Result, IqSha
 
 	__iGrid = 0;
 	const CqBitVector& RS = RunningState();
-	CqVector3D _old(1,0,0);
-	CqVector3D _unit(1,0,0);
+	Imath::V3f _old(1,0,0);
+	Imath::V3f _unit(1,0,0);
 	do
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_V;
+			Imath::V3f _aq_V;
 			(V)->GetVector(_aq_V,__iGrid);
 			// Trade a small comparaison instead of
 			// blindly call Unit(). Big improvement
@@ -708,7 +708,7 @@ void	CqShaderExecEnv::SO_normalize( IqShaderData* V, IqShaderData* Result, IqSha
 			if (_old != _aq_V)
 			{
 				_unit = _aq_V;
-				_unit.Unit();
+				_unit.normalize();
 				_old = _aq_V;
 			}
 			(Result)->SetVector(_unit,__iGrid);
@@ -735,14 +735,14 @@ void CqShaderExecEnv::SO_faceforward( IqShaderData* N, IqShaderData* I, IqShader
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_N;
+			Imath::V3f _aq_N;
 			(N)->GetNormal(_aq_N,__iGrid);
-			CqVector3D _aq_I;
+			Imath::V3f _aq_I;
 			(I)->GetVector(_aq_I,__iGrid);
-			CqVector3D Nref;
+			Imath::V3f Nref;
 			Ng() ->GetNormal( Nref, __iGrid );
-			TqFloat s = ( ( ( -_aq_I ) * Nref ) < 0.0f ) ? -1.0f : 1.0f;
-			TqFloat s2 = ( ( _aq_N * Nref ) < 0.0f ) ? -1.0f : 1.0f;
+			TqFloat s = ( ( ( -_aq_I ).dot(Nref) ) < 0.0f ) ? -1.0f : 1.0f;
+			TqFloat s2 = ( ( _aq_N.dot(Nref) ) < 0.0f ) ? -1.0f : 1.0f;
 			(Result)->SetNormal(s * s2 * _aq_N,__iGrid);
 		}
 	}
@@ -768,13 +768,13 @@ void CqShaderExecEnv::SO_faceforward2( IqShaderData* N, IqShaderData* I, IqShade
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqVector3D _aq_N;
+			Imath::V3f _aq_N;
 			(N)->GetNormal(_aq_N,__iGrid);
-			CqVector3D _aq_I;
+			Imath::V3f _aq_I;
 			(I)->GetVector(_aq_I,__iGrid);
-			CqVector3D _aq_Nref;
+			Imath::V3f _aq_Nref;
 			(Nref)->GetNormal(_aq_Nref,__iGrid);
-			TqFloat s = ( ( ( -_aq_I ) * _aq_Nref ) < 0.0f ) ? -1.0f : 1.0f;
+			TqFloat s = ( ( ( -_aq_I ).dot(_aq_Nref) ) < 0.0f ) ? -1.0f : 1.0f;
 			(Result)->SetNormal(_aq_N * s,__iGrid);
 		}
 	}
@@ -938,8 +938,8 @@ void    CqShaderExecEnv::SO_psplinea( IqShaderData* value, IqShaderData* a, IqSh
 	assert( a->Type() == type_point );
 	
 	TqInt    cParams = a->ArrayLength();
-	CqCubicSpline<CqVector3D> spline( SplineBasis_CatmullRom, cParams );
-	CqVector3D vecTemp;
+	CqCubicSpline<Imath::V3f> spline( SplineBasis_CatmullRom, cParams );
+	Imath::V3f vecTemp;
 
 	__fVarying=(value)->Class()==class_varying;
 	__fVaryingA=(a)->Class()==class_varying;
@@ -967,7 +967,7 @@ void    CqShaderExecEnv::SO_psplinea( IqShaderData* value, IqShaderData* a, IqSh
 			TqFloat _aq_value;
 			(value)->GetFloat(_aq_value,__iGrid);
 
-			CqVector3D vecTemp;
+			Imath::V3f vecTemp;
 			if ( _aq_value >= 1.0f )
 			{
 				a->ArrayEntry( cParams - 2 ) ->GetPoint( vecTemp, __iGrid );
@@ -1163,7 +1163,7 @@ void    CqShaderExecEnv::SO_spsplinea( IqShaderData* basis, IqShaderData* value,
 	assert( a->Type() == type_point );
 
 	TqInt    cParams = a->ArrayLength();
-	CqVector3D vecTemp;
+	Imath::V3f vecTemp;
 
 	__fVarying=(value)->Class()==class_varying;
 	__fVaryingA=(a)->Class()==class_varying;
@@ -1173,7 +1173,7 @@ void    CqShaderExecEnv::SO_spsplinea( IqShaderData* basis, IqShaderData* value,
 	__iGrid = 0;
 	CqString _aq_basis;
 	(basis)->GetString(_aq_basis,__iGrid);
-	CqCubicSpline<CqVector3D> spline( _aq_basis, cParams );
+	CqCubicSpline<Imath::V3f> spline( _aq_basis, cParams );
 
 	__iGrid = 0;
 	if (!__fVaryingA)
@@ -1195,7 +1195,7 @@ void    CqShaderExecEnv::SO_spsplinea( IqShaderData* basis, IqShaderData* value,
 			TqFloat _aq_value;
 			(value)->GetFloat(_aq_value,__iGrid);
 
-			CqVector3D vecTemp;
+			Imath::V3f vecTemp;
 			if ( _aq_value >= 1.0f )
 			{
 				a->ArrayEntry( cParams - 2 ) ->GetPoint( vecTemp, __iGrid );

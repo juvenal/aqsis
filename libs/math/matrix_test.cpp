@@ -223,7 +223,7 @@ BOOST_AUTO_TEST_CASE(CqMatrix_Rotate_test)
 							0,-0.8961472511,1.787993312,1,
 							0,-1.342070341,0.4459230304,1);
 
-	mat_a.Rotate(90.0f, Aqsis::CqVector3D(1.0f, 0.0f, 0.0f));
+	mat_a.Rotate(90.0f, Aqsis::Imath::V3f(1.0f, 0.0f, 0.0f));
 	
 	CHECK_MATRIX_CLOSE(mat_a, result);
 }
@@ -240,7 +240,7 @@ BOOST_AUTO_TEST_CASE(CqMatrix_Translate_by_vectors_test)
 							2.0f, 3.0f, 3.0f, 1.0f, 
 							2.0f, 2.0f, 4.0f, 1.0f);
 	
-	mat_a.Translate(Aqsis::CqVector3D(2.0f, 1.0f, 3.0f));
+	mat_a.Translate(Aqsis::Imath::V3f(2.0f, 1.0f, 3.0f));
 	
 	CHECK_MATRIX_CLOSE(mat_a, result);
 }

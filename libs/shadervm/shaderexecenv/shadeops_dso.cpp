@@ -125,7 +125,7 @@ void CqShaderExecEnv::SO_external( DSOMethod method, void *initData, IqShaderDat
 					case type_hpoint:
 					case type_point:
 						{
-							CqVector3D v;
+							Imath::V3f v;
 							apParams[ p - 1 ] ->GetPoint( v, __iGrid );
 							( ( float* ) dso_argv[ p ] ) [ 0 ] = v[ 0 ];
 							( ( float* ) dso_argv[ p ] ) [ 1 ] = v[ 1 ];
@@ -135,7 +135,7 @@ void CqShaderExecEnv::SO_external( DSOMethod method, void *initData, IqShaderDat
 					case type_triple:  // This seems reasonable
 					case type_vector:
 						{
-							CqVector3D v;
+							Imath::V3f v;
 							apParams[ p - 1 ] ->GetVector( v, __iGrid );
 							( ( float* ) dso_argv[ p ] ) [ 0 ] = v[ 0 ];
 							( ( float* ) dso_argv[ p ] ) [ 1 ] = v[ 1 ];
@@ -144,7 +144,7 @@ void CqShaderExecEnv::SO_external( DSOMethod method, void *initData, IqShaderDat
 						break;
 					case type_normal:
 						{
-							CqVector3D v;
+							Imath::V3f v;
 							apParams[ p - 1 ] ->GetNormal( v, __iGrid );
 							( ( float* ) dso_argv[ p ] ) [ 0 ] = v[ 0 ];
 							( ( float* ) dso_argv[ p ] ) [ 1 ] = v[ 1 ];
@@ -213,7 +213,7 @@ void CqShaderExecEnv::SO_external( DSOMethod method, void *initData, IqShaderDat
 				case type_hpoint:
 				case type_point:
 					{
-						CqVector3D v;
+						Imath::V3f v;
 						v[ 0 ] = ( ( float* ) dso_argv[ 0 ] ) [ 0 ];
 						v[ 1 ] = ( ( float* ) dso_argv[ 0 ] ) [ 1 ];
 						v[ 2 ] = ( ( float* ) dso_argv[ 0 ] ) [ 2 ];
@@ -223,7 +223,7 @@ void CqShaderExecEnv::SO_external( DSOMethod method, void *initData, IqShaderDat
 				case type_triple:  // This seems reasonable
 				case type_vector:
 					{
-						CqVector3D v;
+						Imath::V3f v;
 						v[ 0 ] = ( ( float* ) dso_argv[ 0 ] ) [ 0 ];
 						v[ 1 ] = ( ( float* ) dso_argv[ 0 ] ) [ 1 ];
 						v[ 2 ] = ( ( float* ) dso_argv[ 0 ] ) [ 2 ];
@@ -232,7 +232,7 @@ void CqShaderExecEnv::SO_external( DSOMethod method, void *initData, IqShaderDat
 					break;
 				case type_normal:
 					{
-						CqVector3D v;
+						Imath::V3f v;
 						v[ 0 ] = ( ( float* ) dso_argv[ 0 ] ) [ 0 ];
 						v[ 1 ] = ( ( float* ) dso_argv[ 0 ] ) [ 1 ];
 						v[ 2 ] = ( ( float* ) dso_argv[ 0 ] ) [ 2 ];
@@ -282,7 +282,7 @@ void CqShaderExecEnv::SO_external( DSOMethod method, void *initData, IqShaderDat
 					case type_hpoint:
 					case type_point:
 						{
-							CqVector3D v;
+							Imath::V3f v;
 							v[ 0 ] = ( ( float* ) dso_argv[ p ] ) [ 0 ];
 							v[ 1 ] = ( ( float* ) dso_argv[ p ] ) [ 1 ];
 							v[ 2 ] = ( ( float* ) dso_argv[ p ] ) [ 2 ];
@@ -292,7 +292,7 @@ void CqShaderExecEnv::SO_external( DSOMethod method, void *initData, IqShaderDat
 					case type_triple:  // This seems reasonable
 					case type_vector:
 						{
-							CqVector3D v;
+							Imath::V3f v;
 							v[ 0 ] = ( ( float* ) dso_argv[ p ] ) [ 0 ];
 							v[ 1 ] = ( ( float* ) dso_argv[ p ] ) [ 1 ];
 							v[ 2 ] = ( ( float* ) dso_argv[ p ] ) [ 2 ];
@@ -301,7 +301,7 @@ void CqShaderExecEnv::SO_external( DSOMethod method, void *initData, IqShaderDat
 						break;
 					case type_normal:
 						{
-							CqVector3D v;
+							Imath::V3f v;
 							v[ 0 ] = ( ( float* ) dso_argv[ p ] ) [ 0 ];
 							v[ 1 ] = ( ( float* ) dso_argv[ p ] ) [ 1 ];
 							v[ 2 ] = ( ( float* ) dso_argv[ p ] ) [ 2 ];
