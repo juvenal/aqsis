@@ -354,7 +354,7 @@ void CqImagePixel::setSamples(IqSampler* sampler, Imath::V2f& offset)
 		m_samples[i].position = offset + positions[i];
 		m_samples[i].time = ( closetime - opentime ) * times[i] + opentime;
 		m_samples[i].detailLevel = lods[i];
-		m_samples[m_DofOffsetIndices[i]].dofOffset = projectToCircle( Imath::V2f(-1) + dofOffsets[i]) * 2;
+		m_samples[m_DofOffsetIndices[i]].dofOffset = projectToCircle( Imath::V2f(-1) + (dofOffsets[i] * 2));
 	}
 }
 
