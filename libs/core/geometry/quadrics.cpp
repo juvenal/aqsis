@@ -1541,7 +1541,7 @@ bool IntersectLine( Imath::V3f& P1, Imath::V3f& T1, Imath::V3f& P2, Imath::V3f& 
 	if ( ( vw * vw ) < 1.0e-07 )
 		return ( false );
 	t /= vw;
-	P = P2 + ( ( ( P1 - P2 ) * v ) / vw ) * T2 ;
+	P = P2 + ( ( ( P1 - P2 ).dot(v) ) / vw ) * T2 ;
 	return ( true );
 }
 
