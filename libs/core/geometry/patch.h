@@ -60,18 +60,18 @@ class CqSurfacePatchBicubic : public CqSurface
 		/** Get a reference to the indexed control point.
 		 * \param iRow Integer row index.
 		 * \param iCol Integer column index.
-		 * \return CqVector4D reference.
+		 * \return V4f reference.
 		 */
-		const	CqVector4D& CP( TqInt iRow, TqInt iCol ) const
+		const	V4f& CP( TqInt iRow, TqInt iCol ) const
 		{
 			return ( P()->pValue( ( iRow * 4 ) + iCol )[0] );
 		}
 		/** Get a reference to the indexed control point.
 		 * \param iRow Integer row index.
 		 * \param iCol Integer column index.
-		 * \return CqVector4D reference.
+		 * \return V4f reference.
 		 */
-		CqVector4D& CP( TqInt iRow, TqInt iCol )
+		V4f& CP( TqInt iRow, TqInt iCol )
 		{
 			return ( P()->pValue( ( iRow * 4 ) + iCol )[0] );
 		}

@@ -40,6 +40,7 @@
 #include	"bilinear.h"
 #include	<aqsis/riutil/primvartoken.h>
 #include	<aqsis/math/vectorcast.h>
+#include	<aqsis/math/vec4.h>
 
 namespace Aqsis {
 
@@ -1660,7 +1661,7 @@ class CqNamedParameterList
 	typedef CqParameterTyped<CqColor, CqColor> CqColorParameter;
 	typedef boost::shared_ptr<CqColorParameter> CqColorParameterPtr;
 
-	typedef CqParameterTyped<CqVector4D, Imath::V3f> CqHPointParameter;
+	typedef CqParameterTyped<V4f, Imath::V3f> CqHPointParameter;
 	typedef boost::shared_ptr<CqHPointParameter> CqHPointParameterPtr;
 
 	typedef CqParameterTyped<Imath::V3f, Imath::V3f> CqNormalParameter;
@@ -1688,7 +1689,7 @@ class CqNamedParameterList
 	typedef CqParameterTypedConstant<CqColor, type_color, CqColor> CqColorConstantParameter;
 	typedef boost::shared_ptr<CqColorConstantParameter> CqColorConstantParameterPtr;
 
-	typedef CqParameterTypedConstant<CqVector4D, type_hpoint, Imath::V3f> CqHPointConstantParameter;
+	typedef CqParameterTypedConstant<V4f, type_hpoint, Imath::V3f> CqHPointConstantParameter;
 	typedef boost::shared_ptr<CqHPointConstantParameter> CqHPointConstantParameterPtr;
 
 	typedef CqParameterTypedConstant<Imath::V3f, type_normal, Imath::V3f> CqNormalConstantParameter;
@@ -1716,7 +1717,7 @@ class CqNamedParameterList
 	typedef CqParameterTypedUniform<CqColor, type_color, CqColor> CqColorUniformParameter;
 	typedef boost::shared_ptr<CqColorUniformParameter> CqColorUniformParameterPtr;
 
-	typedef CqParameterTypedUniform<CqVector4D, type_hpoint, Imath::V3f> CqHPointUniformParameter;
+	typedef CqParameterTypedUniform<V4f, type_hpoint, Imath::V3f> CqHPointUniformParameter;
 	typedef boost::shared_ptr<CqHPointUniformParameter> CqHPointUniformParameterPtr;
 
 	typedef CqParameterTypedUniform<Imath::V3f, type_normal, Imath::V3f> CqNormalUniformParameter;
@@ -1744,7 +1745,7 @@ class CqNamedParameterList
 	typedef CqParameterTypedVarying<CqColor, type_color, CqColor> CqColorVaryingParameter;
 	typedef boost::shared_ptr<CqColorVaryingParameter> CqColorVaryingParameterPtr;
 
-	typedef CqParameterTypedVarying<CqVector4D, type_hpoint, Imath::V3f> CqHPointVaryingParameter;
+	typedef CqParameterTypedVarying<V4f, type_hpoint, Imath::V3f> CqHPointVaryingParameter;
 	typedef boost::shared_ptr<CqHPointVaryingParameter> CqHPointVaryingParameterPtr;
 
 	typedef CqParameterTypedVarying<Imath::V3f, type_normal, Imath::V3f> CqNormalVaryingParameter;
@@ -1772,7 +1773,7 @@ class CqNamedParameterList
 	typedef CqParameterTypedVertex<CqColor, type_color, CqColor> CqColorVertexParameter;
 	typedef boost::shared_ptr<CqColorVertexParameter> CqColorVertexParameterPtr;
 
-	typedef CqParameterTypedVertex<CqVector4D, type_hpoint, Imath::V3f> CqHPointVertexParameter;
+	typedef CqParameterTypedVertex<V4f, type_hpoint, Imath::V3f> CqHPointVertexParameter;
 	typedef boost::shared_ptr<CqHPointVertexParameter> CqHPointVertexParameterPtr;
 
 	typedef CqParameterTypedVertex<Imath::V3f, type_normal, Imath::V3f> CqNormalVertexParameter;
@@ -1800,7 +1801,7 @@ class CqNamedParameterList
 	typedef CqParameterTypedFaceVarying<CqColor, type_color, CqColor> CqColorFaceVaryingParameter;
 	typedef boost::shared_ptr<CqColorFaceVaryingParameter> CqColorFaceVaryingParameterPtr;
 
-	typedef CqParameterTypedFaceVarying<CqVector4D, type_hpoint, Imath::V3f> CqHPointFaceVaryingParameter;
+	typedef CqParameterTypedFaceVarying<V4f, type_hpoint, Imath::V3f> CqHPointFaceVaryingParameter;
 	typedef boost::shared_ptr<CqHPointFaceVaryingParameter> CqHPointFaceVaryingParameterPtr;
 
 	typedef CqParameterTypedFaceVarying<Imath::V3f, type_normal, Imath::V3f> CqNormalFaceVaryingParameter;
@@ -1828,7 +1829,7 @@ class CqNamedParameterList
 	typedef CqParameterTypedConstantArray<CqColor, type_color, CqColor> CqColorConstantArrayParameter;
 	typedef boost::shared_ptr<CqColorConstantArrayParameter> CqColorConstantArrayParameterPtr;
 
-	typedef CqParameterTypedConstantArray<CqVector4D, type_hpoint, Imath::V3f> CqHPointConstantArrayParameter;
+	typedef CqParameterTypedConstantArray<V4f, type_hpoint, Imath::V3f> CqHPointConstantArrayParameter;
 	typedef boost::shared_ptr<CqHPointConstantArrayParameter> CqHPointConstantArrayParameterPtr;
 
 	typedef CqParameterTypedConstantArray<Imath::V3f, type_normal, Imath::V3f> CqNormalConstantArrayParameter;
@@ -1856,7 +1857,7 @@ class CqNamedParameterList
 	typedef CqParameterTypedUniformArray<CqColor, type_color, CqColor> CqColorUniformArrayParameter;
 	typedef boost::shared_ptr<CqColorUniformArrayParameter> CqColorUniformArrayParameterPtr;
 
-	typedef CqParameterTypedUniformArray<CqVector4D, type_hpoint, Imath::V3f> CqHPointUniformArrayParameter;
+	typedef CqParameterTypedUniformArray<V4f, type_hpoint, Imath::V3f> CqHPointUniformArrayParameter;
 	typedef boost::shared_ptr<CqHPointUniformArrayParameter> CqHPointUniformArrayParameterPtr;
 
 	typedef CqParameterTypedUniformArray<Imath::V3f, type_normal, Imath::V3f> CqNormalUniformArrayParameter;
@@ -1884,7 +1885,7 @@ class CqNamedParameterList
 	typedef CqParameterTypedVaryingArray<CqColor, type_color, CqColor> CqColorVaryingArrayParameter;
 	typedef boost::shared_ptr<CqColorVaryingArrayParameter> CqColorVaryingArrayParameterPtr;
 
-	typedef CqParameterTypedVaryingArray<CqVector4D, type_hpoint, Imath::V3f> CqHPointVaryingArrayParameter;
+	typedef CqParameterTypedVaryingArray<V4f, type_hpoint, Imath::V3f> CqHPointVaryingArrayParameter;
 	typedef boost::shared_ptr<CqHPointVaryingArrayParameter> CqHPointVaryingArrayParameterPtr;
 
 	typedef CqParameterTypedVaryingArray<Imath::V3f, type_normal, Imath::V3f> CqNormalVaryingArrayParameter;
@@ -1912,7 +1913,7 @@ class CqNamedParameterList
 	typedef CqParameterTypedVertexArray<CqColor, type_color, CqColor> CqColorVertexArrayParameter;
 	typedef boost::shared_ptr<CqColorVertexArrayParameter> CqColorVertexArrayParameterPtr;
 
-	typedef CqParameterTypedVertexArray<CqVector4D, type_hpoint, Imath::V3f> CqHPointVertexArrayParameter;
+	typedef CqParameterTypedVertexArray<V4f, type_hpoint, Imath::V3f> CqHPointVertexArrayParameter;
 	typedef boost::shared_ptr<CqHPointVertexArrayParameter> CqHPointVertexArrayParameterPtr;
 
 	typedef CqParameterTypedVertexArray<Imath::V3f, type_normal, Imath::V3f> CqNormalVertexArrayParameter;
@@ -1940,7 +1941,7 @@ class CqNamedParameterList
 	typedef CqParameterTypedFaceVaryingArray<CqColor, type_color, CqColor> CqColorFaceVaryingArrayParameter;
 	typedef boost::shared_ptr<CqColorFaceVaryingArrayParameter> CqColorFaceVaryingArrayParameterPtr;
 
-	typedef CqParameterTypedFaceVaryingArray<CqVector4D, type_hpoint, Imath::V3f> CqHPointFaceVaryingArrayParameter;
+	typedef CqParameterTypedFaceVaryingArray<V4f, type_hpoint, Imath::V3f> CqHPointFaceVaryingArrayParameter;
 	typedef boost::shared_ptr<CqHPointFaceVaryingArrayParameter> CqHPointFaceVaryingArrayParameterPtr;
 
 	typedef CqParameterTypedFaceVaryingArray<Imath::V3f, type_normal, Imath::V3f> CqNormalFaceVaryingArrayParameter;
@@ -1977,7 +1978,7 @@ inline SLT paramToShaderType(const T& paramVal)
 }
 
 template<>
-inline Imath::V3f paramToShaderType(const CqVector4D& paramVal)
+inline Imath::V3f paramToShaderType(const V4f& paramVal)
 {
 	return vectorCast<Imath::V3f>(paramVal);
 }

@@ -317,29 +317,29 @@ void CqSurfaceNURBS::DersBasisFunctions( TqFloat u, TqUint i, std::vector<TqFloa
  * \todo Code Review: Unused function [except by deprecated CqSurfaceNURBS::GenerateGeometricNormals() ]
  */
 
-CqVector4D	CqSurfaceNURBS::EvaluateWithNormal( TqFloat u, TqFloat v, CqVector4D& P )
+V4f	CqSurfaceNURBS::EvaluateWithNormal( TqFloat u, TqFloat v, V4f& P )
 {
-	CqVector4D N;
+	V4f N;
 	TqInt d = 1;	// Default to 1st order derivatives.
 	TqInt k, l, s, r;
 	TqInt p = uDegree();
 	TqInt q = vDegree();
 
-	std::vector<std::vector<CqVector4D> > SKL( d + 1 );
+	std::vector<std::vector<V4f> > SKL( d + 1 );
 	for ( k = 0; k <= d; k++ )
 		SKL[ k ].resize( d + 1 );
 	std::vector<std::vector<TqFloat> > Nu, Nv;
-	std::vector<CqVector4D> temp( q + 1 );
+	std::vector<V4f> temp( q + 1 );
 
 	TqInt du = min( d, p );
 	for ( k = p + 1; k <= d; k++ )
 		for ( l = 0; l <= d - k; l++ )
-			SKL[ k ][ l ] = CqVector4D( 0.0f, 0.0f, 0.0f, 1.0f );
+			SKL[ k ][ l ] = V4f( 0.0f, 0.0f, 0.0f, 1.0f );
 
 	TqInt dv = min( d, q );
 	for ( l = q + 1; l <= d; l++ )
 		for ( k = 0; k <= d - l; k++ )
-			SKL[ k ][ l ] = CqVector4D( 0.0f, 0.0f, 0.0f, 1.0f );
+			SKL[ k ][ l ] = V4f( 0.0f, 0.0f, 0.0f, 1.0f );
 
 	TqUint uspan = FindSpanU( u );
 	DersBasisFunctions( u, uspan, m_auKnots, m_uOrder, du, Nu );
@@ -350,20 +350,20 @@ CqVector4D	CqSurfaceNURBS::EvaluateWithNormal( TqFloat u, TqFloat v, CqVector4D&
 	{
 		for ( s = 0; s <= q; s++ )
 		{
-			temp[ s ] = CqVector4D( 0.0f, 0.0f, 0.0f, 1.0f );
+			temp[ s ] = V4f( 0.0f, 0.0f, 0.0f, 1.0f );
 			for ( r = 0; r <= p; r++ )
 				temp[ s ] = temp[ s ] + Nu[ k ][ r ] * CP( uspan - p + r, vspan - q + s );
 		}
 		TqInt dd = min( d - k, dv );
 		for ( l = 0; l <= dd; l++ )
 		{
-			SKL[ k ][ l ] = CqVector4D( 0.0f, 0.0f, 0.0f, 1.0f );
+			SKL[ k ][ l ] = V4f( 0.0f, 0.0f, 0.0f, 1.0f );
 			for ( s = 0; s <= q; s++ )
 				SKL[ k ][ l ] = SKL[ k ][ l ] + Nv[ l ][ s ] * temp[ s ];
 		}
 	}
 	N = SKL[ 1 ][ 0 ] % SKL[ 0 ][ 1 ];
-	N.Unit();
+	N.normalize();
 
 	P = SKL[ 0 ][ 0 ];
 
@@ -498,11 +498,11 @@ TqUint CqSurfaceNURBS::InsertKnotU( TqFloat u, TqInt r )
 
 								case type_hpoint:
 								{
-									CqParameterTyped<CqVector4D, Imath::V3f>* pTR = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( R );
-									CqVector4D cp( alpha * ( *pTR->pValue( i + 1 ) ).x() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).x(),
-									               alpha * ( *pTR->pValue( i + 1 ) ).y() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).y(),
-									               alpha * ( *pTR->pValue( i + 1 ) ).z() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).z(),
-									               alpha * ( *pTR->pValue( i + 1 ) ).h() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).h() );
+									CqParameterTyped<V4f, Imath::V3f>* pTR = static_cast<CqParameterTyped<V4f, Imath::V3f>*>( R );
+									V4f cp( alpha * ( *pTR->pValue( i + 1 ) ).x + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).x,
+									               alpha * ( *pTR->pValue( i + 1 ) ).y + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).y,
+									               alpha * ( *pTR->pValue( i + 1 ) ).z + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).z,
+									               alpha * ( *pTR->pValue( i + 1 ) ).h + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).h );
 									( *pTR->pValue( i ) ) = cp;
 									break;
 								}
@@ -677,11 +677,11 @@ TqUint CqSurfaceNURBS::InsertKnotV( TqFloat v, TqInt r )
 
 								case type_hpoint:
 								{
-									CqParameterTyped<CqVector4D, Imath::V3f>* pTR = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( R );
-									CqVector4D cp( alpha * ( *pTR->pValue( i + 1 ) ).x() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).x(),
-									               alpha * ( *pTR->pValue( i + 1 ) ).y() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).y(),
-									               alpha * ( *pTR->pValue( i + 1 ) ).z() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).z(),
-									               alpha * ( *pTR->pValue( i + 1 ) ).h() + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).h() );
+									CqParameterTyped<V4f, Imath::V3f>* pTR = static_cast<CqParameterTyped<V4f, Imath::V3f>*>( R );
+									V4f cp( alpha * ( *pTR->pValue( i + 1 ) ).x + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).x,
+									               alpha * ( *pTR->pValue( i + 1 ) ).y + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).y,
+									               alpha * ( *pTR->pValue( i + 1 ) ).z + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).z,
+									               alpha * ( *pTR->pValue( i + 1 ) ).h + ( 1.0f - alpha ) * ( *pTR->pValue( i ) ).h );
 									( *pTR->pValue( i ) ) = cp;
 									break;
 								}
@@ -868,13 +868,13 @@ void CqSurfaceNURBS::RefineKnotU( const std::vector<TqFloat>& X )
 
 								case type_hpoint:
 								{
-									CqParameterTyped<CqVector4D, Imath::V3f>* pTParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( ( *iUP ) );
+									CqParameterTyped<V4f, Imath::V3f>* pTParam = static_cast<CqParameterTyped<V4f, Imath::V3f>*>( ( *iUP ) );
 									for ( row = 0; row < static_cast<TqInt>( m_cvVerts ); row++ )
 									{
-										CqVector4D cp( alpha * pTParam->pValue() [ ( row * m_cuVerts ) + ind - 1 ].x() + ( 1.0f - alpha ) * pTParam->pValue() [ ( row * m_cuVerts ) + ind ].x(),
-										               alpha * pTParam->pValue() [ ( row * m_cuVerts ) + ind - 1 ].y() + ( 1.0f - alpha ) * pTParam->pValue() [ ( row * m_cuVerts ) + ind ].y(),
-										               alpha * pTParam->pValue() [ ( row * m_cuVerts ) + ind - 1 ].z() + ( 1.0f - alpha ) * pTParam->pValue() [ ( row * m_cuVerts ) + ind ].z(),
-										               alpha * pTParam->pValue() [ ( row * m_cuVerts ) + ind - 1 ].h() + ( 1.0f - alpha ) * pTParam->pValue() [ ( row * m_cuVerts ) + ind ].h() );
+										V4f cp( alpha * pTParam->pValue() [ ( row * m_cuVerts ) + ind - 1 ].x + ( 1.0f - alpha ) * pTParam->pValue() [ ( row * m_cuVerts ) + ind ].x,
+										               alpha * pTParam->pValue() [ ( row * m_cuVerts ) + ind - 1 ].y + ( 1.0f - alpha ) * pTParam->pValue() [ ( row * m_cuVerts ) + ind ].y,
+										               alpha * pTParam->pValue() [ ( row * m_cuVerts ) + ind - 1 ].z + ( 1.0f - alpha ) * pTParam->pValue() [ ( row * m_cuVerts ) + ind ].z,
+										               alpha * pTParam->pValue() [ ( row * m_cuVerts ) + ind - 1 ].h + ( 1.0f - alpha ) * pTParam->pValue() [ ( row * m_cuVerts ) + ind ].h );
 										pTParam->pValue( ( row * m_cuVerts ) + ind - 1 ) [ 0 ] = cp;
 									}
 									break;
@@ -1042,13 +1042,13 @@ void CqSurfaceNURBS::RefineKnotV( const std::vector<TqFloat>& X )
 
 								case type_hpoint:
 								{
-									CqParameterTyped<CqVector4D, Imath::V3f>* pTParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( ( *iUP ) );
+									CqParameterTyped<V4f, Imath::V3f>* pTParam = static_cast<CqParameterTyped<V4f, Imath::V3f>*>( ( *iUP ) );
 									for ( col = 0; col < static_cast<TqInt>( m_cuVerts ); col++ )
 									{
-										CqVector4D cp( alpha * pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ].x() + ( 1.0f - alpha ) * pTParam->pValue() [ ( ind * m_cuVerts ) + col ].x(),
-										               alpha * pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ].y() + ( 1.0f - alpha ) * pTParam->pValue() [ ( ind * m_cuVerts ) + col ].y(),
-										               alpha * pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ].z() + ( 1.0f - alpha ) * pTParam->pValue() [ ( ind * m_cuVerts ) + col ].z(),
-										               alpha * pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ].h() + ( 1.0f - alpha ) * pTParam->pValue() [ ( ind * m_cuVerts ) + col ].h() );
+										V4f cp( alpha * pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ].x + ( 1.0f - alpha ) * pTParam->pValue() [ ( ind * m_cuVerts ) + col ].x,
+										               alpha * pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ].y + ( 1.0f - alpha ) * pTParam->pValue() [ ( ind * m_cuVerts ) + col ].y,
+										               alpha * pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ].z + ( 1.0f - alpha ) * pTParam->pValue() [ ( ind * m_cuVerts ) + col ].z,
+										               alpha * pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ].h + ( 1.0f - alpha ) * pTParam->pValue() [ ( ind * m_cuVerts ) + col ].h );
 										pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ] = cp;
 									}
 									break;
@@ -1382,7 +1382,7 @@ void CqSurfaceNURBS::Bound(CqBound* bound) const
 void CqSurfaceNURBS::NaturalDice( CqParameter* pParameter, TqInt uDiceSize, TqInt vDiceSize, IqShaderData* pData )
 {
 	assert(pParameter->Count() == pData->ArrayLength());
-	CqVector4D vec1;
+	V4f vec1;
 	TqInt iv;
 	for ( iv = 0; iv <= vDiceSize; iv++ )
 	{
@@ -1442,7 +1442,7 @@ void CqSurfaceNURBS::NaturalDice( CqParameter* pParameter, TqInt uDiceSize, TqIn
 
 					case type_hpoint:
 					{
-						CqParameterTyped<CqVector4D, Imath::V3f>* pTParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( pParameter );
+						CqParameterTyped<V4f, Imath::V3f>* pTParam = static_cast<CqParameterTyped<V4f, Imath::V3f>*>( pParameter );
 						IqShaderData* arrayValue;
 						TqInt i;
 						for(i = 0; i<pParameter->Count(); i++)
@@ -1537,7 +1537,7 @@ void CqSurfaceNURBS::GenerateGeometricNormals( TqInt uDiceSize, TqInt vDiceSize,
 	bool O = pAttributes() ->GetIntegerAttribute( "System", "Orientation" ) [ 0 ] != 0;
 
 	Imath::V3f	N;
-	CqVector4D P;
+	V4f P;
 	TqInt iv, iu;
 	for ( iv = 0; iv <= vDiceSize; iv++ )
 	{
@@ -1934,7 +1934,7 @@ void CqSurfaceNURBS::Output( const char* name )
 
 	fputs( "\"Pw\" [\n", fp );
 	for ( i = 0; i < P() ->Size(); i++ )
-		fprintf( fp, "%f %f %f %f \n", P()->pValue( i )[0].x(), P()->pValue( i )[0].y(), P()->pValue( i )[0].z(), P()->pValue( i )[0].h() );
+		fprintf( fp, "%f %f %f %f \n", P()->pValue( i )[0].x, P()->pValue( i )[0].y, P()->pValue( i )[0].z, P()->pValue( i )[0].h );
 	fputs( "]\n", fp );
 
 	fclose( fp );

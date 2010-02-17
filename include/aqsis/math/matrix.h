@@ -245,12 +245,14 @@ class AQSIS_MATH_SHARE CqMatrix
 		 * \return The result of multiplying the vector by this matrix.
 		 */
 		CqVector4D operator*(const CqVector4D &vec) const;
+		V4f operator*(const V4f &vec) const;
 		/** \brief Premultiplies this matrix by a vector, returning v*m.
 		 *
 		 * This is the same as postmultiply the transpose of m by a vector: T(m)*v
 		 * \param vec - The vector to multiply.
 		 */
 		CqVector4D PreMultiply(const CqVector4D &vec) const;
+		V4f PreMultiply(const V4f &vec) const;
 		/** \brief Multiply a 3D vector by this matrix.
 		 *
 		 * The meaning of this is to first construct a 4D vector corresponding
@@ -369,6 +371,7 @@ class AQSIS_MATH_SHARE CqMatrix
 
 /// Premultiply matrix by vector.
 AQSIS_MATH_SHARE CqVector4D operator*( const CqVector4D &vec, const CqMatrix& matrix );
+AQSIS_MATH_SHARE V4f operator*( const V4f &vec, const CqMatrix& matrix );
 
 //------------------------------------------------------------------------------
 /** \brief Determine whether two matrices are equal to within some tolerance
@@ -690,6 +693,10 @@ inline CqVector4D CqMatrix::PreMultiply( const CqVector4D &vec ) const
 
 	return Result;
 }
+inline V4f CqMatrix::PreMultiply( const V4f& vec) const
+{
+	return vectorCast<V4f>(PreMultiply(vectorCast<CqVector4D>(vec)));
+}
 
 inline CqMatrix CqMatrix::operator*( const TqFloat S ) const
 {
@@ -733,6 +740,10 @@ inline CqVector4D CqMatrix::operator*( const CqVector4D &vec ) const
 	          + m_elements[ 3 ][ 3 ] * vec.h() );
 
 	return Result;
+}
+inline V4f CqMatrix::operator*( const V4f& vec) const
+{
+	return vectorCast<V4f>(operator*(vectorCast<CqVector4D>(vec)));
 }
 
 inline CqVector3D CqMatrix::operator*( const CqVector3D &vec ) const
@@ -967,6 +978,11 @@ inline CqMatrix operator*( TqFloat S, const CqMatrix& a )
 }
 
 inline CqVector4D operator*( const CqVector4D &vec, const CqMatrix& matrix )
+{
+	return ( matrix.PreMultiply( vec ) );
+}
+
+inline V4f operator*( const V4f &vec, const CqMatrix& matrix )
 {
 	return ( matrix.PreMultiply( vec ) );
 }

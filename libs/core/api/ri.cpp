@@ -1852,10 +1852,10 @@ RtVoid	RiOptionV( RtToken name, PARAMETERLIST )
 			case type_hpoint:
 			{
 /*				RtFloat* pc = reinterpret_cast<RtFloat*>( value );
-				CqVector4D* pOpt = QGetRenderContext()->poptWriteCurrent()->GetHPointOptionWrite(name, undecoratedName, Count);
+				V4f* pOpt = QGetRenderContext()->poptWriteCurrent()->GetHPointOptionWrite(name, undecoratedName, Count);
 				RtInt j;
 				for ( j = 0; j < Count; ++j )
-					pOpt[ j ] = CqVector4D(pc[ (j*4) ], pc[ (j*4)+1 ], pc[ (j*4)+2 ], pc[ (j*4)+3]); */
+					pOpt[ j ] = V4f(pc[ (j*4) ], pc[ (j*4)+1 ], pc[ (j*4)+2 ], pc[ (j*4)+3]); */
 			}
 			break;
 
@@ -6017,15 +6017,15 @@ static RtBoolean ProcessPrimitiveVariables( CqSurface * pSurface, PARAMETERLIST 
 	// Fill in the position variable according to type.
 	if ( fP != RIL_NONE )
 	{
-		CqParameterTypedVertex<CqVector4D, type_hpoint, Imath::V3f>* P
-			= new CqParameterTypedVertex<CqVector4D, type_hpoint, Imath::V3f>("P", 1);
+		CqParameterTypedVertex<V4f, type_hpoint, Imath::V3f>* P
+			= new CqParameterTypedVertex<V4f, type_hpoint, Imath::V3f>("P", 1);
 		TqInt cVertex = pSurface->cVertex();
 		P->SetSize(cVertex);
 		switch ( fP )
 		{
 			case RIL_P:
 				for (TqInt i = 0; i < cVertex; ++i )
-					P->pValue( i )[0] = CqVector4D( pPoints[ ( i * 3 ) ], pPoints[ ( i * 3 ) + 1 ], pPoints[ ( i * 3 ) + 2 ] );
+					P->pValue( i )[0] = V4f( pPoints[ ( i * 3 ) ], pPoints[ ( i * 3 ) + 1 ], pPoints[ ( i * 3 ) + 2 ] );
 				break;
 
 			case RIL_Pz:
@@ -6033,13 +6033,13 @@ static RtBoolean ProcessPrimitiveVariables( CqSurface * pSurface, PARAMETERLIST 
 				{
 					Imath::V3f vecP = pSurface->SurfaceParametersAtVertex( i );
 					vecP.z = pPoints[ i ];
-					P->pValue( i )[0] = vectorCast<CqVector4D>(vecP);
+					P->pValue( i )[0] = vectorCast<V4f>(vecP);
 				}
 				break;
 
 			case RIL_Pw:
 				for (TqInt i = 0; i < cVertex; ++i )
-					P->pValue( i )[0] = CqVector4D( pPoints[ ( i * 4 ) ], pPoints[ ( i * 4 ) + 1 ], pPoints[ ( i * 4 ) + 2 ], pPoints[ ( i * 4 ) + 3 ] );
+					P->pValue( i )[0] = V4f( pPoints[ ( i * 4 ) ], pPoints[ ( i * 4 ) + 1 ], pPoints[ ( i * 4 ) + 2 ], pPoints[ ( i * 4 ) + 3 ] );
 				break;
 		}
 		pSurface->AddPrimitiveVariable(P);
@@ -6150,13 +6150,13 @@ static RtBoolean ProcessPrimitiveVariables( CqSurface * pSurface, PARAMETERLIST 
 
 					case type_hpoint:
 					{
-						CqParameterTyped<CqVector4D, Imath::V3f>* pVectorParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( pNewParam );
+						CqParameterTyped<V4f, Imath::V3f>* pVectorParam = static_cast<CqParameterTyped<V4f, Imath::V3f>*>( pNewParam );
 						TqFloat* pValue = reinterpret_cast<TqFloat*>( values[ *iUserParam ] );
 						TqInt iArrayIndex, iValIndex;
 						i = 0;
 						for ( iValIndex = 0; iValIndex < cValues; ++iValIndex )
 							for ( iArrayIndex = 0; iArrayIndex < tok.count(); ++iArrayIndex, ++i )
-								pVectorParam->pValue( iValIndex ) [ iArrayIndex ] = CqVector4D( pValue[ ( i * 4 ) ], pValue[ ( i * 4 ) + 1 ], pValue[ ( i * 4 ) + 2 ], pValue[ ( i * 4 ) + 3 ] );
+								pVectorParam->pValue( iValIndex ) [ iArrayIndex ] = V4f( pValue[ ( i * 4 ) ], pValue[ ( i * 4 ) + 1 ], pValue[ ( i * 4 ) + 2 ], pValue[ ( i * 4 ) + 3 ] );
 					}
 					break;
 

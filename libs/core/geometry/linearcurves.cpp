@@ -105,7 +105,7 @@ void CqLinearCurveSegment::NaturalSubdivide(
 			linCurveNatSubdiv<Imath::V3f, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_hpoint:
-			linCurveNatSubdiv<CqVector4D, Imath::V3f>(pParam, pParam1, pParam2);
+			linCurveNatSubdiv<V4f, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_color:
 			linCurveNatSubdiv<CqColor, CqColor>(pParam, pParam1, pParam2);
@@ -269,14 +269,14 @@ TqInt CqLinearCurveSegment::SplitToPatch(
 	// set the points on the patch
 	pPatch->AddPrimitiveVariable(
 	    new CqParameterTypedVertex <
-	    CqVector4D, type_hpoint, Imath::V3f
+	    V4f, type_hpoint, Imath::V3f
 	    > ( "P", 1 )
 	);
 	pPatch->P() ->SetSize( 4 );
-	pPatch->P()->pValue( 0 )[0] = P()->pValue( 0 )[0] + vectorCast<CqVector4D>(widthOffset0);
-	pPatch->P()->pValue( 1 )[0] = P()->pValue( 0 )[0] - vectorCast<CqVector4D>(widthOffset0);
-	pPatch->P()->pValue( 2 )[0] = P()->pValue( 1 )[0] + vectorCast<CqVector4D>(widthOffset1);
-	pPatch->P()->pValue( 3 )[0] = P()->pValue( 1 )[0] - vectorCast<CqVector4D>(widthOffset1);
+	pPatch->P()->pValue( 0 )[0] = P()->pValue( 0 )[0] + vectorCast<V4f>(widthOffset0);
+	pPatch->P()->pValue( 1 )[0] = P()->pValue( 0 )[0] - vectorCast<V4f>(widthOffset0);
+	pPatch->P()->pValue( 2 )[0] = P()->pValue( 1 )[0] + vectorCast<V4f>(widthOffset1);
+	pPatch->P()->pValue( 3 )[0] = P()->pValue( 1 )[0] - vectorCast<V4f>(widthOffset1);
 
 	// set the normals on the patch
 	/*    pPatch->AddPrimitiveVariable(

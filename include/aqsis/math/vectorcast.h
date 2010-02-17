@@ -39,6 +39,7 @@
 #include <aqsis/math/vector2d.h>
 #include <aqsis/math/vector3d.h>
 #include <aqsis/math/vector4d.h>
+#include <aqsis/math/vec4.h>
 
 namespace Aqsis {
 
@@ -83,13 +84,19 @@ inline T vectorCast(const CqVector2D& v)
 template<>
 inline CqVector3D vectorCast(const CqVector2D& v)
 {
-	return CqVector3D(v.x(), v.y(), 0);
+	return CqVector3D(v.x(), v.y(), 0.0f);
+}
+
+template<>
+inline V4f vectorCast(const CqVector2D& v)
+{
+	return V4f(v.x(), v.y(), 0.0f, 1.0f);
 }
 
 template<>
 inline Imath::V3f vectorCast(const CqVector2D& v)
 {
-	return Imath::V3f(v.x(), v.y(), 0);
+	return Imath::V3f(v.x(), v.y(), 0.0f);
 }
 
 template<>
@@ -136,6 +143,12 @@ inline Imath::V3f vectorCast(const CqVector3D& v)
 	return Imath::V3f(v.x(), v.y(), v.z());
 }
 
+template<>
+inline V4f vectorCast(const CqVector3D& v)
+{
+	return V4f(v.x(), v.y(), v.z(), 1.0f);
+}
+
 //----------------------------------------
 // casting from CqVector4D
 template<typename T>
@@ -170,6 +183,12 @@ inline Imath::V3f vectorCast(const CqVector4D& v)
 	{
 		return Imath::V3f(v.x(), v.y(), v.z());
 	}
+}
+
+template<>
+inline V4f vectorCast(const CqVector4D& v)
+{
+	return V4f(v.x(), v.y(), v.z(), v.h());
 }
 
 template<>
@@ -220,6 +239,11 @@ inline Imath::V3f vectorCast(const CqColor& c)
 	return Imath::V3f(c.r(), c.g(), c.b());
 }
 
+template<>
+inline V4f vectorCast(const CqColor& c)
+{
+	return V4f(c.r(), c.g(), c.b(), 1.0f);
+}
 
 //----------------------------------------
 // Casting from Imath::V2f
@@ -281,6 +305,56 @@ inline CqColor vectorCast(const Imath::V3f& v)
 	return CqColor(v.x, v.y, v.z);
 }
 
+template<>
+inline V4f vectorCast(const Imath::V3f& v)
+{
+	return V4f(v.x, v.y, v.z);
+}
+
+//----------------------------------------
+// Casting from Aqsis::V4f
+
+template<typename T>
+inline T vectorCast(const V4f& v)
+{
+	return T(v);
+}
+
+template<>
+inline CqVector2D vectorCast(const V4f& v)
+{
+	return CqVector2D(v.x/v.h, v.y/v.h);
+}
+
+template<>
+inline Imath::V2f vectorCast(const V4f& v)
+{
+	return Imath::V2f(v.x/v.h, v.y/v.h);
+}
+
+template<>
+inline CqVector3D vectorCast(const V4f& v)
+{
+	return CqVector3D(v.x/v.h, v.y/v.h, v.z/v.h);
+}
+
+template<>
+inline CqVector4D vectorCast(const V4f& v)
+{
+	return CqVector4D(v.x, v.y, v.z, v.h);
+}
+
+template<>
+inline CqColor vectorCast(const V4f& v)
+{
+	return CqColor(v.x/v.h, v.y/v.h, v.z/v.h);
+}
+
+template<>
+inline Imath::V3f vectorCast(const V4f& v)
+{
+	return Imath::V3f(v.x/v.h, v.y/v.h, v.z/v.h);
+}
 
 } // namespace Aqsis
 

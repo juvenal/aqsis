@@ -234,10 +234,10 @@ class CqSurface : public IqSurface, private boost::noncopyable, public boost::en
 
 		/** Get a reference the to P default parameter.
 		 */
-		virtual CqParameterTyped<CqVector4D, Imath::V3f>* P()
+		virtual CqParameterTyped<V4f, Imath::V3f>* P()
 		{
 			if ( m_aiStdPrimitiveVars[ EnvVars_P ] >= 0 )
-				return ( static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_P ] ] ) );
+				return ( static_cast<CqParameterTyped<V4f, Imath::V3f>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_P ] ] ) );
 			else
 				return ( NULL );
 		}
@@ -307,10 +307,10 @@ class CqSurface : public IqSurface, private boost::noncopyable, public boost::en
 
 		/** Get a reference the to P default parameter.
 		 */
-		virtual const	CqParameterTyped<CqVector4D, Imath::V3f>* P() const
+		virtual const	CqParameterTyped<V4f, Imath::V3f>* P() const
 		{
 			if ( m_aiStdPrimitiveVars[ EnvVars_P ] >= 0 )
-				return ( static_cast<const CqParameterTyped<CqVector4D, Imath::V3f>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_P ] ] ) );
+				return ( static_cast<const CqParameterTyped<V4f, Imath::V3f>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_P ] ] ) );
 			else
 				return ( NULL );
 		}

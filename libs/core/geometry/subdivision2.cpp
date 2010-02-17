@@ -219,7 +219,7 @@ Imath::V3f CqSubdivision2::limitPoint(CqLath* vert)
 	// Grab a pointer to the positions.  It's very important that we do this
 	// *after* the possible subdivision steps above, or the array may have been
 	// reallocated.
-	const CqVector4D* P = pPoints()->P()->pValue();
+	const V4f* P = pPoints()->P()->pValue();
 
 	if(vert->isBoundaryVertex())
 	{
@@ -774,7 +774,7 @@ void CqSubdivision2::AddVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFVIndex)
 					CreateVertex<CqColor, CqColor>(*iUP, pVertex, iIndex);
 					break;
 				case type_hpoint:
-					CreateVertex<CqVector4D, Imath::V3f>(*iUP, pVertex, iIndex);
+					CreateVertex<V4f, Imath::V3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_string:
 					//CreateVertex<CqString, CqString>(*iUP, pVertex, iIndex);
@@ -853,7 +853,7 @@ void CqSubdivision2::DuplicateVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFV
 					DuplicateVertex<CqColor, CqColor>(*iUP, pVertex, iIndex);
 					break;
 				case type_hpoint:
-					DuplicateVertex<CqVector4D, Imath::V3f>(*iUP, pVertex, iIndex);
+					DuplicateVertex<V4f, Imath::V3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_string:
 					//DuplicateVertex<CqString, CqString>(*iUP, pVertex, iIndex);
@@ -1018,7 +1018,7 @@ void CqSubdivision2::AddEdgeVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFVIn
 					CreateEdgeVertex<CqColor, CqColor>(*iUP, pVertex, iIndex);
 					break;
 				case type_hpoint:
-					CreateEdgeVertex<CqVector4D, Imath::V3f>(*iUP, pVertex, iIndex);
+					CreateEdgeVertex<V4f, Imath::V3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_string:
 					//CreateEdgeVertex<CqString, CqString>(*iUP, pVertex, iIndex);
@@ -1122,7 +1122,7 @@ void CqSubdivision2::AddFaceVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFVIn
 					CreateFaceVertex<CqColor, CqColor>(*iUP, pVertex, iIndex );
 					break;
 				case type_hpoint:
-					CreateFaceVertex<CqVector4D, Imath::V3f>(*iUP, pVertex, iIndex );
+					CreateFaceVertex<V4f, Imath::V3f>(*iUP, pVertex, iIndex );
 					break;
 				case type_string:
 					//CreateFaceVertex<CqString, CqString>(*iUP, pVertex, iIndex );
@@ -2044,7 +2044,7 @@ void CqSurfaceSubdivisionPatch::StoreDiceAPVar(
 
 				case type_hpoint:
 				{
-					CqParameterTyped<CqVector4D, Imath::V3f>* pNParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( pParam );
+					CqParameterTyped<V4f, Imath::V3f>* pNParam = static_cast<CqParameterTyped<V4f, Imath::V3f>*>( pParam );
 					pArg->SetValue( vectorCast<Imath::V3f>(*pNParam->pValue( index )), indexA );
 				}
 				break;
@@ -2362,7 +2362,7 @@ TqInt CqSurfaceSubdivisionPatch::Split( std::vector<boost::shared_ptr<CqSurface>
 		// Need to get rid of any 'h' values added to the "P" variables during multiplication.
 		TqUint i;
 		for( i = 0; i < pSurface->cVertex(); i++ )
-			pSurface->P()->pValue(i)[0].Homogenize();
+			pSurface->P()->pValue(i)[0].homogenize();
 
 		CqMatrix matuBasis( RiBSplineBasis );
 		CqMatrix matvBasis( RiBSplineBasis );
@@ -2722,7 +2722,7 @@ bool CqSubdivision2::CanUsePatch( CqLath* pFace )
 					cont = allFvertContinuous<CqColor, CqColor>(**par, pairsToCheck, numPairs);
 					break;
 				case type_hpoint:
-					cont = allFvertContinuous<CqVector4D, Imath::V3f>(**par, pairsToCheck, numPairs);
+					cont = allFvertContinuous<V4f, Imath::V3f>(**par, pairsToCheck, numPairs);
 					break;
 				case type_matrix:
 					cont = allFvertContinuous<CqMatrix, CqMatrix>(**par, pairsToCheck, numPairs);
@@ -2862,7 +2862,7 @@ boost::shared_ptr<CqSubdivision2> CqSurfaceSubdivisionPatch::Extract( TqInt iTim
 	// Need to get rid of any 'h' values added to the "P" variables during multiplication.
 	TqUint i;
 	for( i = 0; i < cVerts; i++ )
-		pSurface->pPoints()->P()->pValue(i)[0].Homogenize();
+		pSurface->pPoints()->P()->pValue(i)[0].homogenize();
 
 	TqInt iP = 0;
 	for( iF = aQff.begin(); iF != aQff.end(); iF++ )

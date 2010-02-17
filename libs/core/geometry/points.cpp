@@ -57,7 +57,7 @@ class CqPointsKDTreeData::CqPointsKDTreeDataComparator
 		}
 
 	private:
-		const CqVector4D* m_P;
+		const V4f* m_P;
 		TqInt		m_Dim;
 };
 
@@ -305,7 +305,7 @@ void CqPoints::NaturalDice(CqParameter* pParam, TqInt uDiceSize, TqInt vDiceSize
 			pointsNaturalDice<Imath::V3f, Imath::V3f>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
 			break;
 		case type_hpoint:
-			pointsNaturalDice<CqVector4D, Imath::V3f>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
+			pointsNaturalDice<V4f, Imath::V3f>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
 			break;
 		case type_color:
 			pointsNaturalDice<CqColor, CqColor>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
@@ -347,7 +347,7 @@ bool	CqPoints::Diceable()
 
 void	CqPoints::Bound(CqBound* bound) const
 {
-	CqVector4D* P = m_pPoints->P()->pValue();
+	V4f* P = m_pPoints->P()->pValue();
 	std::vector<TqInt>::const_iterator idx = m_KDTree.aLeaves().begin();
 	for(TqInt i = 0; i < m_nVertices; i++)
 		bound->Encapsulate( vectorCast<Imath::V3f>( P[idx[i]] ) );

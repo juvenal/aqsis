@@ -342,7 +342,7 @@ void CqSurface::NaturalSubdivide( CqParameter* pParam, CqParameter* pParam1, CqP
 			surfaceNaturalSubdivide<Imath::V3f, Imath::V3f>(pParam, pParam1, pParam2, u);
 			break;
 		case type_hpoint:
-			surfaceNaturalSubdivide<CqVector4D, Imath::V3f>(pParam, pParam1, pParam2, u);
+			surfaceNaturalSubdivide<V4f, Imath::V3f>(pParam, pParam1, pParam2, u);
 			break;
 		case type_color:
 			surfaceNaturalSubdivide<CqColor, CqColor>(pParam, pParam1, pParam2, u);
@@ -406,7 +406,7 @@ void CqSurface::NaturalDice( CqParameter* pParam, TqInt uDiceSize,
 			surfaceNaturalDice<Imath::V3f, Imath::V3f>(uDiceSize, vDiceSize, pParam, pData);
 			break;
 		case type_hpoint:
-			surfaceNaturalDice<CqVector4D, Imath::V3f>(uDiceSize, vDiceSize, pParam, pData);
+			surfaceNaturalDice<V4f, Imath::V3f>(uDiceSize, vDiceSize, pParam, pData);
 			break;
 		case type_color:
 			surfaceNaturalDice<CqColor, CqColor>(uDiceSize, vDiceSize, pParam, pData);
@@ -653,7 +653,7 @@ void	CqSurface::Transform( const CqMatrix& matTx, const CqMatrix& matITTx, const
 		}
 		if ( ( *iUP ) ->Type() == type_hpoint )
 		{
-			CqParameterTyped<CqVector4D, Imath::V3f>* pTPV = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( ( *iUP ) );
+			CqParameterTyped<V4f, Imath::V3f>* pTPV = static_cast<CqParameterTyped<V4f, Imath::V3f>*>( ( *iUP ) );
 			TqInt size = ( *iUP ) ->Size();
 			for ( i = 0; i < size; i++ )
 				pTPV->pValue() [ i ] = matTx * pTPV->pValue() [ i ];

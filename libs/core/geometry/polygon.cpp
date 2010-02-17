@@ -348,7 +348,7 @@ void CqPolygonBase::CreatePhantomData( CqParameter* pParam )
 
 			case type_hpoint:
 			{
-				CqParameterTyped<CqVector4D, Imath::V3f>* pTParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( pParam );
+				CqParameterTyped<V4f, Imath::V3f>* pTParam = static_cast<CqParameterTyped<V4f, Imath::V3f>*>( pParam );
 				for( iArray = 0; iArray < iArrayCount; iArray++ )
 					pTParam->pValue( 3 ) [ iArray ] = ( pTParam->pValue( 1 ) [ iArray ] - pTParam->pValue( 0 ) [ iArray ] ) + pTParam->pValue( 2 ) [ iArray ];
 				break;

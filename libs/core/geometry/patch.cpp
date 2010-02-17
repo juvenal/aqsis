@@ -146,7 +146,7 @@ void CqSurfacePatchBicubic::NaturalSubdivide( CqParameter* pParam, CqParameter* 
 			bicubicPatchNatSubdiv<Imath::V3f, Imath::V3f>(pParam, pParam1, pParam2, u);
 			break;
 		case type_hpoint:
-			bicubicPatchNatSubdiv<CqVector4D, Imath::V3f>(pParam, pParam1, pParam2, u);
+			bicubicPatchNatSubdiv<V4f, Imath::V3f>(pParam, pParam1, pParam2, u);
 			break;
 		case type_color:
 			bicubicPatchNatSubdiv<CqColor, CqColor>(pParam, pParam1, pParam2, u);
@@ -263,7 +263,7 @@ void CqSurfacePatchBicubic::NaturalDice(CqParameter* pParam, TqInt uDiceSize,
 			bicubicPatchNatDice<Imath::V3f, Imath::V3f>( uDiceSize, vDiceSize, pParam, pData );
 			break;
 		case type_hpoint:
-			bicubicPatchNatDice<CqVector4D, Imath::V3f>(uDiceSize, vDiceSize, pParam, pData);
+			bicubicPatchNatDice<V4f, Imath::V3f>(uDiceSize, vDiceSize, pParam, pData);
 			break;
 		case type_color:
 			bicubicPatchNatDice<CqColor, CqColor>(uDiceSize, vDiceSize, pParam, pData);
@@ -458,7 +458,7 @@ void CqSurfacePatchBicubic::ConvertToBezierBasis( CqMatrix& matuBasis, CqMatrix&
 					case type_hpoint:
 					{
 						// Get the parameter pointer as the correct type.
-						CqParameterTyped<CqVector4D, Imath::V3f>* pParam = static_cast<CqParameterTyped<CqVector4D, Imath::V3f>*>( ( *iUP ) );
+						CqParameterTyped<V4f, Imath::V3f>* pParam = static_cast<CqParameterTyped<V4f, Imath::V3f>*>( ( *iUP ) );
 
 						// Store the data into a matrix for conversion.
 						CqMatrix matCPx, matCPy, matCPz, matCPh;
@@ -913,7 +913,7 @@ TqInt CqSurfacePatchMeshBicubic::Split( std::vector<boost::shared_ptr<CqSurface>
 {
 	TqInt cSplits = 0;
 
-	CqVector4D vecPoint;
+	V4f vecPoint;
 	TqInt iP = 0;
 	TqInt uStep = pAttributes() ->GetIntegerAttribute( "System", "BasisStep" ) [ 0 ];
 	TqInt vStep = pAttributes() ->GetIntegerAttribute( "System", "BasisStep" ) [ 1 ];

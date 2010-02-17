@@ -105,16 +105,16 @@ class CqPolygonGeneral2D
 			switch ( m_Axis )
 			{
 					case Axis_XY:
-						return ( Imath::V2f( m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].x(),
-											 m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].y() ) );
+						return ( Imath::V2f( m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].x,
+											 m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].y ) );
 
 					case Axis_XZ:
-						return ( Imath::V2f( m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].x(),
-											 m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].z() ) );
+						return ( Imath::V2f( m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].x,
+											 m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].z ) );
 
 					case Axis_YZ:
-						return ( Imath::V2f( m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].y(),
-											 m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].z() ) );
+						return ( Imath::V2f( m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].y,
+											 m_pVertices->P()->pValue( m_aiVertices[ index ] )[0].z ) );
 			}
 			return ( Imath::V2f( 0, 0 ) );
 		}

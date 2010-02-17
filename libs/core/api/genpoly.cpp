@@ -65,7 +65,7 @@ CqPolygonGeneral2D& CqPolygonGeneral2D::operator=( const CqPolygonGeneral2D& Fro
 //---------------------------------------------------------------------
 void CqPolygonGeneral2D::CalcAxis()
 {
-	CqParameterTyped<CqVector4D, Imath::V3f>* P = m_pVertices->P();
+	CqParameterTyped<V4f, Imath::V3f>* P = m_pVertices->P();
 	// Obtain a nondegenerate normal vector for the polygon.
 	Imath::V3f normal(1,0,0);
 	TqInt i = 0;

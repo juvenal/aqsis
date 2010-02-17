@@ -202,7 +202,7 @@ class CqSurfaceNURBS : public CqSurface
 		 * \param v Index in the v direction.
 		 * \return Reference to the 4D homogenous control point.
 		 */
-		CqVector4D&	CP( const TqUint u, TqUint v )
+		V4f&	CP( const TqUint u, TqUint v )
 		{
 			return ( P()->pValue( ( v * m_cuVerts ) + u )[0] );
 		}
@@ -211,7 +211,7 @@ class CqSurfaceNURBS : public CqSurface
 		 * \param v Index in the v direction.
 		 * \return Reference to the 4D homogenous control point.
 		 */
-		const	CqVector4D&	CP( const TqUint u, TqUint v ) const
+		const	V4f&	CP( const TqUint u, TqUint v ) const
 		{
 			return ( P()->pValue( ( v * m_cuVerts ) + u )[0] );
 		}
@@ -252,11 +252,11 @@ class CqSurfaceNURBS : public CqSurface
 			BasisFunctions( v, vspan, m_avKnots, m_vOrder, Nv );
 			TqUint uind = uspan - uDegree();
 
-			T S = T();
+			T S = T(0.0f);
 			TqUint l, k;
 			for ( l = 0; l <= vDegree(); l++ )
 			{
-				T temp = T();
+				T temp = T(0.0f);
 				TqUint vind = vspan - vDegree() + l;
 				for ( k = 0; k <= uDegree(); k++ )
 					temp = static_cast<T>( temp + Nu[ k ] * ( pParam->pValue( ( vind * m_cuVerts ) + uind + k )[arrayIndex] ) );
@@ -265,7 +265,7 @@ class CqSurfaceNURBS : public CqSurface
 			return ( S );
 		}
 
-		CqVector4D	EvaluateWithNormal( TqFloat u, TqFloat v, CqVector4D& P );
+		V4f	EvaluateWithNormal( TqFloat u, TqFloat v, V4f& P );
 		void	SplitNURBS( CqSurfaceNURBS& nrbA, CqSurfaceNURBS& nrbB, bool dirflag );
 		void	SubdivideSegments( std::vector<boost::shared_ptr<CqSurfaceNURBS> >& Array );
 		void	RefineKnotU( const std::vector<TqFloat>& X );

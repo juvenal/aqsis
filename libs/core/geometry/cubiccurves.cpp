@@ -133,7 +133,7 @@ void CqCubicCurveSegment::NaturalSubdivide(
 			cubicCurveNatSubdiv<Imath::V3f, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_hpoint:
-			cubicCurveNatSubdiv<CqVector4D, Imath::V3f>(pParam, pParam1, pParam2);
+			cubicCurveNatSubdiv<V4f, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_color:
 			cubicCurveNatSubdiv<CqColor, CqColor>(pParam, pParam1, pParam2);
@@ -195,7 +195,7 @@ void CqCubicCurveSegment::VaryingNaturalSubdivide(
 			cubicCurveVaryingNatSubdiv<Imath::V3f, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_hpoint:
-			cubicCurveVaryingNatSubdiv<CqVector4D, Imath::V3f>(pParam, pParam1, pParam2);
+			cubicCurveVaryingNatSubdiv<V4f, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_color:
 			cubicCurveVaryingNatSubdiv<CqColor, CqColor>(pParam, pParam1, pParam2);
@@ -440,29 +440,29 @@ TqInt CqCubicCurveSegment::SplitToPatch(
 	// set the points on the patch
 	pPatch->AddPrimitiveVariable(
 	    new CqParameterTypedVertex <
-	    CqVector4D, type_hpoint, Imath::V3f
+	    V4f, type_hpoint, Imath::V3f
 	    > ( "P", 1 )
 	);
 	pPatch->P() ->SetSize( 16 );
-	pPatch->P()->pValue( 0  )[0] = P()->pValue( 0 )[0] + vectorCast<CqVector4D>(widthOffset0);
-	pPatch->P()->pValue( 1  )[0] = P()->pValue( 0 )[0] + vectorCast<CqVector4D>(widthOffset02);
-	pPatch->P()->pValue( 2  )[0] = P()->pValue( 0 )[0] - vectorCast<CqVector4D>(widthOffset02);
-	pPatch->P()->pValue( 3  )[0] = P()->pValue( 0 )[0] - vectorCast<CqVector4D>(widthOffset0);
+	pPatch->P()->pValue( 0  )[0] = P()->pValue( 0 )[0] + vectorCast<V4f>(widthOffset0);
+	pPatch->P()->pValue( 1  )[0] = P()->pValue( 0 )[0] + vectorCast<V4f>(widthOffset02);
+	pPatch->P()->pValue( 2  )[0] = P()->pValue( 0 )[0] - vectorCast<V4f>(widthOffset02);
+	pPatch->P()->pValue( 3  )[0] = P()->pValue( 0 )[0] - vectorCast<V4f>(widthOffset0);
 
-	pPatch->P()->pValue( 4  )[0] = P()->pValue( 1 )[0] + vectorCast<CqVector4D>(widthOffset1);
-	pPatch->P()->pValue( 5  )[0] = P()->pValue( 1 )[0] + vectorCast<CqVector4D>(widthOffset12);
-	pPatch->P()->pValue( 6  )[0] = P()->pValue( 1 )[0] - vectorCast<CqVector4D>(widthOffset12);
-	pPatch->P()->pValue( 7  )[0] = P()->pValue( 1 )[0] - vectorCast<CqVector4D>(widthOffset1);
+	pPatch->P()->pValue( 4  )[0] = P()->pValue( 1 )[0] + vectorCast<V4f>(widthOffset1);
+	pPatch->P()->pValue( 5  )[0] = P()->pValue( 1 )[0] + vectorCast<V4f>(widthOffset12);
+	pPatch->P()->pValue( 6  )[0] = P()->pValue( 1 )[0] - vectorCast<V4f>(widthOffset12);
+	pPatch->P()->pValue( 7  )[0] = P()->pValue( 1 )[0] - vectorCast<V4f>(widthOffset1);
 
-	pPatch->P()->pValue( 8  )[0] = P()->pValue( 2 )[0] + vectorCast<CqVector4D>(widthOffset2);
-	pPatch->P()->pValue( 9  )[0] = P()->pValue( 2 )[0] + vectorCast<CqVector4D>(widthOffset22);
-	pPatch->P()->pValue( 10 )[0] = P()->pValue( 2 )[0] - vectorCast<CqVector4D>(widthOffset22);
-	pPatch->P()->pValue( 11 )[0] = P()->pValue( 2 )[0] - vectorCast<CqVector4D>(widthOffset2);
+	pPatch->P()->pValue( 8  )[0] = P()->pValue( 2 )[0] + vectorCast<V4f>(widthOffset2);
+	pPatch->P()->pValue( 9  )[0] = P()->pValue( 2 )[0] + vectorCast<V4f>(widthOffset22);
+	pPatch->P()->pValue( 10 )[0] = P()->pValue( 2 )[0] - vectorCast<V4f>(widthOffset22);
+	pPatch->P()->pValue( 11 )[0] = P()->pValue( 2 )[0] - vectorCast<V4f>(widthOffset2);
 
-	pPatch->P()->pValue( 12 )[0] = P()->pValue( 3 )[0] + vectorCast<CqVector4D>(widthOffset3);
-	pPatch->P()->pValue( 13 )[0] = P()->pValue( 3 )[0] + vectorCast<CqVector4D>(widthOffset32);
-	pPatch->P()->pValue( 14 )[0] = P()->pValue( 3 )[0] - vectorCast<CqVector4D>(widthOffset32);
-	pPatch->P()->pValue( 15 )[0] = P()->pValue( 3 )[0] - vectorCast<CqVector4D>(widthOffset3);
+	pPatch->P()->pValue( 12 )[0] = P()->pValue( 3 )[0] + vectorCast<V4f>(widthOffset3);
+	pPatch->P()->pValue( 13 )[0] = P()->pValue( 3 )[0] + vectorCast<V4f>(widthOffset32);
+	pPatch->P()->pValue( 14 )[0] = P()->pValue( 3 )[0] - vectorCast<V4f>(widthOffset32);
+	pPatch->P()->pValue( 15 )[0] = P()->pValue( 3 )[0] - vectorCast<V4f>(widthOffset3);
 
 	// set the normals on the patch
 	//	pPatch->AddPrimitiveVariable(
@@ -718,7 +718,7 @@ CqParameter* CqCubicCurvesGroup::convertToBezierBasis(CqParameter* param)
 				// type DataT.  This works whenever DataT live in a vector
 				// space (ie, everything from colours to floats).
 				//
-				// It even works for hpoints (CqVector4D), given that the
+				// It even works for hpoints (V4f), given that the
 				// correct homogenous addition operators have been defined for
 				// hpoints.
 				po0[i] = m_basisTrans[0][0]*p0[i] + m_basisTrans[0][1]*p1[i]
@@ -761,7 +761,7 @@ void CqCubicCurvesGroup::AddPrimitiveVariable(CqParameter* param)
 				newParam = convertToBezierBasis<Imath::V3f, Imath::V3f>(param);
 				break;
 			case type_hpoint:
-				newParam = convertToBezierBasis<CqVector4D, Imath::V3f>(param);
+				newParam = convertToBezierBasis<V4f, Imath::V3f>(param);
 				break;
 			case type_color:
 				newParam = convertToBezierBasis<CqColor, CqColor>(param);
