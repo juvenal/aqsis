@@ -36,9 +36,6 @@
 #include <ImathVec.h>
 
 #include <aqsis/math/color.h>
-#include <aqsis/math/vector2d.h>
-#include <aqsis/math/vector3d.h>
-#include <aqsis/math/vector4d.h>
 #include <aqsis/math/vec4.h>
 
 namespace Aqsis {
@@ -59,13 +56,11 @@ namespace Aqsis {
  *
  * Colors are treated as 3-vectors with the component correspondences x=r, y=g, z=b.
  */
-template<typename T> T vectorCast(const CqVector2D& v);
+template<typename T> T vectorCast(const Imath::V2f& v);
 
-template<typename T> T vectorCast(const CqVector3D& v);
+template<typename T> T vectorCast(const Imath::V3f& v);
 
-template<typename T> T vectorCast(const CqVector4D& v);
-
-template<typename T> T vectorCast(const CqColor& c);
+template<typename T> T vectorCast(const V4f& v);
 //@}
 
 
@@ -74,163 +69,11 @@ template<typename T> T vectorCast(const CqColor& c);
 //==============================================================================
 
 //----------------------------------------
-// casting from CqVector2D
-template<typename T>
-inline T vectorCast(const CqVector2D& v)
-{
-	return T(v);
-}
-
-template<>
-inline CqVector3D vectorCast(const CqVector2D& v)
-{
-	return CqVector3D(v.x(), v.y(), 0.0f);
-}
-
-template<>
-inline V4f vectorCast(const CqVector2D& v)
-{
-	return V4f(v.x(), v.y(), 0.0f, 1.0f);
-}
-
-template<>
-inline Imath::V3f vectorCast(const CqVector2D& v)
-{
-	return Imath::V3f(v.x(), v.y(), 0.0f);
-}
-
-template<>
-inline Imath::V2f vectorCast(const CqVector2D& v)
-{
-	return Imath::V2f(v.x(), v.y());
-}
-
-//----------------------------------------
-// casting from CqVector3D
-template<typename T>
-inline T vectorCast(const CqVector3D& v)
-{
-	return T(v);
-}
-
-template<>
-inline CqColor vectorCast(const CqVector3D& v)
-{
-	return CqColor(v.x(), v.y(), v.z());
-}
-
-template<>
-inline CqVector2D vectorCast(const CqVector3D& v)
-{
-	return CqVector2D(v.x(), v.y());
-}
-
-template<>
-inline Imath::V2f vectorCast(const CqVector3D& v)
-{
-	return Imath::V2f(v.x(), v.y());
-}
-
-template<>
-inline CqVector4D vectorCast(const CqVector3D& v)
-{
-	return CqVector4D(v.x(), v.y(), v.z());
-}
-
-template<>
-inline Imath::V3f vectorCast(const CqVector3D& v)
-{
-	return Imath::V3f(v.x(), v.y(), v.z());
-}
-
-template<>
-inline V4f vectorCast(const CqVector3D& v)
-{
-	return V4f(v.x(), v.y(), v.z(), 1.0f);
-}
-
-//----------------------------------------
-// casting from CqVector4D
-template<typename T>
-inline T vectorCast(const CqVector4D& v)
-{
-	return T(v);
-}
-
-template<>
-inline CqVector3D vectorCast(const CqVector4D& v)
-{
-	if(v.h() != 1)
-	{
-		TqFloat hInv = 1/v.h();
-		return CqVector3D(hInv*v.x(), hInv*v.y(), hInv*v.z());
-	}
-	else
-	{
-		return CqVector3D(v.x(), v.y(), v.z());
-	}
-}
-
-template<>
-inline Imath::V3f vectorCast(const CqVector4D& v)
-{
-	if(v.h() != 1)
-	{
-		TqFloat hInv = 1/v.h();
-		return Imath::V3f(hInv*v.x(), hInv*v.y(), hInv*v.z());
-	}
-	else
-	{
-		return Imath::V3f(v.x(), v.y(), v.z());
-	}
-}
-
-template<>
-inline V4f vectorCast(const CqVector4D& v)
-{
-	return V4f(v.x(), v.y(), v.z(), v.h());
-}
-
-template<>
-inline CqVector2D vectorCast(const CqVector4D& v)
-{
-	if(v.h() != 1)
-	{
-		TqFloat hInv = 1/v.h();
-		return CqVector2D(hInv*v.x(), hInv*v.y());
-	}
-	else
-	{
-		return CqVector2D(v.x(), v.y());
-	}
-}
-
-template<>
-inline Imath::V2f vectorCast(const CqVector4D& v)
-{
-	if(v.h() != 1)
-	{
-		TqFloat hInv = 1/v.h();
-		return Imath::V2f(hInv*v.x(), hInv*v.y());
-	}
-	else
-	{
-		return Imath::V2f(v.x(), v.y());
-	}
-}
-
-//----------------------------------------
 // Casting from CqColor
 template<typename T>
 inline T vectorCast(const CqColor& c)
 {
 	return T(c);
-}
-
-template<>
-inline CqVector3D vectorCast(const CqColor& c)
-{
-	return CqVector3D(c.r(), c.g(), c.b());
 }
 
 template<>
@@ -254,12 +97,6 @@ inline T vectorCast(const Imath::V2f& v)
 }
 
 template<>
-inline CqVector2D vectorCast(const Imath::V2f& v)
-{
-	return CqVector2D(v.x, v.y);
-}
-
-template<>
 inline Imath::V3f vectorCast(const Imath::V2f& v)
 {
 	return Imath::V3f(v.x, v.y, 0);
@@ -276,27 +113,9 @@ inline T vectorCast(const Imath::V3f& v)
 }
 
 template<>
-inline CqVector2D vectorCast(const Imath::V3f& v)
-{
-	return CqVector2D(v.x, v.y);
-}
-
-template<>
 inline Imath::V2f vectorCast(const Imath::V3f& v)
 {
 	return Imath::V2f(v.x, v.y);
-}
-
-template<>
-inline CqVector3D vectorCast(const Imath::V3f& v)
-{
-	return CqVector3D(v.x, v.y, v.z);
-}
-
-template<>
-inline CqVector4D vectorCast(const Imath::V3f& v)
-{
-	return CqVector4D(v.x, v.y, v.z);
 }
 
 template<>
@@ -314,17 +133,6 @@ inline V4f vectorCast(const Imath::V3f& v)
 //----------------------------------------
 // Casting from Aqsis::V4f
 
-template<typename T>
-inline T vectorCast(const V4f& v)
-{
-	return T(v);
-}
-
-template<>
-inline CqVector2D vectorCast(const V4f& v)
-{
-	return CqVector2D(v.x/v.h, v.y/v.h);
-}
 
 template<>
 inline Imath::V2f vectorCast(const V4f& v)
@@ -333,27 +141,15 @@ inline Imath::V2f vectorCast(const V4f& v)
 }
 
 template<>
-inline CqVector3D vectorCast(const V4f& v)
+inline Imath::V3f vectorCast(const V4f& v)
 {
-	return CqVector3D(v.x/v.h, v.y/v.h, v.z/v.h);
-}
-
-template<>
-inline CqVector4D vectorCast(const V4f& v)
-{
-	return CqVector4D(v.x, v.y, v.z, v.h);
+	return Imath::V3f(v.x/v.h, v.y/v.h, v.z/v.h);
 }
 
 template<>
 inline CqColor vectorCast(const V4f& v)
 {
 	return CqColor(v.x/v.h, v.y/v.h, v.z/v.h);
-}
-
-template<>
-inline Imath::V3f vectorCast(const V4f& v)
-{
-	return Imath::V3f(v.x/v.h, v.y/v.h, v.z/v.h);
 }
 
 } // namespace Aqsis

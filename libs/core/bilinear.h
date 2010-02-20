@@ -30,8 +30,8 @@
 
 #include	<aqsis/aqsis.h>
 #include	<ImathVec.h>
-#include	<aqsis/math/vector2d.h>
 #include	<aqsis/math/vectorcast.h>
+#include	<aqsis/math/vecextras.h>
 
 namespace Aqsis {
 

@@ -31,7 +31,6 @@
 #include	<boost/shared_ptr.hpp>
 
 #include	<aqsis/shadervm/ishaderdata.h>
-#include	<aqsis/math/vector3d.h>
 #include	<aqsis/math/derivatives.h>
 #include	<aqsis/math/matrix.h>
 #include	<aqsis/util/sstring.h>

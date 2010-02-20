@@ -29,7 +29,6 @@
 
 #include <aqsis/aqsis.h>
 
-#include <aqsis/math/vector2d.h>
 #include <ImathVec.h>
 
 namespace Aqsis {

@@ -30,7 +30,6 @@
 #include	"imagebuffer.h"
 #include	"micropolygon.h"
 #include	"renderer.h"
-#include	<aqsis/math/vector2d.h>
 #include	<aqsis/math/math.h>
 
 namespace Aqsis {

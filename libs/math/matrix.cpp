@@ -93,49 +93,45 @@ CqMatrix::CqMatrix( const TqFloat angle,
 
 //------------------------------------------------------------------------------
 // Rotatate by angle about axis.
-void CqMatrix::Rotate( const TqFloat angle, const CqVector3D axis )
+void CqMatrix::Rotate( const TqFloat angle, const Imath::V3f axis )
 {
 	if ( angle != 0.0f )
 	{
 		CqMatrix	R;
 		R.Identity();
-		CqVector3D	RotAxis = axis;
+		Imath::V3f	RotAxis = axis;
 		R.m_fIdentity = false;
 
-		RotAxis.Unit();
+		RotAxis.normalize();
 
 		TqFloat	s = static_cast<TqFloat>( sin( angle ) );
 		TqFloat	c = static_cast<TqFloat>( cos( angle ) );
 		TqFloat	t = 1.0f - c;
 
-		R.m_elements[ 0 ][ 0 ] = t * RotAxis.x() * RotAxis.x() + c;
-		R.m_elements[ 1 ][ 1 ] = t * RotAxis.y() * RotAxis.y() + c;
-		R.m_elements[ 2 ][ 2 ] = t * RotAxis.z() * RotAxis.z() + c;
+		R.m_elements[ 0 ][ 0 ] = t * RotAxis.x * RotAxis.x + c;
+		R.m_elements[ 1 ][ 1 ] = t * RotAxis.y * RotAxis.y + c;
+		R.m_elements[ 2 ][ 2 ] = t * RotAxis.z * RotAxis.z + c;
 
-		TqFloat	txy = t * RotAxis.x() * RotAxis.y();
-		TqFloat	sz = s * RotAxis.z();
+		TqFloat	txy = t * RotAxis.x * RotAxis.y;
+		TqFloat	sz = s * RotAxis.z;
 
 		R.m_elements[ 0 ][ 1 ] = txy + sz;
 		R.m_elements[ 1 ][ 0 ] = txy - sz;
 
-		TqFloat	txz = t * RotAxis.x() * RotAxis.z();
-		TqFloat	sy = s * RotAxis.y();
+		TqFloat	txz = t * RotAxis.x * RotAxis.z;
+		TqFloat	sy = s * RotAxis.y;
 
 		R.m_elements[ 0 ][ 2 ] = txz - sy;
 		R.m_elements[ 2 ][ 0 ] = txz + sy;
 
-		TqFloat	tyz = t * RotAxis.y() * RotAxis.z();
-		TqFloat	sx = s * RotAxis.x();
+		TqFloat	tyz = t * RotAxis.y * RotAxis.z;
+		TqFloat	sx = s * RotAxis.x;
 
 		R.m_elements[ 1 ][ 2 ] = tyz + sx;
 		R.m_elements[ 2 ][ 1 ] = tyz - sx;
 
 		this->PreMultiply( R );
 	}
-}
-void CqMatrix::Rotate( const TqFloat angle, const Imath::V3f axis )
-{
-	Rotate(angle, vectorCast<CqVector3D>(axis));
 }
 
 //---------------------------------------------------------------------

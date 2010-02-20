@@ -40,7 +40,6 @@
 #include <aqsis/util/list.h>
 #include <aqsis/math/matrix.h>
 #include <aqsis/shadervm/ishaderexecenv.h>
-#include <aqsis/math/vector4d.h>
 #include <aqsis/version.h>
 #include <aqsis/core/ilightsource.h>
 #include "attributes.h"

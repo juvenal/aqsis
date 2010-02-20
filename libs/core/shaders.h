@@ -33,7 +33,6 @@
 #include <aqsis/util/exception.h>
 #include <aqsis/math/matrix.h>
 #include <aqsis/util/sstring.h>
-#include <aqsis/math/vector3d.h>
 #include <aqsis/util/list.h>
 #include <aqsis/shadervm/ishader.h>
 #include <aqsis/shadervm/ishaderexecenv.h>

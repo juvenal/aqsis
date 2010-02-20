@@ -39,7 +39,6 @@
 #include	<boost/noncopyable.hpp>
 
 #include	<aqsis/math/color.h>
-#include	<aqsis/math/vector2d.h>
 #include	"csgtree.h"
 #include	"optioncache.h"
 #include	"isampler.h"

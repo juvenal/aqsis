@@ -34,10 +34,8 @@
 #include <aqsis/aqsis.h>
 #include <aqsis/math/matrix.h>
 #include "surface.h"
-#include <aqsis/math/vector4d.h>
 
 #include <aqsis/ri/ri.h>
-#include <aqsis/math/vector3d.h>
 
 namespace Aqsis {
 

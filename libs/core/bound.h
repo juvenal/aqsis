@@ -34,7 +34,6 @@
 
 #include <aqsis/math/matrix.h>
 #include "plane.h"
-#include <aqsis/math/vector2d.h>
 #include <aqsis/math/vectorcast.h>
 #include <ImathVec.h>
 

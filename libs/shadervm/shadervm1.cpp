@@ -27,7 +27,10 @@
 
 #include <iostream>
 
+#include <ImathVec.h>
+
 #include <aqsis/util/logging.h>
+#include <aqsis/math/vecextras.h>
 #include "shadeopmacros.h"
 
 namespace Aqsis {

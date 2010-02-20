@@ -9,11 +9,12 @@
 #include <cstdlib>
 #include <iosfwd>
 
-#include <aqsis/math/vector3d.h>
+#include <ImathVec.h>
+#include <aqsis/math/math.h>
 #include <aqsis/ribparser.h>
 
 /// Alias for the longwinded Aqsis::Imath::V3f
-typedef Aqsis::CqVector3D Vec3;
+typedef Imath::V3f Vec3;
 
 /// Alias for longwinded Aqsis::IqRibParser::TqBlahArray
 typedef Aqsis::IqRibParser::TqFloatArray FloatArray;

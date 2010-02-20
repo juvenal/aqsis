@@ -29,8 +29,6 @@
 
 #include <aqsis/math/math.h>
 #include <aqsis/math/matrix.h>
-#include <aqsis/math/vector2d.h>
-#include <aqsis/math/vector3d.h>
 #include <aqsis/math/vectorcast.h>
 #include <ImathVec.h>
 

@@ -166,7 +166,7 @@ boost::shared_ptr<PrimVars> EmitterMesh::particlesOnFace(int faceIdx)
 
 	// Finally, add extra face-constant parameters.
 	Vec3 Ng_emitVec = faceNormal(face);
-	float Ng_emit[] = {Ng_emitVec.x(), Ng_emitVec.y(), Ng_emitVec.z()};
+	float Ng_emit[] = {Ng_emitVec.x, Ng_emitVec.y, Ng_emitVec.z};
 	interpVars->append(Aqsis::CqPrimvarToken(Aqsis::class_constant, Aqsis::type_normal,
 				1, "Ng_emit"), FloatArray(Ng_emit, Ng_emit+3));
 
@@ -179,7 +179,7 @@ float EmitterMesh::triangleArea(const int* v) const
 	Vec3 edge1 = m_P[v[0]] - m_P[v[1]];
 	Vec3 edge2 = m_P[v[1]] - m_P[v[2]];
 
-	return (edge1 % edge2).Magnitude()/2;
+	return (edge1 % edge2).length()/2;
 }
 
 /// Get the area for a face
@@ -195,7 +195,7 @@ float EmitterMesh::faceArea(const MeshFace& face) const
 Vec3 EmitterMesh::faceNormal(const MeshFace& face) const
 {
 	return ((m_P[face.v[1]] - m_P[face.v[0]]) %
-		(m_P[face.v[2]] - m_P[face.v[1]])).Unit();
+		(m_P[face.v[2]] - m_P[face.v[1]])).normalize();
 }
 
 /** Initialise the list of faces for the mesh

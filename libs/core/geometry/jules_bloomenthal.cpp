@@ -32,7 +32,6 @@
 
 #include <aqsis/aqsis.h>
 #include <aqsis/ri/ri.h>
-#include <aqsis/math/vector4d.h>
 #include <aqsis/math/matrix.h>
 #include "jules_bloomenthal.h"
 #include <aqsis/util/logging.h>

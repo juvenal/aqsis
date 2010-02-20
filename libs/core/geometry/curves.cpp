@@ -25,7 +25,6 @@
 */
 
 #include <aqsis/aqsis.h>
-#include <aqsis/math/vector3d.h>
 #include "curves.h"
 namespace Aqsis {
 

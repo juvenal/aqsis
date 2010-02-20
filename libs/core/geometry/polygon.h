@@ -30,7 +30,6 @@
 #include	<aqsis/aqsis.h>
 
 #include	"surface.h"
-#include	<aqsis/math/vector4d.h>
 
 namespace Aqsis {
 

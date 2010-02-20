@@ -429,15 +429,15 @@ static void AddShaderVar( IqShaderData * shaderVar,
 				break;
 				case type_point:
 				{
-					Imath::V3f	aCqVector3D;
+					Imath::V3f	aVec3;
 					RtPoint	aRtPoint;
 					slxType = SLX_TYPE_POINT;
 					if ( !shaderVar->isArray() )
 					{
-						shaderVar->GetPoint( aCqVector3D );
-						aRtPoint[ 0 ] = aCqVector3D[ 0 ];
-						aRtPoint[ 1 ] = aCqVector3D[ 1 ];
-						aRtPoint[ 2 ] = aCqVector3D[ 2 ];
+						shaderVar->GetPoint( aVec3 );
+						aRtPoint[ 0 ] = aVec3[ 0 ];
+						aRtPoint[ 1 ] = aVec3[ 1 ];
+						aRtPoint[ 2 ] = aVec3[ 2 ];
 						defaultValLength = sizeof( RtPoint );
 						defaultVal = ( char * ) malloc( defaultValLength );
 						memcpy( defaultVal, &aRtPoint, defaultValLength );
@@ -449,10 +449,10 @@ static void AddShaderVar( IqShaderData * shaderVar,
 						defaultVal = ( char * ) malloc( defaultValLength );
 						for ( arrayIndex = 0; arrayIndex < arrayLen; arrayIndex++ )
 						{
-							shaderVar->ArrayEntry( arrayIndex ) ->GetPoint( aCqVector3D );
-							aRtPoint[ 0 ] = aCqVector3D[ 0 ];
-							aRtPoint[ 1 ] = aCqVector3D[ 1 ];
-							aRtPoint[ 2 ] = aCqVector3D[ 2 ];
+							shaderVar->ArrayEntry( arrayIndex ) ->GetPoint( aVec3 );
+							aRtPoint[ 0 ] = aVec3[ 0 ];
+							aRtPoint[ 1 ] = aVec3[ 1 ];
+							aRtPoint[ 2 ] = aVec3[ 2 ];
 							memcpy( defaultVal + ( arrayIndex * sizeof( RtPoint ) ), &aRtPoint, sizeof( RtPoint ) );
 						}
 					}
@@ -469,15 +469,15 @@ static void AddShaderVar( IqShaderData * shaderVar,
 				break;
 				case type_normal:
 				{
-					Imath::V3f	aCqVector3D;
+					Imath::V3f	aVec3;
 					RtPoint	aRtPoint;
 					slxType = SLX_TYPE_NORMAL;
 					if ( !shaderVar->isArray() )
 					{
-						shaderVar->GetNormal( aCqVector3D );
-						aRtPoint[ 0 ] = aCqVector3D[ 0 ];
-						aRtPoint[ 1 ] = aCqVector3D[ 1 ];
-						aRtPoint[ 2 ] = aCqVector3D[ 2 ];
+						shaderVar->GetNormal( aVec3 );
+						aRtPoint[ 0 ] = aVec3[ 0 ];
+						aRtPoint[ 1 ] = aVec3[ 1 ];
+						aRtPoint[ 2 ] = aVec3[ 2 ];
 						defaultValLength = sizeof( RtPoint );
 						defaultVal = ( char * ) malloc( defaultValLength );
 						memcpy( defaultVal, &aRtPoint, defaultValLength );
@@ -489,10 +489,10 @@ static void AddShaderVar( IqShaderData * shaderVar,
 						defaultVal = ( char * ) malloc( defaultValLength );
 						for ( arrayIndex = 0; arrayIndex < arrayLen; arrayIndex++ )
 						{
-							shaderVar->ArrayEntry( arrayIndex ) ->GetNormal( aCqVector3D );
-							aRtPoint[ 0 ] = aCqVector3D[ 0 ];
-							aRtPoint[ 1 ] = aCqVector3D[ 1 ];
-							aRtPoint[ 2 ] = aCqVector3D[ 2 ];
+							shaderVar->ArrayEntry( arrayIndex ) ->GetNormal( aVec3 );
+							aRtPoint[ 0 ] = aVec3[ 0 ];
+							aRtPoint[ 1 ] = aVec3[ 1 ];
+							aRtPoint[ 2 ] = aVec3[ 2 ];
 							memcpy( defaultVal + ( arrayIndex * sizeof( RtPoint ) ), &aRtPoint, sizeof( RtPoint ) );
 						}
 					}
@@ -509,15 +509,15 @@ static void AddShaderVar( IqShaderData * shaderVar,
 				break;
 				case type_vector:
 				{
-					Imath::V3f	aCqVector3D;
+					Imath::V3f	aVec3;
 					RtPoint	aRtPoint;
 					slxType = SLX_TYPE_VECTOR;
 					if ( !shaderVar->isArray() )
 					{
-						shaderVar->GetPoint( aCqVector3D );
-						aRtPoint[ 0 ] = aCqVector3D[ 0 ];
-						aRtPoint[ 1 ] = aCqVector3D[ 1 ];
-						aRtPoint[ 2 ] = aCqVector3D[ 2 ];
+						shaderVar->GetPoint( aVec3 );
+						aRtPoint[ 0 ] = aVec3[ 0 ];
+						aRtPoint[ 1 ] = aVec3[ 1 ];
+						aRtPoint[ 2 ] = aVec3[ 2 ];
 						defaultValLength = sizeof( RtPoint );
 						defaultVal = ( char * ) malloc( defaultValLength );
 						memcpy( defaultVal, &aRtPoint, defaultValLength );
@@ -529,10 +529,10 @@ static void AddShaderVar( IqShaderData * shaderVar,
 						defaultVal = ( char * ) malloc( defaultValLength );
 						for ( arrayIndex = 0; arrayIndex < arrayLen; arrayIndex++ )
 						{
-							shaderVar->ArrayEntry( arrayIndex ) ->GetPoint( aCqVector3D );
-							aRtPoint[ 0 ] = aCqVector3D[ 0 ];
-							aRtPoint[ 1 ] = aCqVector3D[ 1 ];
-							aRtPoint[ 2 ] = aCqVector3D[ 2 ];
+							shaderVar->ArrayEntry( arrayIndex ) ->GetPoint( aVec3 );
+							aRtPoint[ 0 ] = aVec3[ 0 ];
+							aRtPoint[ 1 ] = aVec3[ 1 ];
+							aRtPoint[ 2 ] = aVec3[ 2 ];
 							memcpy( defaultVal + ( arrayIndex * sizeof( RtPoint ) ), &aRtPoint, sizeof( RtPoint ) );
 						}
 					}

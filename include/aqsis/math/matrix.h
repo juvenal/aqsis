@@ -32,8 +32,6 @@
 
 #include <iostream>
 
-#include <aqsis/math/vector3d.h>
-#include <aqsis/math/vector4d.h>
 #include <aqsis/math/vectorcast.h>
 #include <ImathVec.h>
 
@@ -70,14 +68,12 @@ class AQSIS_MATH_SHARE CqMatrix
 		 *
 		 * \param trans - The vector by which to translate.
 		 */
-		CqMatrix( const CqVector3D& trans );
 		CqMatrix( const Imath::V3f& trans );
 		/** \brief Rotation matrix constructor
 		 *
 		 * \param angle - The angle to rotate by.
 		 * \param axis - The axis about which to rotate.
 		 */
-		CqMatrix( const TqFloat angle, const CqVector3D axis );
 		CqMatrix( const TqFloat angle, const Imath::V3f axis );
 		/** \brief Skew matrix constructor
 		 *
@@ -146,12 +142,10 @@ class AQSIS_MATH_SHARE CqMatrix
 		 * \param angle - The angle to rotate by.
 		 * \param axis - The axis about which to rotate.
 		 */
-		void Rotate( const TqFloat angle, const CqVector3D axis );
 		void Rotate( const TqFloat angle, const Imath::V3f axis );
 		/** Translates this matrix by a given vector.
 		 * \param trans - The vector by which to translate.
 		 */
-		void Translate( const CqVector3D& trans );
 		void Translate( const Imath::V3f& trans );
 		/** Translates this matrix by three axis distances.
 		 * \param xt - X distance to translate.
@@ -244,14 +238,12 @@ class AQSIS_MATH_SHARE CqMatrix
 		 * \param vec - The vector to multiply.
 		 * \return The result of multiplying the vector by this matrix.
 		 */
-		CqVector4D operator*(const CqVector4D &vec) const;
 		V4f operator*(const V4f &vec) const;
 		/** \brief Premultiplies this matrix by a vector, returning v*m.
 		 *
 		 * This is the same as postmultiply the transpose of m by a vector: T(m)*v
 		 * \param vec - The vector to multiply.
 		 */
-		CqVector4D PreMultiply(const CqVector4D &vec) const;
 		V4f PreMultiply(const V4f &vec) const;
 		/** \brief Multiply a 3D vector by this matrix.
 		 *
@@ -264,7 +256,6 @@ class AQSIS_MATH_SHARE CqMatrix
 		 *
 		 * \param vec - The vector to multiply.
 		 */
-		CqVector3D operator*(const CqVector3D &vec) const;
 		Imath::V3f operator*(const Imath::V3f &vec) const;
 		/** \brief Add two matrices.
 		 * \param from - The matrix to add.
@@ -370,7 +361,6 @@ class AQSIS_MATH_SHARE CqMatrix
 };
 
 /// Premultiply matrix by vector.
-AQSIS_MATH_SHARE CqVector4D operator*( const CqVector4D &vec, const CqMatrix& matrix );
 AQSIS_MATH_SHARE V4f operator*( const V4f &vec, const CqMatrix& matrix );
 
 //------------------------------------------------------------------------------
@@ -415,19 +405,6 @@ inline CqMatrix::CqMatrix( const TqFloat xs, const TqFloat ys, const TqFloat zs 
 }
 
 // Construct a translation matrix
-inline CqMatrix::CqMatrix( const CqVector3D& trans )
-{
-	Identity();
-
-	if ( trans.x() != 0.0f || trans.y() != 0.0f || trans.z() != 0.0f )
-	{
-		m_fIdentity = false;
-
-		m_elements[ 3 ][ 0 ] = trans.x();
-		m_elements[ 3 ][ 1 ] = trans.y();
-		m_elements[ 3 ][ 2 ] = trans.z();
-	}
-}
 inline CqMatrix::CqMatrix( const Imath::V3f& trans)
 {
 	Identity();
@@ -444,13 +421,6 @@ inline CqMatrix::CqMatrix( const Imath::V3f& trans)
 
 
 // Construct a rotation matrix
-inline CqMatrix::CqMatrix( const TqFloat angle, const CqVector3D axis )
-{
-	Identity();
-
-	if ( angle != 0.0f && axis.Magnitude() != 0.0f )
-		Rotate( angle, axis );
-}
 inline CqMatrix::CqMatrix( const TqFloat angle, const Imath::V3f axis )
 {
 	Identity();
@@ -563,11 +533,6 @@ inline void CqMatrix::Scale( const TqFloat xs, const TqFloat ys, const TqFloat z
 	this->PreMultiply( Scale );
 }
 
-inline void CqMatrix::Translate( const CqVector3D& trans )
-{
-	CqMatrix matTrans( trans );
-	this->PreMultiply( matTrans );
-}
 inline void CqMatrix::Translate( const Imath::V3f& trans )
 {
 	CqMatrix matTrans( trans );
@@ -577,7 +542,7 @@ inline void CqMatrix::Translate( const Imath::V3f& trans )
 inline void CqMatrix::Translate( const TqFloat xt, const TqFloat yt, const TqFloat zt )
 {
 	if ( xt != 0.0f || yt != 0.0f || zt != 0.0f )
-		Translate( CqVector3D( xt, yt, zt ) );
+		Translate( Imath::V3f( xt, yt, zt ) );
 }
 
 inline void CqMatrix::ShearX( const TqFloat yh, const TqFloat zh )
@@ -664,38 +629,34 @@ inline CqMatrix CqMatrix::operator*( const CqMatrix &from ) const
 	return temp;
 }
 
-inline CqVector4D CqMatrix::PreMultiply( const CqVector4D &vec ) const
+inline V4f CqMatrix::PreMultiply( const V4f& vec) const
 {
 	if ( m_fIdentity )
 		return vec;
 
-	CqVector4D	Result;
+	V4f	Result;
 
-	Result.x( m_elements[ 0 ][ 0 ] * vec.x()
-	          + m_elements[ 0 ][ 1 ] * vec.y()
-	          + m_elements[ 0 ][ 2 ] * vec.z()
-	          + m_elements[ 0 ][ 3 ] * vec.h() );
+	Result.x =  m_elements[ 0 ][ 0 ] * vec.x
+	          + m_elements[ 0 ][ 1 ] * vec.y
+	          + m_elements[ 0 ][ 2 ] * vec.z
+	          + m_elements[ 0 ][ 3 ] * vec.h;
 
-	Result.y( m_elements[ 1 ][ 0 ] * vec.x()
-	          + m_elements[ 1 ][ 1 ] * vec.y()
-	          + m_elements[ 1 ][ 2 ] * vec.z()
-	          + m_elements[ 1 ][ 3 ] * vec.h() );
+	Result.y =  m_elements[ 1 ][ 0 ] * vec.x
+	          + m_elements[ 1 ][ 1 ] * vec.y
+	          + m_elements[ 1 ][ 2 ] * vec.z
+	          + m_elements[ 1 ][ 3 ] * vec.h;
 
-	Result.z( m_elements[ 2 ][ 0 ] * vec.x()
-	          + m_elements[ 2 ][ 1 ] * vec.y()
-	          + m_elements[ 2 ][ 2 ] * vec.z()
-	          + m_elements[ 2 ][ 3 ] * vec.h() );
+	Result.z =  m_elements[ 2 ][ 0 ] * vec.x
+	          + m_elements[ 2 ][ 1 ] * vec.y
+	          + m_elements[ 2 ][ 2 ] * vec.z
+	          + m_elements[ 2 ][ 3 ] * vec.h;
 
-	Result.h( m_elements[ 3 ][ 0 ] * vec.x()
-	          + m_elements[ 3 ][ 1 ] * vec.y()
-	          + m_elements[ 3 ][ 2 ] * vec.z()
-	          + m_elements[ 3 ][ 3 ] * vec.h() );
+	Result.h =  m_elements[ 3 ][ 0 ] * vec.x
+	          + m_elements[ 3 ][ 1 ] * vec.y
+	          + m_elements[ 3 ][ 2 ] * vec.z
+	          + m_elements[ 3 ][ 3 ] * vec.h;
 
 	return Result;
-}
-inline V4f CqMatrix::PreMultiply( const V4f& vec) const
-{
-	return vectorCast<V4f>(PreMultiply(vectorCast<CqVector4D>(vec)));
 }
 
 inline CqMatrix CqMatrix::operator*( const TqFloat S ) const
@@ -712,77 +673,69 @@ inline CqMatrix &CqMatrix::operator*=( const TqFloat S )
 	return *this;
 }
 
-inline CqVector4D CqMatrix::operator*( const CqVector4D &vec ) const
+inline V4f CqMatrix::operator*( const V4f& vec) const
 {
 	if ( m_fIdentity )
 		return vec;
 
-	CqVector4D	Result;
+	V4f	Result;
 
-	Result.x( m_elements[ 0 ][ 0 ] * vec.x()
-	          + m_elements[ 1 ][ 0 ] * vec.y()
-	          + m_elements[ 2 ][ 0 ] * vec.z()
-	          + m_elements[ 3 ][ 0 ] * vec.h() );
+	Result.x =  m_elements[ 0 ][ 0 ] * vec.x
+	          + m_elements[ 1 ][ 0 ] * vec.y
+	          + m_elements[ 2 ][ 0 ] * vec.z
+	          + m_elements[ 3 ][ 0 ] * vec.h;
 
-	Result.y( m_elements[ 0 ][ 1 ] * vec.x()
-	          + m_elements[ 1 ][ 1 ] * vec.y()
-	          + m_elements[ 2 ][ 1 ] * vec.z()
-	          + m_elements[ 3 ][ 1 ] * vec.h() );
+	Result.y =  m_elements[ 0 ][ 1 ] * vec.x
+	          + m_elements[ 1 ][ 1 ] * vec.y
+	          + m_elements[ 2 ][ 1 ] * vec.z
+	          + m_elements[ 3 ][ 1 ] * vec.h;
 
-	Result.z( m_elements[ 0 ][ 2 ] * vec.x()
-	          + m_elements[ 1 ][ 2 ] * vec.y()
-	          + m_elements[ 2 ][ 2 ] * vec.z()
-	          + m_elements[ 3 ][ 2 ] * vec.h() );
+	Result.z =  m_elements[ 0 ][ 2 ] * vec.x
+	          + m_elements[ 1 ][ 2 ] * vec.y
+	          + m_elements[ 2 ][ 2 ] * vec.z
+	          + m_elements[ 3 ][ 2 ] * vec.h;
 
-	Result.h( m_elements[ 0 ][ 3 ] * vec.x()
-	          + m_elements[ 1 ][ 3 ] * vec.y()
-	          + m_elements[ 2 ][ 3 ] * vec.z()
-	          + m_elements[ 3 ][ 3 ] * vec.h() );
+	Result.h =  m_elements[ 0 ][ 3 ] * vec.x
+	          + m_elements[ 1 ][ 3 ] * vec.y
+	          + m_elements[ 2 ][ 3 ] * vec.z
+	          + m_elements[ 3 ][ 3 ] * vec.h;
 
 	return Result;
 }
-inline V4f CqMatrix::operator*( const V4f& vec) const
-{
-	return vectorCast<V4f>(operator*(vectorCast<CqVector4D>(vec)));
-}
 
-inline CqVector3D CqMatrix::operator*( const CqVector3D &vec ) const
+inline Imath::V3f CqMatrix::operator*( const Imath::V3f& vec) const
 {
 	if ( m_fIdentity )
 		return vec;
 
-	CqVector3D	Result;
-	TqFloat h = ( m_elements[ 0 ][ 3 ] * vec.x()
-	              + m_elements[ 1 ][ 3 ] * vec.y()
-	              + m_elements[ 2 ][ 3 ] * vec.z()
+	Imath::V3f	Result;
+	TqFloat h = (   m_elements[ 0 ][ 3 ] * vec.x
+	              + m_elements[ 1 ][ 3 ] * vec.y
+	              + m_elements[ 2 ][ 3 ] * vec.z
 	              + m_elements[ 3 ][ 3 ] );
-	Result.x( ( m_elements[ 0 ][ 0 ] * vec.x()
-	            + m_elements[ 1 ][ 0 ] * vec.y()
-	            + m_elements[ 2 ][ 0 ] * vec.z()
-	            + m_elements[ 3 ][ 0 ] ) );
-	Result.y( ( m_elements[ 0 ][ 1 ] * vec.x()
-	            + m_elements[ 1 ][ 1 ] * vec.y()
-	            + m_elements[ 2 ][ 1 ] * vec.z()
-	            + m_elements[ 3 ][ 1 ] ) );
-	Result.z( ( m_elements[ 0 ][ 2 ] * vec.x()
-	            + m_elements[ 1 ][ 2 ] * vec.y()
-	            + m_elements[ 2 ][ 2 ] * vec.z()
-	            + m_elements[ 3 ][ 2 ] ) );
+	Result.x =  ( m_elements[ 0 ][ 0 ] * vec.x
+	            + m_elements[ 1 ][ 0 ] * vec.y
+	            + m_elements[ 2 ][ 0 ] * vec.z
+	            + m_elements[ 3 ][ 0 ] );
+	Result.y =  ( m_elements[ 0 ][ 1 ] * vec.x
+	            + m_elements[ 1 ][ 1 ] * vec.y
+	            + m_elements[ 2 ][ 1 ] * vec.z
+	            + m_elements[ 3 ][ 1 ] );
+	Result.z =  ( m_elements[ 0 ][ 2 ] * vec.x
+	            + m_elements[ 1 ][ 2 ] * vec.y
+	            + m_elements[ 2 ][ 2 ] * vec.z
+	            + m_elements[ 3 ][ 2 ] );
 
 	if(h != 1)
 	{
 		assert(h != 0);
 		TqFloat invh = 1/h;
-		Result.x(Result.x()*invh);
-		Result.y(Result.y()*invh);
-		Result.z(Result.z()*invh);
+		Result.x *= invh;
+		Result.y *= invh;
+		Result.z *= invh;
 	}
 
 	return Result;
-}
-inline Imath::V3f CqMatrix::operator*( const Imath::V3f& vec) const
-{
-	return vectorCast<Imath::V3f>(operator*(vectorCast<CqVector3D>(vec)));
 }
 
 inline CqMatrix CqMatrix::operator+( const CqMatrix &from ) const
@@ -975,11 +928,6 @@ inline CqMatrix operator*( TqFloat S, const CqMatrix& a )
 	temp.m_elements[ 2 ][ 3 ] *= S;
 	temp.m_elements[ 3 ][ 3 ] *= S;
 	return temp;
-}
-
-inline CqVector4D operator*( const CqVector4D &vec, const CqMatrix& matrix )
-{
-	return ( matrix.PreMultiply( vec ) );
 }
 
 inline V4f operator*( const V4f &vec, const CqMatrix& matrix )

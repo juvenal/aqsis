@@ -27,6 +27,7 @@
 #include <stdio.h>
 
 #include <aqsis/math/math.h>
+#include <aqsis/math/vecextras.h>
 #include "shaderexecenv.h"
 #include <aqsis/util/logging.h>
 

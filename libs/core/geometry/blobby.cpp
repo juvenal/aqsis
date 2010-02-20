@@ -42,7 +42,6 @@
 #include <aqsis/math/matrix.h>
 #include <aqsis/util/plugins.h>
 #include <aqsis/ri/ri.h>
-#include <aqsis/math/vector4d.h>
 
 #if _MSC_VER
 #pragma warning(disable:4786)	// hide stl warnings (VS6)

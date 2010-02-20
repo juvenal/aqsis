@@ -32,8 +32,6 @@
 #include	<aqsis/aqsis.h>
 
 #include	<aqsis/ri/ri.h>
-#include	<aqsis/math/vector4d.h>
-#include	<aqsis/math/vector2d.h>
 #include	"surface.h"
 #include	"trimcurve.h"
 

@@ -38,8 +38,6 @@
 #include	<ImathVec.h>
 #include	<aqsis/util/list.h>
 #include	"bound.h"
-#include	<aqsis/math/vector2d.h>
-#include	<aqsis/math/vector3d.h>
 #include	<aqsis/shadervm/ishaderexecenv.h>
 #include	<aqsis/shadervm/ishaderdata.h>
 #include	"motion.h"

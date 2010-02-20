@@ -33,7 +33,6 @@
 #include	<vector>
 
 #include	"surface.h"
-#include	<aqsis/math/vector2d.h>
 #include   	"bucket.h"
 #include	"mpdump.h"
 #include	"optioncache.h"

@@ -131,7 +131,7 @@ void ParentHairs::childInterp(PrimVars& childVars) const
 		// Get weights and indices of parent hairs for current child.
 		int parentIdx[m_parentsPerChild];
 		float weights[m_parentsPerChild];
-		Vec3 currP(&P_emit[3*curveNum]);
+		Vec3 currP(P_emit[3*curveNum], P_emit[3*curveNum +1], P_emit[3*curveNum +2]);
 		getParents(currP, parentIdx, weights);
 		if(m_modifiers.clump != 0)
 			closestParent[curveNum] = parentIdx[0];
@@ -201,14 +201,16 @@ void ParentHairs::childInterp(PrimVars& childVars) const
 		FloatArray& value = **destVar;
 		for(int curveNum = 0; curveNum < numChildren; ++curveNum)
 		{
-			Vec3 deltaP = Vec3(&P_emit[3*curveNum])
-				- Vec3(&P_child[storageStride*curveNum+3*m_modifiers.rootIndex]);
+			Vec3 deltaP = Vec3(P_emit[3*curveNum], P_emit[3*curveNum +1], P_emit[3*curveNum + 2])
+				- Vec3(P_child[storageStride*curveNum+3*m_modifiers.rootIndex],
+						P_child[storageStride*curveNum+3*m_modifiers.rootIndex + 1],
+						P_child[storageStride*curveNum+3*m_modifiers.rootIndex + 2]);
 			for(int k = curveNum*storageStride, kEnd = (curveNum+1)*storageStride;
 					k < kEnd; k += 3)
 			{
-				value[k] += deltaP.x();
-				value[k+1] += deltaP.y();
-				value[k+2] += deltaP.z();
+				value[k] += deltaP.x;
+				value[k+1] += deltaP.y;
+				value[k+2] += deltaP.z;
 			}
 		}
 	}
@@ -296,9 +298,9 @@ void ParentHairs::getParents(const Vec3& pos, int ind[m_parentsPerChild],
 	// Search for closest parents using a kd-tree.  The kdtree2 interface kinda
 	// sucks, so we need to allocate a std::vector here.
 	std::vector<float> childPos(3);
-	childPos[0] = pos.x();
-	childPos[1] = pos.y();
-	childPos[2] = pos.z();
+	childPos[0] = pos.x;
+	childPos[1] = pos.y;
+	childPos[2] = pos.z;
 
 	kdtree::kdtree2_result_vector neighbours;
 

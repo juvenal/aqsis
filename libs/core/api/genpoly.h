@@ -31,8 +31,6 @@
 #include	<vector>
 
 #include	<aqsis/aqsis.h>
-#include	<aqsis/math/vector2d.h>
-#include	<aqsis/math/vector3d.h>
 #include	"surface.h"
 
 #include	<aqsis/ri/ri.h>

@@ -35,7 +35,6 @@
 
 #include	<aqsis/math/matrix.h>
 #include	"surface.h"
-#include	<aqsis/math/vector4d.h>
 #include	"kdtree.h"
 #include 	"micropolygon.h"
 #include	"imagepixel.h"

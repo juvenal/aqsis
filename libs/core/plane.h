@@ -28,7 +28,6 @@
 #define PLANE_H_INCLUDED
 
 #include	<aqsis/aqsis.h>
-#include	<aqsis/math/vector3d.h>
 
 namespace Aqsis {
 

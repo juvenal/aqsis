@@ -34,7 +34,6 @@
 #include	<aqsis/aqsis.h>
 
 #include	<aqsis/util/bitvector.h>
-#include	<aqsis/math/vector3d.h>
 #include	<aqsis/math/color.h>
 #include	<aqsis/util/sstring.h>
 #include	<aqsis/math/matrix.h>

@@ -17,7 +17,6 @@
 #include <vector>
 
 #include <ImathVec.h>
-#include <aqsis/math/vector3d.h>
 #include <ImathVec.h>
 
 namespace Aqsis {

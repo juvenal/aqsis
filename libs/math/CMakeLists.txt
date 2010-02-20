@@ -32,9 +32,6 @@ set(math_test_srcs
 	noise1234_test.cpp
 	noise_test.cpp
 	spline_test.cpp
-	vector2d_test.cpp
-	vector3d_test.cpp
-	vector4d_test.cpp
 )
 
 aqsis_add_tests(${math_test_srcs} LINK_LIBRARIES aqsis_math)

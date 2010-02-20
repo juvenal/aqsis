@@ -31,7 +31,6 @@
 #include	<vector>
 
 #include	"isampler.h"
-#include	<aqsis/math/vector2d.h>
 #include	<aqsis/math/random.h>
 
 namespace Aqsis {

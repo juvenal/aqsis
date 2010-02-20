@@ -16,7 +16,6 @@
 #include	<aqsis/aqsis.h>
 
 #include	<aqsis/util/sstring.h>
-#include	<aqsis/math/vector3d.h>
 #include	<aqsis/math/matrix.h>
 #include	<aqsis/math/color.h>
 

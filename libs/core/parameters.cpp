@@ -25,8 +25,6 @@
 
 #include	<aqsis/aqsis.h>
 #include	"parameters.h"
-#include	<aqsis/math/vector3d.h>
-#include	<aqsis/math/vector4d.h>
 #include	<aqsis/math/matrix.h>
 #include	<aqsis/util/sstring.h>
 #include	<aqsis/math/color.h>

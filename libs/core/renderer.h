@@ -37,7 +37,6 @@
 #include	<aqsis/ri/ri.h>
 #include	"graphicsstate.h"
 #include	"stats.h"
-#include	<aqsis/math/vector2d.h>
 
 #include	"shaders.h"
 #include	<aqsis/riutil/tokendictionary.h>

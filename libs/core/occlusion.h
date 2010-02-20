@@ -30,7 +30,8 @@
 
 #include <vector>
 
-#include <aqsis/math/vector2d.h>
+#include <ImathVec.h>
+
 
 namespace Aqsis {
 

@@ -30,7 +30,6 @@
 
 #include	"nurbs.h"
 #include	"renderer.h"
-#include	<aqsis/math/vector3d.h>
 #include	"bilinear.h"
 #include	"attributes.h"
 #include	<aqsis/math/math.h>

@@ -29,7 +29,6 @@
 #include <vector>
 
 #include <aqsis/ri/ri.h>
-#include <aqsis/math/vector3d.h>
 
 
 namespace Aqsis {

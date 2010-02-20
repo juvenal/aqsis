@@ -24,7 +24,6 @@
  */
 
 #include <aqsis/math/cellnoise.h>
-#include <aqsis/math/vector3d.h>
 
 #ifndef	AQSIS_SYSTEM_WIN32
 #define BOOST_TEST_DYN_LINK
@@ -32,12 +31,14 @@
 
 #include <boost/test/auto_unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
+#include <ImathVec.h>
 
+#include <aqsis/math/vecextras.h>
 
 const TqFloat epsilon = 0.1f; 
 
 
-static bool equal(const Aqsis::Imath::V3f& a, const Aqsis::Imath::V3f& b)
+static bool equal(const Imath::V3f& a, const Imath::V3f& b)
 {
 	return Aqsis::isClose(a, b);
 }
@@ -63,14 +64,14 @@ BOOST_AUTO_TEST_CASE(CqCellNoise_3D_float_cellnoise_test)
 {
 	Aqsis::CqCellNoise cn;
 	
-	BOOST_CHECK_CLOSE(cn.FCellNoise3(Aqsis::Imath::V3f(1.0f, 1.0f, 1.0f)), 0.251191825f, epsilon);
+	BOOST_CHECK_CLOSE(cn.FCellNoise3(Imath::V3f(1.0f, 1.0f, 1.0f)), 0.251191825f, epsilon);
 }
 
 BOOST_AUTO_TEST_CASE(CqCellNoise_4D_float_cellnoise_test)
 {
 	Aqsis::CqCellNoise cn;
 	
-	BOOST_CHECK_CLOSE(cn.FCellNoise4(Aqsis::Imath::V3f(1.0f, 1.0f, 1.0f), 1.0f), 0.670210421f, epsilon);
+	BOOST_CHECK_CLOSE(cn.FCellNoise4(Imath::V3f(1.0f, 1.0f, 1.0f), 1.0f), 0.670210421f, epsilon);
 }
 
 BOOST_AUTO_TEST_CASE(CqCellNoise_1D_point_cellnoise_test)
@@ -78,7 +79,7 @@ BOOST_AUTO_TEST_CASE(CqCellNoise_1D_point_cellnoise_test)
 	Aqsis::CqCellNoise cn;
 	
 	CHECK_VEC_CLOSE(cn.PCellNoise1(1.0f),
-			Aqsis::Imath::V3f(0.832859f, 0.782803f, 0.0354029f));
+			Imath::V3f(0.832859f, 0.782803f, 0.0354029f));
 }
 
 BOOST_AUTO_TEST_CASE(CqCellNoise_2D_point_cellnoise_test)
@@ -86,22 +87,22 @@ BOOST_AUTO_TEST_CASE(CqCellNoise_2D_point_cellnoise_test)
 	Aqsis::CqCellNoise cn;
 	
 	CHECK_VEC_CLOSE(cn.PCellNoise2(1.0f, 1.0f),
-			Aqsis::Imath::V3f(0.00305118f, 0.327067f, 0.917067f));
+			Imath::V3f(0.00305118f, 0.327067f, 0.917067f));
 }
 
 BOOST_AUTO_TEST_CASE(CqCellNoise_3D_point_cellnoise_test)
 {
 	Aqsis::CqCellNoise cn;
 	
-	CHECK_VEC_CLOSE(cn.PCellNoise3(Aqsis::Imath::V3f(1.0f, 1.0f, 1.0f)),
-			Aqsis::Imath::V3f(0.251192f, 0.524417f ,0.0602106f));
+	CHECK_VEC_CLOSE(cn.PCellNoise3(Imath::V3f(1.0f, 1.0f, 1.0f)),
+			Imath::V3f(0.251192f, 0.524417f ,0.0602106f));
 }
 
 BOOST_AUTO_TEST_CASE(CqCellNoise_4D_point_cellnoise_test)
 {
 	Aqsis::CqCellNoise cn;
 	
-	CHECK_VEC_CLOSE(cn.PCellNoise4(Aqsis::Imath::V3f(1.0f, 1.0f, 1.0f), 1.0f),
-			Aqsis::Imath::V3f(0.67021f, 0.930112f, 0.82147f));
+	CHECK_VEC_CLOSE(cn.PCellNoise4(Imath::V3f(1.0f, 1.0f, 1.0f), 1.0f),
+			Imath::V3f(0.67021f, 0.930112f, 0.82147f));
 }
 

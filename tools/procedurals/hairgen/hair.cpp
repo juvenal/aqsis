@@ -46,11 +46,11 @@ void transformPrimVars(PrimVars& primVars, const Aqsis::CqMatrix& pointTrans)
 			case Aqsis::type_point:
 				for(int i = 0, numVec = value.size()/3; i < numVec; ++i)
 				{
-					Vec3 v(&value[i*3]);
+					Vec3 v(value[i*3], value[i*3+1], value[i*3+2]);
 					v = pointTrans*v;
-					value[i*3] = v.x();
-					value[i*3+1] = v.y();
-					value[i*3+2] = v.z();
+					value[i*3] = v.x;
+					value[i*3+1] = v.y;
+					value[i*3+2] = v.z;
 				}
 				break;
 			default:
@@ -203,21 +203,21 @@ class HairProcedural
 				P[2*i] = P_emit[i];
 				P[2*i+1] = P_emit[i+1];
 				P[2*i+2] = P_emit[i+2];
-				Vec3 jitterN = 0.1*(Vec3(uRand(), uRand(), uRand()) - 0.5);
+				Vec3 jitterN = (Vec3(uRand(), uRand(), uRand()) - Imath::V3f(0.5f)) * 0.1f;
 				if(Nh_emit)
 				{
 					const FloatArray& Nh = *Nh_emit;
 					float lengthMult = m_params.hairLength / std::sqrt(Nh[i]*Nh[i]
 							+ Nh[i+1]*Nh[i+1] + Nh[i+2]*Nh[i+2]);
-					P[2*i+3] = P_emit[i] + lengthMult*Nh[i] + jitterN.x();
-					P[2*i+4] = P_emit[i+1] + lengthMult*Nh[i+1] + jitterN.y();
-					P[2*i+5] = P_emit[i+2] + lengthMult*Nh[i+2] + jitterN.z();
+					P[2*i+3] = P_emit[i] + lengthMult*Nh[i] + jitterN.x;
+					P[2*i+4] = P_emit[i+1] + lengthMult*Nh[i+1] + jitterN.y;
+					P[2*i+5] = P_emit[i+2] + lengthMult*Nh[i+2] + jitterN.z;
 				}
 				else
 				{
-					P[2*i+3] = P_emit[i] + m_params.hairLength*Ng_emit[0] + jitterN.x();
-					P[2*i+4] = P_emit[i+1] + m_params.hairLength*Ng_emit[1] + jitterN.y();
-					P[2*i+5] = P_emit[i+2] + m_params.hairLength*Ng_emit[2] + jitterN.z();
+					P[2*i+3] = P_emit[i] + m_params.hairLength*Ng_emit[0] + jitterN.x;
+					P[2*i+4] = P_emit[i+1] + m_params.hairLength*Ng_emit[1] + jitterN.y;
+					P[2*i+5] = P_emit[i+2] + m_params.hairLength*Ng_emit[2] + jitterN.z;
 				}
 			}
 		}

@@ -27,7 +27,6 @@
 #include	"renderer.h"
 #include	"micropolygon.h"
 #include	"surface.h"
-#include	<aqsis/math/vector2d.h>
 #include	"imagebuffer.h"
 
 namespace Aqsis {

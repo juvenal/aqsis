@@ -39,7 +39,6 @@
 #include	<aqsis/math/noise.h>
 #include	<aqsis/math/random.h>
 #include	<aqsis/math/cellnoise.h>
-#include	<aqsis/math/vector3d.h>
 #include	<aqsis/shadervm/ishaderdata.h>
 #include	<aqsis/shadervm/ishader.h>
 #include	<aqsis/shadervm/ishaderexecenv.h>
