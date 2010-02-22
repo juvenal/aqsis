@@ -107,8 +107,8 @@ void SqOptionCache::cacheOptions(const IqOptions& opts)
 
 	// Cache zthreshold.  The default threshold of 1,1,1 means that any objects
 	// which are partially transparent won't appear in shadow maps.
-	zThreshold = CqColor(1.0f);
-	if(const CqColor* zTh = opts.GetColorOption("limits", "zthreshold"))
+	zThreshold = Imath::Color3f(1.0f);
+	if(const Imath::Color3f* zTh = opts.GetColorOption("limits", "zthreshold"))
 		zThreshold = zTh[0];
 }
 

@@ -314,65 +314,65 @@ Imath::V3f	CqNoise::PGPNoise4( const Imath::V3f& v, TqFloat t, const Imath::V3f&
 //---------------------------------------------------------------------
 /** Color-valued 1D Perlin noise.
  */
-CqColor CqNoise::CGNoise1( TqFloat x )
+Imath::Color3f CqNoise::CGNoise1( TqFloat x )
 {
-	return vectorCast<CqColor>( PGNoise1( x ) );
+	return vectorCast<Imath::Color3f>( PGNoise1( x ) );
 }
 
 //---------------------------------------------------------------------
 /** Color-valued 1D Perlin periodic noise.
  */
-CqColor CqNoise::CGPNoise1( TqFloat x, TqFloat px )
+Imath::Color3f CqNoise::CGPNoise1( TqFloat x, TqFloat px )
 {
-	return vectorCast<CqColor>( PGPNoise1( x, px ) );
+	return vectorCast<Imath::Color3f>( PGPNoise1( x, px ) );
 }
 
 //---------------------------------------------------------------------
 /** Color-valued 2D Perlin noise.
  */
-CqColor CqNoise::CGNoise2( TqFloat x, TqFloat y )
+Imath::Color3f CqNoise::CGNoise2( TqFloat x, TqFloat y )
 {
-	return vectorCast<CqColor>( PGNoise2( x, y ) );
+	return vectorCast<Imath::Color3f>( PGNoise2( x, y ) );
 }
 
 //---------------------------------------------------------------------
 /** Color-valued 2D Perlin periodic noise.
  */
-CqColor	CqNoise::CGPNoise2( TqFloat x, TqFloat y, TqFloat px, TqFloat py )
+Imath::Color3f	CqNoise::CGPNoise2( TqFloat x, TqFloat y, TqFloat px, TqFloat py )
 {
-	return vectorCast<CqColor>( PGPNoise2( x, y, px, py ) );
+	return vectorCast<Imath::Color3f>( PGPNoise2( x, y, px, py ) );
 }
 
 //---------------------------------------------------------------------
 /** Color-valued 3D Perlin noise.
  */
-CqColor	CqNoise::CGNoise3( const Imath::V3f& v )
+Imath::Color3f	CqNoise::CGNoise3( const Imath::V3f& v )
 {
-	return vectorCast<CqColor>( PGNoise3( v ) );
+	return vectorCast<Imath::Color3f>( PGNoise3( v ) );
 }
 
 //---------------------------------------------------------------------
 /** Color-valued 3D Perlin periodic noise.
  */
-CqColor	CqNoise::CGPNoise3( const Imath::V3f& v, const Imath::V3f& pv )
+Imath::Color3f	CqNoise::CGPNoise3( const Imath::V3f& v, const Imath::V3f& pv )
 {
-	return vectorCast<CqColor>( PGPNoise3( v, pv ) );
+	return vectorCast<Imath::Color3f>( PGPNoise3( v, pv ) );
 }
 
 //---------------------------------------------------------------------
 /** Color-valued 4D Perlin noise.
  */
-CqColor	CqNoise::CGNoise4( const Imath::V3f& v, TqFloat t )
+Imath::Color3f	CqNoise::CGNoise4( const Imath::V3f& v, TqFloat t )
 {
-	return vectorCast<CqColor>( PGNoise4( v, t ) );
+	return vectorCast<Imath::Color3f>( PGNoise4( v, t ) );
 }
 
 //---------------------------------------------------------------------
 /** Color-valued 4D Perlin periodic noise.
  */
-CqColor	CqNoise::CGPNoise4( const Imath::V3f& v, TqFloat t, const Imath::V3f& pv, TqFloat pt )
+Imath::Color3f	CqNoise::CGPNoise4( const Imath::V3f& v, TqFloat t, const Imath::V3f& pv, TqFloat pt )
 {
-	return vectorCast<CqColor>( PGPNoise4( v, t, pv, pt ) );
+	return vectorCast<Imath::Color3f>( PGPNoise4( v, t, pv, pt ) );
 }
 
 

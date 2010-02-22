@@ -134,7 +134,7 @@ void CqCubicCurveSegment::NaturalSubdivide(
 			cubicCurveNatSubdiv<V4f, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_color:
-			cubicCurveNatSubdiv<CqColor, CqColor>(pParam, pParam1, pParam2);
+			cubicCurveNatSubdiv<Imath::Color3f, Imath::Color3f>(pParam, pParam1, pParam2);
 			break;
 		case type_string:
 			cubicCurveNatSubdiv<CqString, CqString>(pParam, pParam1, pParam2);
@@ -196,7 +196,7 @@ void CqCubicCurveSegment::VaryingNaturalSubdivide(
 			cubicCurveVaryingNatSubdiv<V4f, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_color:
-			cubicCurveVaryingNatSubdiv<CqColor, CqColor>(pParam, pParam1, pParam2);
+			cubicCurveVaryingNatSubdiv<Imath::Color3f, Imath::Color3f>(pParam, pParam1, pParam2);
 			break;
 		case type_string:
 			cubicCurveVaryingNatSubdiv<CqString, CqString>(pParam, pParam1, pParam2);
@@ -762,7 +762,7 @@ void CqCubicCurvesGroup::AddPrimitiveVariable(CqParameter* param)
 				newParam = convertToBezierBasis<V4f, Imath::V3f>(param);
 				break;
 			case type_color:
-				newParam = convertToBezierBasis<CqColor, CqColor>(param);
+				newParam = convertToBezierBasis<Imath::Color3f, Imath::Color3f>(param);
 				break;
 			case type_matrix:
 				newParam = convertToBezierBasis<CqMatrix, CqMatrix>(param);

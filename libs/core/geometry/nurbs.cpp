@@ -508,8 +508,8 @@ TqUint CqSurfaceNURBS::InsertKnotU( TqFloat u, TqInt r )
 
 								case type_color:
 								{
-									CqParameterTyped<CqColor, CqColor>* pTR = static_cast<CqParameterTyped<CqColor, CqColor>*>( R );
-									( *pTR->pValue( i ) ) = alpha * ( *pTR->pValue( i + 1 ) ) + ( 1.0 - alpha ) * ( *pTR->pValue( i ) );
+									CqParameterTyped<Imath::Color3f, Imath::Color3f>* pTR = static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( R );
+									( *pTR->pValue( i ) ) = ( *pTR->pValue( i + 1 ) ) * alpha + ( *pTR->pValue( i ) ) * ( 1.0 - alpha );
 									break;
 								}
 
@@ -687,8 +687,8 @@ TqUint CqSurfaceNURBS::InsertKnotV( TqFloat v, TqInt r )
 
 								case type_color:
 								{
-									CqParameterTyped<CqColor, CqColor>* pTR = static_cast<CqParameterTyped<CqColor, CqColor>*>( R );
-									( *pTR->pValue( i ) ) = alpha * ( *pTR->pValue( i + 1 ) ) + ( 1.0 - alpha ) * ( *pTR->pValue( i ) );
+									CqParameterTyped<Imath::Color3f, Imath::Color3f>* pTR = static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( R );
+									( *pTR->pValue( i ) ) = ( *pTR->pValue( i + 1 ) ) * alpha + ( *pTR->pValue( i ) ) * ( 1.0 - alpha );
 									break;
 								}
 
@@ -881,7 +881,7 @@ void CqSurfaceNURBS::RefineKnotU( const std::vector<TqFloat>& X )
 
 								case type_color:
 								{
-									CqParameterTyped<CqColor, CqColor>* pTParam = static_cast<CqParameterTyped<CqColor, CqColor>*>( ( *iUP ) );
+									CqParameterTyped<Imath::Color3f, Imath::Color3f>* pTParam = static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( ( *iUP ) );
 									for ( row = 0; row < static_cast<TqInt>( m_cvVerts ); row++ )
 										pTParam->pValue( ( row * m_cuVerts ) + ind - 1 ) [ 0 ] = alpha * pTParam->pValue() [ ( row * m_cuVerts ) + ind - 1 ] + ( 1.0f - alpha ) * pTParam->pValue() [ ( row * m_cuVerts ) + ind ];
 									break;
@@ -1055,7 +1055,7 @@ void CqSurfaceNURBS::RefineKnotV( const std::vector<TqFloat>& X )
 
 								case type_color:
 								{
-									CqParameterTyped<CqColor, CqColor>* pTParam = static_cast<CqParameterTyped<CqColor, CqColor>*>( ( *iUP ) );
+									CqParameterTyped<Imath::Color3f, Imath::Color3f>* pTParam = static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( ( *iUP ) );
 									for ( col = 0; col < static_cast<TqInt>( m_cuVerts ); col++ )
 										pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ] = alpha * pTParam->pValue() [ ( ( ind - 1 ) * m_cuVerts ) + col ] + ( 1.0f - alpha ) * pTParam->pValue() [ ( ind * m_cuVerts ) + col ];
 									break;
@@ -1454,7 +1454,7 @@ void CqSurfaceNURBS::NaturalDice( CqParameter* pParameter, TqInt uDiceSize, TqIn
 
 					case type_color:
 					{
-						CqParameterTyped<CqColor, CqColor>* pTParam = static_cast<CqParameterTyped<CqColor, CqColor>*>( pParameter );
+						CqParameterTyped<Imath::Color3f, Imath::Color3f>* pTParam = static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( pParameter );
 						IqShaderData* arrayValue;
 						TqInt i;
 						for(i = 0; i<pParameter->Count(); i++)

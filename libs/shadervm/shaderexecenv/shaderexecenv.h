@@ -35,7 +35,6 @@
 
 #include	<aqsis/math/math.h>
 #include	<aqsis/util/bitvector.h>
-#include	<aqsis/math/color.h>
 #include	<aqsis/math/noise.h>
 #include	<aqsis/math/random.h>
 #include	<aqsis/math/cellnoise.h>

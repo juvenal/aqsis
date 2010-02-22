@@ -522,27 +522,27 @@ Imath::V3f* CqOptions::GetPointOptionWrite( const char* strName, const char* str
 /** Get a color system option parameter.
  * \param strName The name of the attribute.
  * \param strParam The name of the paramter on the attribute.
- * \return CqColor pointer 0 if not found.
+ * \return Imath::Color3f pointer 0 if not found.
  */
 
-CqColor* CqOptions::GetColorOptionWrite( const char* strName, const char* strParam, TqInt arraySize )
+Imath::Color3f* CqOptions::GetColorOptionWrite( const char* strName, const char* strParam, TqInt arraySize )
 {
 	CqParameter * pParam = pParameterWrite( strName, strParam );
 	if ( pParam != 0 )
-		return ( static_cast<CqParameterTyped<CqColor, CqColor>*>( pParam ) ->pValue() );
+		return ( static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( pParam ) ->pValue() );
 	else
 	{
 		// As we are getting a writeable copy, we should create if it doesn't exist.
 		CqNamedParameterList* pList = pOptionWrite( strName ).get();
 		if( arraySize <= 1)
 		{
-			CqParameterTypedUniform<CqColor, type_color, CqColor>* pOpt = new CqParameterTypedUniform<CqColor, type_color, CqColor>(strParam, arraySize);
+			CqParameterTypedUniform<Imath::Color3f, type_color, Imath::Color3f>* pOpt = new CqParameterTypedUniform<Imath::Color3f, type_color, Imath::Color3f>(strParam, arraySize);
 			pList->AddParameter(pOpt);
 			return ( pOpt->pValue() );
 		}
 		else
 		{
-			CqParameterTypedUniformArray<CqColor, type_color, CqColor>* pOpt = new CqParameterTypedUniformArray<CqColor, type_color, CqColor>(strParam, arraySize);
+			CqParameterTypedUniformArray<Imath::Color3f, type_color, Imath::Color3f>* pOpt = new CqParameterTypedUniformArray<Imath::Color3f, type_color, Imath::Color3f>(strParam, arraySize);
 			pList->AddParameter(pOpt);
 			return ( pOpt->pValue() );
 		}
@@ -625,11 +625,11 @@ const Imath::V3f* CqOptions::GetPointOption( const char* strName, const char* st
  * \return Color pointer 0 if not found.
  */
 
-const CqColor* CqOptions::GetColorOption( const char* strName, const char* strParam ) const
+const Imath::Color3f* CqOptions::GetColorOption( const char* strName, const char* strParam ) const
 {
 	const CqParameter * pParam = pParameter( strName, strParam );
 	if ( pParam != 0 )
-		return ( static_cast<const CqParameterTyped<CqColor, CqColor>*>( pParam ) ->pValue() );
+		return ( static_cast<const CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( pParam ) ->pValue() );
 	else
 		return ( 0 );
 }
@@ -715,9 +715,9 @@ void CqOptions::InitialiseColorImager( const CqRegion& DRegion, IqChannelBuffer*
  * \return Color  Black if not found.
  * Right now it is returning the current background colour if found
  */
-CqColor CqOptions::GetColorImager( TqFloat x, TqFloat y )
+Imath::Color3f CqOptions::GetColorImager( TqFloat x, TqFloat y )
 {
-	CqColor result( 0, 0, 0 );
+	Imath::Color3f result( 0, 0, 0 );
 
 	if ( m_pshadImager != NULL )
 	{
@@ -757,9 +757,9 @@ TqFloat CqOptions::GetAlphaImager( TqFloat x, TqFloat y )
  * Right now it is returning the current background colour if found
  */
 
-CqColor CqOptions::GetOpacityImager( TqFloat x, TqFloat y )
+Imath::Color3f CqOptions::GetOpacityImager( TqFloat x, TqFloat y )
 {
-	CqColor result = gColWhite;
+	Imath::Color3f result(1.0f);
 
 	if ( m_pshadImager != NULL )
 	{

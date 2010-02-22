@@ -38,7 +38,6 @@
 #include	<boost/scoped_array.hpp>
 #include	<boost/noncopyable.hpp>
 
-#include	<aqsis/math/color.h>
 #include	"csgtree.h"
 #include	"optioncache.h"
 #include	"isampler.h"
@@ -252,7 +251,7 @@ class CqImagePixel : private boost::noncopyable
 		 *  \param zThreshold - The color value at which to consider a sample opaque
 		 *  					when sampling depth.
 		 */
-		void	Combine( EqDepthFilter eDepthFilter, CqColor zThreshold );
+		void	Combine( EqDepthFilter eDepthFilter, Imath::Color3f zThreshold );
 
 		/** \brief Get the sample data for the specified sample index.
 		 *

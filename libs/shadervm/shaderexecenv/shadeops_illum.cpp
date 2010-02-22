@@ -392,7 +392,7 @@ void CqShaderExecEnv::SO_ambient( IqShaderData* Result, IqShader* pShader )
 			ValidateIlluminanceCache( NULL, NULL, pShader );
 		}
 
-		Result->SetColor( gColBlack );
+		Result->SetColor( Imath::Color3f(0.0f) );
 
 		for ( TqUint light_index = 0; light_index < m_pAttributes ->cLights(); light_index++ )
 		{
@@ -408,9 +408,9 @@ void CqShaderExecEnv::SO_ambient( IqShaderData* Result, IqShader* pShader )
 					if(!__fVarying || RS.Value( __iGrid ) )
 					{
 						// Now Combine the color of all ambient lightsources.
-						CqColor _aq_Result;
+						Imath::Color3f _aq_Result;
 						(Result)->GetColor(_aq_Result,__iGrid);
-						CqColor colCl;
+						Imath::Color3f colCl;
 						if ( NULL != lp->Cl() )
 							lp->Cl() ->GetColor( colCl, __iGrid );
 						(Result)->SetColor(_aq_Result + colCl,__iGrid);
@@ -443,7 +443,7 @@ void CqShaderExecEnv::SO_diffuse( IqShaderData* N, IqShaderData* Result, IqShade
 
 	pDefAngle->SetFloat( M_PI_2 );
 
-	Result->SetColor( gColBlack );
+	Result->SetColor( Imath::Color3f(0.0f) );
 
 	__fVarying = true;
 	IqShaderData* __nondiffuse = NULL;
@@ -491,11 +491,11 @@ void CqShaderExecEnv::SO_diffuse( IqShaderData* N, IqShaderData* Result, IqShade
 					Ln.normalize();
 
 					// Combine the light color into the result
-					CqColor _aq_Result;
+					Imath::Color3f _aq_Result;
 					(Result)->GetColor(_aq_Result,__iGrid);
 					Imath::V3f _aq_N;
 					(N)->GetNormal(_aq_N,__iGrid);
-					CqColor colCl;
+					Imath::Color3f colCl;
 					Cl() ->GetColor( colCl, __iGrid );
 					(Result)->SetColor(_aq_Result + colCl * ( Ln.dot(_aq_N) ),__iGrid);
 
@@ -531,7 +531,7 @@ void CqShaderExecEnv::SO_specular( IqShaderData* N, IqShaderData* V, IqShaderDat
 
 	pDefAngle->SetFloat( M_PI_2 );
 
-	Result->SetColor( gColBlack );
+	Result->SetColor( Imath::Color3f(0.0f) );
 	__fVarying = true;
 
 	IqShaderData* __nonspecular = NULL;
@@ -583,13 +583,13 @@ void CqShaderExecEnv::SO_specular( IqShaderData* N, IqShaderData* V, IqShaderDat
 
 					// Combine the color into the result.
 					/// \note The (roughness/8) term emulates the BMRT behaviour for prmanspecular.
-					CqColor _aq_Result;
+					Imath::Color3f _aq_Result;
 					(Result)->GetColor(_aq_Result,__iGrid);
 					Imath::V3f _aq_N;
 					(N)->GetNormal(_aq_N,__iGrid);
 					TqFloat _aq_roughness;
 					(roughness)->GetFloat(_aq_roughness,__iGrid);
-					CqColor colCl;
+					Imath::Color3f colCl;
 					Cl() ->GetColor( colCl, __iGrid );
 					(Result)->SetColor(_aq_Result + colCl * pow( max( 0.0f, _aq_N.dot(H) ), 1.0f / ( _aq_roughness / 8.0f ) ),__iGrid);
 
@@ -658,7 +658,7 @@ void CqShaderExecEnv::SO_phong( IqShaderData* N, IqShaderData* V, IqShaderData* 
 	pDefAngle->SetFloat( M_PI_2 );
 
 	// Initialise the return value
-	Result->SetColor( gColBlack );
+	Result->SetColor( Imath::Color3f(0.0f) );
 
 	// SO_init_illuminance returns TRUE if there are any non ambient ligthsources available.
 	if ( SO_init_illuminance() )
@@ -684,13 +684,13 @@ void CqShaderExecEnv::SO_phong( IqShaderData* N, IqShaderData* V, IqShaderData* 
 					Ln.normalize();
 
 					// Now combine the color into the result.
-					CqColor _aq_Result;
+					Imath::Color3f _aq_Result;
 					(Result)->GetColor(_aq_Result,__iGrid);
 					Imath::V3f vecR;
 					pR->GetVector( vecR, __iGrid );
 					TqFloat _aq_size;
 					(size)->GetFloat(_aq_size,__iGrid);
-					CqColor colCl;
+					Imath::Color3f colCl;
 					Cl() ->GetColor( colCl, __iGrid );
 					(Result)->SetColor(_aq_Result + colCl * pow( max( 0.0f, vecR.dot(Ln) ), _aq_size ),__iGrid);
 
@@ -725,7 +725,7 @@ void CqShaderExecEnv::SO_trace( IqShaderData* P, IqShaderData* R, IqShaderData* 
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			(Result)->SetColor(CqColor( 0, 0, 0 ),__iGrid);
+			(Result)->SetColor(Imath::Color3f( 0, 0, 0 ),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -820,7 +820,7 @@ void CqShaderExecEnv::SO_illuminance( IqShaderData* Category, IqShaderData* P, I
 
 					// Store them locally on the surface.
 					L() ->SetVector( Ln, __iGrid );
-					CqColor colCl;
+					Imath::Color3f colCl;
 					lp->Cl() ->GetColor( colCl, __iGrid );
 					Cl() ->SetColor( colCl, __iGrid );
 
@@ -896,7 +896,7 @@ void CqShaderExecEnv::SO_illuminate( IqShaderData* P, IqShaderData* Axis, IqShad
 				if ( acos( cosangle ) > fAngle )
 				{
 					// Make sure we set the light color to zero in the areas that won't be lit.
-					Cl() ->SetColor( CqColor( 0, 0, 0 ), __iGrid );
+					Cl() ->SetColor( Imath::Color3f( 0, 0, 0 ), __iGrid );
 					m_CurrentState.SetValue( __iGrid, false );
 				}
 				else
@@ -1037,7 +1037,7 @@ void CqShaderExecEnv::SO_specularbrdf( IqShaderData* L, IqShaderData* N, IqShade
 			(N)->GetNormal(_aq_N,__iGrid);
 			TqFloat _aq_rough;
 			(rough)->GetFloat(_aq_rough,__iGrid);
-			CqColor colCl;
+			Imath::Color3f colCl;
 			Cl() ->GetColor( colCl, __iGrid );
 			(Result)->SetColor(colCl * pow( max( 0.0f, _aq_N.dot(H) ), 1.0f / ( _aq_rough / 8.0f ) ),__iGrid);
 		}

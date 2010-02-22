@@ -26,7 +26,10 @@
 
 #include	<stdio.h>
 
+#include	<ImathColorAlgo.h>
+
 #include	"shaderexecenv.h"
+#include 	<aqsis/math/colorextras.h>
 
 namespace Aqsis {
 
@@ -451,13 +454,13 @@ void CqShaderExecEnv::SO_cmix( IqShaderData* color0, IqShaderData* color1, IqSha
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqColor _aq_color0;
+			Imath::Color3f _aq_color0;
 			(color0)->GetColor(_aq_color0,__iGrid);
-			CqColor _aq_color1;
+			Imath::Color3f _aq_color1;
 			(color1)->GetColor(_aq_color1,__iGrid);
 			TqFloat _aq_value;
 			(value)->GetFloat(_aq_value,__iGrid);
-			CqColor c( ( 1.0f - _aq_value ) * _aq_color0 + _aq_value * _aq_color1 );
+			Imath::Color3f c( ( 1.0f - _aq_value ) * _aq_color0 + _aq_value * _aq_color1 );
 			(Result)->SetColor(c,__iGrid);
 		}
 	}
@@ -480,16 +483,16 @@ void CqShaderExecEnv::SO_cmixc( IqShaderData* color0, IqShaderData* color1, IqSh
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqColor _aq_color0;
+			Imath::Color3f _aq_color0;
 			(color0)->GetColor(_aq_color0,__iGrid);
-			CqColor _aq_color1;
+			Imath::Color3f _aq_color1;
 			(color1)->GetColor(_aq_color1,__iGrid);
-			CqColor _aq_value;
+			Imath::Color3f _aq_value;
 			(value)->GetColor(_aq_value,__iGrid);
 			TqFloat c1 = ( 1.0f - _aq_value[0] ) * _aq_color0[0] + _aq_value[0] * _aq_color1[0] ;
 			TqFloat c2 = ( 1.0f - _aq_value[1] ) * _aq_color0[1] + _aq_value[1] * _aq_color1[1] ;
 			TqFloat c3 = ( 1.0f - _aq_value[2] ) * _aq_color0[2] + _aq_value[2] * _aq_color1[2] ;
-			(Result)->SetColor(CqColor(c1,c2,c3),__iGrid);
+			(Result)->SetColor(Imath::Color3f(c1,c2,c3),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -570,7 +573,7 @@ void	CqShaderExecEnv::SO_pmixc( IqShaderData* p0, IqShaderData* p1, IqShaderData
 			(p0)->GetPoint(_aq_p0,__iGrid);
 			Imath::V3f _aq_p1;
 			(p1)->GetPoint(_aq_p1,__iGrid);
-			CqColor _aq_value;
+			Imath::Color3f _aq_value;
 			(value)->GetColor(_aq_value,__iGrid);
 			TqFloat p1 = ( 1.0f - _aq_value[0] ) * _aq_p0[0] + _aq_value[0] * _aq_p1[0] ;
 			TqFloat p2 = ( 1.0f - _aq_value[1] ) * _aq_p0[1] + _aq_value[1] * _aq_p1[1] ;
@@ -628,7 +631,7 @@ void	CqShaderExecEnv::SO_vmixc( IqShaderData* v0, IqShaderData* v1, IqShaderData
 			(v0)->GetVector(_aq_v0,__iGrid);
 			Imath::V3f _aq_v1;
 			(v1)->GetVector(_aq_v1,__iGrid);
-			CqColor _aq_value;
+			Imath::Color3f _aq_value;
 			(value)->GetColor(_aq_value,__iGrid);
                         TqFloat v1 = ( 1.0f - _aq_value[0] ) * _aq_v0[0] + _aq_value[0] * _aq_v1[0] ;
                         TqFloat v2 = ( 1.0f - _aq_value[1] ) * _aq_v0[1] + _aq_value[1] * _aq_v1[1] ;
@@ -686,7 +689,7 @@ void	CqShaderExecEnv::SO_nmixc( IqShaderData* n0, IqShaderData* n1, IqShaderData
 			(n0)->GetNormal(_aq_n0,__iGrid);
 			Imath::V3f _aq_n1;
 			(n1)->GetNormal(_aq_n1,__iGrid);
-                        CqColor _aq_value;
+                        Imath::Color3f _aq_value;
                         (value)->GetColor(_aq_value,__iGrid);
                         TqFloat n1 = ( 1.0f - _aq_value[0] ) * _aq_n0[0] + _aq_value[0] * _aq_n1[0] ;
                         TqFloat n2 = ( 1.0f - _aq_value[1] ) * _aq_n0[1] + _aq_value[1] * _aq_n1[1] ;
@@ -721,19 +724,19 @@ void CqShaderExecEnv::SO_ctransform( IqShaderData* fromspace, IqShaderData* tosp
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqColor col;
+			Imath::Color3f col;
 			(c)->GetColor(col,__iGrid);
-			if      (fromSpaceName == "hsv")  col = hsvtorgb(col);
-			else if (fromSpaceName == "hsl")  col = hsltorgb(col);
-			else if (fromSpaceName == "XYZ")  col = XYZtorgb(col);
-			else if (fromSpaceName == "xyY")  col = xyYtorgb(col);
-			else if (fromSpaceName == "YIQ")  col = YIQtorgb(col);
+			if      (fromSpaceName == "hsv")  col = hsv2rgb(col);
+			else if (fromSpaceName == "hsl")  col = hsl2rgb(col);
+			else if (fromSpaceName == "XYZ")  col = XYZ2rgb(col);
+			else if (fromSpaceName == "xyY")  col = xyY2rgb(col);
+			else if (fromSpaceName == "YIQ")  col = YIQ2rgb(col);
 
-			if      (toSpaceName == "hsv")   col = rgbtohsv(col);
-			else if (toSpaceName == "hsl")   col = rgbtohsl(col);
-			else if (toSpaceName == "XYZ")   col = rgbtoXYZ(col);
-			else if (toSpaceName == "xyY")   col = rgbtoxyY(col);
-			else if (toSpaceName == "YIQ")   col = rgbtoYIQ(col);
+			if      (toSpaceName == "hsv")   col = rgb2hsv(col);
+			else if (toSpaceName == "hsl")   col = rgb2hsl(col);
+			else if (toSpaceName == "XYZ")   col = rgb2XYZ(col);
+			else if (toSpaceName == "xyY")   col = rgb2xyY(col);
+			else if (toSpaceName == "YIQ")   col = rgb2YIQ(col);
 
 			(Result)->SetColor(col,__iGrid);
 		}

@@ -1066,7 +1066,7 @@ const	Imath::V3f*	CqRenderer::GetPointOption( const char* strName, const char* s
 	return ( poptCurrent()->GetPointOption( strName, strParam ) );
 }
 
-const	CqColor*	CqRenderer::GetColorOption( const char* strName, const char* strParam ) const
+const	Imath::Color3f*	CqRenderer::GetColorOption( const char* strName, const char* strParam ) const
 {
 	return ( poptCurrent()->GetColorOption( strName, strParam ) );
 }
@@ -1092,7 +1092,7 @@ Imath::V3f*	CqRenderer::GetPointOptionWrite( const char* strName, const char* st
 	return ( poptWriteCurrent()->GetPointOptionWrite( strName, strParam ) );
 }
 
-CqColor*	CqRenderer::GetColorOptionWrite( const char* strName, const char* strParam )
+Imath::Color3f*	CqRenderer::GetColorOptionWrite( const char* strName, const char* strParam )
 {
 	return ( poptWriteCurrent()->GetColorOptionWrite( strName, strParam ) );
 }

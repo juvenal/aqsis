@@ -33,8 +33,8 @@
 
 #include <aqsis/riutil/primvartype.h>
 #include <aqsis/ri/ritypes.h>
-#include <aqsis/math/vecfwd.h>
 #include <ImathVec.h>
+#include <ImathColor.h>
 
 namespace Aqsis {
 
@@ -90,13 +90,13 @@ struct IqOptions
 	virtual const	TqInt*	GetIntegerOption( const char* strName, const char* strParam ) const = 0;
 	virtual const	CqString* GetStringOption( const char* strName, const char* strParam ) const = 0;
 	virtual const	Imath::V3f*	GetPointOption( const char* strName, const char* strParam ) const = 0;
-	virtual const	CqColor*	GetColorOption( const char* strName, const char* strParam ) const = 0;
+	virtual const	Imath::Color3f*	GetColorOption( const char* strName, const char* strParam ) const = 0;
 
 	virtual TqFloat*	GetFloatOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 ) = 0;
 	virtual TqInt*	GetIntegerOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 ) = 0;
 	virtual CqString* GetStringOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 ) = 0;
 	virtual Imath::V3f*	GetPointOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 ) = 0;
-	virtual CqColor*	GetColorOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 ) = 0;
+	virtual Imath::Color3f*	GetColorOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 ) = 0;
 
 	virtual EqVariableType getParameterType(const char* strName, const char* strParam) const = 0;
 	virtual EqVariableClass getParameterClass(const char* strName, const char* strParam) const = 0;
@@ -115,8 +115,8 @@ struct IqOptions
 	virtual boost::shared_ptr<IqShader>	pshadImager() const = 0;
 
 	virtual void	InitialiseColorImager( const CqRegion& DRegion, IqChannelBuffer* buffer ) = 0;
-	virtual CqColor GetColorImager( TqFloat x, TqFloat y ) = 0;
-	virtual CqColor GetOpacityImager( TqFloat x, TqFloat y ) = 0;
+	virtual Imath::Color3f GetColorImager( TqFloat x, TqFloat y ) = 0;
+	virtual Imath::Color3f GetOpacityImager( TqFloat x, TqFloat y ) = 0;
 	virtual TqFloat GetAlphaImager( TqFloat x, TqFloat y ) = 0;
 
 	virtual boost::filesystem::path findRiFile(const std::string& fileName,

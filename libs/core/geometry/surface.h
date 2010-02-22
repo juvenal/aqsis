@@ -252,19 +252,19 @@ class CqSurface : public IqSurface, private boost::noncopyable, public boost::en
 		}
 		/** Get a reference the to Cq default parameter.
 		 */
-		virtual CqParameterTyped<CqColor, CqColor>* Cs()
+		virtual CqParameterTyped<Imath::Color3f, Imath::Color3f>* Cs()
 		{
 			if ( m_aiStdPrimitiveVars[ EnvVars_Cs ] >= 0 )
-				return ( static_cast<CqParameterTyped<CqColor, CqColor>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_Cs ] ] ) );
+				return ( static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_Cs ] ] ) );
 			else
 				return ( NULL );
 		}
 		/** Get a reference the to Os default parameter.
 		 */
-		virtual CqParameterTyped<CqColor, CqColor>* Os()
+		virtual CqParameterTyped<Imath::Color3f, Imath::Color3f>* Os()
 		{
 			if ( m_aiStdPrimitiveVars[ EnvVars_Os ] >= 0 )
-				return ( static_cast<CqParameterTyped<CqColor, CqColor>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_Os ] ] ) );
+				return ( static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_Os ] ] ) );
 			else
 				return ( NULL );
 		}
@@ -335,19 +335,19 @@ class CqSurface : public IqSurface, private boost::noncopyable, public boost::en
 		}
 		/** Get a reference the to Cq default parameter.
 		 */
-		virtual const	CqParameterTyped<CqColor, CqColor>* Cs() const
+		virtual const	CqParameterTyped<Imath::Color3f, Imath::Color3f>* Cs() const
 		{
 			if ( m_aiStdPrimitiveVars[ EnvVars_Cs ] >= 0 )
-				return ( static_cast<const CqParameterTyped<CqColor, CqColor>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_Cs ] ] ) );
+				return ( static_cast<const CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_Cs ] ] ) );
 			else
 				return ( NULL );
 		}
 		/** Get a reference the to Os default parameter.
 		 */
-		virtual const	CqParameterTyped<CqColor, CqColor>* Os() const
+		virtual const	CqParameterTyped<Imath::Color3f, Imath::Color3f>* Os() const
 		{
 			if ( m_aiStdPrimitiveVars[ EnvVars_Os ] >= 0 )
-				return ( static_cast<const CqParameterTyped<CqColor, CqColor>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_Os ] ] ) );
+				return ( static_cast<const CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( m_aUserParams[ m_aiStdPrimitiveVars[ EnvVars_Os ] ] ) );
 			else
 				return ( NULL );
 		}

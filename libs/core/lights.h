@@ -36,7 +36,6 @@
 #include	<aqsis/aqsis.h>
 
 #include <aqsis/ri/ri.h>
-#include <aqsis/math/color.h>
 #include <aqsis/util/list.h>
 #include <aqsis/math/matrix.h>
 #include <aqsis/shadervm/ishaderexecenv.h>

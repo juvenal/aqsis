@@ -24,7 +24,6 @@
 
 #include <aqsis/aqsis.h>
 
-#include <aqsis/math/color.h>
 #include <aqsis/core/ioptions.h>
 
 namespace Aqsis {
@@ -65,7 +64,7 @@ struct SqOptionCache
 	EqDisplayMode displayMode; ///< Type of the connected displays
 
 	EqDepthFilter depthFilter; ///< Type of depth filter to use
-	CqColor zThreshold; ///< Opacity threshold for inclusion in depth maps
+	Imath::Color3f zThreshold; ///< Opacity threshold for inclusion in depth maps
 
 	/// Initialise all options to non-catastrophic defaults.
 	SqOptionCache();

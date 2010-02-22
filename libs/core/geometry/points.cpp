@@ -163,7 +163,7 @@ CqMicroPolyGridBase* CqPoints::Dice()
 		else if ( NULL != pAttributes() ->GetColorAttribute( "System", "Color" ) )
 			pGrid->pVar(EnvVars_Cs) ->SetColor( pAttributes() ->GetColorAttribute( "System", "Color" ) [ 0 ] );
 		else
-			pGrid->pVar(EnvVars_Cs) ->SetColor( CqColor( 1, 1, 1 ) );
+			pGrid->pVar(EnvVars_Cs) ->SetColor( Imath::Color3f( 1, 1, 1 ) );
 	}
 
 	if ( USES( lUses, EnvVars_Os ) && ( NULL != pGrid->pVar(EnvVars_Os) ) )
@@ -173,7 +173,7 @@ CqMicroPolyGridBase* CqPoints::Dice()
 		else if ( NULL != pAttributes() ->GetColorAttribute( "System", "Opacity" ) )
 			pGrid->pVar(EnvVars_Os) ->SetColor( pAttributes() ->GetColorAttribute( "System", "Opacity" ) [ 0 ] );
 		else
-			pGrid->pVar(EnvVars_Os) ->SetColor( CqColor( 1, 1, 1 ) );
+			pGrid->pVar(EnvVars_Os) ->SetColor( Imath::Color3f( 1, 1, 1 ) );
 	}
 
 	if ( USES( lUses, EnvVars_s ) && ( NULL != pGrid->pVar(EnvVars_s) ) && pPoints()->bHasVar(EnvVars_s) )
@@ -308,7 +308,7 @@ void CqPoints::NaturalDice(CqParameter* pParam, TqInt uDiceSize, TqInt vDiceSize
 			pointsNaturalDice<V4f, Imath::V3f>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
 			break;
 		case type_color:
-			pointsNaturalDice<CqColor, CqColor>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
+			pointsNaturalDice<Imath::Color3f, Imath::Color3f>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
 			break;
 		case type_string:
 			pointsNaturalDice<CqString, CqString>(pParam, m_KDTree.aLeaves(), uDiceSize, pData);
@@ -676,7 +676,7 @@ void CqMicroPolygonPoints::CacheOutputInterpCoeffs(SqMpgSampleInfo& cache) const
 }
 
 void CqMicroPolygonPoints::InterpolateOutputs(const SqMpgSampleInfo& cache,
-		const Imath::V2f& pos, CqColor& outCol, CqColor& outOpac) const
+		const Imath::V2f& pos, Imath::Color3f& outCol, Imath::Color3f& outOpac) const
 {
 	outCol = cache.col[0];
 	outOpac = cache.opa[0];
@@ -943,7 +943,7 @@ void CqMicroPolygonMotionPoints::CacheOutputInterpCoeffs(SqMpgSampleInfo& cache)
 }
 
 void CqMicroPolygonMotionPoints::InterpolateOutputs(const SqMpgSampleInfo& cache,
-		const Imath::V2f& pos, CqColor& outCol, CqColor& outOpac) const
+		const Imath::V2f& pos, Imath::Color3f& outCol, Imath::Color3f& outOpac) const
 {
 	outCol = cache.col[0];
 	outOpac = cache.opa[0];

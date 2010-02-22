@@ -24,7 +24,6 @@
  */
 
 #include <aqsis/math/noise.h>
-#include <aqsis/math/color.h>
 
 #ifndef	AQSIS_SYSTEM_WIN32
 #define BOOST_TEST_DYN_LINK
@@ -44,7 +43,7 @@ static bool vecEquals(const Imath::V3f& a, const Imath::V3f& b)
 	return Aqsis::isClose(a,b);
 }
 
-static bool colEquals(const Aqsis::CqColor& a, const Aqsis::CqColor& b)
+static bool colEquals(const Imath::Color3f& a, const Imath::Color3f& b)
 {
 	return Aqsis::isClose(a,b);
 }
@@ -166,54 +165,54 @@ BOOST_AUTO_TEST_CASE(CqNoise_1D_color_Perlin_noise_test)
 {
 	Aqsis::CqNoise noise;
 	
-	BOOST_CHECK_PREDICATE(colEquals, (noise.CGNoise1(1.0f))(Aqsis::CqColor(0.5f, 0.745078f, 0.730963f)));
+	BOOST_CHECK_PREDICATE(colEquals, (noise.CGNoise1(1.0f))(Imath::Color3f(0.5f, 0.745078f, 0.730963f)));
 }
 
 BOOST_AUTO_TEST_CASE(CqNoise_1D_color_Perlin_periodic_noise_test)
 {
 	Aqsis::CqNoise noise;
 	
-	BOOST_CHECK_PREDICATE(colEquals, (noise.CGPNoise1(1.0f, 2.0f))(Aqsis::CqColor(0.5f, 0.685829f, 0.674439f)));
+	BOOST_CHECK_PREDICATE(colEquals, (noise.CGPNoise1(1.0f, 2.0f))(Imath::Color3f(0.5f, 0.685829f, 0.674439f)));
 }
 
 BOOST_AUTO_TEST_CASE(CqNoise_2D_color_Perlin_noise_test)
 {
 	Aqsis::CqNoise noise;
 	
-	BOOST_CHECK_PREDICATE(colEquals, (noise.CGNoise2(1.0f, 3.0f))(Aqsis::CqColor(0.5f, 0.75016f, 0.290464f)));
+	BOOST_CHECK_PREDICATE(colEquals, (noise.CGNoise2(1.0f, 3.0f))(Imath::Color3f(0.5f, 0.75016f, 0.290464f)));
 }
 
 BOOST_AUTO_TEST_CASE(CqNoise_2D_color_Perlin_periodic_noise_test)
 {
 	Aqsis::CqNoise noise;
 	
-	BOOST_CHECK_PREDICATE(colEquals, (noise.CGPNoise2(1.0f, 2.0f, 3.0f, 2.0f))(Aqsis::CqColor(0.5f, 0.736767f, 0.490799f)));
+	BOOST_CHECK_PREDICATE(colEquals, (noise.CGPNoise2(1.0f, 2.0f, 3.0f, 2.0f))(Imath::Color3f(0.5f, 0.736767f, 0.490799f)));
 }
 
 BOOST_AUTO_TEST_CASE(CqNoise_3D_color_Perlin_noise_test)
 {
 	Aqsis::CqNoise noise;
 	
-	BOOST_CHECK_PREDICATE(colEquals, (noise.CGNoise3(Imath::V3f(1.0f, 3.0f, 2.0f)))(Aqsis::CqColor(0.5f, 0.515687f, 0.393374f)));
+	BOOST_CHECK_PREDICATE(colEquals, (noise.CGNoise3(Imath::V3f(1.0f, 3.0f, 2.0f)))(Imath::Color3f(0.5f, 0.515687f, 0.393374f)));
 }
 
 BOOST_AUTO_TEST_CASE(CqNoise_3D_color_Perlin_periodic_noise_test)
 {
 	Aqsis::CqNoise noise;
 	
-	BOOST_CHECK_PREDICATE(colEquals, (noise.CGPNoise3(Imath::V3f(1.0f, 2.0f, 3.0f), Imath::V3f(1.0f, 2.0f, 3.0f)))(Aqsis::CqColor(0.5f, 0.724586f, 0.545074f)));
+	BOOST_CHECK_PREDICATE(colEquals, (noise.CGPNoise3(Imath::V3f(1.0f, 2.0f, 3.0f), Imath::V3f(1.0f, 2.0f, 3.0f)))(Imath::Color3f(0.5f, 0.724586f, 0.545074f)));
 }
 
 BOOST_AUTO_TEST_CASE(CqNoise_4D_color_Perlin_noise_test)
 {
 	Aqsis::CqNoise noise;
 	
-	BOOST_CHECK_PREDICATE(colEquals, (noise.CGNoise4(Imath::V3f(1.0f, 3.0f, 2.0f), 3.0f))(Aqsis::CqColor(0.5f, 0.575012f, 0.320111f)));
+	BOOST_CHECK_PREDICATE(colEquals, (noise.CGNoise4(Imath::V3f(1.0f, 3.0f, 2.0f), 3.0f))(Imath::Color3f(0.5f, 0.575012f, 0.320111f)));
 }
 
 BOOST_AUTO_TEST_CASE(CqNoise_4D_color_Perlin_periodic_noise_test)
 {
 	Aqsis::CqNoise noise;
 	
-	BOOST_CHECK_PREDICATE(colEquals, (noise.CGPNoise4(Imath::V3f(1.0f, 2.0f, 3.0f), 2.0f, Imath::V3f(1.0f, 2.0f, 3.0f), 2.0f))(Aqsis::CqColor(0.5f, 0.62703f, 0.349767f)));
+	BOOST_CHECK_PREDICATE(colEquals, (noise.CGPNoise4(Imath::V3f(1.0f, 2.0f, 3.0f), 2.0f, Imath::V3f(1.0f, 2.0f, 3.0f), 2.0f))(Imath::Color3f(0.5f, 0.62703f, 0.349767f)));
 }

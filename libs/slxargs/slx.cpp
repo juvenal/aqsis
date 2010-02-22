@@ -47,7 +47,6 @@
 #include <aqsis/ri/ri.h>
 #include <aqsis/shadervm/ishader.h>
 #include <aqsis/shadervm/ishaderdata.h>
-#include <aqsis/math/color.h>
 
 using namespace Aqsis;
 
@@ -549,15 +548,15 @@ static void AddShaderVar( IqShaderData * shaderVar,
 				break;
 				case type_color:
 				{
-					CqColor	aCqColor;
+					Imath::Color3f	aColor;
 					RtColor	aRtColor;
 					slxType = SLX_TYPE_COLOR;
 					if ( !shaderVar->isArray() )
 					{
-						shaderVar->GetColor( aCqColor );
-						aRtColor[ 0 ] = aCqColor.r();
-						aRtColor[ 1 ] = aCqColor.g();
-						aRtColor[ 2 ] = aCqColor.b();
+						shaderVar->GetColor( aColor );
+						aRtColor[ 0 ] = aColor.x;
+						aRtColor[ 1 ] = aColor.y;
+						aRtColor[ 2 ] = aColor.z;
 						defaultValLength = sizeof( RtColor );
 						defaultVal = ( char * ) malloc( defaultValLength );
 						memcpy( defaultVal, &aRtColor, defaultValLength );
@@ -569,10 +568,10 @@ static void AddShaderVar( IqShaderData * shaderVar,
 						defaultVal = ( char * ) malloc( defaultValLength );
 						for ( arrayIndex = 0; arrayIndex < arrayLen; arrayIndex++ )
 						{
-							shaderVar->ArrayEntry( arrayIndex ) ->GetColor( aCqColor );
-							aRtColor[ 0 ] = aCqColor[ 0 ];
-							aRtColor[ 1 ] = aCqColor[ 1 ];
-							aRtColor[ 2 ] = aCqColor[ 2 ];
+							shaderVar->ArrayEntry( arrayIndex ) ->GetColor( aColor );
+							aRtColor[ 0 ] = aColor[ 0 ];
+							aRtColor[ 1 ] = aColor[ 1 ];
+							aRtColor[ 2 ] = aColor[ 2 ];
 							memcpy( defaultVal + ( arrayIndex * sizeof( RtColor ) ), &aRtColor, sizeof( RtColor ) );
 						}
 					}

@@ -153,7 +153,7 @@ void CqShaderExecEnv::SO_external( DSOMethod method, void *initData, IqShaderDat
 						break;
 					case type_color:
 						{
-							CqColor c;
+							Imath::Color3f c;
 							apParams[ p - 1 ] ->GetColor( c, __iGrid );
 							( ( float* ) dso_argv[ p ] ) [ 0 ] = c[ 0 ];
 							( ( float* ) dso_argv[ p ] ) [ 1 ] = c[ 1 ];
@@ -241,7 +241,7 @@ void CqShaderExecEnv::SO_external( DSOMethod method, void *initData, IqShaderDat
 					break;
 				case type_color:
 					{
-						CqColor c;
+						Imath::Color3f c;
 						c[ 0 ] = ( ( float* ) dso_argv[ 0 ] ) [ 0 ];
 						c[ 1 ] = ( ( float* ) dso_argv[ 0 ] ) [ 1 ];
 						c[ 2 ] = ( ( float* ) dso_argv[ 0 ] ) [ 2 ];
@@ -310,7 +310,7 @@ void CqShaderExecEnv::SO_external( DSOMethod method, void *initData, IqShaderDat
 						break;
 					case type_color:
 						{
-							CqColor c;
+							Imath::Color3f c;
 							c[ 0 ] = ( ( float* ) dso_argv[ p ] ) [ 0 ];
 							c[ 1 ] = ( ( float* ) dso_argv[ p ] ) [ 1 ];
 							c[ 2 ] = ( ( float* ) dso_argv[ p ] ) [ 2 ];

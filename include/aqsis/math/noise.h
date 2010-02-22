@@ -31,8 +31,8 @@
 #include	<aqsis/aqsis.h>
 
 #include	<ImathVec.h>
+#include	<ImathColor.h>
 
-#include	<aqsis/math/color.h>
 
 namespace Aqsis {
 
@@ -71,14 +71,14 @@ class AQSIS_MATH_SHARE CqNoise
 		static	Imath::V3f	PGPNoise3( const Imath::V3f& v, const Imath::V3f& pv );
 		static	Imath::V3f	PGNoise4( const Imath::V3f& v, TqFloat t );
 		static	Imath::V3f	PGPNoise4( const Imath::V3f& v, TqFloat t, const Imath::V3f& pv, TqFloat pt );
-		static	CqColor	CGNoise1( TqFloat x );
-		static	CqColor	CGPNoise1( TqFloat x, TqFloat px );
-		static	CqColor	CGNoise2( TqFloat x, TqFloat y );
-		static	CqColor	CGPNoise2( TqFloat x, TqFloat y, TqFloat px, TqFloat py );
-		static	CqColor	CGNoise3( const Imath::V3f& v );
-		static	CqColor	CGPNoise3( const Imath::V3f& v, const Imath::V3f& pv );
-		static	CqColor	CGNoise4( const Imath::V3f& v, TqFloat t );
-		static	CqColor	CGPNoise4( const Imath::V3f& v, TqFloat t, const Imath::V3f& pv, TqFloat pt );
+		static	Imath::Color3f	CGNoise1( TqFloat x );
+		static	Imath::Color3f	CGPNoise1( TqFloat x, TqFloat px );
+		static	Imath::Color3f	CGNoise2( TqFloat x, TqFloat y );
+		static	Imath::Color3f	CGPNoise2( TqFloat x, TqFloat y, TqFloat px, TqFloat py );
+		static	Imath::Color3f	CGNoise3( const Imath::V3f& v );
+		static	Imath::Color3f	CGPNoise3( const Imath::V3f& v, const Imath::V3f& pv );
+		static	Imath::Color3f	CGNoise4( const Imath::V3f& v, TqFloat t );
+		static	Imath::Color3f	CGPNoise4( const Imath::V3f& v, TqFloat t, const Imath::V3f& pv, TqFloat pt );
 
 };
 

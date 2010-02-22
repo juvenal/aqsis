@@ -361,7 +361,7 @@ class CqMicroPolygonPoints : public CqMicroPolygon
 
 		virtual void CacheOutputInterpCoeffs(SqMpgSampleInfo& cache) const;
 		virtual void InterpolateOutputs(const SqMpgSampleInfo& cache,
-			const Imath::V2f& pos, CqColor& outCol, CqColor& outOpac) const;
+			const Imath::V2f& pos, Imath::Color3f& outCol, Imath::Color3f& outOpac) const;
 
 	private:
 		TqFloat	m_radius;
@@ -491,7 +491,7 @@ class CqMicroPolygonMotionPoints : public CqMicroPolygon
 		virtual void CacheHitTestValues(CqHitTestCache& cache, bool usingDof) const;
 		virtual void CacheOutputInterpCoeffs(SqMpgSampleInfo& cache) const;
 		virtual void InterpolateOutputs(const SqMpgSampleInfo& cache,
-				const Imath::V2f& pos, CqColor& outCol, CqColor& outOpac) const;
+				const Imath::V2f& pos, Imath::Color3f& outCol, Imath::Color3f& outOpac) const;
 	private:
 		CqBoundList	m_BoundList;			///< List of bounds to get a tighter fit.
 		bool	m_BoundReady;				///< Flag indicating the boundary has been initialised.

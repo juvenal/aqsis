@@ -38,7 +38,6 @@
 #include	<aqsis/util/bitvector.h>
 #include	<aqsis/util/sstring.h>
 #include	<aqsis/math/matrix.h>
-#include	<aqsis/math/color.h>
 #include	<aqsis/util/logging.h>
 
 #include	<aqsis/shadervm/ishaderdata.h>
@@ -205,7 +204,7 @@ class CqShaderVariableArray: public CqShaderVariable
 			assert( false );
 			m_aVariables[ 0 ] ->GetNormal( res, index );
 		}
-		virtual	void	GetColor( CqColor& res, TqInt index = 0 ) const
+		virtual	void	GetColor( Imath::Color3f& res, TqInt index = 0 ) const
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->GetColor( res, index );
@@ -241,7 +240,7 @@ class CqShaderVariableArray: public CqShaderVariable
 			assert( false );
 			m_aVariables[ 0 ] ->GetNormalPtr( res );
 		}
-		virtual	void	GetColorPtr( const CqColor*& res ) const
+		virtual	void	GetColorPtr( const Imath::Color3f*& res ) const
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->GetColorPtr( res );
@@ -277,7 +276,7 @@ class CqShaderVariableArray: public CqShaderVariable
 			assert( false );
 			m_aVariables[ 0 ] ->GetNormalPtr( res );
 		}
-		virtual	void	GetColorPtr( CqColor*& res )
+		virtual	void	GetColorPtr( Imath::Color3f*& res )
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->GetColorPtr( res );
@@ -313,7 +312,7 @@ class CqShaderVariableArray: public CqShaderVariable
 			assert( false );
 			m_aVariables[ 0 ] ->SetNormal( n );
 		}
-		virtual	void	SetColor( const CqColor& c )
+		virtual	void	SetColor( const Imath::Color3f& c )
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->SetColor( c );
@@ -349,7 +348,7 @@ class CqShaderVariableArray: public CqShaderVariable
 			assert( false );
 			m_aVariables[ 0 ] ->SetNormal( n, index );
 		}
-		virtual	void	SetColor( const CqColor& c, TqInt index )
+		virtual	void	SetColor( const Imath::Color3f& c, TqInt index )
 		{
 			assert( false );
 			m_aVariables[ 0 ] ->SetColor( c, index );
@@ -495,7 +494,7 @@ class CqShaderVariableUniform : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	GetColor( CqColor& res, TqInt index = 0 ) const
+		virtual	void	GetColor( Imath::Color3f& res, TqInt index = 0 ) const
 		{
 			Aqsis::log() << error << "Accessing \"" << Type() << " " << strName().c_str() << "\" as color" << std::endl;
 			assert( false );
@@ -525,7 +524,7 @@ class CqShaderVariableUniform : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	GetColorPtr( const CqColor*& res ) const
+		virtual	void	GetColorPtr( const Imath::Color3f*& res ) const
 		{
 			assert( false );
 		}
@@ -554,7 +553,7 @@ class CqShaderVariableUniform : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	GetColorPtr( CqColor*& res )
+		virtual	void	GetColorPtr( Imath::Color3f*& res )
 		{
 			assert( false );
 		}
@@ -584,7 +583,7 @@ class CqShaderVariableUniform : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	SetColor( const CqColor& c )
+		virtual	void	SetColor( const Imath::Color3f& c )
 		{
 			assert( false );
 		}
@@ -613,7 +612,7 @@ class CqShaderVariableUniform : public CqShaderVariable
 		{
 			SetNormal( n );
 		}
-		virtual	void	SetColor( const CqColor& c, TqInt index )
+		virtual	void	SetColor( const Imath::Color3f& c, TqInt index )
 		{
 			SetColor( c );
 		}
@@ -966,24 +965,48 @@ class CqShaderVariableUniformNormal : public CqShaderVariableUniform<type_normal
 		}
 };
 
-class CqShaderVariableUniformColor : public CqShaderVariableUniform<type_color, CqColor>
+class CqShaderVariableUniformColor : public CqShaderVariableUniform<type_color, Imath::Color3f>
 {
 	public:
-		CqShaderVariableUniformColor() : CqShaderVariableUniform<type_color, CqColor>()
+		CqShaderVariableUniformColor() : CqShaderVariableUniform<type_color, Imath::Color3f>()
 		{
 		}
-		CqShaderVariableUniformColor( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableUniform<type_color, CqColor>( strName, storage )
+		CqShaderVariableUniformColor( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableUniform<type_color, Imath::Color3f>( strName, storage )
 		{
 		}
-		virtual	void	GetColor( CqColor& res, TqInt index = 0 ) const
+		virtual	void	GetPoint( Imath::V3f& res, TqInt index = 0 ) const
 		{
 			res = m_Value;
 		}
-		virtual	void	GetColorPtr( const CqColor*& res ) const
+		virtual	void	GetNormal( Imath::V3f& res, TqInt index = 0 ) const
+		{
+			res = m_Value;
+		}
+		virtual	void	GetVector( Imath::V3f& res, TqInt index = 0 ) const
+		{
+			res = m_Value;
+		}
+		virtual	void	GetColor( Imath::Color3f& res, TqInt index = 0 ) const
+		{
+			res = m_Value;
+		}
+		virtual	void	GetColorPtr( const Imath::Color3f*& res ) const
 		{
 			res = &m_Value;
 		}
-		virtual	void	SetColor( const CqColor& c )
+		virtual	void	SetPoint( const Imath::V3f& c )
+		{
+			m_Value = c;
+		}
+		virtual	void	SetNormal( const Imath::V3f& c )
+		{
+			m_Value = c;
+		}
+		virtual	void	SetVector( const Imath::V3f& c )
+		{
+			m_Value = c;
+		}
+		virtual	void	SetColor( const Imath::Color3f& c )
 		{
 			m_Value = c;
 		}
@@ -996,7 +1019,7 @@ class CqShaderVariableUniformColor : public CqShaderVariableUniform<type_color, 
 		}
 		virtual void	GetBool( bool& res, TqInt index = 0 ) const
 		{
-			res = ( ( m_Value.r() != 0.0f ) || ( m_Value.g() != 0.0f ) || ( m_Value.b() != 0.0f ) );
+			res = ( ( m_Value.x != 0.0f ) || ( m_Value.y != 0.0f ) || ( m_Value.z != 0.0f ) );
 		}
 		virtual	IqShaderData* Clone() const
 		{
@@ -1112,7 +1135,7 @@ class CqShaderVariableVarying : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	GetColor( CqColor& res, TqInt index = 0 ) const
+		virtual	void	GetColor( Imath::Color3f& res, TqInt index = 0 ) const
 		{
 			assert( false );
 		}
@@ -1141,7 +1164,7 @@ class CqShaderVariableVarying : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	GetColorPtr( const CqColor*& res ) const
+		virtual	void	GetColorPtr( const Imath::Color3f*& res ) const
 		{
 			assert( false );
 		}
@@ -1170,7 +1193,7 @@ class CqShaderVariableVarying : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	GetColorPtr( CqColor*& res )
+		virtual	void	GetColorPtr( Imath::Color3f*& res )
 		{
 			assert( false );
 		}
@@ -1199,7 +1222,7 @@ class CqShaderVariableVarying : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	SetColor( const CqColor& c )
+		virtual	void	SetColor( const Imath::Color3f& c )
 		{
 			assert( false );
 		}
@@ -1228,7 +1251,7 @@ class CqShaderVariableVarying : public CqShaderVariable
 		{
 			assert( false );
 		}
-		virtual	void	SetColor( const CqColor& c, TqInt index )
+		virtual	void	SetColor( const Imath::Color3f& c, TqInt index )
 		{
 			assert( false );
 		}
@@ -1743,32 +1766,32 @@ class CqShaderVariableVaryingNormal : public CqShaderVariableVarying<type_normal
 		}
 };
 
-class CqShaderVariableVaryingColor : public CqShaderVariableVarying<type_color, CqColor>
+class CqShaderVariableVaryingColor : public CqShaderVariableVarying<type_color, Imath::Color3f>
 {
 	public:
-		CqShaderVariableVaryingColor( ) : CqShaderVariableVarying<type_color, CqColor>( )
+		CqShaderVariableVaryingColor( ) : CqShaderVariableVarying<type_color, Imath::Color3f>( )
 		{
 		}
-		CqShaderVariableVaryingColor( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableVarying<type_color, CqColor>( strName, storage )
+		CqShaderVariableVaryingColor( const char* strName, EqStorage storage = Unknown ) : CqShaderVariableVarying<type_color, Imath::Color3f>( strName, storage )
 		{
 		}
-		virtual	void	GetColor( CqColor& res, TqInt index = 0 ) const
+		virtual	void	GetColor( Imath::Color3f& res, TqInt index = 0 ) const
 		{
 			res = m_aValue[ index ];
 		}
-		virtual	void	GetColorPtr( const CqColor*& res ) const
+		virtual	void	GetColorPtr( const Imath::Color3f*& res ) const
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	GetColorPtr( CqColor*& res )
+		virtual	void	GetColorPtr( Imath::Color3f*& res )
 		{
 			res = &m_aValue[ 0 ];
 		}
-		virtual	void	SetColor( const CqColor& c, TqInt index )
+		virtual	void	SetColor( const Imath::Color3f& c, TqInt index )
 		{
 			m_aValue[ index ] = c;
 		}
-		virtual	void	SetColor( const CqColor& c )
+		virtual	void	SetColor( const Imath::Color3f& c )
 		{
 			m_aValue.assign( m_aValue.size(), c );
 		}
@@ -1780,21 +1803,21 @@ class CqShaderVariableVaryingColor : public CqShaderVariableVarying<type_color, 
 			TqUint i;
 			if ( pVal->Size() > 1 )
 			{
-				const CqColor * pData;
+				const Imath::Color3f * pData;
 				pVal->GetColorPtr( pData );
 				for ( i = 0; i < Size(); i++ )
 					m_aValue[ i ] = pData [ i ];
 			}
 			else
 			{
-				CqColor temp;
+				Imath::Color3f temp;
 				pVal->GetColor( temp );
 				m_aValue.assign( m_aValue.size(), temp );
 			}
 		}
 		virtual void	GetBool( bool& res, TqInt index = 0 ) const
 		{
-			res = ( ( m_aValue[ index ].r() != 0.0f ) || ( m_aValue[ index ].g() != 0.0f ) || ( m_aValue[ index ].b() != 0.0f ) );
+			res = ( ( m_aValue[ index ].x != 0.0f ) || ( m_aValue[ index ].y != 0.0f ) || ( m_aValue[ index ].z != 0.0f ) );
 		}
 		/** Set the all SIMD data ased on a state vector, only indexes whose bit is set are modified.
 		 * \param pVal The stack entry to assign.

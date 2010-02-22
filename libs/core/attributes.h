@@ -37,7 +37,6 @@
 
 #include	<aqsis/aqsis.h>
 
-#include	<aqsis/math/color.h>
 #include	<aqsis/ri/ri.h>
 #include	<aqsis/math/matrix.h>
 #include	"options.h"
@@ -253,7 +252,7 @@ class CqAttributes : public IqAttributes, public boost::enable_shared_from_this<
 		virtual const	Imath::V3f*	GetPointAttribute( const char* strName, const char* strParam ) const;
 		virtual const	Imath::V3f*	GetVectorAttribute( const char* strName, const char* strParam ) const;
 		virtual const	Imath::V3f*	GetNormalAttribute( const char* strName, const char* strParam ) const;
-		virtual const	CqColor*	GetColorAttribute( const char* strName, const char* strParam ) const;
+		virtual const	Imath::Color3f*	GetColorAttribute( const char* strName, const char* strParam ) const;
 		virtual const	CqMatrix*	GetMatrixAttribute( const char* strName, const char* strParam ) const;
 
 		virtual TqFloat*	GetFloatAttributeWrite( const char* strName, const char* strParam );
@@ -262,7 +261,7 @@ class CqAttributes : public IqAttributes, public boost::enable_shared_from_this<
 		virtual Imath::V3f*	GetPointAttributeWrite( const char* strName, const char* strParam );
 		virtual Imath::V3f*	GetVectorAttributeWrite( const char* strName, const char* strParam );
 		virtual Imath::V3f*	GetNormalAttributeWrite( const char* strName, const char* strParam );
-		virtual CqColor*	GetColorAttributeWrite( const char* strName, const char* strParam );
+		virtual Imath::Color3f*	GetColorAttributeWrite( const char* strName, const char* strParam );
 		virtual CqMatrix*	GetMatrixAttributeWrite( const char* strName, const char* strParam );
 
 		virtual	TqUint	cLights() const

@@ -344,7 +344,7 @@ void CqSurface::NaturalSubdivide( CqParameter* pParam, CqParameter* pParam1, CqP
 			surfaceNaturalSubdivide<V4f, Imath::V3f>(pParam, pParam1, pParam2, u);
 			break;
 		case type_color:
-			surfaceNaturalSubdivide<CqColor, CqColor>(pParam, pParam1, pParam2, u);
+			surfaceNaturalSubdivide<Imath::Color3f, Imath::Color3f>(pParam, pParam1, pParam2, u);
 			break;
 		case type_string:
 			surfaceNaturalSubdivide<CqString, CqString>(pParam, pParam1, pParam2, u);
@@ -408,7 +408,7 @@ void CqSurface::NaturalDice( CqParameter* pParam, TqInt uDiceSize,
 			surfaceNaturalDice<V4f, Imath::V3f>(uDiceSize, vDiceSize, pParam, pData);
 			break;
 		case type_color:
-			surfaceNaturalDice<CqColor, CqColor>(uDiceSize, vDiceSize, pParam, pData);
+			surfaceNaturalDice<Imath::Color3f, Imath::Color3f>(uDiceSize, vDiceSize, pParam, pData);
 			break;
 		case type_string:
 			surfaceNaturalDice<CqString, CqString>(uDiceSize, vDiceSize, pParam, pData);
@@ -485,7 +485,7 @@ CqMicroPolyGridBase* CqSurface::Dice()
 		if ( NULL != pAttributes() ->GetColorAttribute( "System", "Color" ) )
 			pGrid->pVar(EnvVars_Cs) ->SetColor( pAttributes() ->GetColorAttribute( "System", "Color" ) [ 0 ] );
 		else
-			pGrid->pVar(EnvVars_Cs) ->SetColor( CqColor( 1, 1, 1 ) );
+			pGrid->pVar(EnvVars_Cs) ->SetColor( Imath::Color3f( 1, 1, 1 ) );
 	}
 
 	if ( !isDONE( lDone, EnvVars_Os ) && USES( lUses, EnvVars_Os ) && ( NULL != pGrid->pVar(EnvVars_Os) ) )
@@ -493,7 +493,7 @@ CqMicroPolyGridBase* CqSurface::Dice()
 		if ( NULL != pAttributes() ->GetColorAttribute( "System", "Opacity" ) )
 			pGrid->pVar(EnvVars_Os) ->SetColor( pAttributes() ->GetColorAttribute( "System", "Opacity" ) [ 0 ] );
 		else
-			pGrid->pVar(EnvVars_Os) ->SetColor( CqColor( 1, 1, 1 ) );
+			pGrid->pVar(EnvVars_Os) ->SetColor( Imath::Color3f( 1, 1, 1 ) );
 	}
 
 	// If the shaders need N and they have been explicitly specified, then bilinearly interpolate them.

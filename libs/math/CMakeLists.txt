@@ -2,7 +2,6 @@ project(math)
 
 set(math_srcs
 	cellnoise.cpp
-	color.cpp
 	lowdiscrep.cpp
 	matrix.cpp
 	noise.cpp
@@ -25,7 +24,6 @@ aqsis_install_targets(aqsis_math)
 # Testing
 set(math_test_srcs
 	cellnoise_test.cpp
-	color_test.cpp
 	math_test.cpp
 	matrix2d_test.cpp
 	matrix_test.cpp

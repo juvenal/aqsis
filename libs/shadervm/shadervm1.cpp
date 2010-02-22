@@ -297,7 +297,7 @@ void CqShaderVM::SO_mergec()
 		for ( i = 0; i < ext; i++ )
 		{
 			bool _aq_A;
-			CqColor _aq_T, _aq_F;
+			Imath::Color3f _aq_T, _aq_F;
 			A->GetBool( _aq_A, i );
 			T->GetColor( _aq_T, i );
 			F->GetColor( _aq_F, i );

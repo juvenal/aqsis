@@ -71,10 +71,10 @@ static	CqString	SO_sprintf( const char* str, int cParams, IqShaderData** apParam
 
 							case 'c':
 							{
-								CqColor col;
+								Imath::Color3f col;
 								apParams[ ivar++ ] ->GetColor( col, varyingindex );
 								CqString strVal;
-								strVal.Format( "%f,%f,%f", col.r(), col.g(), col.b() );
+								strVal.Format( "%f,%f,%f", col.x, col.y, col.z );
 								strRes += strVal;
 							}
 							break;

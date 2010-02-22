@@ -18,7 +18,6 @@
 #include <aqsis/math/matrix.h>
 #include <aqsis/riutil/primvartype.h>
 #include <aqsis/util/sstring.h>
-#include <aqsis/math/vecfwd.h>
 
 namespace Aqsis {
 
@@ -57,7 +56,7 @@ struct IqShaderData
 	///	Get the data as a normal..
 	virtual void GetNormal( Imath::V3f& res, TqInt index = 0 ) const = 0;
 	///	Get the data as a color..
-	virtual void GetColor( CqColor& res, TqInt index = 0 ) const = 0;
+	virtual void GetColor( Imath::Color3f& res, TqInt index = 0 ) const = 0;
 	///	Get the data as a matrix..
 	virtual void GetMatrix( CqMatrix& res, TqInt index = 0 ) const = 0;
 
@@ -74,7 +73,7 @@ struct IqShaderData
 	///	Get a const pointer to the data as a normal..
 	virtual void GetNormalPtr( const Imath::V3f*& res ) const = 0;
 	///	Get a const pointer to the data as a color..
-	virtual void GetColorPtr( const CqColor*& res ) const = 0;
+	virtual void GetColorPtr( const Imath::Color3f*& res ) const = 0;
 	///	Get a const pointer to the data as a matrix..
 	virtual void GetMatrixPtr( const CqMatrix*& res ) const = 0;
 
@@ -91,7 +90,7 @@ struct IqShaderData
 	///	Get a pointer to the data as a normal..
 	virtual void GetNormalPtr( Imath::V3f*& res ) = 0;
 	///	Get a pointer to the data as a color..
-	virtual void GetColorPtr( CqColor*& res ) = 0;
+	virtual void GetColorPtr( Imath::Color3f*& res ) = 0;
 	///	Get a pointer to the data as a matrix..
 	virtual void GetMatrixPtr( CqMatrix*& res ) = 0;
 
@@ -108,7 +107,7 @@ struct IqShaderData
 	///	Set the value to the specified normal.
 	virtual void SetNormal( const Imath::V3f& val ) = 0;
 	///	Set the value to the specified color.
-	virtual void SetColor( const CqColor& val ) = 0;
+	virtual void SetColor( const Imath::Color3f& val ) = 0;
 	///	Set the value to the specified matrix.
 	virtual void SetMatrix( const CqMatrix& val ) = 0;
 
@@ -125,7 +124,7 @@ struct IqShaderData
 	///	Set the value to the specified normal.
 	virtual void SetNormal( const Imath::V3f& val, TqInt index ) = 0;
 	///	Set the value to the specified color.
-	virtual void SetColor( const CqColor& val, TqInt index ) = 0;
+	virtual void SetColor( const Imath::Color3f& val, TqInt index ) = 0;
 	///	Set the value to the specified matrix.
 	virtual void SetMatrix( const CqMatrix& val, TqInt index ) = 0;
 
@@ -146,7 +145,7 @@ struct IqShaderData
 	{
 		GetPoint( p, index );
 	}
-	void GetValue( CqColor& c, TqInt index = 0 ) const
+	void GetValue( Imath::Color3f& c, TqInt index = 0 ) const
 	{
 		GetColor( c, index );
 	}
@@ -171,7 +170,7 @@ struct IqShaderData
 	{
 		GetPointPtr( p );
 	}
-	void GetValuePtr( const CqColor*& c ) const
+	void GetValuePtr( const Imath::Color3f*& c ) const
 	{
 		GetColorPtr( c );
 	}
@@ -196,7 +195,7 @@ struct IqShaderData
 	{
 		GetPointPtr( p );
 	}
-	void GetValuePtr( CqColor*& c )
+	void GetValuePtr( Imath::Color3f*& c )
 	{
 		GetColorPtr( c );
 	}
@@ -225,7 +224,7 @@ struct IqShaderData
 	{
 		SetPoint( p );
 	}
-	void SetValue( const CqColor& c )
+	void SetValue( const Imath::Color3f& c )
 	{
 		SetColor( c );
 	}
@@ -254,7 +253,7 @@ struct IqShaderData
 	{
 		SetPoint( p, index );
 	}
-	void SetValue( const CqColor& c, TqInt index )
+	void SetValue( const Imath::Color3f& c, TqInt index )
 	{
 		SetColor( c, index );
 	}

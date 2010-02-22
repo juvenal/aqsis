@@ -117,10 +117,10 @@ void CqImagersource::Initialise( const CqRegion& DRegion, IqChannelBuffer* buffe
 		{
 			TqInt off = j * ( uGridRes + 1 ) + i;
 			P() ->SetPoint( Imath::V3f( x + i, y + j, 0.0 ), off );
-			Ci() ->SetColor( CqColor((*buffer)(i, j, CiIndex)[0], (*buffer)(i, j, CiIndex)[1], (*buffer)(i, j, CiIndex)[2]), off );
-			CqColor opa((*buffer)(i, j, OiIndex)[0], (*buffer)(i, j, OiIndex)[1], (*buffer)(i, j, OiIndex)[2]);
+			Ci() ->SetColor( Imath::Color3f((*buffer)(i, j, CiIndex)[0], (*buffer)(i, j, CiIndex)[1], (*buffer)(i, j, CiIndex)[2]), off );
+			Imath::Color3f opa((*buffer)(i, j, OiIndex)[0], (*buffer)(i, j, OiIndex)[1], (*buffer)(i, j, OiIndex)[2]);
 			Oi() ->SetColor( opa, off );
-			TqFloat avopa = ( opa.r() + opa.g() + opa.b() ) /3.0f;
+			TqFloat avopa = ( opa.x + opa.y + opa.z ) /3.0f;
 			alpha() ->SetFloat( (*buffer)(i, j, coverageIndex)[0] * avopa, off );
 			s() ->SetFloat( x + i + 0.5, off );
 			t() ->SetFloat( y + j + 0.5, off );
@@ -139,9 +139,9 @@ void CqImagersource::Initialise( const CqRegion& DRegion, IqChannelBuffer* buffe
  * \param x Integer Raster position.
  * \param y Integer Raster position.
  */
-CqColor CqImagersource::Color( TqFloat x, TqFloat y )
+Imath::Color3f CqImagersource::Color( TqFloat x, TqFloat y )
 {
-	CqColor result = gColBlack;
+	Imath::Color3f result = Imath::Color3f(0.0f);
 
 	TqInt index = static_cast<TqInt>( ( y - m_uYOrigin ) * ( m_uGridRes + 1 ) + x - m_uXOrigin );
 
@@ -156,9 +156,9 @@ CqColor CqImagersource::Color( TqFloat x, TqFloat y )
  * \param x Integer Raster position.
  * \param y Integer Raster position.
  */
-CqColor CqImagersource::Opacity( TqFloat x, TqFloat y )
+Imath::Color3f CqImagersource::Opacity( TqFloat x, TqFloat y )
 {
-	CqColor result = gColWhite;
+	Imath::Color3f result = Imath::Color3f(1.0f);
 
 	TqInt index = static_cast<TqInt>( ( y - m_uYOrigin ) * ( m_uGridRes + 1 ) + x - m_uXOrigin );
 

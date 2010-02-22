@@ -20,7 +20,6 @@
 
 #include <aqsis/tex/filtering/texturesampleoptions.h>
 #include <aqsis/tex/filtering/samplequad.h>
-#include <aqsis/math/vecfwd.h>
 
 namespace Aqsis {
 

@@ -29,8 +29,8 @@
 
 #include <stdio.h>
 
-#include <aqsis/math/vecfwd.h>
 #include <ImathVec.h>
+#include <ImathColor.h>
 
 namespace Aqsis {
 
@@ -138,7 +138,7 @@ class CqMPDump
 		   \pre m_outFile must not be NULL
 		   \param c Vector that should be dumped
 		*/
-		void dumpCol(const CqColor& c);
+		void dumpCol(const Imath::Color3f& c);
 	private:
 		/// Output file handle
 		FILE* m_outFile;

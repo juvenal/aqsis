@@ -34,8 +34,8 @@
 #define VECTORCAST_H_INCLUDED
 
 #include <ImathVec.h>
+#include <ImathColor.h>
 
-#include <aqsis/math/color.h>
 #include <aqsis/math/vec4.h>
 
 namespace Aqsis {
@@ -69,23 +69,23 @@ template<typename T> T vectorCast(const V4f& v);
 //==============================================================================
 
 //----------------------------------------
-// Casting from CqColor
+// Casting from Imath::Color3f
 template<typename T>
-inline T vectorCast(const CqColor& c)
+inline T vectorCast(const Imath::Color3f& c)
 {
 	return T(c);
 }
 
 template<>
-inline Imath::V3f vectorCast(const CqColor& c)
+inline Imath::V3f vectorCast(const Imath::Color3f& c)
 {
-	return Imath::V3f(c.r(), c.g(), c.b());
+	return Imath::V3f(c.x, c.y, c.z);
 }
 
 template<>
-inline V4f vectorCast(const CqColor& c)
+inline V4f vectorCast(const Imath::Color3f& c)
 {
-	return V4f(c.r(), c.g(), c.b(), 1.0f);
+	return V4f(c.x, c.y, c.z, 1.0f);
 }
 
 //----------------------------------------
@@ -119,9 +119,9 @@ inline Imath::V2f vectorCast(const Imath::V3f& v)
 }
 
 template<>
-inline CqColor vectorCast(const Imath::V3f& v)
+inline Imath::Color3f vectorCast(const Imath::V3f& v)
 {
-	return CqColor(v.x, v.y, v.z);
+	return Imath::Color3f(v.x, v.y, v.z);
 }
 
 template<>
@@ -147,9 +147,9 @@ inline Imath::V3f vectorCast(const V4f& v)
 }
 
 template<>
-inline CqColor vectorCast(const V4f& v)
+inline Imath::Color3f vectorCast(const V4f& v)
 {
-	return CqColor(v.x/v.h, v.y/v.h, v.z/v.h);
+	return Imath::Color3f(v.x/v.h, v.y/v.h, v.z/v.h);
 }
 
 } // namespace Aqsis

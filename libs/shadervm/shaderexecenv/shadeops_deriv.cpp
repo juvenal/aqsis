@@ -187,7 +187,7 @@ void	CqShaderExecEnv::SO_cspline( IqShaderData* value, IqShaderData* Result, IqS
 	bool __fVarying;
 	TqUint __iGrid;
 
-	CqCubicSpline<CqColor> spline( SplineBasis_CatmullRom, cParams );
+	CqCubicSpline<Imath::Color3f> spline( SplineBasis_CatmullRom, cParams );
 
 	__fVarying=(value)->Class()==class_varying;
 	TqInt v;
@@ -207,13 +207,13 @@ void	CqShaderExecEnv::SO_cspline( IqShaderData* value, IqShaderData* Result, IqS
 			(value)->GetFloat( _aq_value, __iGrid );
 			if ( _aq_value >= 1.0f )
 			{
-				CqColor cl;
+				Imath::Color3f cl;
 				apParams[ cParams - 2 ] ->GetColor( cl, __iGrid );
 				(Result)->SetColor( cl, __iGrid );
 			}
 			else if ( _aq_value <= 0.0f )
 			{
-				CqColor cf;
+				Imath::Color3f cf;
 				apParams[ 1 ] ->GetColor( cf, __iGrid );
 				(Result)->SetColor( cf, __iGrid );
 			}
@@ -222,7 +222,7 @@ void	CqShaderExecEnv::SO_cspline( IqShaderData* value, IqShaderData* Result, IqS
 				TqInt j;
 				for ( j = 0; j < cParams; j++ )
 				{
-					CqColor cn;
+					Imath::Color3f cn;
 					apParams[ j ] ->GetColor( cn, __iGrid );
 					spline.pushBack( cn );
 				}
@@ -369,7 +369,7 @@ void	CqShaderExecEnv::SO_scspline( IqShaderData* basis, IqShaderData* value, IqS
 	__iGrid = 0;
 	CqString _aq_basis;
 	(basis)->GetString(_aq_basis,__iGrid);
-	CqCubicSpline<CqColor> spline( _aq_basis, cParams );
+	CqCubicSpline<Imath::Color3f> spline( _aq_basis, cParams );
 
 	__iGrid = 0;
 	const CqBitVector& RS = RunningState();
@@ -381,13 +381,13 @@ void	CqShaderExecEnv::SO_scspline( IqShaderData* basis, IqShaderData* value, IqS
 			(value)->GetFloat(_aq_value,__iGrid);
 			if ( _aq_value >= 1.0f )
 			{
-				CqColor cl;
+				Imath::Color3f cl;
 				apParams[ cParams - 2 ] ->GetColor( cl, __iGrid );
 				(Result)->SetColor(cl,__iGrid);
 			}
 			else if ( _aq_value <= 0.0f )
 			{
-				CqColor cf;
+				Imath::Color3f cf;
 				apParams[ 1 ] ->GetColor( cf, __iGrid );
 				(Result)->SetColor(cf,__iGrid);
 			}
@@ -396,7 +396,7 @@ void	CqShaderExecEnv::SO_scspline( IqShaderData* basis, IqShaderData* value, IqS
 				TqInt j;
 				for ( j = 0; j < cParams; j++ )
 				{
-					CqColor cn;
+					Imath::Color3f cn;
 					apParams[ j ] ->GetColor( cn, __iGrid );
 					spline.pushBack( cn );
 				}
@@ -547,7 +547,7 @@ void	CqShaderExecEnv::SO_cDu( IqShaderData* p, IqShaderData* Result, IqShader* p
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			Result->SetColor(derivU<CqColor>(p, __iGrid), __iGrid);
+			Result->SetColor(derivU<Imath::Color3f>(p, __iGrid), __iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -568,7 +568,7 @@ void	CqShaderExecEnv::SO_cDv( IqShaderData* p, IqShaderData* Result, IqShader* p
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			Result->SetColor(derivV<CqColor>(p, __iGrid), __iGrid);
+			Result->SetColor(derivV<Imath::Color3f>(p, __iGrid), __iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -590,7 +590,7 @@ void	CqShaderExecEnv::SO_cDeriv( IqShaderData* p, IqShaderData* den, IqShaderDat
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			(Result)->SetColor(deriv<CqColor>(p, den, __iGrid), __iGrid);
+			(Result)->SetColor(deriv<Imath::Color3f>(p, den, __iGrid), __iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -866,8 +866,8 @@ void    CqShaderExecEnv::SO_csplinea( IqShaderData* value, IqShaderData* a, IqSh
 	assert( a->Type() == type_color );
 	
 	TqInt	cParams = a->ArrayLength();
-	CqCubicSpline<CqColor> spline( SplineBasis_CatmullRom, cParams );
-	CqColor colTemp;
+	CqCubicSpline<Imath::Color3f> spline( SplineBasis_CatmullRom, cParams );
+	Imath::Color3f colTemp;
 
 	__fVarying=(value)->Class()==class_varying;
 	__fVaryingA=(a)->Class()==class_varying;
@@ -895,7 +895,7 @@ void    CqShaderExecEnv::SO_csplinea( IqShaderData* value, IqShaderData* a, IqSh
 			TqFloat _aq_value;
 			(value)->GetFloat(_aq_value,__iGrid);
 
-			CqColor cTemp;
+			Imath::Color3f cTemp;
 			if ( _aq_value >= 1.0f )
 			{
 				a->ArrayEntry( cParams - 2 ) ->GetColor( colTemp, __iGrid );
@@ -1087,7 +1087,7 @@ void    CqShaderExecEnv::SO_scsplinea( IqShaderData* basis, IqShaderData* value,
 	assert( a->Type() == type_color );
 
 	TqInt    cParams = a->ArrayLength();
-	CqColor colTemp;
+	Imath::Color3f colTemp;
 
 	__fVarying=(value)->Class()==class_varying;
 	__fVaryingA=(a)->Class()==class_varying;
@@ -1097,7 +1097,7 @@ void    CqShaderExecEnv::SO_scsplinea( IqShaderData* basis, IqShaderData* value,
 	__iGrid = 0;
 	CqString _aq_basis;
 	(basis)->GetString(_aq_basis,__iGrid);
-	CqCubicSpline<CqColor> spline( _aq_basis, cParams );
+	CqCubicSpline<Imath::Color3f> spline( _aq_basis, cParams );
 
 	__iGrid = 0;
 
@@ -1120,7 +1120,7 @@ void    CqShaderExecEnv::SO_scsplinea( IqShaderData* basis, IqShaderData* value,
 			TqFloat _aq_value;
 			(value)->GetFloat(_aq_value,__iGrid);
 
-			CqColor colTemp;
+			Imath::Color3f colTemp;
 			if ( _aq_value >= 1.0f )
 			{
 				a->ArrayEntry( cParams - 2 ) ->GetColor( colTemp, __iGrid );

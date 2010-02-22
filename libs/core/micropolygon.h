@@ -33,7 +33,6 @@
 
 #include	"bilinear.h"
 #include	<aqsis/util/pool.h>
-#include	<aqsis/math/color.h>
 #include	<aqsis/math/vectorcast.h>
 #include	<ImathVec.h>
 #include	<aqsis/util/list.h>
@@ -83,9 +82,9 @@ struct SqGridInfo
 struct SqMpgSampleInfo
 {
 	/// Color cache
-	CqColor col[4];
+	Imath::Color3f col[4];
 	/// Opacity cache
-	CqColor opa[4];
+	Imath::Color3f opa[4];
 
 	/// Whether to use smooth shading interpolation or not
 	bool smoothInterpolation;
@@ -614,20 +613,20 @@ class CqMicroPolygon : boost::noncopyable
 			return( m_Index );
 		}
 		/** Get the color of this micropoly.
-		 * \return CqColor reference.
+		 * \return Imath::Color3f reference.
 		 */
-		const CqColor*	colColor() const
+		const Imath::Color3f*	colColor() const
 		{
-			CqColor* col;
+			Imath::Color3f* col;
 			m_pGrid->pVar(EnvVars_Ci) ->GetColorPtr( col );
 			return ( &col[m_Index] );
 		}
 		/** Get the opacity of this micropoly.
-		 * \return CqColor reference.
+		 * \return Imath::Color3f reference.
 		 */
-		const	CqColor* colOpacity() const
+		const	Imath::Color3f* colOpacity() const
 		{
-			CqColor* col;
+			Imath::Color3f* col;
 			m_pGrid->pVar(EnvVars_Oi) ->GetColorPtr( col );
 			return ( &col[m_Index] );
 		}
@@ -735,7 +734,7 @@ class CqMicroPolygon : boost::noncopyable
 		 * \param outOpac - interpolated opacity output will be placed here.
 		 */
 		virtual void InterpolateOutputs(const SqMpgSampleInfo& cache,
-				const Imath::V2f& uv, CqColor& outCol, CqColor& outOpac) const;
+				const Imath::V2f& uv, Imath::Color3f& outCol, Imath::Color3f& outOpac) const;
 
 		/** \brief Initialise some micropolygon member data.
 		 *

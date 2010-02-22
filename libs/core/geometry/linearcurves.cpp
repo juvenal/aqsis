@@ -107,7 +107,7 @@ void CqLinearCurveSegment::NaturalSubdivide(
 			linCurveNatSubdiv<V4f, Imath::V3f>(pParam, pParam1, pParam2);
 			break;
 		case type_color:
-			linCurveNatSubdiv<CqColor, CqColor>(pParam, pParam1, pParam2);
+			linCurveNatSubdiv<Imath::Color3f, Imath::Color3f>(pParam, pParam1, pParam2);
 			break;
 		case type_string:
 			linCurveNatSubdiv<CqString, CqString>( pParam, pParam1, pParam2);

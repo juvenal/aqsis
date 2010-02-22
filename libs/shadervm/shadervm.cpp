@@ -1639,7 +1639,7 @@ void CqShaderVM::SetArgument( const CqString& strName, EqVariableType type, cons
 						case	type_color:
 						{
 							TqFloat* pvecval = reinterpret_cast<TqFloat*>( pval );
-							pVMVal->SetColor( CqColor( pvecval[ index + 0 ], pvecval[ index + 1 ], pvecval[ index + 2 ] ) );
+							pVMVal->SetColor( Imath::Color3f( pvecval[ index + 0 ], pvecval[ index + 1 ], pvecval[ index + 2 ] ) );
 							index += 3;
 						}
 						break;

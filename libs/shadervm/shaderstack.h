@@ -33,7 +33,6 @@
 
 #include	<aqsis/aqsis.h>
 
-#include	<aqsis/math/color.h>
 #include	<aqsis/util/sstring.h>
 #include	<aqsis/math/matrix.h>
 #include	<aqsis/shadervm/ishaderdata.h>
@@ -47,7 +46,7 @@ namespace Aqsis {
 #define DECLARE_SHADERSTACK_TEMPS \
 static TqFloat temp_float; \
 static Imath::V3f temp_point; \
-static CqColor temp_color; \
+static Imath::Color3f temp_color; \
 static CqString temp_string; \
 static CqMatrix temp_matrix; 
 
@@ -674,11 +673,11 @@ inline T2 castShaderVar(const T1& t1)
 	return static_cast<T2>(t1);
 }
 
-template<> inline CqColor castShaderVar(const Imath::V3f& v)
+template<> inline Imath::Color3f castShaderVar(const Imath::V3f& v)
 {
-	return vectorCast<CqColor>(v);
+	return vectorCast<Imath::Color3f>(v);
 }
-template<> inline Imath::V3f castShaderVar(const CqColor& c)
+template<> inline Imath::V3f castShaderVar(const Imath::Color3f& c)
 {
 	return vectorCast<Imath::V3f>(c);
 }

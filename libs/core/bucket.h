@@ -37,7 +37,6 @@
 #include	<boost/array.hpp>
 
 #include	"surface.h"
-#include	<aqsis/math/color.h>
 #include	"imagepixel.h"
 #include	"iddmanager.h"
 #include	<aqsis/math/region.h>

@@ -17,7 +17,6 @@
 
 #include	<aqsis/util/sstring.h>
 #include	<aqsis/math/matrix.h>
-#include	<aqsis/math/color.h>
 
 
 namespace Aqsis {
@@ -60,7 +59,7 @@ struct IqAttributes
 	virtual	const	Imath::V3f*	GetNormalAttribute( const char* strName, const char* strParam ) const = 0;
 	/** Get a named color attribute as read only
 	 */
-	virtual	const	CqColor*	GetColorAttribute( const char* strName, const char* strParam ) const = 0;
+	virtual	const	Imath::Color3f*	GetColorAttribute( const char* strName, const char* strParam ) const = 0;
 	/** Get a named matrix attribute as read only
 	 */
 	virtual	const	CqMatrix*	GetMatrixAttribute( const char* strName, const char* strParam ) const = 0;
@@ -85,7 +84,7 @@ struct IqAttributes
 	virtual	Imath::V3f*	GetNormalAttributeWrite( const char* strName, const char* strParam ) = 0;
 	/** Get a named color attribute as writable
 	 */
-	virtual	CqColor*	GetColorAttributeWrite( const char* strName, const char* strParam ) = 0;
+	virtual	Imath::Color3f*	GetColorAttributeWrite( const char* strName, const char* strParam ) = 0;
 	/** Get a named matrix attribute as writable
 	 */
 	virtual	CqMatrix*	GetMatrixAttributeWrite( const char* strName, const char* strParam ) = 0;

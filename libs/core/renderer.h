@@ -189,13 +189,13 @@ class CqRenderer : public IqRenderer
 		virtual	const	TqInt*	GetIntegerOption( const char* strName, const char* strParam ) const;
 		virtual	const	CqString* GetStringOption( const char* strName, const char* strParam ) const;
 		virtual	const	Imath::V3f*	GetPointOption( const char* strName, const char* strParam ) const;
-		virtual	const	CqColor*	GetColorOption( const char* strName, const char* strParam ) const;
+		virtual	const	Imath::Color3f*	GetColorOption( const char* strName, const char* strParam ) const;
 
 		virtual	TqFloat*	GetFloatOptionWrite( const char* strName, const char* strParam );
 		virtual	TqInt*	GetIntegerOptionWrite( const char* strName, const char* strParam );
 		virtual	CqString* GetStringOptionWrite( const char* strName, const char* strParam );
 		virtual	Imath::V3f*	GetPointOptionWrite( const char* strName, const char* strParam );
-		virtual	CqColor*	GetColorOptionWrite( const char* strName, const char* strParam );
+		virtual	Imath::Color3f*	GetColorOptionWrite( const char* strName, const char* strParam );
 
 		virtual	void	PrintString( const char* str )
 		{

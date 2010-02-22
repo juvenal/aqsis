@@ -48,7 +48,7 @@ void	CqShaderExecEnv::SO_setcomp( IqShaderData* p, IqShaderData* index, IqShader
 	{
 		if(!__fVarying || RS.Value( __iGrid ) )
 		{
-			CqColor _aq_p;
+			Imath::Color3f _aq_p;
 			(p)->GetColor(_aq_p,__iGrid);
 			TqFloat _aq_index;
 			(index)->GetFloat(_aq_index,__iGrid);

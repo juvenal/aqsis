@@ -709,7 +709,7 @@ void CqBucketProcessor::FilterBucket()
 		QGetRenderContext() ->poptCurrent()->InitialiseColorImager( DisplayRegion(), &m_channelBuffer );
 		AQSIS_TIME_SCOPE(Imager_shading);
 
-		CqColor imager;
+		Imath::Color3f imager;
 		for ( y = 0; y < endy ; y++ )
 		{
 			for ( x = 0; x < endx ; x++ )
@@ -720,13 +720,13 @@ void CqBucketProcessor::FilterBucket()
 				// == 1 after a call to imager shader in 3delight and BMRT.
 				// Therefore I did not ask for alpha value and set directly the pCols[i]
 				// with imager value. see imagers.cpp
-				m_channelBuffer(x, y, CiIndex)[0] = imager.r();
-				m_channelBuffer(x, y, CiIndex)[1] = imager.g();
-				m_channelBuffer(x, y, CiIndex)[2] = imager.b();
+				m_channelBuffer(x, y, CiIndex)[0] = imager[0];
+				m_channelBuffer(x, y, CiIndex)[1] = imager[1];
+				m_channelBuffer(x, y, CiIndex)[2] = imager[2];
 				imager = QGetRenderContext() ->poptCurrent()->GetOpacityImager( x+DisplayRegion().xMin() , y+DisplayRegion().yMin() );
-				m_channelBuffer(x, y, OiIndex)[0] = imager.r();
-				m_channelBuffer(x, y, OiIndex)[1] = imager.g();
-				m_channelBuffer(x, y, OiIndex)[2] = imager.b();
+				m_channelBuffer(x, y, OiIndex)[0] = imager[0];
+				m_channelBuffer(x, y, OiIndex)[1] = imager[1];
+				m_channelBuffer(x, y, OiIndex)[2] = imager[2];
 				TqFloat a = ( imager[0] + imager[1] + imager[2] ) / 3.0f;
 				m_channelBuffer(x, y, alphaIndex)[0] = a;
 			}
@@ -1486,8 +1486,8 @@ void CqBucketProcessor::StoreSample( CqMicroPolygon* pMPG, CqImagePixel* pie2, T
 	}
 
 	// Compute the color and opacity of the micropolygon at the hit point.
-	CqColor col;
-	CqColor opa;
+	Imath::Color3f col;
+	Imath::Color3f opa;
 	pMPG->InterpolateOutputs(m_CurrentMpgSampleInfo, uv, col, opa);
 
 	// Store the hit data for later use.
@@ -1545,11 +1545,11 @@ void CqBucketProcessor::StoreExtraData( CqMicroPolygon* pMPG, TqFloat* hitData)
 					}
 					case type_color:
 					{
-						CqColor c;
+						Imath::Color3f c;
 						pData->GetColor( c, pMPG->GetIndex() );
-						hitData[ entry->second.m_Offset ] = c.r();
-						hitData[ entry->second.m_Offset + 1 ] = c.g();
-						hitData[ entry->second.m_Offset + 2 ] = c.b();
+						hitData[ entry->second.m_Offset ] = c.x;
+						hitData[ entry->second.m_Offset + 1 ] = c.y;
+						hitData[ entry->second.m_Offset + 2 ] = c.z;
 						break;
 					}
 					case type_matrix:

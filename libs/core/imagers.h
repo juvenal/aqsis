@@ -33,7 +33,6 @@
 #include	<aqsis/aqsis.h>
 
 #include <aqsis/ri/ri.h>
-#include <aqsis/math/color.h>
 #include <aqsis/util/list.h>
 #include <aqsis/math/matrix.h>
 #include <aqsis/shadervm/ishaderexecenv.h>
@@ -231,8 +230,8 @@ class CqImagersource : public CqListEntry<CqImagersource>
 
 
 	public:
-		CqColor Color( TqFloat x, TqFloat y );
-		CqColor Opacity( TqFloat x, TqFloat y );
+		Imath::Color3f Color( TqFloat x, TqFloat y );
+		Imath::Color3f Opacity( TqFloat x, TqFloat y );
 		TqFloat Alpha( TqFloat x, TqFloat y );
 
 	private:

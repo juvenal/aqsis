@@ -148,7 +148,7 @@ void CqSurfacePatchBicubic::NaturalSubdivide( CqParameter* pParam, CqParameter* 
 			bicubicPatchNatSubdiv<V4f, Imath::V3f>(pParam, pParam1, pParam2, u);
 			break;
 		case type_color:
-			bicubicPatchNatSubdiv<CqColor, CqColor>(pParam, pParam1, pParam2, u);
+			bicubicPatchNatSubdiv<Imath::Color3f, Imath::Color3f>(pParam, pParam1, pParam2, u);
 			break;
 		case type_string:
 			bicubicPatchNatSubdiv<CqString, CqString>(pParam, pParam1, pParam2, u);
@@ -265,7 +265,7 @@ void CqSurfacePatchBicubic::NaturalDice(CqParameter* pParam, TqInt uDiceSize,
 			bicubicPatchNatDice<V4f, Imath::V3f>(uDiceSize, vDiceSize, pParam, pData);
 			break;
 		case type_color:
-			bicubicPatchNatDice<CqColor, CqColor>(uDiceSize, vDiceSize, pParam, pData);
+			bicubicPatchNatDice<Imath::Color3f, Imath::Color3f>(uDiceSize, vDiceSize, pParam, pData);
 			break;
 		case type_string:
 			bicubicPatchNatDice<CqString, CqString>(uDiceSize, vDiceSize, pParam, pData);
@@ -497,7 +497,7 @@ void CqSurfacePatchBicubic::ConvertToBezierBasis( CqMatrix& matuBasis, CqMatrix&
 					case type_color:
 					{
 						// Get the parameter pointer as the correct type.
-						CqParameterTyped<CqColor, CqColor>* pParam = static_cast<CqParameterTyped<CqColor, CqColor>*>( ( *iUP ) );
+						CqParameterTyped<Imath::Color3f, Imath::Color3f>* pParam = static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( ( *iUP ) );
 
 						// Store the data into a matrix for conversion.
 						CqMatrix matRed, matGreen, matBlue;

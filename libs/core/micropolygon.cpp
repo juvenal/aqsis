@@ -409,10 +409,10 @@ void CqMicroPolyGrid::Shade( bool canCullGrid )
 
 	// Initialize surface color Ci to black
 	if ( USES( lUses, EnvVars_Ci ) )
-		pVar(EnvVars_Ci) ->SetColor( gColBlack );
+		pVar(EnvVars_Ci) ->SetColor( Imath::Color3f(0.0f) );
 	// Initialize surface opacity Oi to opaque
 	if ( USES( lUses, EnvVars_Oi ) )
-		pVar(EnvVars_Oi) ->SetColor( gColWhite );
+		pVar(EnvVars_Oi) ->SetColor( Imath::Color3f(1.0f) );
 
 	boost::shared_ptr<IqShader> pshadDisplacement = pSurface()->pAttributes()->pshadDisplacement(QGetRenderContext()->Time());
 	if ( pshadDisplacement )
@@ -490,19 +490,19 @@ void CqMicroPolyGrid::Shade( bool canCullGrid )
 	}
 
 	// Cull any MPGs whose alpha is completely transparent after shading.
-	const CqColor* zThr = QGetRenderContext()->poptCurrent()
+	const Imath::Color3f* zThr = QGetRenderContext()->poptCurrent()
 	                      ->GetColorOption("limits", "zthreshold");
-	if ( USES( lUses, EnvVars_Oi ) && !(zThr && *zThr == gColBlack) )
+	if ( USES( lUses, EnvVars_Oi ) && !(zThr && *zThr == Imath::Color3f(0.0f)) )
 	{
 		AQSIS_TIME_SCOPE(Transparency_culling_micropolygons);
 
-		const CqColor* pOi = NULL;
+		const Imath::Color3f* pOi = NULL;
 		pVar(EnvVars_Oi)->GetColorPtr( pOi );
 		
 		TqInt cCulled = 0;
 		for (TqInt i = gsmin1; i >= 0; i-- )
 		{
-			if ( pOi[ i ] == gColBlack )
+			if ( pOi[ i ] == Imath::Color3f(0.0f) )
 			{
 				cCulled ++;
 				m_CulledPolys.SetValue( i, true );
@@ -618,9 +618,9 @@ void CqMicroPolyGrid::DeleteVariables( bool all )
 		// Oi is almost always needed, even in z-buffer mode.  The only time
 		// it's not needed is when the zthreshold color is [0,0,0], which makes
 		// all surfaces (even fully transparent) make it into the depth output.
-		const CqColor* zThr = QGetRenderContext()->poptCurrent()
+		const Imath::Color3f* zThr = QGetRenderContext()->poptCurrent()
 		                      ->GetColorOption( "limits", "zthreshold" );
-		if ( all || (zThr && *zThr == CqColor(0.0f)) )
+		if ( all || (zThr && *zThr == Imath::Color3f(0.0f)) )
 			m_pShaderExecEnv->DeleteVariable( EnvVars_Oi );
 	}
 	if ( all || !pManager->fDisplayNeeds( "Ns" ) )
@@ -1439,7 +1439,7 @@ void CqMicroPolygon::CacheOutputInterpCoeffs(SqMpgSampleInfo& cache) const
 
 
 void CqMicroPolygon::InterpolateOutputs(const SqMpgSampleInfo& cache,
-	const Imath::V2f& uv, CqColor& outCol, CqColor& outOpac) const
+	const Imath::V2f& uv, Imath::Color3f& outCol, Imath::Color3f& outOpac) const
 {
 	if(cache.smoothInterpolation)
 	{
@@ -1463,25 +1463,25 @@ void CqMicroPolygon::CacheOutputInterpCoeffsConstant(SqMpgSampleInfo& cache) con
 {
 	if(IqShaderData* Ci = m_pGrid->pVar(EnvVars_Ci))
 	{
-		const CqColor* col = 0;
+		const Imath::Color3f* col = 0;
 		Ci->GetColorPtr(col);
 		cache.col[0] = col[m_Index];
 	}
 	else
 	{
-		cache.col[0] = CqColor(1.0);
+		cache.col[0] = Imath::Color3f(1.0);
 	}
 
 	if(IqShaderData* Oi = m_pGrid->pVar(EnvVars_Oi))
 	{
-		const CqColor* opa = 0;
+		const Imath::Color3f* opa = 0;
 		Oi->GetColorPtr(opa);
 		cache.opa[0] = opa[m_Index];
-		cache.isOpaque = cache.opa[0] >= CqColor(1.0);
+		cache.isOpaque = cache.opa[0] >= Imath::Color3f(1.0);
 	}
 	else
 	{
-		cache.opa[0] = CqColor(1.0);
+		cache.opa[0] = Imath::Color3f(1.0);
 		cache.isOpaque = true;
 	}
 }
@@ -1492,7 +1492,7 @@ void CqMicroPolygon::CacheOutputInterpCoeffsSmooth(SqMpgSampleInfo& cache) const
 						m_Index + pGrid()->uGridRes() + 2};
 	if(IqShaderData* Ci = m_pGrid->pVar(EnvVars_Ci))
 	{
-		const CqColor* pCi = NULL;
+		const Imath::Color3f* pCi = NULL;
 		Ci->GetColorPtr(pCi);
 
 		for(TqInt i = 0; i < 4; ++i)
@@ -1501,27 +1501,28 @@ void CqMicroPolygon::CacheOutputInterpCoeffsSmooth(SqMpgSampleInfo& cache) const
 	else
 	{
 		for(TqInt i = 0; i < 4; ++i)
-			cache.col[i] = CqColor(1.0f);
+			cache.col[i] = Imath::Color3f(1.0f);
 	}
 
 	if(IqShaderData* Oi = m_pGrid->pVar(EnvVars_Oi))
 	{
-		const CqColor* pOi = NULL;
+		const Imath::Color3f* pOi = NULL;
 		Oi->GetColorPtr(pOi);
 
 		for(TqInt i = 0; i < 4; ++i)
 			cache.opa[i] = pOi[indices[i]];
 
 		// The micropoly isOpaque if the values on all vertices are.
-		cache.isOpaque = (cache.opa[0] >= gColWhite) &&
-						 (cache.opa[1] >= gColWhite) &&
-						 (cache.opa[2] >= gColWhite) &&
-						 (cache.opa[3] >= gColWhite);
+		static Imath::Color3f colWhite(1.0f);
+		cache.isOpaque = (cache.opa[0] >= colWhite) &&
+						 (cache.opa[1] >= colWhite) &&
+						 (cache.opa[2] >= colWhite) &&
+						 (cache.opa[3] >= colWhite);
 	}
 	else
 	{
 		for(TqInt i = 0; i < 4; ++i)
-			cache.opa[i] = CqColor(1.0f);
+			cache.opa[i] = Imath::Color3f(1.0f);
 		cache.isOpaque = true;
 	}
 }

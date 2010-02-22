@@ -32,7 +32,6 @@
 
 #include <vector>
 
-#include <aqsis/math/color.h>
 #include <aqsis/util/file.h>
 #include <aqsis/core/ioptions.h>
 #include <aqsis/shadervm/ishader.h>
@@ -95,13 +94,13 @@ class CqOptions : public IqOptions
 		virtual const	TqInt*	GetIntegerOption( const char* strName, const char* strParam ) const;
 		virtual const	CqString* GetStringOption( const char* strName, const char* strParam ) const;
 		virtual const	Imath::V3f*	GetPointOption( const char* strName, const char* strParam ) const;
-		virtual const	CqColor*	GetColorOption( const char* strName, const char* strParam ) const;
+		virtual const	Imath::Color3f*	GetColorOption( const char* strName, const char* strParam ) const;
 
 		virtual TqFloat*	GetFloatOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 );
 		virtual TqInt*	GetIntegerOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 );
 		virtual CqString* GetStringOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 );
 		virtual Imath::V3f*	GetPointOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 );
-		virtual CqColor*	GetColorOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 );
+		virtual Imath::Color3f*	GetColorOptionWrite( const char* strName, const char* strParam, TqInt arraySize = 1 );
 
 		virtual EqVariableType getParameterType(const char* strName, const char* strParam) const;
 		virtual EqVariableClass getParameterClass(const char* strName, const char* strParam) const;
@@ -127,8 +126,8 @@ class CqOptions : public IqOptions
 		virtual boost::shared_ptr<IqShader>	pshadImager() const;
 
 		virtual void	InitialiseColorImager( const CqRegion& DRegion, IqChannelBuffer* buffer );
-		virtual CqColor GetColorImager( TqFloat x, TqFloat y );
-		virtual CqColor GetOpacityImager( TqFloat x, TqFloat y );
+		virtual Imath::Color3f GetColorImager( TqFloat x, TqFloat y );
+		virtual Imath::Color3f GetOpacityImager( TqFloat x, TqFloat y );
 		virtual TqFloat GetAlphaImager( TqFloat x, TqFloat y );
 
 		//@{

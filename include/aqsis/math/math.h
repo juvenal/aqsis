@@ -105,7 +105,7 @@ clamp(const T x, const T min, const T max)
 
 /** \brief Determine the minimum of the two values given.
  *
- * Note that there are specific versions of min() for other types like CqColor.
+ * Note that there are specific versions of min() for other types like Imath::Color3f.
  */
 template<typename T>
 inline typename boost::enable_if<boost::is_arithmetic<T>, T>::type
@@ -116,7 +116,7 @@ min(const T a, const T b)
 
 /** \brief Determine the maximum of the two values given.
  *
- * Note that there are specific versions of max() for other types like CqColor.
+ * Note that there are specific versions of max() for other types like Imath::Color3f.
  */
 template<typename T>
 inline typename boost::enable_if<boost::is_arithmetic<T>, T>::type

@@ -37,7 +37,6 @@
 #include	"tiffio.h"
 
 #include	<aqsis/util/sstring.h>
-#include	<aqsis/math/color.h>
 #include	<aqsis/math/matrix.h>
 #include	"itexturemap_old.h"
 #include	<aqsis/ri/ri.h>

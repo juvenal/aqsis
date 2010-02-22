@@ -69,11 +69,11 @@ class CqPolygonBase
 		/** Get a reference to the polygon vertex color at the specified index.
 		 * \param i Integer index in of the vertex in question.
 		 */
-		virtual	const	CqColor& PolyCs( TqInt i ) const = 0;
+		virtual	const	Imath::Color3f& PolyCs( TqInt i ) const = 0;
 		/** Get a reference to the polygon vertex opacity at the specified index.
 		 * \param i Integer index in of the vertex in question.
 		 */
-		virtual	const	CqColor& PolyOs( TqInt i ) const = 0;
+		virtual	const	Imath::Color3f& PolyOs( TqInt i ) const = 0;
 		/** Get a reference to the polygon texture s coordinate at the specified index.
 		 * \param i Integer index in of the vertex in question.
 		 */
@@ -210,11 +210,11 @@ class CqSurfacePolygon : public CqSurface, public CqPolygonBase
 		{
 			return ( N()->pValue( i )[0] );
 		}
-		virtual	const	CqColor& PolyCs( TqInt i ) const
+		virtual	const	Imath::Color3f& PolyCs( TqInt i ) const
 		{
 			return ( Cs()->pValue( i )[0] );
 		}
-		virtual	const	CqColor& PolyOs( TqInt i ) const
+		virtual	const	Imath::Color3f& PolyOs( TqInt i ) const
 		{
 			return ( Os()->pValue( i )[0] );
 		}
@@ -464,11 +464,11 @@ class CqSurfacePointsPolygon : public CqSurface, public CqPolygonBase
 		{
 			return ( m_pPoints->N()->pValue( m_aIndices[ i ] )[0] );
 		}
-		virtual	const CqColor& PolyCs( TqInt i ) const
+		virtual	const Imath::Color3f& PolyCs( TqInt i ) const
 		{
 			return ( m_pPoints->Cs()->pValue( m_aIndices[ i ] )[0] );
 		}
-		virtual	const CqColor& PolyOs( TqInt i ) const
+		virtual	const Imath::Color3f& PolyOs( TqInt i ) const
 		{
 			return ( m_pPoints->Os()->pValue( m_aIndices[ i ] )[0] );
 		}

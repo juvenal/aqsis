@@ -144,7 +144,7 @@ void CqMPDump::dump(int x, int y, int idx, const Imath::V2f& pos)
 // Dump a micro polygon
 void CqMPDump::dump(const CqMicroPolygon& mp)
 {
-	CqColor c;
+	Imath::Color3f c;
 	short id = 1;
 
 	if (m_outFile==NULL)
@@ -170,12 +170,12 @@ void CqMPDump::dump(const CqMicroPolygon& mp)
 	if (mp.pGrid()->pVar(EnvVars_Ci)!=NULL)
 		c = *mp.colColor();
 	else
-		c = CqColor(0.9,0.9,1);
+		c = Imath::Color3f(0.9,0.9,1);
 	dumpCol(c);
 	if (mp.pGrid()->pVar(EnvVars_Oi)!=NULL)
 		c = *mp.colOpacity();
 	else
-		c = CqColor(0.9,0.9,1);
+		c = Imath::Color3f(0.9,0.9,1);
 	dumpCol(c);
 }
 
@@ -195,11 +195,11 @@ void CqMPDump::dumpVec3(const Imath::V3f& v)
 }
 
 // Dump a color
-void CqMPDump::dumpCol(const CqColor& c)
+void CqMPDump::dumpCol(const Imath::Color3f& c)
 {
-	TqFloat r = c.r();
-	TqFloat g = c.g();
-	TqFloat b = c.b();
+	TqFloat r = c.x;
+	TqFloat g = c.y;
+	TqFloat b = c.z;
 
 	size_t len_written = fwrite((void*)&r, sizeof(TqFloat), 1, m_outFile);
 	len_written += fwrite((void*)&g, sizeof(TqFloat), 1, m_outFile);

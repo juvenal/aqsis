@@ -771,7 +771,7 @@ void CqSubdivision2::AddVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFVIndex)
 					CreateVertex<Imath::V3f, Imath::V3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_color:
-					CreateVertex<CqColor, CqColor>(*iUP, pVertex, iIndex);
+					CreateVertex<Imath::Color3f, Imath::Color3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_hpoint:
 					CreateVertex<V4f, Imath::V3f>(*iUP, pVertex, iIndex);
@@ -850,7 +850,7 @@ void CqSubdivision2::DuplicateVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFV
 					DuplicateVertex<Imath::V3f, Imath::V3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_color:
-					DuplicateVertex<CqColor, CqColor>(*iUP, pVertex, iIndex);
+					DuplicateVertex<Imath::Color3f, Imath::Color3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_hpoint:
 					DuplicateVertex<V4f, Imath::V3f>(*iUP, pVertex, iIndex);
@@ -1015,7 +1015,7 @@ void CqSubdivision2::AddEdgeVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFVIn
 					CreateEdgeVertex<Imath::V3f, Imath::V3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_color:
-					CreateEdgeVertex<CqColor, CqColor>(*iUP, pVertex, iIndex);
+					CreateEdgeVertex<Imath::Color3f, Imath::Color3f>(*iUP, pVertex, iIndex);
 					break;
 				case type_hpoint:
 					CreateEdgeVertex<V4f, Imath::V3f>(*iUP, pVertex, iIndex);
@@ -1119,7 +1119,7 @@ void CqSubdivision2::AddFaceVertex(CqLath* pVertex, TqInt& iVIndex, TqInt& iFVIn
 					CreateFaceVertex<Imath::V3f, Imath::V3f>(*iUP, pVertex, iIndex );
 					break;
 				case type_color:
-					CreateFaceVertex<CqColor, CqColor>(*iUP, pVertex, iIndex );
+					CreateFaceVertex<Imath::Color3f, Imath::Color3f>(*iUP, pVertex, iIndex );
 					break;
 				case type_hpoint:
 					CreateFaceVertex<V4f, Imath::V3f>(*iUP, pVertex, iIndex );
@@ -1920,7 +1920,7 @@ CqMicroPolyGridBase* CqSurfaceSubdivisionPatch::DiceExtract()
 			if ( pAttributes() ->GetColorAttribute( "System", "Color" ) )
 				pGrid->pVar(EnvVars_Cs) ->SetColor( pAttributes() ->GetColorAttribute( "System", "Color" ) [ 0 ] );
 			else
-				pGrid->pVar(EnvVars_Cs) ->SetColor( CqColor( 1, 1, 1 ) );
+				pGrid->pVar(EnvVars_Cs) ->SetColor( Imath::Color3f( 1, 1, 1 ) );
 		}
 
 		if ( USES( lUses, EnvVars_Os ) && !pTopology()->pPoints()->bHasVar(EnvVars_Os) )
@@ -1928,7 +1928,7 @@ CqMicroPolyGridBase* CqSurfaceSubdivisionPatch::DiceExtract()
 			if ( pAttributes() ->GetColorAttribute( "System", "Opacity" ) )
 				pGrid->pVar(EnvVars_Os) ->SetColor( pAttributes() ->GetColorAttribute( "System", "Opacity" ) [ 0 ] );
 			else
-				pGrid->pVar(EnvVars_Os) ->SetColor( CqColor( 1, 1, 1 ) );
+				pGrid->pVar(EnvVars_Os) ->SetColor( Imath::Color3f( 1, 1, 1 ) );
 		}
 		apGrids.push_back( pGrid );
 
@@ -2058,7 +2058,7 @@ void CqSurfaceSubdivisionPatch::StoreDiceAPVar(
 
 				case type_color:
 				{
-					CqParameterTyped<CqColor, CqColor>* pNParam = static_cast<CqParameterTyped<CqColor, CqColor>*>( pParam );
+					CqParameterTyped<Imath::Color3f, Imath::Color3f>* pNParam = static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( pParam );
 					pArg->SetValue( *pNParam->pValue( index ), indexA );
 				}
 				break;
@@ -2719,7 +2719,7 @@ bool CqSubdivision2::CanUsePatch( CqLath* pFace )
 					cont = allFvertContinuous<Imath::V3f, Imath::V3f>(**par, pairsToCheck, numPairs);
 					break;
 				case type_color:
-					cont = allFvertContinuous<CqColor, CqColor>(**par, pairsToCheck, numPairs);
+					cont = allFvertContinuous<Imath::Color3f, Imath::Color3f>(**par, pairsToCheck, numPairs);
 					break;
 				case type_hpoint:
 					cont = allFvertContinuous<V4f, Imath::V3f>(**par, pairsToCheck, numPairs);

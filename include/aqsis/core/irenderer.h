@@ -19,7 +19,6 @@
 #include <aqsis/math/matrix.h>
 #include <aqsis/core/itransform.h>
 #include <aqsis/util/sstring.h>
-#include <aqsis/math/vecfwd.h>
 
 namespace Aqsis {
 
@@ -44,13 +43,13 @@ struct IqRenderer
 	virtual	const	TqInt*	GetIntegerOption( const char* strName, const char* strParam ) const = 0;
 	virtual	const	CqString* GetStringOption( const char* strName, const char* strParam ) const = 0;
 	virtual	const	Imath::V3f*	GetPointOption( const char* strName, const char* strParam ) const = 0;
-	virtual	const	CqColor*	GetColorOption( const char* strName, const char* strParam ) const = 0;
+	virtual	const	Imath::Color3f*	GetColorOption( const char* strName, const char* strParam ) const = 0;
 
 	virtual	TqFloat*	GetFloatOptionWrite( const char* strName, const char* strParam ) = 0;
 	virtual	TqInt*	GetIntegerOptionWrite( const char* strName, const char* strParam ) = 0;
 	virtual	CqString* GetStringOptionWrite( const char* strName, const char* strParam ) = 0;
 	virtual	Imath::V3f*	GetPointOptionWrite( const char* strName, const char* strParam ) = 0;
-	virtual	CqColor*	GetColorOptionWrite( const char* strName, const char* strParam ) = 0;
+	virtual	Imath::Color3f*	GetColorOptionWrite( const char* strName, const char* strParam ) = 0;
 
 
 	/** Get the global statistics class.

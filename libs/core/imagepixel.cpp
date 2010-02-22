@@ -141,7 +141,7 @@ class CqAscendingDepthSort
 		}
 };
 
-void CqImagePixel::Combine( enum EqDepthFilter depthfilter, CqColor zThreshold )
+void CqImagePixel::Combine( enum EqDepthFilter depthfilter, Imath::Color3f zThreshold )
 {
 	TqUint samplecount = 0;
 	TqInt sampleIndex = 0;
@@ -188,8 +188,8 @@ void CqImagePixel::Combine( enum EqDepthFilter depthfilter, CqColor zThreshold )
 				while ( bProcessed );
 			}
 
-			CqColor samplecolor;
-			CqColor sampleopacity;
+			Imath::Color3f samplecolor(0.0f);
+			Imath::Color3f sampleopacity(0.0f);
 			bool samplehit = false;
 			TqFloat opaqueDepths[2] = { sampleData.occlZ, FLT_MAX };
 			TqFloat maxOpaqueDepth = FLT_MAX;
@@ -201,24 +201,24 @@ void CqImagePixel::Combine( enum EqDepthFilter depthfilter, CqColor zThreshold )
 				TqFloat* sample_data = sampleHitData(*sample);
 				if ( sample->flags & SqImageSample::Flag_Matte )
 				{
-					samplecolor = CqColor(
-						lerp( sample_data[Sample_ORed], samplecolor.r(), 0.0f ),
-						lerp( sample_data[Sample_OGreen], samplecolor.g(), 0.0f ),
-						lerp( sample_data[Sample_OBlue], samplecolor.b(), 0.0f )
+					samplecolor = Imath::Color3f(
+						lerp( sample_data[Sample_ORed], samplecolor[0], 0.0f ),
+						lerp( sample_data[Sample_OGreen], samplecolor[1], 0.0f ),
+						lerp( sample_data[Sample_OBlue], samplecolor[2], 0.0f )
 					);
-					sampleopacity = CqColor(
-						lerp( sample_data[Sample_Red], sampleopacity.r(), 0.0f ),
-						lerp( sample_data[Sample_Green], sampleopacity.g(), 0.0f ),
-						lerp( sample_data[Sample_Blue], sampleopacity.b(), 0.0f )
+					sampleopacity = Imath::Color3f(
+						lerp( sample_data[Sample_Red], sampleopacity[0], 0.0f ),
+						lerp( sample_data[Sample_Green], sampleopacity[1], 0.0f ),
+						lerp( sample_data[Sample_Blue], sampleopacity[2], 0.0f )
 					);
 				}
 				else
 				{
 					samplecolor = ( samplecolor *
-					                ( gColWhite - CqColor(clamp(sample_data[Sample_ORed], 0.0f, 1.0f), clamp(sample_data[Sample_OGreen], 0.0f, 1.0f), clamp(sample_data[Sample_OBlue], 0.0f, 1.0f)) ) ) +
-					              CqColor(sample_data[Sample_Red], sample_data[Sample_Green], sample_data[Sample_Blue]);
-					sampleopacity = ( ( gColWhite - sampleopacity ) *
-					                  CqColor(sample_data[Sample_ORed], sample_data[Sample_OGreen], sample_data[Sample_OBlue]) ) +
+					                ( Imath::Color3f(1.0f) - Imath::Color3f(clamp(sample_data[Sample_ORed], 0.0f, 1.0f), clamp(sample_data[Sample_OGreen], 0.0f, 1.0f), clamp(sample_data[Sample_OBlue], 0.0f, 1.0f)) ) ) +
+					              Imath::Color3f(sample_data[Sample_Red], sample_data[Sample_Green], sample_data[Sample_Blue]);
+					sampleopacity = ( ( Imath::Color3f(1.0f) - sampleopacity ) *
+					                  Imath::Color3f(sample_data[Sample_ORed], sample_data[Sample_OGreen], sample_data[Sample_OBlue]) ) +
 					                sampleopacity;
 				}
 
@@ -226,9 +226,9 @@ void CqImagePixel::Combine( enum EqDepthFilter depthfilter, CqColor zThreshold )
 				// depth mapping.  If so, store the depth in the appropriate
 				// nearest opaque sample slot.  The test is, if all channels of
 				// the opacity color are greater or equal to the threshold.
-				if(   sample_data[Sample_ORed]   >= zThreshold.r()
-				   && sample_data[Sample_OGreen] >= zThreshold.g()
-				   && sample_data[Sample_OBlue]  >= zThreshold.b())
+				if(   sample_data[Sample_ORed]   >= zThreshold[0]
+				   && sample_data[Sample_OGreen] >= zThreshold[1]
+				   && sample_data[Sample_OBlue]  >= zThreshold[2])
 				{
 					// Make sure we store the nearest and second nearest depth values.
 					opaqueDepths[1] = opaqueDepths[0];
@@ -253,12 +253,12 @@ void CqImagePixel::Combine( enum EqDepthFilter depthfilter, CqColor zThreshold )
 				occlHit = *sampleData.data.begin();
 				TqFloat* occlData = sampleHitData(occlHit);
 				// Set the color and opacity.
-				occlData[Sample_Red] = samplecolor.r();
-				occlData[Sample_Green] = samplecolor.g();
-				occlData[Sample_Blue] = samplecolor.b();
-				occlData[Sample_ORed] = sampleopacity.r();
-				occlData[Sample_OGreen] = sampleopacity.g();
-				occlData[Sample_OBlue] = sampleopacity.b();
+				occlData[Sample_Red] = samplecolor.x;
+				occlData[Sample_Green] = samplecolor.y;
+				occlData[Sample_Blue] = samplecolor.z;
+				occlData[Sample_ORed] = sampleopacity.x;
+				occlData[Sample_OGreen] = sampleopacity.y;
+				occlData[Sample_OBlue] = sampleopacity.z;
 				occlHit.flags |= SqImageSample::Flag_Valid;
 
 				TqFloat& occlDepth = occlData[Sample_Depth];
@@ -284,7 +284,7 @@ void CqImagePixel::Combine( enum EqDepthFilter depthfilter, CqColor zThreshold )
 						for ( sample = sampleData.data.begin(); sample != sampleData.data.end(); sample++ )
 						{
 							TqFloat* sample_data = sampleHitData(*sample);
-							if(sample_data[Sample_ORed] >= zThreshold.r() || sample_data[Sample_OGreen] >= zThreshold.g() || sample_data[Sample_OBlue] >= zThreshold.b())
+							if(sample_data[Sample_ORed] >= zThreshold.x || sample_data[Sample_OGreen] >= zThreshold.y || sample_data[Sample_OBlue] >= zThreshold.z)
 							{
 								totDepth += sample_data[Sample_Depth];
 								totCount++;

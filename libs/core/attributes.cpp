@@ -111,8 +111,8 @@ CqAttributes::CqAttributes()
 
 	boost::shared_ptr<CqNamedParameterList> pdefattrs( new CqNamedParameterList( "System" ) );
 
-	ADD_SYSTEM_ATTR( Color, CqColor, CqColor, type_color, CqColor( 1.0f, 1.0f, 1.0f ) );		// the current color attribute.
-	ADD_SYSTEM_ATTR( Opacity, CqColor, CqColor, type_color, CqColor( 1.0f, 1.0f, 1.0f ) );	// the current opacity attribute.
+	ADD_SYSTEM_ATTR( Color, Imath::Color3f, Imath::Color3f, type_color, Imath::Color3f( 1.0f, 1.0f, 1.0f ) );		// the current color attribute.
+	ADD_SYSTEM_ATTR( Opacity, Imath::Color3f, Imath::Color3f, type_color, Imath::Color3f( 1.0f, 1.0f, 1.0f ) );	// the current opacity attribute.
 	ADD_SYSTEM_ATTR8( TextureCoordinates, TqFloat, TqFloat, type_float, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f );	// an array of 2D vectors representing the coordinate space.
 	ADD_SYSTEM_ATTR( ShadingRate, TqFloat, TqFloat, type_float, 1.0f );					// the current effective shading rate.
 	ADD_SYSTEM_ATTR( ShadingInterpolation, TqInt, TqFloat, type_integer, ShadingInterp_Smooth );	// the current shading interpolation mode.
@@ -334,14 +334,14 @@ Imath::V3f* CqAttributes::GetNormalAttributeWrite( const char* strName, const ch
 /** Get a color system attribute parameter.
  * \param strName The name of the attribute.
  * \param strParam The name of the paramter on the attribute.
- * \return CqColor pointer 0 if not found.
+ * \return Imath::Color3f pointer 0 if not found.
  */
 
-CqColor* CqAttributes::GetColorAttributeWrite( const char* strName, const char* strParam )
+Imath::Color3f* CqAttributes::GetColorAttributeWrite( const char* strName, const char* strParam )
 {
 	CqParameter * pParam = pParameterWrite( strName, strParam );
 	if ( pParam != 0 && pParam->Type() == type_color )
-		return ( static_cast<CqParameterTyped<CqColor, CqColor>*>( pParam ) ->pValue() );
+		return ( static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( pParam ) ->pValue() );
 	else
 		return ( 0 );
 }
@@ -470,14 +470,14 @@ const Imath::V3f* CqAttributes::GetNormalAttribute( const char* strName, const c
 /** Get a color system attribute parameter.
  * \param strName The name of the attribute.
  * \param strParam The name of the paramter on the attribute.
- * \return CqColor pointer 0 if not found.
+ * \return Imath::Color3f pointer 0 if not found.
  */
 
-const CqColor* CqAttributes::GetColorAttribute( const char* strName, const char* strParam ) const
+const Imath::Color3f* CqAttributes::GetColorAttribute( const char* strName, const char* strParam ) const
 {
 	const CqParameter * pParam = pParameter( strName, strParam );
 	if ( pParam != 0 && pParam->Type() == type_color )
-		return ( static_cast<const CqParameterTyped<CqColor, CqColor>*>( pParam ) ->pValue() );
+		return ( static_cast<const CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( pParam ) ->pValue() );
 	else
 		return ( 0 );
 }

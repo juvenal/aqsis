@@ -517,7 +517,7 @@ void CqShaderExecEnv::SO_ctexture2( IqShaderData* name, IqShaderData* startChann
 			// array where filtered results will be placed.
 			TqFloat texSample[3] = {0,0,0};
 			texSampler.sample(region, sampleOpts, texSample);
-			CqColor resultCol(texSample[0], texSample[1], texSample[2]);
+			Imath::Color3f resultCol(texSample[0], texSample[1], texSample[2]);
 			Result->SetColor(resultCol, gridIdx);
 		}
 	}
@@ -576,7 +576,7 @@ void CqShaderExecEnv::SO_ctexture3( IqShaderData* name, IqShaderData* startChann
 			// array where filtered results will be placed.
 			TqFloat texSample[3] = {0,0,0};
 			texSampler.sample(sampleQuad, sampleOpts, texSample);
-			CqColor resultCol(texSample[0], texSample[1], texSample[2]);
+			Imath::Color3f resultCol(texSample[0], texSample[1], texSample[2]);
 			Result->SetColor(resultCol, gridIdx);
 		}
 	}
@@ -740,7 +740,7 @@ void CqShaderExecEnv::SO_cenvironment2( IqShaderData* name, IqShaderData* startC
 			// buffer where filtered results will be placed.
 			TqFloat texSample[3] = {0,0,0};
 			texSampler.sample(region, sampleOpts, texSample);
-			CqColor resultCol(texSample[0], texSample[1], texSample[2]);
+			Imath::Color3f resultCol(texSample[0], texSample[1], texSample[2]);
 			Result->SetColor(resultCol, gridIdx);
 		}
 	}
@@ -795,7 +795,7 @@ void CqShaderExecEnv::SO_cenvironment3( IqShaderData* name, IqShaderData* startC
 			// buffer where filtered results will be placed.
 			TqFloat texSample[3] = {0,0,0};
 			texSampler.sample(sampleQuad, sampleOpts, texSample);
-			CqColor resultCol(texSample[0], texSample[1], texSample[2]);
+			Imath::Color3f resultCol(texSample[0], texSample[1], texSample[2]);
 			Result->SetColor(resultCol, gridIdx);
 		}
 	}
@@ -1190,11 +1190,11 @@ void CqShaderExecEnv::SO_bake_3c( IqShaderData* name, IqShaderData* s, IqShaderD
 			(s)->GetFloat(_aq_s,__iGrid);
 			TqFloat _aq_t;
 			(t)->GetFloat(_aq_t,__iGrid);
-			CqColor _aq_f;
+			Imath::Color3f _aq_f;
 			(f)->GetColor(_aq_f,__iGrid);
-			rgb[0] = _aq_f.r();
-			rgb[1] = _aq_f.g();
-			rgb[2] = _aq_f.b();
+			rgb[0] = _aq_f.x;
+			rgb[1] = _aq_f.y;
+			rgb[2] = _aq_f.z;
 			bake_3( bd, ( char * ) _aq_name.c_str(), _aq_s, _aq_t, rgb );
 		}
 	}

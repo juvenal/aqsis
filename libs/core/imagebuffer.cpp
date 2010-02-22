@@ -86,7 +86,7 @@ public:
 	CqThreadProcessor2(const CqImageBuffer* imageBuffer,
 			   std::vector<CqBucket*>& bucketList,
 			   bool fImager,
-			   const CqColor& zThreshold,
+			   const Imath::Color3f& zThreshold,
 			   EqDepthFilter depthfilter,
 			   const Imath::V2f& bHalf) :
 		m_imageBuffer(imageBuffer),
@@ -148,7 +148,7 @@ private:
 	const CqImageBuffer* m_imageBuffer;
 	std::vector<CqBucket*> m_bucketList;
 	bool m_fImager;
-	CqColor m_zThreshold;
+	Imath::Color3f m_zThreshold;
 	EqDepthFilter m_depthfilter;
 	Imath::V2f m_bHalf;
 };

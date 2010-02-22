@@ -69,7 +69,7 @@ void	CqShaderExecEnv::SO_crandom( IqShaderData* Result, IqShader* pShader )
 			b = m_random.RandomFloat();
 			c = m_random.RandomFloat();
 
-			(Result)->SetColor(CqColor(a,b,c),__iGrid);
+			(Result)->SetColor(Imath::Color3f(a,b,c),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -450,7 +450,7 @@ void CqShaderExecEnv::SO_ccellnoise1( IqShaderData* v, IqShaderData* Result, IqS
 		{
 			TqFloat _aq_v;
 			(v)->GetFloat(_aq_v,__iGrid);
-			(Result)->SetColor(vectorCast<CqColor>( m_cellnoise.PCellNoise1(_aq_v) ), __iGrid);
+			(Result)->SetColor(vectorCast<Imath::Color3f>( m_cellnoise.PCellNoise1(_aq_v) ), __iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -523,7 +523,7 @@ void CqShaderExecEnv::SO_ccellnoise2( IqShaderData* u, IqShaderData* v, IqShader
 			(u)->GetFloat(_aq_u,__iGrid);
 			TqFloat _aq_v;
 			(v)->GetFloat(_aq_v,__iGrid);
-			(Result)->SetColor(vectorCast<CqColor>( m_cellnoise.PCellNoise2(_aq_u, _aq_v) ), __iGrid);
+			(Result)->SetColor(vectorCast<Imath::Color3f>( m_cellnoise.PCellNoise2(_aq_u, _aq_v) ), __iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -592,7 +592,7 @@ void CqShaderExecEnv::SO_ccellnoise3( IqShaderData* p, IqShaderData* Result, IqS
 		{
 			Imath::V3f _aq_p;
 			(p)->GetPoint(_aq_p,__iGrid);
-			(Result)->SetColor(vectorCast<CqColor>( m_cellnoise.PCellNoise3(_aq_p) ),__iGrid);
+			(Result)->SetColor(vectorCast<Imath::Color3f>( m_cellnoise.PCellNoise3(_aq_p) ),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);
@@ -664,7 +664,7 @@ void CqShaderExecEnv::SO_ccellnoise4( IqShaderData* p, IqShaderData* v, IqShader
 			(p)->GetPoint(_aq_p,__iGrid);
 			TqFloat _aq_v;
 			(v)->GetFloat(_aq_v,__iGrid);
-			(Result)->SetColor(vectorCast<CqColor>( m_cellnoise.PCellNoise4(_aq_p, _aq_v) ),__iGrid);
+			(Result)->SetColor(vectorCast<Imath::Color3f>( m_cellnoise.PCellNoise4(_aq_p, _aq_v) ),__iGrid);
 		}
 	}
 	while( ( ++__iGrid < shadingPointCount() ) && __fVarying);

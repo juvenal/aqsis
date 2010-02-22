@@ -1812,10 +1812,10 @@ RtVoid	RiOptionV( RtToken name, PARAMETERLIST )
 			case type_color:
 			{
 				RtFloat* pc = reinterpret_cast<RtFloat*>( value );
-				CqColor* pOpt = QGetRenderContext()->poptWriteCurrent()->GetColorOptionWrite(name, undecoratedName, Count);
+				Imath::Color3f* pOpt = QGetRenderContext()->poptWriteCurrent()->GetColorOptionWrite(name, undecoratedName, Count);
 				RtInt j;
 				for ( j = 0; j < Count; ++j )
-					pOpt[ j ] = CqColor(pc[ (j*3) ], pc[ (j*3)+1 ], pc[ (j*3)+2 ]);
+					pOpt[ j ] = Imath::Color3f(pc[ (j*3) ], pc[ (j*3)+1 ], pc[ (j*3)+2 ]);
 			}
 			break;
 
@@ -1940,7 +1940,7 @@ RtVoid	RiColor( RtColor Cq )
 
 	DEBUG_RICOLOR
 
-	QGetRenderContext() ->pattrWriteCurrent() ->GetColorAttributeWrite( "System", "Color" ) [ 0 ] = CqColor( Cq );
+	QGetRenderContext() ->pattrWriteCurrent() ->GetColorAttributeWrite( "System", "Color" ) [ 0 ] = Imath::Color3f( Cq[0], Cq[1], Cq[2] );
 	QGetRenderContext() ->AdvanceTime();
 	EXCEPTION_CATCH_GUARD("RiColor")
 	return ;
@@ -1962,7 +1962,7 @@ RtVoid	RiOpacity( RtColor Os )
 
 	DEBUG_RIOPACITY
 
-	QGetRenderContext() ->pattrWriteCurrent() ->GetColorAttributeWrite( "System", "Opacity" ) [ 0 ] = CqColor( Os );
+	QGetRenderContext() ->pattrWriteCurrent() ->GetColorAttributeWrite( "System", "Opacity" ) [ 0 ] = Imath::Color3f( Os[0], Os[1], Os[2] );
 	QGetRenderContext() ->AdvanceTime();
 	EXCEPTION_CATCH_GUARD("RiOpacity")
 	return ;
@@ -6138,13 +6138,13 @@ static RtBoolean ProcessPrimitiveVariables( CqSurface * pSurface, PARAMETERLIST 
 
 					case type_color:
 					{
-						CqParameterTyped<CqColor, CqColor>* pColorParam = static_cast<CqParameterTyped<CqColor, CqColor>*>( pNewParam );
+						CqParameterTyped<Imath::Color3f, Imath::Color3f>* pColorParam = static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( pNewParam );
 						TqFloat* pValue = reinterpret_cast<TqFloat*>( values[ *iUserParam ] );
 						TqInt iArrayIndex, iValIndex;
 						i = 0;
 						for ( iValIndex = 0; iValIndex < cValues; ++iValIndex )
 							for ( iArrayIndex = 0; iArrayIndex < tok.count(); ++iArrayIndex, ++i )
-								pColorParam->pValue( iValIndex ) [ iArrayIndex ] = CqColor( pValue[ ( i * 3 ) ], pValue[ ( i * 3 ) + 1 ], pValue[ ( i * 3 ) + 2 ] );
+								pColorParam->pValue( iValIndex ) [ iArrayIndex ] = Imath::Color3f( pValue[ ( i * 3 ) ], pValue[ ( i * 3 ) + 1 ], pValue[ ( i * 3 ) + 2 ] );
 					}
 					break;
 

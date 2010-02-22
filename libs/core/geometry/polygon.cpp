@@ -372,7 +372,7 @@ void CqPolygonBase::CreatePhantomData( CqParameter* pParam )
 
 			case type_color:
 			{
-				CqParameterTyped<CqColor, CqColor>* pTParam = static_cast<CqParameterTyped<CqColor, CqColor>*>( pParam );
+				CqParameterTyped<Imath::Color3f, Imath::Color3f>* pTParam = static_cast<CqParameterTyped<Imath::Color3f, Imath::Color3f>*>( pParam );
 				for( iArray = 0; iArray < iArrayCount; iArray++ )
 					pTParam->pValue( 3 ) [ iArray ] = ( pTParam->pValue( 1 ) [ iArray ] - pTParam->pValue( 0 ) [ iArray ] ) + pTParam->pValue( 2 ) [ iArray ];
 				break;

@@ -435,7 +435,7 @@ void	CqShaderExecEnv::SO_bake3d( IqShaderData* ptc,
                     where +=3;
                 } else if ( strcmp(sampleOpts.m_VarTypes[i], "color") == 0)
                 {
-                    CqColor c;
+                    Imath::Color3f c;
                     sampleOpts.m_UserData[ i ]->GetColor( c, __iGrid);
                     for (TqInt j=0; j < 3; j++)
                     {
@@ -646,7 +646,7 @@ void	CqShaderExecEnv::SO_texture3d(IqShaderData* ptc,
                         sampleOpts.m_UserData[ i ]->SetVector( v, __iGrid);
                     } else if ( strcmp(sampleOpts.m_VarTypes[i], "color") == 0)
                     {
-                        CqColor c;
+                        Imath::Color3f c;
 
                         for (TqInt j=0; j < 3; j++)
                         {

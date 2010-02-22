@@ -29,7 +29,6 @@
 
 #include	<aqsis/aqsis.h>
 
-#include <aqsis/math/color.h>
 #include <aqsis/util/exception.h>
 #include <aqsis/math/matrix.h>
 #include <aqsis/util/sstring.h>
