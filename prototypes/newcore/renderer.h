@@ -24,39 +24,34 @@
 #include <queue>
 #include <vector>
 
-#include <boost/shared_ptr.hpp>
 #include <boost/scoped_array.hpp>
+#include <boost/scoped_ptr.hpp>
 
-#include "geometry.h"
 #include "options.h"
-#include "sample.h"
 #include "util.h"
 #include "varspec.h"
 
-class Renderer;
+class Attributes;
+class Geometry;
 class Grid;
 class QuadGridSimple;
+class TessellationContextImpl;
+class SampleStorage;
+class CircleOfConfusion;
 
-// Minimal wrapper around a renderer instance to provide control context for
-// when surfaces push split/diced objects back into the render's queue.
-class RenderQueueImpl : public RenderQueue
-{
-    private:
-        Renderer& m_renderer;
-        int m_splitDepth;
-    public:
-        RenderQueueImpl(Renderer& renderer, int splitDepth)
-            : m_renderer(renderer),
-            m_splitDepth(splitDepth)
-        { }
+class GeomHolder;
+typedef boost::intrusive_ptr<GeomHolder> GeomHolderPtr;
+class GridHolder;
+typedef boost::intrusive_ptr<GridHolder> GridHolderPtr;
 
-        void push(const boost::shared_ptr<Geometry>& geom);
-        void push(const boost::shared_ptr<Grid>& grid);
-};
+typedef boost::intrusive_ptr<Geometry> GeometryPtr;
+typedef boost::intrusive_ptr<Grid> GridPtr;
 
+
+//-----------------------------------------------------------------------------
 struct OutvarSpec : public VarSpec
 {
-    int offset;  ///< Offset
+    int offset;  ///< Offset in output image pixel channels
 
     OutvarSpec(Type type, int arraySize, ustring name, int offset)
         : VarSpec(type, arraySize, name), offset(offset) {}
@@ -64,86 +59,97 @@ struct OutvarSpec : public VarSpec
         : VarSpec(spec), offset(offset) {}
 };
 
-typedef std::vector<OutvarSpec> OutvarList;
+class StdOutInd
+{
+    public:
+        enum Id
+        {
+            z
+        };
 
+        StdOutInd() : m_zInd(-1) { }
+
+        void add(int index, const VarSpec& var)
+        {
+            if(var == Stdvar::z)
+                m_zInd = index;
+        }
+
+        int get(Id id) const { return m_zInd; }
+        int contains(Id id) const { return m_zInd != -1; }
+
+    private:
+        int m_zInd;
+};
+
+typedef BasicVarSet<OutvarSpec, StdOutInd> OutvarSet;
+
+
+template<typename T>
+struct MotionKey
+{
+    float time;
+    T value;
+
+    MotionKey(float time, const T& value)
+        : time(time), value(value) {}
+};
+typedef MotionKey<GeometryPtr> GeometryKey;
+typedef std::vector<GeometryKey> GeometryKeys;
+
+//-----------------------------------------------------------------------------
+/// Main renderer interface.
+///
+/// Renderer is intended to have a minimal, stateless interface, designed so
+/// that more convenient interfaces like the RI can be layered on top.
 class Renderer
 {
     public:
         Renderer(const Options& opts, const Mat4& camToScreen = Mat4(),
                  const VarList& outVars = VarList());
 
+        ~Renderer();
+
         /// Add geometry
-        void add(const boost::shared_ptr<Geometry>& geom);
+        void add(const GeometryPtr& geom, Attributes& attrs);
+        /// Add key frames of deforming geometry
+        void add(GeometryKeys& deformingGeom, Attributes& attrs);
 
         /// Render all surfaces and save resulting image.
         void render();
 
 
     private:
-        // RenderQueueImpl is a friend so that it can appropriately push()
-        // surfaces and grids into the renderer.
-        friend class RenderQueueImpl;
+        // TessellationContextImpl is a friend so that it can appropriately
+        // push() surfaces and grids into the renderer.
+        friend class TessellationContextImpl;
 
-        // Container for geometry and geometry metadata
-        struct SurfaceHolder
-        {
-            boost::shared_ptr<Geometry> geom; //< Pointer to geometry
-            int splitCount; //< Number of times the geometry has been split
-            Box bound;      //< Bound in camera coordinates
+        class SurfaceOrder;
+        typedef std::priority_queue<GeomHolder, std::vector<GeomHolderPtr>,
+                                    SurfaceOrder> SurfaceQueue;
 
-            SurfaceHolder(const boost::shared_ptr<Geometry>& geom,
-                          int splitCount, Box bound)
-                : geom(geom),
-                splitCount(splitCount),
-                bound(bound)
-            { }
-        };
-
-        // Ordering functor for surfaces in the render queue
-        class surface_order
-        {
-            private:
-                // desired bucket height in camera coordinates
-                float m_bucketHeight;
-            public:
-                surface_order() : m_bucketHeight(16) {}
-
-                bool operator()(const SurfaceHolder& a,
-                                const SurfaceHolder& b) const
-                {
-                    float ya = a.bound.min.y;
-                    float yb = b.bound.min.y;
-                    if(ya < yb - m_bucketHeight)
-                        return true;
-                    else if(yb < ya - m_bucketHeight)
-                        return false;
-                    else
-                        return a.bound.min.x < b.bound.min.x;
-                }
-        };
-
-        typedef std::priority_queue<SurfaceHolder, std::vector<SurfaceHolder>,
-                                    surface_order> SurfaceQueue;
-
-        Options m_opts;                ///< Render options
-        SurfaceQueue m_surfaces;       ///< Queue of surface to be rendered
-        std::vector<Sample> m_samples; ///< Array of sample info
-        OutvarList m_outVars;          ///< Output variable list
-        std::vector<float> m_defOutSamps; ///< Default output samples
-        std::vector<float> m_image;    ///< Image data
-        Mat4 m_camToRas;               ///< Camera -> raster transformation
+        static void sanitizeOptions(Options& opts);
 
         void saveImages(const std::string& baseFileName);
 
-        void defaultSamples(float* defaultSamps);
-        void initSamples();
-        void push(const boost::shared_ptr<Geometry>& geom, int splitCount);
-        void push(const boost::shared_ptr<Grid>& grid);
+        void push(const GeomHolderPtr& geom);
+        void push(const GridHolderPtr& grid);
 
         template<typename GridT, typename PolySamplerT>
-        void rasterize(GridT& grid);
+        void motionRasterize(GridHolder& holder);
 
-        void rasterizeSimple(QuadGridSimple& grid);
+        template<typename GridT, typename PolySamplerT>
+        void rasterize(Grid& inGrid, const Attributes& attrs);
+
+        void rasterizeSimple(QuadGridSimple& grid, const Attributes& attrs);
+
+
+        Options m_opts;                ///< Render options
+        boost::scoped_ptr<CircleOfConfusion> m_coc; ///< depth of field info
+        boost::scoped_ptr<SurfaceQueue> m_surfaces; ///< Pending surface queue
+        OutvarSet m_outVars;           ///< Set of output variables
+        boost::scoped_ptr<SampleStorage> m_sampStorage; ///< Samples & fragments
+        Mat4 m_camToRas;               ///< Camera -> raster transformation
 };
 
 

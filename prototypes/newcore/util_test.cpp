@@ -17,19 +17,23 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-#include "fixedstrings.h"
+#define BOOST_TEST_MAIN
+#define BOOST_TEST_DYN_LINK
+#include <boost/test/auto_unit_test.hpp>
+#include <boost/test/floating_point_comparison.hpp>
 
-namespace Str
+#include "util.h"
+
+BOOST_AUTO_TEST_CASE(radicalInverse_test)
 {
+    const float e = 1e-5; // percentage tolerance.
 
-const ustring P("P");
-const ustring Cs("Cs");
-const ustring Ci("Ci");
-const ustring Os("Os");
-const ustring Oi("Oi");
-const ustring st("st");
-const ustring I("I");
-const ustring N("N");
-const ustring z("z");
+    BOOST_CHECK_CLOSE(radicalInverse(0, 2), 0.0f, e);
+    BOOST_CHECK_CLOSE(radicalInverse(1, 2), 0.5f, e);
+    BOOST_CHECK_CLOSE(radicalInverse(2, 2), 0.25f, e);
+    BOOST_CHECK_CLOSE(radicalInverse(3, 2), 0.75f, e);
 
-} // namespace Str
+    BOOST_CHECK_CLOSE(radicalInverse(1, 3), 1.0f/3, e);
+    BOOST_CHECK_CLOSE(radicalInverse(4, 3), 1.0f/3+1.0f/9, e);
+    BOOST_CHECK_CLOSE(radicalInverse(5, 3), 2.0f/3+1.0f/9, e);
+}

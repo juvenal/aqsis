@@ -20,6 +20,7 @@
 #ifndef SIMPLE_H_INCLUDED
 #define SIMPLE_H_INCLUDED
 
+#include "attributes.h"
 #include "geometry.h"
 #include "invbilin.h"
 #include "options.h"
@@ -32,12 +33,20 @@ class QuadGridSimple : public Grid
 {
     public:
         QuadGridSimple(int nu, int nv)
-            : m_nu(nu),
+            : Grid(GridType_QuadSimple),
+            m_nu(nu),
             m_nv(nv),
             m_P(nu*nv)
         { }
 
-        virtual GridType type() { return GridType_QuadSimple; }
+        virtual GridStorage& storage()
+        {
+            return *m_storage;
+        }
+
+        virtual void calculateNormals(DataView<Vec3> N,
+                                      ConstDataView<Vec3> P) const
+        { }
 
         Vec3& vertex(int u, int v) { return m_P[m_nu*v + u]; }
         Vec3 vertex(int u, int v) const { return m_P[m_nu*v + u]; }
@@ -47,16 +56,10 @@ class QuadGridSimple : public Grid
 
         Vec3* P(int v) { assert(v >= 0 && v < m_nv); return &m_P[m_nu*v]; }
 
-        void project(Mat4 m)
+        virtual void project(const Mat4& m)
         {
             for(int i = 0, iend = m_P.size(); i < iend; ++i)
             {
-                // Project all points, but restore z afterward.  TODO: This
-                // can be done a little more efficiently.
-                //
-                // TODO: This is rather specialized; maybe it shouldn't go in
-                // the Grid class at all?  How about allowing visitor functors
-                // which act on all the primvars held on a grid?
                 float z = m_P[i].z;
                 m_P[i] = m_P[i]*m;
                 m_P[i].z = z;
@@ -67,6 +70,8 @@ class QuadGridSimple : public Grid
         int m_nu;
         int m_nv;
         std::vector<Vec3> m_P;
+        static GridStorage* m_storage; ///< Incredibly bogus, but necessary to
+                                       ///  fulfil full grid interface!
 };
 
 
@@ -76,18 +81,66 @@ class PatchSimple : public Geometry
 {
     private:
         Vec3 m_P[4];
-        const Options& m_opts;
+
+        friend class SurfaceSplitter<PatchSimple>;
+        friend class SurfaceDicer<PatchSimple>;
+
+        void dice(int uRes, int vRes, TessellationContext& tessCtx) const
+        {
+            boost::intrusive_ptr<QuadGridSimple>
+                grid(new QuadGridSimple(uRes, vRes));
+            float dv = 1.0f/(vRes-1);
+            float du = 1.0f/(uRes-1);
+            for(int v = 0; v < vRes; ++v)
+            {
+                Vec3 Pmin = Imath::lerp(m_P[0], m_P[2], v*dv);
+                Vec3 Pmax = Imath::lerp(m_P[1], m_P[3], v*dv);
+                Vec3* row = grid->P(v);
+                for(int u = 0; u < uRes; ++u)
+                    row[u] = Imath::lerp(Pmin, Pmax, u*du);
+            }
+            tessCtx.push(grid);
+        }
+
+        void split(bool splitInU, TessellationContext& tessCtx) const
+        {
+            if(splitInU)
+            {
+                // split in the middle of the a-b and c-d sides.
+                // a---b
+                // | | |
+                // c---d
+                Vec3 ab = 0.5f*(m_P[0] + m_P[1]);
+                Vec3 cd = 0.5f*(m_P[2] + m_P[3]);
+                tessCtx.push(GeometryPtr(
+                            new PatchSimple(m_P[0], ab, m_P[2], cd)));
+                tessCtx.push(GeometryPtr(
+                            new PatchSimple(ab, m_P[1], cd, m_P[3])));
+            }
+            else
+            {
+                // split in the middle of the a-c and b-d sides.
+                // a---b
+                // |---|
+                // c---d
+                Vec3 ac = 0.5f*(m_P[0] + m_P[2]);
+                Vec3 bd = 0.5f*(m_P[1] + m_P[3]);
+                tessCtx.push(GeometryPtr(
+                            new PatchSimple(m_P[0], m_P[1], ac, bd)));
+                tessCtx.push(GeometryPtr(
+                            new PatchSimple(ac, bd, m_P[2], m_P[3])));
+            }
+        }
 
     public:
-
-        PatchSimple(const Options& opts, Vec3 a, Vec3 b, Vec3 c, Vec3 d)
-            : m_opts(opts)
+        PatchSimple(Vec3 a, Vec3 b, Vec3 c, Vec3 d)
         {
             m_P[0] = a; m_P[1] = b;
             m_P[2] = c; m_P[3] = d;
         }
 
-        virtual void splitdice(const Mat4& splitTrans, RenderQueue& queue) const
+        virtual void tessellate(const Mat4& splitTrans, float polyLength,
+                                TessellationContext& tessCtx) const
         {
             // Project points into "splitting coordinates"
             Vec3 a = m_P[0] * splitTrans;
@@ -100,8 +153,9 @@ class PatchSimple : public Geometry
             float area = 0.5 * (  ((b-a)%(c-a)).length()
                                 + ((b-d)%(c-d)).length() );
 
-            const float maxArea = m_opts.gridSize*m_opts.gridSize
-                                  * m_opts.shadingRate;
+            const Options& opts = tessCtx.options();
+            const float maxArea = opts.gridSize*opts.gridSize
+                                  * polyLength*polyLength;
 
             // estimate length in a-b, c-d direction
             float lu = 0.5*((b-a).length() + (d-c).length());
@@ -112,53 +166,17 @@ class PatchSimple : public Geometry
             {
                 // When the area (in number of micropolys) is small enough,
                 // dice the surface.
-                int uRes = 1 + Imath::floor(lu/std::sqrt(m_opts.shadingRate));
-                int vRes = 1 + Imath::floor(lv/std::sqrt(m_opts.shadingRate));
-                boost::shared_ptr<QuadGridSimple> grid(new QuadGridSimple(uRes, vRes));
-                float dv = 1.0f/(vRes-1);
-                float du = 1.0f/(uRes-1);
-                for(int v = 0; v < vRes; ++v)
-                {
-                    Vec3 Pmin = Imath::lerp(m_P[0], m_P[2], v*dv);
-                    Vec3 Pmax = Imath::lerp(m_P[1], m_P[3], v*dv);
-                    Vec3* row = grid->P(v);
-                    for(int u = 0; u < uRes; ++u)
-                        row[u] = Imath::lerp(Pmin, Pmax, u*du);
-                }
-                queue.push(grid);
+                int uRes = 1 + ifloor(lu/polyLength);
+                int vRes = 1 + ifloor(lv/polyLength);
+                SurfaceDicer<PatchSimple> dicer(uRes, vRes);
+                tessCtx.invokeTessellator(dicer);
             }
             else
             {
                 // Otherwise, split the surface.  The splitting direction is
                 // the shortest edge.
-
-                // Split
-                if(lu > lv)
-                {
-                    // split in the middle of the a-b and c-d sides.
-                    // a---b
-                    // | | |
-                    // c---d
-                    Vec3 ab = 0.5f*(m_P[0] + m_P[1]);
-                    Vec3 cd = 0.5f*(m_P[2] + m_P[3]);
-                    queue.push(boost::shared_ptr<Geometry>(new PatchSimple(m_opts,
-                                    m_P[0], ab, m_P[2], cd)));
-                    queue.push(boost::shared_ptr<Geometry>(new PatchSimple(m_opts,
-                                    ab, m_P[1], cd, m_P[3])));
-                }
-                else
-                {
-                    // split in the middle of the a-c and b-d sides.
-                    // a---b
-                    // |---|
-                    // c---d
-                    Vec3 ac = 0.5f*(m_P[0] + m_P[2]);
-                    Vec3 bd = 0.5f*(m_P[1] + m_P[3]);
-                    queue.push(boost::shared_ptr<Geometry>(new PatchSimple(m_opts,
-                                    m_P[0], m_P[1], ac, bd)));
-                    queue.push(boost::shared_ptr<Geometry>(new PatchSimple(m_opts,
-                                    ac, bd, m_P[2], m_P[3])));
-                }
+                SurfaceSplitter<PatchSimple> splitter(lu > lv);
+                tessCtx.invokeTessellator(splitter);
             }
         }
 

@@ -20,7 +20,7 @@
 #include <iomanip>
 
 #include "primvar.h"
-#include "gridvar.h"
+#include "gridstorage.h"
 
 #define ARRLEN(ar) sizeof(ar)/sizeof(ar[0])
 
@@ -85,13 +85,13 @@ int main()
     }
 
     // Now simulate the dicing stage of the pipeline.
-    GridvarList gvarList(pvarStorage.varList());
+    GridStorageBuilder gridBuilder;
+    GridvarList gvarSet(pvarStorage.varList());
     const int nu = 5, nv = 5;
-    GridvarStorage gvarStorage(boost::shared_ptr<GridvarList>(
-                                &gvarList, nullDeleter), nu*nv);
+    GridStoragePtr gvarStorage = gridBuilder.build(nu*nv);
 
     // Create some space to store the variable temporaries.
-    int maxAgg = gvarList.maxAggregateSize();
+    int maxAgg = gvarStorage.maxAggregateSize();
     float* aMin = FALLOCA(maxAgg);
     float* aMax = FALLOCA(maxAgg);
 

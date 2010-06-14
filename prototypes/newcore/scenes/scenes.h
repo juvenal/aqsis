@@ -17,24 +17,9 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-#ifndef FIXED_STRINGS_H_INCLUDED
-#define FIXED_STRINGS_H_INCLUDED
+void renderTenPatchScene();
+void renderDefaultScene();
+void renderSimpleDeformationScene();
+void renderMbNoiseTestScene();
 
-#include "ustring.h"
-
-namespace Str
-{
-
-const extern ustring P;
-const extern ustring Cs;
-const extern ustring Ci;
-const extern ustring Os;
-const extern ustring Oi;
-const extern ustring st;
-const extern ustring I;
-const extern ustring N;
-const extern ustring z;
-
-} // namespace Str
-
-#endif // FIXED_STRINGS_H_INCLUDED
+void renderDofAmountTest();

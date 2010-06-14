@@ -17,11 +17,11 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-#ifndef QUADRASTERIZER_H_INCLUDED
-#define QUADRASTERIZER_H_INCLUDED
+#ifndef MICROQUADSAMPLER_H_INCLUDED
+#define MICROQUADSAMPLER_H_INCLUDED
 
+#include "attributes.h"
 #include "invbilin.h"
-#include "options.h"
 #include "sample.h"
 #include "util.h"
 #include "pointinquad.h"
@@ -54,6 +54,8 @@ class MicroQuadSampler
         MicroQuadInd m_ind;
         // Point-in-polygon tests
         PointInQuad m_hitTest;
+        // Grid storage.
+        const GridStorage& m_storage;
         // Storage for the micropoly data
         ConstDataView<Vec3> m_P;
 
@@ -69,19 +71,20 @@ class MicroQuadSampler
         // a -- b
         // |    |
         // d -- c
-        MicroQuadSampler(const QuadGrid& grid, const Options& opts,
-                         const OutvarList& outVars)
+        MicroQuadSampler(const QuadGrid& grid, const Attributes& attrs,
+                         const OutvarSet& outVars)
             : m_grid(grid),
             m_curr(grid.begin()),
             m_ind(*m_curr),
             m_hitTest(),
-            m_P(grid.storage().P()),
+            m_storage(grid.storage()),
+            m_P(m_storage.P()),
             m_uv(0.0f),
-            m_smoothShading(opts.smoothShading)
+            m_smoothShading(attrs.smoothShading)
         {
             // Cache the variables which need to be interpolated into
             // fragment outputs.
-            const GridvarList& gridVars = grid.storage().varList();
+            const VarSet& gridVars = m_storage.varSet();
             for(int j = 0, jend = outVars.size(); j < jend; ++j)
             {
                 // Simplistic linear search through grid variables for now.
@@ -91,7 +94,7 @@ class MicroQuadSampler
                     if(gridVars[i] == outVars[j])
                     {
                         m_outVarInfo.push_back(OutVarInfo(
-                                m_grid.storage().get(i), outVars[j].offset) );
+                                m_storage.get(i), outVars[j].offset) );
                         break;
                     }
                 }
@@ -163,9 +166,9 @@ class MicroQuadSampler
         /// Interpolate the colour
         inline void interpolateColor(float* col) const
         {
-            int CsIdx = m_grid.storage().varList().stdIndices().Cs;
+            int CsIdx = m_storage.varSet().find(StdIndices::Cs);
             assert(CsIdx >= 0);
-            ConstFvecView Cs = m_grid.storage().get(CsIdx);
+            ConstFvecView Cs = m_storage.get(CsIdx);
             if(m_smoothShading)
             {
                 for(int i = 0; i < 3; ++i)
@@ -223,4 +226,4 @@ class MicroQuadSampler
 };
 
 
-#endif // QUADRASTERIZER_H_INCLUDED
+#endif // MICROQUADSAMPLER_H_INCLUDED

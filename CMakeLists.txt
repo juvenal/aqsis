@@ -47,6 +47,9 @@ mark_as_advanced(AQSIS_USE_RPATH)
 if(WIN32)
 	# Find path to precompiled libs on windows.
 	set(AQSIS_WIN32LIBS "" CACHE PATH "The location of the win32libs SVN folder")
+	if(MINGW)
+		set(AQSIS_DEPENDENCIES "${CMAKE_SOURCE_DIR}/../dependencies" CACHE PATH "The location of the pre-built dependencies")
+	endif()
 endif()
 
 set(AQSIS_MAIN_CONFIG_NAME "aqsisrc"
@@ -64,21 +67,34 @@ find_package(TIFF)
 find_package(ZLIB)
 
 # Find boost.
-set(BOOST_ROOT "$ENV{BOOST_ROOT}" CACHE PATH "Root location of the Boost install")
 if(WIN32)
+	set(BOOST_ROOT "${AQSIS_DEPENDENCIES}" CACHE PATH "Root location of the boost install")
 	set(Boost_USE_STATIC_LIBS ON)
+else()
+	set(BOOST_ROOT "$ENV{BOOST_ROOT}" CACHE PATH "Root location of the Boost install")
 endif()
-set(Boost_ADDITIONAL_VERSIONS "1.40.0" "1.40" "1.39.0" "1.39" "1.38.0" "1.38" "1.37.0" "1.37")
+
+set(Boost_ADDITIONAL_VERSIONS "1.42.0" "1.42" "1.40.0" "1.40" "1.39.0" "1.39" "1.38.0" "1.38" "1.37.0" "1.37")
 find_package(Boost 1.34.1)
 # The following is a workaround because Boost versions > 1.35.0 need the
 # system library. CMake versions >2.6.4 should fix this properly.
 set(local_boost_version "${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}")
 if(local_boost_version VERSION_LESS "1.35")
-    find_package(Boost 1.34.1
+    if(WIN32)
+        find_package(Boost 1.34.1
+		COMPONENTS filesystem iostreams wave unit_test_framework thread regex zlib)
+    else()
+        find_package(Boost 1.34.1
 		COMPONENTS filesystem iostreams wave unit_test_framework thread regex)
+    endif()
 else()
-    find_package(Boost 1.34.1
+    if(WIN32)
+        find_package(Boost 1.34.1
+		COMPONENTS filesystem iostreams wave unit_test_framework thread regex system zlib)
+    else()
+        find_package(Boost 1.34.1
 		COMPONENTS filesystem iostreams wave unit_test_framework thread regex system)
+    endif()
 endif()
 
 link_directories(${Boost_LIBRARY_DIRS})
@@ -300,4 +316,13 @@ set(RESOURCEPATH "${RESOURCEPATH}" CACHE STRING "Aqsis resource searchpath")
 set(aqsisrc_name ${PROJECT_BINARY_DIR}/aqsisrc)
 configure_file(aqsisrc.in.cmake ${aqsisrc_name})
 install(FILES ${aqsisrc_name} DESTINATION ${SYSCONFDIR} COMPONENT main)
+
+#-------------------------------------------------------------------------------
+# Generate an AqsisConfig.cmake file, for use by projects that want to link
+# against in the build tree rather than after installation.
+#-------------------------------------------------------------------------------
+
+set(AQSISCONFIG_PATH ${CMAKE_CURRENT_BINARY_DIR}/AqsisConfig.cmake)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/AqsisConfig.cmake.in ${AQSISCONFIG_PATH})
+export(TARGETS aqsis_core aqsis_math aqsis_ribparse aqsis_shadervm aqsis_tex aqsis_util aqsis_riutil APPEND FILE ${AQSISCONFIG_PATH})
 

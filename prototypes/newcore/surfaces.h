@@ -20,49 +20,54 @@
 #ifndef SURFACES_H_INCLUDED
 #define SURFACES_H_INCLUDED
 
+#include "attributes.h"
 #include "geometry.h"
 #include "options.h"
 #include "util.h"
 
 #include "primvar.h"
-#include "gridvar.h"
+#include "gridstorage.h"
 #include "grid.h"
 
 
 class Patch : public Geometry
 {
     private:
-        const Options& m_opts;
-        boost::shared_ptr<PrimvarStorage> m_vars;
+        PrimvarStoragePtr m_vars;
 
         // uv coordinates for corners of the base patch.
         const float m_uMin, m_uMax;
         const float m_vMin, m_vMax;
 
-        void dice(RenderQueue& queue, int nu, int nv) const
+        friend class SurfaceSplitter<Patch>;
+        friend class SurfaceDicer<Patch>;
+
+        void dice(int nu, int nv, TessellationContext& tessCtx) const
         {
-            boost::shared_ptr<GridvarList> gvarList(
-                    new GridvarList(m_vars->varList()) );
-            boost::shared_ptr<QuadGrid> grid(new QuadGrid(nu, nv, gvarList));
+            GridStorageBuilder& builder = tessCtx.gridStorageBuilder();
+            // Add all the primvars to the grid
+            builder.add(m_vars->varSet());
+            GridStoragePtr storage = builder.build(nu*nv);
+            boost::intrusive_ptr<QuadGrid> grid(new QuadGrid(nu, nv, storage));
 
             // Create some space to store the variable temporaries.
-            int maxAgg = gvarList->maxAggregateSize();
+            int maxAgg = storage->maxAggregateSize();
             float* aMin = FALLOCA(maxAgg);
             float* aMax = FALLOCA(maxAgg);
 
             float du = (m_uMax-m_uMin)/(nu-1);
             float dv = (m_vMax-m_vMin)/(nv-1);
 
-            for(int ivar = 0, nvars = m_vars->varList().size();
+            for(int ivar = 0, nvars = m_vars->varSet().size();
                 ivar < nvars; ++ivar)
             {
                 ConstFvecView pvar = m_vars->get(ivar);
-                FvecView gvar = grid->storage().get(ivar);
+                FvecView gvar = storage->get(m_vars->varSet()[ivar]);
                 int size = gvar.elSize();
 
-                if((*gvarList)[ivar].uniform)
+                if(gvar.uniform())
                 {
-                    // Uniform, no interpolation, just copy.
+                    // Uniform - no interpolation, just copy.
                     std::memcpy(gvar[0], pvar[0], size*sizeof(float));
                 }
                 else
@@ -95,7 +100,36 @@ class Patch : public Geometry
                     }
                 }
             }
-            queue.push(grid);
+            tessCtx.push(grid);
+        }
+
+        void split(bool splitInU, TessellationContext& tessCtx) const
+        {
+            // Split
+            if(splitInU)
+            {
+                // split in the middle of the a-b and c-d sides.
+                // a---b
+                // | | |
+                // c---d
+                float uMid = 0.5*(m_uMin + m_uMax);
+                tessCtx.push(GeometryPtr(new Patch(m_vars, m_uMin,
+                                                   uMid, m_vMin, m_vMax)));
+                tessCtx.push(GeometryPtr(new Patch(m_vars, uMid,
+                                                   m_uMax, m_vMin, m_vMax)));
+            }
+            else
+            {
+                // split in the middle of the a-c and b-d sides.
+                // a---b
+                // |---|
+                // c---d
+                float vMid = 0.5*(m_vMin + m_vMax);
+                tessCtx.push(GeometryPtr(new Patch(m_vars, m_uMin,
+                                                   m_uMax, m_vMin, vMid)));
+                tessCtx.push(GeometryPtr(new Patch(m_vars, m_uMin,
+                                                   m_uMax, vMid, m_vMax)));
+            }
         }
 
         void getCorners(Vec3& a, Vec3& b, Vec3& c, Vec3& d) const
@@ -107,23 +141,22 @@ class Patch : public Geometry
             d = bilerp(P[0], P[1], P[2], P[3], m_uMax, m_vMax);
         }
 
-        Patch(const Options& opts, boost::shared_ptr<PrimvarStorage> vars,
-                float uMin, float uMax, float vMin, float vMax)
-            : m_opts(opts),
-            m_vars(vars),
+        Patch(const PrimvarStoragePtr& vars,
+              float uMin, float uMax, float vMin, float vMax)
+            : m_vars(vars),
             m_uMin(uMin), m_uMax(uMax),
             m_vMin(vMin), m_vMax(vMax)
         { }
 
     public:
-        Patch(const Options& opts, boost::shared_ptr<PrimvarStorage> vars)
-            : m_opts(opts),
-            m_vars(vars),
+        Patch(const PrimvarStoragePtr& vars)
+            : m_vars(vars),
             m_uMin(0), m_uMax(1),
             m_vMin(0), m_vMax(1)
         { }
 
-        virtual void splitdice(const Mat4& splitTrans, RenderQueue& queue) const
+        virtual void tessellate(const Mat4& splitTrans, float polyLength,
+                                TessellationContext& tessCtx) const
         {
             Vec3 a,b,c,d;
             getCorners(a,b,c,d);
@@ -139,8 +172,9 @@ class Patch : public Geometry
             float area = 0.5 * (  ((bSpl-aSpl)%(cSpl-aSpl)).length()
                                 + ((bSpl-dSpl)%(cSpl-dSpl)).length() );
 
-            const float maxArea = m_opts.gridSize*m_opts.gridSize
-                                  * m_opts.shadingRate;
+            const Options& opts = tessCtx.options();
+            const float maxArea = opts.gridSize*opts.gridSize
+                                  * polyLength*polyLength;
 
             // estimate length in a-b, c-d direction
             float lu = 0.5*((bSpl-aSpl).length() + (dSpl-cSpl).length());
@@ -151,40 +185,18 @@ class Patch : public Geometry
             {
                 // When the area (in number of micropolys) is small enough,
                 // dice the surface.
-                int nu = 1 + Imath::floor(lu/std::sqrt(m_opts.shadingRate));
-                int nv = 1 + Imath::floor(lv/std::sqrt(m_opts.shadingRate));
-                dice(queue, nu, nv);
+                int nu = 1 + ifloor(lu/polyLength);
+                int nv = 1 + ifloor(lv/polyLength);
+                SurfaceDicer<Patch> dicer(nu, nv);
+                tessCtx.invokeTessellator(dicer);
             }
             else
             {
                 // Otherwise, split the surface.  The splitting direction is
                 // the shortest edge.
-
-                // Split
-                if(lu > lv)
-                {
-                    // split in the middle of the a-b and c-d sides.
-                    // a---b
-                    // | | |
-                    // c---d
-                    float uMid = 0.5*(m_uMin + m_uMax);
-                    queue.push(boost::shared_ptr<Geometry>(
-                                new Patch(m_opts, m_vars, m_uMin, uMid, m_vMin, m_vMax)));
-                    queue.push(boost::shared_ptr<Geometry>(
-                                new Patch(m_opts, m_vars, uMid, m_uMax, m_vMin, m_vMax)));
-                }
-                else
-                {
-                    // split in the middle of the a-c and b-d sides.
-                    // a---b
-                    // |---|
-                    // c---d
-                    float vMid = 0.5*(m_vMin + m_vMax);
-                    queue.push(boost::shared_ptr<Geometry>(
-                                new Patch(m_opts, m_vars, m_uMin, m_uMax, m_vMin, vMid)));
-                    queue.push(boost::shared_ptr<Geometry>(
-                                new Patch(m_opts, m_vars, m_uMin, m_uMax, vMid, m_vMax)));
-                }
+                bool splitDirectionU = lu > lv;
+                SurfaceSplitter<Patch> splitter(splitDirectionU);
+                tessCtx.invokeTessellator(splitter);
             }
         }
 

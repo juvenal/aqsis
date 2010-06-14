@@ -20,7 +20,7 @@
 #ifndef GRID_H_INCLUDED
 #define GRID_H_INCLUDED
 
-#include "gridvar.h"
+#include "gridstorage.h"
 #include "util.h"
 
 enum GridType
@@ -29,14 +29,30 @@ enum GridType
     GridType_QuadSimple
 };
 
-class Grid
+class Grid : public RefCounted
 {
+    private:
+        GridType m_type;
     public:
+        Grid(GridType type) : m_type(type) {}
+
         /// Return the grid type.
-        virtual GridType type() = 0;
+        GridType type() const { return m_type; }
+
+        /// Get a ref to the grid storage.
+        virtual GridStorage& storage() = 0;
+
+        /// Calculate normal values from P & store in N.
+        virtual void calculateNormals(DataView<Vec3> N,
+                                      ConstDataView<Vec3> P) const = 0;
+
+        /// Project positions into raster space.
+        virtual void project(const Mat4& toRaster) = 0;
 
         virtual ~Grid() {}
 };
+
+typedef boost::intrusive_ptr<Grid> GridPtr;
 
 
 //------------------------------------------------------------------------------
@@ -46,30 +62,37 @@ class QuadGrid : public Grid
     private:
         int m_nu;
         int m_nv;
-        GridvarStorage m_storage;
+        GridStoragePtr m_storage;
 
     public:
         class Iterator;
 
-        QuadGrid(int nu, int nv, boost::shared_ptr<GridvarList> vars)
-            : m_nu(nu),
+        QuadGrid(int nu, int nv, const GridStoragePtr& storage)
+            : Grid(GridType_Quad),
+            m_nu(nu),
             m_nv(nv),
-            m_storage(vars, nu*nv)
+            m_storage(storage)
         { }
 
-        virtual GridType type() { return GridType_Quad; }
+        virtual GridStorage& storage() { return *m_storage; }
+        virtual const GridStorage& storage() const { return *m_storage; }
+
+        virtual void calculateNormals(DataView<Vec3> N,
+                                      ConstDataView<Vec3> P) const
+        {
+            for(int v = 0; v < m_nv; ++v)
+                for(int u = 0; u < m_nu; ++u, ++P, ++N)
+                    *N = diff(P, u, m_nu) % diff(slice(P, m_nu), v, m_nv);
+        }
 
         int nu() const { return m_nu; }
         int nv() const { return m_nv; }
 
         Iterator begin() const;
 
-        GridvarStorage& storage() { return m_storage; }
-        const GridvarStorage& storage() const { return m_storage; }
-
-        void project(Mat4 m)
+        virtual void project(const Mat4& m)
         {
-            DataView<Vec3> P = m_storage.P();
+            DataView<Vec3> P = m_storage->P();
             for(int i = 0, iend = m_nu*m_nv; i < iend; ++i)
             {
                 // Project all points, but restore z afterward.  TODO: This
@@ -88,10 +111,7 @@ class QuadGrid : public Grid
 
 struct MicroQuadInd
 {
-    int a;
-    int b;
-    int c;
-    int d;
+    int a,b,c,d;
 
     MicroQuadInd(int a, int b, int c, int d) : a(a), b(b), c(c), d(d) {}
 };

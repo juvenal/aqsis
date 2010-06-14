@@ -31,6 +31,8 @@
 
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/arithmetic_traits.hpp>
+#include <boost/type_traits/is_base_of.hpp>
+#include <boost/intrusive_ptr.hpp>
 
 // The distinction here is only due to the layout of the 
 // win32libs copy of OpenEXR.
@@ -49,17 +51,11 @@
 #endif
 
 
-template<typename T>
-inline T* get(std::vector<T>& v) { return v.empty() ? 0 : v[0]; }
-
-template<typename T>
-inline const T* get(const std::vector<T>& v) { return v.empty() ? 0 : v[0]; }
-
-
 typedef Imath::V3f Vec3;
 typedef Imath::V2f Vec2;
 typedef Imath::M44f Mat4;
-typedef Imath::C3f Color;
+typedef Imath::M33f Mat3;
+typedef Imath::C3f Col3;
 
 typedef Imath::Box3f Box;
 
@@ -68,6 +64,19 @@ inline std::ostream& operator<<(std::ostream& out, Box b)
 {
     out << "[" << b.min << " -- " << b.max << "]";
     return out;
+}
+
+template<typename T>
+inline T* get(std::vector<T>& v)
+{
+    assert(v.size() > 0);
+    return &v[0];
+}
+template<typename T>
+inline const T* get(const std::vector<T>& v)
+{
+    assert(v.size() > 0);
+    return &v[0];
 }
 
 
@@ -82,6 +91,12 @@ inline T cross(Imath::Vec2<T> a, Imath::Vec2<T> b)
 {
     return a.x*b.y - b.x*a.y;
 }
+
+inline float dot(Vec3 a, Vec3 b)
+{
+    return a.dot(b);
+}
+
 
 template<typename T>
 inline typename boost::enable_if<boost::is_arithmetic<T>, T>::type
@@ -139,6 +154,32 @@ inline T lerp(T a, T b, float t)
     return (1-t)*a + t*b;
 }
 
+template<typename T>
+inline T clamp(T x, T low, T high)
+{
+    return (x < low) ? low : ((x > high) ? high : x);
+}
+
+template<typename T>
+inline int ifloor(T x)
+{
+    int ix = static_cast<int>(x);
+    if(x >= 0)
+        return ix;
+    else
+        return ix - (x != ix);
+}
+
+template<typename T>
+inline int iceil(T x)
+{
+    int ix = static_cast<int>(x);
+    if(x <= 0)
+        return ix;
+    else
+        return ix + (x != ix);
+}
+
 inline float deg2rad(float d) { return (M_PI/180) * d; }
 inline float rad2deg(float r) { return (180/M_PI) * r; }
 
@@ -162,6 +203,24 @@ inline Mat4 screenWindow(float left, float right, float bottom, float top)
                 0, 0,   1, 0,
                 -(right+left)/w, -(top+bottom)/h, 0, 1);
 }
+
+/// Get the vector transformation associated with the point transformation, m
+inline Mat3 vectorTransform(const Mat4& m)
+{
+    return Mat3(m[0][0], m[0][1], m[0][2],
+                m[1][0], m[1][1], m[1][2],
+                m[2][0], m[2][1], m[2][2]);
+}
+
+/// Get the normal transformation associated with the point transformation, m
+inline Mat3 normalTransform(const Mat4& m)
+{
+    Mat3 nTrans = vectorTransform(m);
+    nTrans.invert();
+    nTrans.transpose();
+    return nTrans;
+}
+
 
 /// Transform a bounding box
 inline Box transformBound(const Box& bound, const Mat4& m)
@@ -193,9 +252,95 @@ inline Vec3 hybridRasterTransform(const Vec3& v, const Mat4& m)
     return Vec3(x*invW, y*invW, v.z);
 }
 
+template<typename T>
+inline Imath::V2i ifloor(const Imath::Vec2<T>& v)
+{
+    return Imath::V2i(ifloor(v.x), ifloor(v.y));
+}
+
 #define ALLOCA(type, len) static_cast<type*>(alloca(len*sizeof(type)))
 #define FALLOCA(len) ALLOCA(float, len)
 
+template<typename T, size_t sz> int array_len(T (&a)[sz]) { return sz; }
+
+
+/// Radical inverse function for low-discrepancy sequences.
+///
+/// The radical inverse of n in base b is the base b digits of n reversed and
+/// placed to the right of the radix point:
+///
+///     n = d1d2d3d4d5 |->  0.d5d4d3d2d1 = radicalInverse(n)
+///
+/// These are great for easily building sequences in D dimensions with nice
+/// distribution properties; just construct tuples like
+///
+/// [radicalInverse(n, 2), radicalInverse(n, 3), ..., radicalInverse(n, p_D)]
+///
+/// where p_D is the D'th prime number.  Note that p_D can't be too large, or
+/// the sequences start looking rather non-uniform.
+inline float radicalInverse(int n, int base = 2)
+{
+    double r = 0;
+    double invBase = 1.0/base;
+    double digitMult = invBase;
+    while(n != 0)
+    {
+        r += digitMult*(n % base);
+        n /= base;
+        digitMult *= invBase;
+    }
+    return r;
+}
+
+
+//------------------------------------------------------------------------------
+/// Reference counting machinary.
+
 inline void nullDeleter(const void*) { }
+
+/// Reference counted base mixin for use with boost::intrusive_ptr.
+///
+/// This is a non-virtual implementation for maximum efficiency.
+class RefCounted
+{
+    public:
+        RefCounted() : m_refCount(0) {}
+
+        /// Copying does *not* copy the reference count!
+        RefCounted(const RefCounted& /*r*/) : m_refCount(0) {}
+        RefCounted& operator=(const RefCounted& /*r*/) { return *this; }
+
+        int useCount() const { return m_refCount; }
+        int incRef() const   { return ++m_refCount; }
+        int decRef() const   { return --m_refCount; }
+
+    protected:
+        /// Protected so users can't delete RefCounted directly.
+        ~RefCounted() {}
+
+    private:
+        mutable int m_refCount;
+};
+
+
+/// Add a reference to a RefCounted object.
+inline void intrusive_ptr_add_ref(RefCounted* p)
+{
+    p->incRef();
+}
+
+/// Release a reference to a RefCounted object.
+///
+/// Note that this function *must* be a template, because RefCounted does not
+/// have a virtual destructor.  (Therefore, if we just took p as type
+/// RefCounted*, the wrong destructor would get called!)
+template<typename T>
+inline typename boost::enable_if<boost::is_base_of<RefCounted, T> >::type
+intrusive_ptr_release(T* p)
+{
+    if(p->decRef() == 0)
+        delete p;
+}
+
 
 #endif // UTIL_H_INCLUDED

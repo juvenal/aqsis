@@ -21,28 +21,48 @@
 #define OPTIONS_H_INCLUDED
 
 #include <cfloat>
+#include <OpenEXR/ImathVec.h>
 
+#include "filters.h"
+
+/// Renderer options.
 struct Options
 {
+    // Reyes options
     int maxSplits;   ///< maximum number of splits before discarding a surface
-    int xRes;        ///< image x-resolution
-    int yRes;        ///< image y-resolution
-    //Imath::V2i nsumSamples; ///< number of subsamples
     int gridSize;    ///< Desired grid side length.
-    float shadingRate; ///< Desired micropoly area
     float clipNear;  ///< Near clipping plane (cam coords)
     float clipFar;   ///< Far clipping plane (cam coords)
-    bool smoothShading; ///< Type of shading interpolation
+
+    // Sampling options
+    int xRes;         ///< image x-resolution
+    int yRes;         ///< image y-resolution
+    Imath::V2i superSamp;  ///< supersampling resolution
+    float shutterMin; ///< shutter start time for motion blur
+    float shutterMax; ///< shutter end time for motion blur
+    float fstop;      ///< focalLength/lensDiameter
+    float focalLength;   ///< lens focal length
+    float focalDistance; ///< distance at which lens is focussed
+
+    // Filtering options
+    FilterPtr pixelFilter; ///< pixel filter functor
+    bool doFilter;    ///< If false, turn off filtering & return raw samples
 
     Options()
         : maxSplits(20),
-        xRes(640),
-        yRes(480),
         gridSize(16),
-        shadingRate(1),
         clipNear(FLT_EPSILON),
         clipFar(FLT_MAX),
-        smoothShading(true)
+        xRes(640),
+        yRes(480),
+        superSamp(2,2),
+        shutterMin(0),
+        shutterMax(0),
+        fstop(FLT_MAX),
+        focalLength(FLT_MAX),
+        focalDistance(FLT_MAX),
+        pixelFilter(makeGaussianFilter(Vec2(2,2))),
+        doFilter(true)
     { }
 };
 
