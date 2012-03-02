@@ -9,7 +9,7 @@
 	<key>CFBundleIdentifier</key>
 	<string>org.aqsis.Aqsis</string>
 	<key>CFBundleIconFile</key>
-	<string>${CMAKE_PROJECT_NAME}</string>	
+	<string>${AQSIS_PROJECT_NAME_SHORT}</string>	
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

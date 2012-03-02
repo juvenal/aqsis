@@ -31,15 +31,8 @@ set(RESOURCEPATH "${DEFAULT_RESOURCEPATH}" CACHE STRING "Aqsis resource searchpa
 
 configure_file(${CMAKE_SOURCE_DIR}/aqsisrc.in.cmake ${BUNDLEDIR}/aqsisrc)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in.cmake ${BUNDLEDIR}/Info.plist)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../application.icns ${BUNDLEDIR}/Aqsis.icns COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../application.icns ${BUNDLEDIR}/${AQSIS_PROJECT_NAME_SHORT}.icns COPYONLY)
 file(WRITE "${BUNDLEDIR}/PkgInfo" "APPL????")
-set(OSX_MAKE_STANDALONE_BUNDLE_CMAKE_SCRIPT "${BUNDLEDIR}/CompleteBundle.cmake")
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CompleteBundle.cmake.in" 
-		"${OSX_MAKE_STANDALONE_BUNDLE_CMAKE_SCRIPT}")
-set(OSX_MAKE_STANDALONE_BUNDLE_BASH_SCRIPT "${BUNDLEDIR}/create_bundle.sh")
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/create_bundle.sh.in" 
-		"${OSX_MAKE_STANDALONE_BUNDLE_BASH_SCRIPT}")
-install(SCRIPT "${OSX_MAKE_STANDALONE_BUNDLE_CMAKE_SCRIPT}")
 install(FILES "${BUNDLEDIR}/bundle_config.app/Contents/MacOS/applet" 
 		DESTINATION "../MacOS"
 		PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
@@ -58,10 +51,3 @@ ADD_CUSTOM_COMMAND(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/bundle_config.app
 ADD_CUSTOM_TARGET(bundleconfig ALL echo
 	DEPENDS  ${CMAKE_CURRENT_BINARY_DIR}/bundle_config.app
 	)
-	
-ADD_CUSTOM_TARGET(osxbundle
-	WORKING_DIRECTORY ${BUNDLEDIR}
-	COMMAND sh ./create_bundle.sh
-	)
-
-ADD_DEPENDENCIES(osxbundle aqsis aqsl aqsltell eqsl miqser piqsl teqser display d_bmp d_exr d_xpm piqsldisplay shaders ribparse bundleconfig)
