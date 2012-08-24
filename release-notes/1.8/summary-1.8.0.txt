@@ -1,3 +1,22 @@
+Summary of changes in aqsis-1.8.2 
+
+
+Bug Fixes
+---------
+
+* Define empty RiDeformationV for third-party applications
+  that link to our ri2rib library.
+* Minor tweaks to building on Win32.
+
+
+===================================================================
+
+Summary of changes in aqsis-1.8.1 
+
+Minor packaging fix
+
+===================================================================
+
 Summary of changes in aqsis-1.8.0 
 
 

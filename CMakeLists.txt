@@ -198,7 +198,7 @@ endif()
 # these version variables are potentially used there.
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 8)
-set(VERSION_BUILD 1)
+set(VERSION_BUILD 2)
 set(SCM_REVISION 0) # "?"
 
 
